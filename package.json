@@ -1,6 +1,6 @@
 {
   "devDependencies": {
     "ethlint": "^1.2.3",
-    "truffle": "^5.0.4"
+    "truffle": "^5.0.5"
   }
 }

@@ -1504,9 +1504,9 @@ to-regex@^3.0.1, to-regex@^3.0.2:
     regex-not "^1.0.2"
     safe-regex "^1.1.0"
 
-truffle@^5.0.4:
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.0.4.tgz#fc68cb6a6a35b46a7ca69eca7b64d161b491db3d"
+truffle@^5.0.5:
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.0.5.tgz#428b5e776bd0bef0272874d636a2607d1fc7ede8"
   dependencies:
     app-module-path "^2.2.0"
     mocha "^4.1.0"
