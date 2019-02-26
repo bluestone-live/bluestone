@@ -2,5 +2,8 @@
   "devDependencies": {
     "ethlint": "^1.2.3",
     "truffle": "^5.0.5"
+  },
+  "dependencies": {
+    "openzeppelin-solidity": "^2.1.2"
   }
 }
