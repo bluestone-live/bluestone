@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "ethlint": "^1.2.3",
+    "openzeppelin-test-helpers": "^0.1.2",
     "truffle": "^5.0.5"
   },
   "dependencies": {
