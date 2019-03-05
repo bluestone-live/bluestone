@@ -21,6 +21,11 @@ contract PoolGroup {
         lastPoolKey = terms;
     }
 
+    function getOneTimeDeposit(uint8 term) external view returns (uint) {
+        Pool storage pool = pools[firstPoolKey + term - 1];
+        return pool.oneTimeDeposit;
+    }
+
     function addOneTimeDeposit(uint8 term, uint amount) external {
         Pool storage pool = pools[firstPoolKey + term - 1];
         pool.oneTimeDeposit = pool.oneTimeDeposit.add(amount); 
