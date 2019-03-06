@@ -2,14 +2,14 @@ const PoolGroup = artifacts.require('PoolGroup')
 
 contract('PoolGroup', () => {
   describe('constructor', () => {
-    it('updates the first and last pool keys correctly', async () => {
+    it('updates the first and last pool indexes correctly', async () => {
       const term = 7
       const poolGroup = await PoolGroup.new(term)
-      const firstPoolKey = await poolGroup.firstPoolKey()
-      const lastPoolKey = await poolGroup.lastPoolKey()
+      const firstPoolIndex = await poolGroup.firstPoolIndex()
+      const lastPoolIndex = await poolGroup.lastPoolIndex()
 
-      assert.equal(firstPoolKey, 1)
-      assert.equal(lastPoolKey, term) 
+      assert.equal(firstPoolIndex, 1)
+      assert.equal(lastPoolIndex, term) 
     })
   })
 })

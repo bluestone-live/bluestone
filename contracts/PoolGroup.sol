@@ -12,43 +12,65 @@ contract PoolGroup {
         uint recurringDeposit;
     }
 
-    uint public firstPoolKey;
-    uint public lastPoolKey;
-    mapping(uint => Pool) public pools;
+    uint public firstPoolIndex;
+    uint public lastPoolIndex;
+
+    /// Identify pool by the index, i.e., position. The index increments every day.
+    mapping(uint => Pool) public poolsByIndex;
+
+    /// Identify pool by the ID.
+    mapping(uint8 => Pool) public poolsById;
 
     constructor(uint8 terms) public {
-        firstPoolKey = 1;
-        lastPoolKey = terms;
+        firstPoolIndex = 1;
+        lastPoolIndex = terms;
+
+        for (uint8 id = 1; id <= terms; id++) {
+            Pool memory pool = Pool({
+                oneTimeDeposit: 0,
+                recurringDeposit: 0
+            });
+
+            poolsByIndex[id] = pool;
+            poolsById[id] = pool; 
+        }
     }
 
-    function getOneTimeDeposit(uint8 term) external view returns (uint) {
-        Pool storage pool = pools[firstPoolKey + term - 1];
+    function getOneTimeDeposit(uint8 index) external view returns (uint) {
+        Pool storage pool = poolsByIndex[firstPoolIndex + index - 1];
         return pool.oneTimeDeposit;
     }
 
-    function getRecurringDeposit(uint8 term) external view returns (uint) {
-        Pool storage pool = pools[firstPoolKey + term - 1];
+    function getRecurringDeposit(uint8 index) external view returns (uint) {
+        Pool storage pool = poolsByIndex[firstPoolIndex + index - 1];
         return pool.recurringDeposit;
     }
 
-    function addToOneTimeDeposit(uint8 term, uint amount) external {
-        Pool storage pool = pools[firstPoolKey + term - 1];
+    function addToOneTimeDeposit(uint8 index, uint amount) external {
+        Pool storage pool = poolsByIndex[firstPoolIndex + index - 1];
         pool.oneTimeDeposit = pool.oneTimeDeposit.add(amount); 
     }
 
-    function addToRecurringDeposit(uint8 term, uint amount) external {
-        Pool storage pool = pools[firstPoolKey + term - 1];
+    function addToRecurringDeposit(uint8 index, uint amount) external {
+        Pool storage pool = poolsByIndex[firstPoolIndex + index - 1];
         pool.recurringDeposit = pool.recurringDeposit.add(amount); 
     }
 
-    function withdrawOneTimeDeposit(uint8 term, uint amount) external {
-        Pool storage pool = pools[firstPoolKey + term - 1];
+    function withdrawOneTimeDeposit(uint8 index, uint amount) external {
+        Pool storage pool = poolsByIndex[firstPoolIndex + index - 1];
         pool.oneTimeDeposit = pool.oneTimeDeposit.sub(amount);
     }
 
-    function withdrawRecurringDeposit(uint8 term, uint amount) external {
-        Pool storage pool = pools[firstPoolKey + term - 1];
+    function transferRecurringDepositToOneTimeDeposit(uint8 poolId, uint amount) external {
+        Pool storage pool = poolsById[poolId];
         pool.recurringDeposit = pool.recurringDeposit.sub(amount);
+        pool.oneTimeDeposit = pool.oneTimeDeposit.add(amount);
+    }
+
+    function transferOneTimeDepositToRecurringDeposit(uint8 poolId, uint amount) external {
+        Pool storage pool = poolsById[poolId];
+        pool.oneTimeDeposit = pool.oneTimeDeposit.sub(amount);
+        pool.recurringDeposit = pool.recurringDeposit.add(amount);
     }
 
     /// Append the first pool to the end of the pools. This function is needed
@@ -56,9 +78,9 @@ contract PoolGroup {
     /// do not delete the original first pool because it's not necessary.
     /// For example, 1->2->3->4->5->6->7 becomes 2->3->4->5->6->7->8
     function moveFirstPoolToLastPool() external {
-        Pool storage firstPool = pools[firstPoolKey];
-        firstPoolKey++;
-        lastPoolKey++;
-        pools[lastPoolKey] = firstPool;
+        Pool storage firstPool = poolsByIndex[firstPoolIndex];
+        firstPoolIndex++;
+        lastPoolIndex++;
+        poolsByIndex[lastPoolIndex] = firstPool;
     }
 }

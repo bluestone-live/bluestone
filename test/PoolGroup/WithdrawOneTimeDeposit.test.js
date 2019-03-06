@@ -10,7 +10,7 @@ contract('PoolGroup', () => {
       const withdrawAmount = 50e18
       await poolGroup.addToOneTimeDeposit(term, depositAmount.toString())
       await poolGroup.withdrawOneTimeDeposit(term, withdrawAmount.toString())
-      const pool = await poolGroup.pools.call(term)
+      const pool = await poolGroup.poolsByIndex(term)
       assert.equal(pool.oneTimeDeposit, depositAmount - withdrawAmount)
       assert.equal(pool.recurringDeposit, 0)
     })
