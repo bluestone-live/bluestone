@@ -26,12 +26,17 @@ contract PoolGroup {
         return pool.oneTimeDeposit;
     }
 
-    function addOneTimeDeposit(uint8 term, uint amount) external {
+    function getRecurringDeposit(uint8 term) external view returns (uint) {
+        Pool storage pool = pools[firstPoolKey + term - 1];
+        return pool.recurringDeposit;
+    }
+
+    function addToOneTimeDeposit(uint8 term, uint amount) external {
         Pool storage pool = pools[firstPoolKey + term - 1];
         pool.oneTimeDeposit = pool.oneTimeDeposit.add(amount); 
     }
 
-    function addRecurringDeposit(uint8 term, uint amount) external {
+    function addToRecurringDeposit(uint8 term, uint amount) external {
         Pool storage pool = pools[firstPoolKey + term - 1];
         pool.recurringDeposit = pool.recurringDeposit.add(amount); 
     }

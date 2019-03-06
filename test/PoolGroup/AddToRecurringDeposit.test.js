@@ -6,7 +6,7 @@ contract('PoolGroup', () => {
       const poolGroup = await PoolGroup.new(7)
       const term = 1
       const amount = 100e18
-      await poolGroup.addRecurringDeposit(term, amount.toString())
+      await poolGroup.addToRecurringDeposit(term, amount.toString())
       const pool = await poolGroup.pools.call(term)
       assert.equal(pool.oneTimeDeposit, 0)
       assert.equal(pool.recurringDeposit, amount)

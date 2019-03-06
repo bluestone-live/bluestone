@@ -7,27 +7,36 @@ import "./PoolGroup.sol";
 contract DepositMarket {
     using SafeMath for uint;
 
-    uint256 maturedDepositAmount;
+    uint256 public maturedDepositAmount;
     
-    // term => pool group
+    ///@dev deposit term -> pool group
     mapping(uint8 => PoolGroup) poolGroups;
 
     constructor() public {
-        poolGroups[1] = PoolGroup(1);
-        poolGroups[7] = PoolGroup(7);
-        poolGroups[30] = PoolGroup(30);
+        maturedDepositAmount = 0;
+        poolGroups[1] = new PoolGroup(1);
+        poolGroups[7] = new PoolGroup(7);
+        poolGroups[30] = new PoolGroup(30);
     }
 
-    function addOneTimeDeposit(address user, uint8 term, uint amount) external {
+    function getOneTimeDepositFromPool(uint8 depositTerm, uint8 poolTerm) external view returns (uint) {
+        return poolGroups[depositTerm].getOneTimeDeposit(poolTerm);
+    }
+
+    function getRecurringDepositFromPool(uint8 depositTerm, uint8 poolTerm) external view returns (uint) {
+        return poolGroups[depositTerm].getRecurringDeposit(poolTerm);
+    }
+
+    function addToOneTimeDeposit(address user, uint8 term, uint amount) external {
         PoolGroup poolGroup = poolGroups[term];
-        poolGroup.addOneTimeDeposit(term, amount);
+        poolGroup.addToOneTimeDeposit(term, amount);
 
         // TODO: update balance
     }
 
-    function addRecurringDeposit(address user, uint8 term, uint amount) external {
+    function addToRecurringDeposit(address user, uint8 term, uint amount) external {
         PoolGroup poolGroup = poolGroups[term];
-        poolGroup.addRecurringDeposit(term, amount);
+        poolGroup.addToRecurringDeposit(term, amount);
 
         // TODO: update balance
     }
