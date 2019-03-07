@@ -23,20 +23,20 @@ Make sure you have read through [Truffle Documentation](https://truffleframework
 
 Read [here](http://47.244.8.26/w/arcanist_workflow/) for general development workflow.
 
-To better work with Truffle framework, we can leverage the integrated [console](https://truffleframework.com/docs/truffle/getting-started/using-truffle-develop-and-the-console) to easily execute commands and debug issues:
+Since we've already installed Ganache as a client, we can leverage the integrated [console](https://truffleframework.com/docs/truffle/getting-started/using-truffle-develop-and-the-console) to easily execute commands and debug issues:
 
 ```bash
-npx truffle develop
+npx truffle console
 
 # Then you can call truffle commands directly
-truffle(develop)> compile
-truffle(develop)> migrate
-truffle(develop)> test
-truffle(develop)> debug <transaction-hash>
+truffle(development)> compile
+truffle(development)> migrate
+truffle(development)> test
+truffle(development)> debug <transaction-hash>
 
 # We also have access to the JavaScript environment
-truffle(develop)> await DepositMarket.isDeployed()
-truffle(develop)> true
+truffle(development)> await DepositMarket.isDeployed()
+truffle(development)> true
 ```
 
 ## Test
