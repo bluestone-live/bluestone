@@ -13,14 +13,16 @@ contract DepositMarket {
     mapping(uint8 => PoolGroup) poolGroups;
 
     struct Deposit {
+        address user;
         uint amount;
         uint8 term;
-        uint8 poolId;
         bool isRecurring;
     }
 
+    uint private _depositId;
+
     ///@dev ID -> deposit
-    mapping(bytes => Deposit) deposits;
+    mapping(uint => Deposit) public deposits;
 
     constructor() public {
         maturedDepositAmount = 0;
@@ -41,12 +43,30 @@ contract DepositMarket {
         PoolGroup poolGroup = poolGroups[term];
         poolGroup.addToOneTimeDeposit(term, amount);
 
+        deposits[_depositId] = Deposit({
+            user: user,
+            amount: amount,
+            term: term,
+            isRecurring: false
+        });
+
+        _depositId++;
+
         // TODO: update balance
     }
 
     function addToRecurringDeposit(address user, uint8 term, uint amount) external {
         PoolGroup poolGroup = poolGroups[term];
         poolGroup.addToRecurringDeposit(term, amount);
+        
+        deposits[_depositId] = Deposit({
+            user: user,
+            amount: amount,
+            term: term,
+            isRecurring: true
+        });
+
+        _depositId++;
 
         // TODO: update balance
     }
@@ -59,27 +79,27 @@ contract DepositMarket {
         // TODO: update balance
     }
 
-    function enableRecurringDeposit(bytes calldata depositId) external {
+    function enableRecurringDeposit(address user, uint depositId) external {
         Deposit storage deposit = deposits[depositId];
+        require(user == deposit.user);
 
         if (!deposit.isRecurring) {
             deposit.isRecurring = true;
             uint8 term = deposit.term;
-            uint8 poolId = deposit.poolId;
             uint amount = deposit.amount;
-            poolGroups[term].transferOneTimeDepositToRecurringDeposit(poolId, amount);
+            poolGroups[term].transferOneTimeDepositToRecurringDeposit(term, amount);
         }
     }
 
-    function disableRecurringDeposit(bytes calldata depositId) external {
+    function disableRecurringDeposit(address user, uint depositId) external {
         Deposit storage deposit = deposits[depositId];
+        require(user == deposit.user);
 
         if (deposit.isRecurring) {
             deposit.isRecurring = false;
             uint8 term = deposit.term;
-            uint8 poolId = deposit.poolId;
             uint amount = deposit.amount;
-            poolGroups[term].transferRecurringDepositToOneTimeDeposit(poolId, amount);
+            poolGroups[term].transferRecurringDepositToOneTimeDeposit(term, amount);
         }
     }
 
@@ -94,6 +114,6 @@ contract DepositMarket {
         uint oneTimeDeposit = poolGroup.getOneTimeDeposit(term);
         poolGroup.withdrawOneTimeDeposit(term, oneTimeDeposit);
         maturedDepositAmount = maturedDepositAmount.add(oneTimeDeposit);
-        poolGroup.moveFirstPoolToLastPool();
+        poolGroup.incrementPoolIndexes();
     }
 }
