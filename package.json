@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "compile": "./scripts/compile",
+    "lint": "./scripts/lint",
+    "test": "./scripts/test"
+  },
   "devDependencies": {
     "ethlint": "^1.2.3",
     "openzeppelin-test-helpers": "^0.1.2",
