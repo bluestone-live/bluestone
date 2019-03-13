@@ -1,4 +1,5 @@
 const DepositMarket = artifacts.require('DepositMarket')
+const Deposit = artifacts.require('Deposit')
 
 contract('DepositMarket', () => {
   let market
@@ -15,12 +16,14 @@ contract('DepositMarket', () => {
       await market.addToOneTimeDeposit(address, term, amount.toString())
 
       const depositId = 0
-      const prevDeposit = await market.deposits(depositId)
-      assert.equal(prevDeposit.isRecurring, false)
+      const depositAddress = await market.deposits(depositId)
+      const deposit = await Deposit.at(depositAddress)
+
+      assert.equal((await deposit.isRecurring()), false)
 
       await market.enableRecurringDeposit(address, depositId)
-      const currDeposit = await market.deposits(depositId)
-      assert.equal(currDeposit.isRecurring, true)
+
+      assert.equal((await deposit.isRecurring()), true)
     })
   })
 })

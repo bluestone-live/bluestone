@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./PoolGroup.sol";
+import "./Deposit.sol";
 
 
 contract DepositMarket {
@@ -12,13 +13,6 @@ contract DepositMarket {
     
     ///@dev deposit term -> pool group
     mapping(uint8 => PoolGroup) poolGroups;
-
-    struct Deposit {
-        address user;
-        uint amount;
-        uint8 term;
-        bool isRecurring;
-    }
 
     uint private _depositId;
 
@@ -68,13 +62,8 @@ contract DepositMarket {
         PoolGroup poolGroup = poolGroups[term];
         poolGroup.addToOneTimeDeposit(term, amount);
 
-        deposits[_depositId] = Deposit({
-            user: user,
-            amount: amount,
-            term: term,
-            isRecurring: false
-        });
-
+        bool isRecurring = false;
+        deposits[_depositId] = new Deposit(user, term, amount, isRecurring);
         _depositId++;
 
         // Update user balance
@@ -105,46 +94,42 @@ contract DepositMarket {
         PoolGroup poolGroup = poolGroups[term];
         poolGroup.addToRecurringDeposit(term, amount);
         
-        deposits[_depositId] = Deposit({
-            user: user,
-            amount: amount,
-            term: term,
-            isRecurring: true
-        });
-
+        bool isRecurring = true;
+        deposits[_depositId] = new Deposit(user, term, amount, isRecurring);
         _depositId++;
 
         // TODO: update balance
     }
 
-    function withdraw(address user, uint amount) external {
-        // TODO: check user balance
+    function withdraw(address user, uint depositId) external {
+        Deposit deposit = deposits[depositId];
+        deposit.withdraw(user);
 
-        maturedDepositAmount = maturedDepositAmount.sub(amount);
+        maturedDepositAmount = maturedDepositAmount.sub(deposit.amount());
 
         // TODO: update balance
     }
 
     function enableRecurringDeposit(address user, uint depositId) external {
-        Deposit storage deposit = deposits[depositId];
-        require(user == deposit.user);
+        Deposit deposit = deposits[depositId];
+        require(user == deposit.owner());
 
-        if (!deposit.isRecurring) {
-            deposit.isRecurring = true;
-            uint8 term = deposit.term;
-            uint amount = deposit.amount;
+        if (!deposit.isRecurring()) {
+            deposit.enableRecurring();
+            uint8 term = deposit.term();
+            uint amount = deposit.amount();
             poolGroups[term].transferOneTimeDepositToRecurringDeposit(term, amount);
         }
     }
 
     function disableRecurringDeposit(address user, uint depositId) external {
-        Deposit storage deposit = deposits[depositId];
-        require(user == deposit.user);
+        Deposit deposit = deposits[depositId];
+        require(user == deposit.owner());
 
-        if (deposit.isRecurring) {
-            deposit.isRecurring = false;
-            uint8 term = deposit.term;
-            uint amount = deposit.amount;
+        if (deposit.isRecurring()) {
+            deposit.disableRecurring();
+            uint8 term = deposit.term();
+            uint amount = deposit.amount();
             poolGroups[term].transferRecurringDepositToOneTimeDeposit(term, amount);
         }
     }
