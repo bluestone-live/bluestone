@@ -8,7 +8,6 @@ import "./Deposit.sol";
 contract DepositMarket {
     using SafeMath for uint;
 
-    uint public maturedDepositAmount;
     uint constant private ONE = 10 ** 18;
     
     ///@dev deposit term -> pool group
@@ -19,35 +18,17 @@ contract DepositMarket {
     ///@dev ID -> deposit
     mapping(uint => Deposit) public deposits;
 
-    //@dev term -> global interest index
-    mapping(uint8 => uint) globalInterestIndexes;
+    mapping(uint8 => uint) interestIndexPerTerm;
+    mapping(uint8 => uint) lastTimestampPerTerm;
     
-    struct Balance {
-        /// Total balance with accrued interest after applying the customer's 
-        /// most recent balance-changing action
-        uint total;
-        
-        /// Total interestIndex as calculated after applying the customer's 
-        /// most recent balance-changing action
-        uint interestIndex;
-        
-        /// Last block.timestamp after applying the customer's 
-        /// most recent balance-changing action
-        uint lastTimestamp;
-    }
-    
-    ///@dev user address -> term -> balance
-    mapping(address => mapping(uint8 => Balance)) balances;
-
     constructor() public {
-        maturedDepositAmount = 0;
         poolGroups[1] = new PoolGroup(1);
         poolGroups[7] = new PoolGroup(7);
         poolGroups[30] = new PoolGroup(30);
 
-        globalInterestIndexes[1] = ONE;
-        globalInterestIndexes[7] = ONE;
-        globalInterestIndexes[30] = ONE;
+        interestIndexPerTerm[1] = ONE;
+        interestIndexPerTerm[7] = ONE;
+        interestIndexPerTerm[30] = ONE;
     }
 
     function getOneTimeDepositFromPool(uint8 depositTerm, uint8 poolTerm) external view returns (uint) {
@@ -63,51 +44,21 @@ contract DepositMarket {
         poolGroup.addToOneTimeDeposit(term, amount);
 
         bool isRecurring = false;
-        deposits[_depositId] = new Deposit(user, term, amount, isRecurring);
-        _depositId++;
-
-        // Update user balance
-        Balance storage balance = balances[user][term];
-
-        if (balance.interestIndex == 0) {
-            balance.interestIndex = ONE; 
-        }
-
-        /// r = Deposit interest rate
-        /// t = duration, t = currTimeStamp - lastTimeStamp
-        /// Gi = global interest index, Gi = Gi * (1 + r * t)
-        /// Ui = user interest index, Ui = Ui * (1 + r * t)
-        /// B = balance total, B = B * (Gi / Ui) + amount
-        uint currTimestamp = block.timestamp;
-        uint interestRate = calculateInterestRate(term);
-        uint duration = currTimestamp.sub(balance.lastTimestamp);
-        uint totalInterestRate = ONE.add(interestRate.mul(duration));
-        uint globalInterestIndex = globalInterestIndexes[term];
-
-        globalInterestIndexes[term] = globalInterestIndex.mul(totalInterestRate);
-        balance.total = balance.total.mul(globalInterestIndex.div(balance.interestIndex)).add(amount);
-        balance.interestIndex = balance.interestIndex.mul(totalInterestRate);
-        balance.lastTimestamp = currTimestamp;
+        addToDeposit(user, term, amount, isRecurring);
     }
 
     function addToRecurringDeposit(address user, uint8 term, uint amount) external {
         PoolGroup poolGroup = poolGroups[term];
         poolGroup.addToRecurringDeposit(term, amount);
-        
-        bool isRecurring = true;
-        deposits[_depositId] = new Deposit(user, term, amount, isRecurring);
-        _depositId++;
 
-        // TODO: update balance
+        bool isRecurring = true;
+        addToDeposit(user, term, amount, isRecurring);
     }
 
     function withdraw(address user, uint depositId) external {
         Deposit deposit = deposits[depositId];
-        deposit.withdraw(user);
-
-        maturedDepositAmount = maturedDepositAmount.sub(deposit.amount());
-
-        // TODO: update balance
+        uint8 term = deposit.term();
+        deposit.withdraw(user, interestIndexPerTerm[term]);
     }
 
     function enableRecurringDeposit(address user, uint depositId) external {
@@ -144,8 +95,15 @@ contract DepositMarket {
         uint8 term = 1;
         uint oneTimeDeposit = poolGroup.getOneTimeDeposit(term);
         poolGroup.withdrawOneTimeDeposit(term, oneTimeDeposit);
-        maturedDepositAmount = maturedDepositAmount.add(oneTimeDeposit);
         poolGroup.incrementPoolIndexes();
+    }
+
+    function calculateInterestIndex(uint8 term, uint currTimestamp, uint lastTimestamp) private returns (uint) {
+        uint interestRate = calculateInterestRate(term);
+        uint duration = currTimestamp.sub(lastTimestamp);
+
+        // index = index * (1 + r * t)
+        return interestIndexPerTerm[term].mul(ONE.add(interestRate.mul(duration)));
     }
 
     function calculateInterestRate(uint8 term) private returns (uint) {
@@ -161,5 +119,15 @@ contract DepositMarket {
 
         // TODO: replace dummy value
         return ONE;
+    }
+
+    function addToDeposit(address user, uint8 term, uint amount, bool isRecurring) private {
+        uint currTimestamp = now;
+        uint lastTimestamp = lastTimestampPerTerm[term];
+        interestIndexPerTerm[term] = calculateInterestIndex(term, currTimestamp, lastTimestamp);
+        lastTimestampPerTerm[term] = currTimestamp;
+
+        deposits[_depositId] = new Deposit(user, term, amount, interestIndexPerTerm[term], isRecurring);
+        _depositId++;
     }
 }

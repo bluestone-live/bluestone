@@ -21,18 +21,12 @@ contract('DepositMarket', () => {
       assert.equal(prevOneTimeDeposit, oneTimeDeposit)
       assert.equal(prevRecurringDeposit, recurringDeposit)
 
-      const prevMaturedDepositAmount = await market.maturedDepositAmount()
-      assert.equal(prevMaturedDepositAmount, 0)
-
       await market.updateDepositMaturity()
 
       const currOneTimeDeposit = await market.getOneTimeDepositFromPool(term, 1)
       const currRecurringDeposit = await market.getRecurringDepositFromPool(term, 1)
       assert.equal(currOneTimeDeposit, 0)
       assert.equal(currRecurringDeposit, recurringDeposit)
-
-      const currMaturedDepositAmount = await market.maturedDepositAmount()
-      assert.equal(currMaturedDepositAmount, oneTimeDeposit)
     })
 
     it('updates deposit maturity for 7-day-term pool groups', async () => {
@@ -50,9 +44,6 @@ contract('DepositMarket', () => {
         assert.equal(prevOneTimeDeposit, oneTimeDeposit)
         assert.equal(prevRecurringDeposit, recurringDeposit)
 
-        const prevMaturedDepositAmount = await market.maturedDepositAmount()
-        assert.equal(prevMaturedDepositAmount, 0)
-
         await market.updateDepositMaturity()
       }
 
@@ -60,9 +51,6 @@ contract('DepositMarket', () => {
       const currRecurringDeposit = await market.getRecurringDepositFromPool(term, 7)
       assert.equal(currOneTimeDeposit, 0)
       assert.equal(currRecurringDeposit, recurringDeposit)
-
-      const currMaturedDepositAmount = await market.maturedDepositAmount()
-      assert.equal(currMaturedDepositAmount, oneTimeDeposit)
     })
   })
 })
