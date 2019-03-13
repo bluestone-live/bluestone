@@ -85,9 +85,9 @@ contract DepositMarket {
         uint globalInterestIndex = globalInterestIndexes[term];
 
         globalInterestIndexes[term] = globalInterestIndex.mul(totalInterestRate);
+        balance.total = balance.total.mul(globalInterestIndex.div(balance.interestIndex)).add(amount);
         balance.interestIndex = balance.interestIndex.mul(totalInterestRate);
         balance.lastTimestamp = currTimestamp;
-        balance.total = balance.total.mul(globalInterestIndex.div(balance.interestIndex)).add(amount);
     }
 
     function addToRecurringDeposit(address user, uint8 term, uint amount) external {
