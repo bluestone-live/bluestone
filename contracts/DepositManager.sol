@@ -5,7 +5,7 @@ import "./PoolGroup.sol";
 import "./Deposit.sol";
 
 
-contract DepositMarket {
+contract DepositManager {
     using SafeMath for uint;
 
     uint constant private ONE = 10 ** 18;

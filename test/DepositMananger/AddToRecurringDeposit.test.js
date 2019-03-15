@@ -1,21 +1,21 @@
-const DepositMarket = artifacts.require('DepositMarket')
+const DepositManager = artifacts.require('DepositManager')
 const Deposit = artifacts.require('Deposit')
 
-contract('DepositMarket', () => {
-  let market
+contract('DepositManager', () => {
+  let manager
 
   describe('addToRecurringDeposit', () => {
     beforeEach(async () => {
-      market = await DepositMarket.new()
+      manager = await DepositManager.new()
     })
 
     it('adds to recurring deposit', async () => {
       let { address } = web3.eth.accounts.create()
       const term = 1
       const amount = 100e18
-      await market.addToRecurringDeposit(address, term, amount.toString())
+      await manager.addToRecurringDeposit(address, term, amount.toString())
       const depositId = 0
-      const depositAddress = await market.deposits(depositId)
+      const depositAddress = await manager.deposits(depositId)
       const deposit = await Deposit.at(depositAddress)
 
       assert.equal((await deposit.owner()), address)

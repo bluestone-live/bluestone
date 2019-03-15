@@ -35,7 +35,7 @@ truffle(development)> test
 truffle(development)> debug <transaction-hash>
 
 # We also have access to the JavaScript environment
-truffle(development)> await DepositMarket.isDeployed()
+truffle(development)> await Core.isDeployed()
 truffle(development)> true
 ```
 
