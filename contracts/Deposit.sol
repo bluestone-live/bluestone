@@ -27,7 +27,7 @@ contract Deposit {
         _createdAt = now;
     } 
 
-    function calculateWithdrawableAmount(uint currentInterestIndex) public returns (uint) {
+    function calculateWithdrawableAmount(uint currentInterestIndex) public view returns (uint) {
         // total = amount * (currentInterestIndex / depositInterestIndex)
         return _amount.mul(currentInterestIndex.div(_interestIndex));
     }
@@ -79,7 +79,7 @@ contract Deposit {
         return withdrawAmount;
     }
 
-    function calculateInterest(uint currentInterestIndex) external returns (uint) {
+    function calculateInterest(uint currentInterestIndex) external view returns (uint) {
         return calculateWithdrawableAmount(currentInterestIndex).sub(_amount);
     }
 }

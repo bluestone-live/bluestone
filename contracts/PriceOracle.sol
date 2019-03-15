@@ -7,7 +7,7 @@ contract PriceOracle is Ownable {
     // Mapping of asset addresses and their corresponding price in terms of Eth-Wei.
     mapping(address => uint) private assetPrices;
     
-    function getPrice(address asset) external returns (uint) {
+    function getPrice(address asset) external view returns (uint) {
         return assetPrices[asset];
     }
     
