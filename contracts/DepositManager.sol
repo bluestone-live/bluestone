@@ -55,10 +55,11 @@ contract DepositManager {
         addToDeposit(user, term, amount, isRecurring);
     }
 
-    function withdraw(address user, uint depositId) external {
+    function withdraw(address user, uint depositId) external returns (uint) {
         Deposit deposit = deposits[depositId];
         uint8 term = deposit.term();
-        deposit.withdraw(user, interestIndexPerTerm[term]);
+        uint amount = deposit.withdraw(user, interestIndexPerTerm[term]);
+        return amount;
     }
 
     function enableRecurringDeposit(address user, uint depositId) external {

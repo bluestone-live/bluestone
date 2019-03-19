@@ -2,12 +2,15 @@ pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./DepositManager.sol";
-import "./AssetManager.sol";
 
 
 /// @title The main contract that interacts with the external world.
-contract Core is Ownable, Pausable, AssetManager {
+contract Core is Ownable, Pausable {
+    using SafeERC20 for ERC20;
+
     uint private constant MIN_COLLATERAL_RATIO = 12 * (10 ** 17); // 1.2 (120%)
     uint private constant MAX_LIQUIDATION_DISCOUNT = 5 * (10 ** 16); // 0.05 (5%)
 
@@ -28,8 +31,6 @@ contract Core is Ownable, Pausable, AssetManager {
     function deposit(address asset, uint8 term, uint amount, bool isRecurring) external enabledDepositManager(asset) {
         require(term == 1 || term == 7 || term == 30, "Valid deposit terms are 1, 7 and 30.");
 
-        _receive(asset, msg.sender, amount);
-
         DepositManager depositManager = depositManagers[asset];
 
         if (isRecurring) {
@@ -37,6 +38,10 @@ contract Core is Ownable, Pausable, AssetManager {
         } else {
             depositManager.addToOneTimeDeposit(msg.sender, term, amount);
         }
+
+        // Receive tokens from the customer and transfer them to the protocol
+        ERC20 token = ERC20(asset);
+        token.safeTransferFrom(msg.sender, address(this), amount);
     }
     
     function enableRecurringDeposit(address asset, uint depositId) external enabledDepositManager(asset) {
@@ -51,7 +56,11 @@ contract Core is Ownable, Pausable, AssetManager {
     
     function withdraw(address asset, uint depositId) external enabledDepositManager(asset) {
         DepositManager manager = depositManagers[asset];
-        manager.withdraw(msg.sender, depositId);
+        uint amount = manager.withdraw(msg.sender, depositId);
+
+        // Send tokens to the customer account from the protocol
+        ERC20 token = ERC20(asset);
+        token.safeTransfer(msg.sender, amount);
     }
 
     // ADMIN ONLY --------------------------------------------------------------
