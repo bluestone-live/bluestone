@@ -3,10 +3,11 @@ pragma solidity ^0.5.0;
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "./DepositManager.sol";
+import "./AssetManager.sol";
 
 
 /// @title The main contract that interacts with the external world.
-contract Core is Ownable, Pausable {
+contract Core is Ownable, Pausable, AssetManager {
     uint private constant MIN_COLLATERAL_RATIO = 12 * (10 ** 17); // 1.2 (120%)
     uint private constant MAX_LIQUIDATION_DISCOUNT = 5 * (10 ** 16); // 0.05 (5%)
 
@@ -27,12 +28,14 @@ contract Core is Ownable, Pausable {
     function deposit(address asset, uint8 term, uint amount, bool isRecurring) external enabledDepositManager(asset) {
         require(term == 1 || term == 7 || term == 30, "Valid deposit terms are 1, 7 and 30.");
 
-        DepositManager manager = depositManagers[asset];
+        _receive(asset, msg.sender, amount);
+
+        DepositManager depositManager = depositManagers[asset];
 
         if (isRecurring) {
-            manager.addToRecurringDeposit(msg.sender, term, amount);
+            depositManager.addToRecurringDeposit(msg.sender, term, amount);
         } else {
-            manager.addToOneTimeDeposit(msg.sender, term, amount);
+            depositManager.addToOneTimeDeposit(msg.sender, term, amount);
         }
     }
     

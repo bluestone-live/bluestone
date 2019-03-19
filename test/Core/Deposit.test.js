@@ -1,41 +1,53 @@
 const Core = artifacts.require('Core')
-const { fakeAssetAddresses } = require('../Utils.js')
-const { shouldFail } = require('openzeppelin-test-helpers')
+const ERC20Mock = artifacts.require('ERC20Mock');
+const { BN, shouldFail } = require('openzeppelin-test-helpers')
 
-contract('Core', function([owner, ...accounts]) {
-  let core
-  const { ETH, DAI } = fakeAssetAddresses
-  const term = 1
-  const amount = 100e18.toString()
+contract('Core', function([owner, initialHolder]) {
+  let core, token
+  const initialSupply = new BN(100)
+
+  beforeEach(async () => {
+    core = await Core.new()
+    token = await ERC20Mock.new(initialHolder, initialSupply)
+    await token.approve(core.address, initialSupply, { from: initialHolder })
+  })
 
   describe('deposit', () => {
-    beforeEach(async () => {
-      core = await Core.new()
-      await core.enableDepositManager(ETH, { from: owner })
+    const term = 1
+    const amount = initialSupply
+
+    describe('when the token is supported', () => {
+      beforeEach(async () => {
+        await core.enableDepositManager(token.address, { from: owner })
+      })
+
+      it('adds one-time deposit', async () => {
+        const isRecurring = false
+        await core.deposit(token.address, term, amount, isRecurring, { from: initialHolder })
+      })
+
+      it('adds recurring deposit', async () => {
+        const isRecurring = true
+        await core.deposit(token.address, term, amount, isRecurring, { from: initialHolder })
+      })
+
+      describe('when the term is invalid', () => {
+        it('reverts', async () => {
+          const isRecurring = false
+          await shouldFail.reverting(
+            core.deposit(token.address, 11, amount, isRecurring, { from: initialHolder })
+          )
+        })
+      })
     })
 
-    it('succeeds to add one-time deposit', async () => {
-      const isRecurring = false
-      await core.deposit(ETH, term, amount, isRecurring)
-    })
-
-    it('succeeds to add recurring deposit', async () => {
-      const isRecurring = true
-      await core.deposit(ETH, term, amount, isRecurring)
-    })
-
-    it('fails to add deposit if the asset is not enabled', async () => {
-      const isRecurring = false
-      await shouldFail.reverting(
-        core.deposit(DAI, term, amount, isRecurring)
-      )
-    })
-
-    it('fails to add deposit if the term is invalid', async () => {
-      const isRecurring = false
-      await shouldFail.reverting(
-        core.deposit(ETH, 11, amount, isRecurring)
-      )
+    describe('when the token is not supported', () => {
+      it('reverts', async () => {
+        const isRecurring = false
+        await shouldFail.reverting(
+          core.deposit(token.address, term, amount, isRecurring, { from: initialHolder })
+        )
+      })
     })
   })
 })

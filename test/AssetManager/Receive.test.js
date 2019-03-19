@@ -1,5 +1,5 @@
 const ERC20Mock = artifacts.require('ERC20Mock');
-const AssetManager = artifacts.require('AssetManager')
+const AssetManager = artifacts.require('AssetManagerMock')
 const { BN, shouldFail } = require('openzeppelin-test-helpers');
 
 contract('AssetManager', function([_, customer]) {

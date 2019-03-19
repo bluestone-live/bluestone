@@ -1,37 +1,45 @@
 const Core = artifacts.require('Core')
-const { fakeAssetAddresses } = require('../Utils.js')
-const { shouldFail, time } = require('openzeppelin-test-helpers')
+const ERC20Mock = artifacts.require('ERC20Mock');
+const { BN, shouldFail, time } = require('openzeppelin-test-helpers')
 
-contract('Core', function([owner, ...accounts]) {
-  let core
-  const { ETH, DAI } = fakeAssetAddresses
-  const term = 1
-  const amount = 100e18.toString()
-  const depositId = 0
+contract('Core', function([owner, initialHolder]) {
+  let core, token
+  const initialSupply = new BN(100)
+
+  beforeEach(async () => {
+    core = await Core.new()
+    token = await ERC20Mock.new(initialHolder, initialSupply)
+    await token.approve(core.address, initialSupply, { from: initialHolder })
+    await core.enableDepositManager(token.address, { from: owner })
+  })
 
   describe('withdraw', () => {
+    const term = 1
+    const amount = initialSupply
+    const depositId = 0
+
     beforeEach(async () => {
-      core = await Core.new()
-      await core.enableDepositManager(ETH, { from: owner })
+      const isRecurring = false
+      await core.deposit(token.address, term, amount, isRecurring, { from: initialHolder })
     })
 
-    it('fails if not matured', async () => {
-      const isRecurring = false
-      await core.deposit(ETH, term, amount, isRecurring)
-      const lessThanOneDay = 23 * 60 * 60
-      await time.increase(lessThanOneDay)
-      await shouldFail.reverting(
-        core.withdraw(ETH, depositId)
-      )
+    describe('when the deposit is not matured', () => {
+      it('reverts', async () => {
+        const lessThanOneDay = 23 * 60 * 60
+        await time.increase(lessThanOneDay)
+        await shouldFail.reverting(
+          core.withdraw(token.address, depositId, { from: initialHolder })
+        )
+      })
     })
 
-    it('succeeds if matured', async () => {
-      const isRecurring = false
-      await core.deposit(ETH, term, amount, isRecurring)
-      const oneDay = 24 * 60 * 60
-      await time.increase(oneDay)
-      await core.updateDepositMaturity(ETH)
-      await core.withdraw(ETH, depositId)
+    describe('when the deposit is matured', () => {
+      it('withdraws', async () => {
+        const oneDay = 24 * 60 * 60
+        await time.increase(oneDay)
+        await core.updateDepositMaturity(token.address)
+        await core.withdraw(token.address, depositId, { from: initialHolder })
+      })
     })
   })
 })
