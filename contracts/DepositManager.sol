@@ -98,15 +98,16 @@ contract DepositManager {
         poolGroup.incrementPoolIndexes();
     }
 
-    function calculateInterestIndex(uint8 term, uint currTimestamp, uint lastTimestamp) private returns (uint) {
-        uint interestRate = calculateInterestRate(term);
+    function calculateInterestIndex(uint8 term, uint currTimestamp, uint lastTimestamp) private view returns (uint) {
+        // TODO: replace dummy value
+        uint interestRate = ONE;
         uint duration = currTimestamp.sub(lastTimestamp);
 
         // index = index * (1 + r * t)
         return interestIndexPerTerm[term].mul(ONE.add(interestRate.mul(duration)));
     }
 
-    function calculateInterestRate(uint8 term) private returns (uint) {
+    // function calculateInterestRate(uint8 term) private returns (uint) {
         // https://freebanking.quip.com/NUZ2AqG32qJG/ASSET-LIQUIDITY-MISMATCH-MODEL
         
         // Rs7 = (Mb1 * Rb1 * a71 + Mb7 * Rb7 * a77) / S7
@@ -117,9 +118,8 @@ contract DepositManager {
         //             The amount has loaded on 1-day term
         //       S7  = The amount of deposit on 7-day term
 
-        // TODO: replace dummy value
-        return ONE;
-    }
+        // return ONE;
+    // }
 
     function addToDeposit(address user, uint8 term, uint amount, bool isRecurring) private {
         uint currTimestamp = now;
