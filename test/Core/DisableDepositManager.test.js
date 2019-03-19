@@ -1,26 +1,29 @@
 const Core = artifacts.require('Core')
-const { fakeAssetAddresses } = require('../Utils.js')
-const { shouldFail } = require('openzeppelin-test-helpers')
+const { createERC20Token } = require('../Utils.js')
+const { BN, shouldFail } = require('openzeppelin-test-helpers')
 
-contract('Core', function([owner, ...accounts]) {
-  let core
-  const { ETH: asset } = fakeAssetAddresses
+contract('Core', function([owner, anotherAccount]) {
+  let core, token
+
+  beforeEach(async () => {
+    token = await createERC20Token(owner)
+  })
 
   describe('disableDepositManager', () => {
     beforeEach(async () => {
       core = await Core.new()
-      await core.enableDepositManager(asset, { from: owner })
-      assert.equal((await core.isDepositManagerEnabled(asset)), true)
+      await core.enableDepositManager(token.address, { from: owner })
+      assert.equal((await core.isDepositManagerEnabled(token.address)), true)
     })
 
     it('succeeds if called by owner', async () => {
-      await core.disableDepositManager(asset, { from: owner})
-      assert.equal((await core.isDepositManagerEnabled(asset)), false)
+      await core.disableDepositManager(token.address, { from: owner})
+      assert.equal((await core.isDepositManagerEnabled(token.address)), false)
     })
 
     it('fails if not called by owner', async () => {
       await shouldFail.reverting(
-        core.disableDepositManager(asset, { from: accounts[0] })
+        core.disableDepositManager(token.address, { from: anotherAccount })
       )
     })
   })

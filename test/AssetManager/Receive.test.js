@@ -1,14 +1,14 @@
-const ERC20Mock = artifacts.require('ERC20Mock');
 const AssetManager = artifacts.require('AssetManagerMock')
 const { BN, shouldFail } = require('openzeppelin-test-helpers');
+const { createERC20Token } = require('../Utils.js')
 
-contract('AssetManager', function([_, customer]) {
+contract('AssetManager', async function([_, customer]) {
   const initialSupply = new BN(100);
   let token, assetManager
 
   beforeEach(async function () {
     // Setup initial balance for customer account
-    token = await ERC20Mock.new(customer, initialSupply)
+    token = await createERC20Token(customer, initialSupply)
     assetManager = await AssetManager.new()
   })
 

@@ -1,7 +1,7 @@
 const DepositManager = artifacts.require('DepositManager')
 const Deposit = artifacts.require('Deposit')
 
-contract('DepositManager', () => {
+contract('DepositManager', ([owner]) => {
   let manager
 
   describe('enableRecurringDeposit', () => {
@@ -10,10 +10,9 @@ contract('DepositManager', () => {
     })
 
     it('succeeds to enable recurring deposit', async () => {
-      let { address } = web3.eth.accounts.create()
       const term = 1
       const amount = 100e18
-      await manager.addToOneTimeDeposit(address, term, amount.toString())
+      await manager.addToOneTimeDeposit(owner, term, amount.toString())
 
       const depositId = 0
       const depositAddress = await manager.deposits(depositId)
@@ -21,7 +20,7 @@ contract('DepositManager', () => {
 
       assert.equal((await deposit.isRecurring()), false)
 
-      await manager.enableRecurringDeposit(address, depositId)
+      await manager.enableRecurringDeposit(owner, depositId)
 
       assert.equal((await deposit.isRecurring()), true)
     })

@@ -1,6 +1,6 @@
 const DepositManager = artifacts.require('DepositManager')
 
-contract('DepositManager', () => {
+contract('DepositManager', ([owner]) => {
   let manager
 
   describe('updateDepositMaturity', () => {
@@ -12,9 +12,8 @@ contract('DepositManager', () => {
       const term = 1
       const oneTimeDeposit = 100e18
       const recurringDeposit = 50e18
-      const { address } = web3.eth.accounts.create()
-      await manager.addToOneTimeDeposit(address, term, oneTimeDeposit.toString())
-      await manager.addToRecurringDeposit(address, term, recurringDeposit.toString())
+      await manager.addToOneTimeDeposit(owner, term, oneTimeDeposit.toString())
+      await manager.addToRecurringDeposit(owner, term, recurringDeposit.toString())
 
       const prevOneTimeDeposit = await manager.getOneTimeDepositFromPool(term, 1)
       const prevRecurringDeposit = await manager.getRecurringDepositFromPool(term, 1)
@@ -33,9 +32,8 @@ contract('DepositManager', () => {
       const term = 7
       const oneTimeDeposit = 100e18
       const recurringDeposit = 50e18
-      const { address } = web3.eth.accounts.create()
-      await manager.addToOneTimeDeposit(address, term, oneTimeDeposit.toString())
-      await manager.addToRecurringDeposit(address, term, recurringDeposit.toString())
+      await manager.addToOneTimeDeposit(owner, term, oneTimeDeposit.toString())
+      await manager.addToRecurringDeposit(owner, term, recurringDeposit.toString())
 
       for (let i = 0; i < term; i++) {
         // Verify that deposits are moving forward each day
