@@ -21,16 +21,38 @@ contract Core is Ownable, Pausable {
     mapping(address => bool) public isDepositManagerInitialized;
     mapping(address => bool) public isDepositManagerEnabled;
 
+    /// To make sure deposits from different pools are used efficiently and 
+    /// deposit interest of 30 days is always larger than those of 7 days 
+    /// and 1 day, we introduce a coefficient 'α' to decide from which 
+    /// pool to draw money when a loan is made. 
+    /// e.g., a307 = coefficient[30][7] = 0.3
+    mapping(uint8 => mapping(uint8 => uint)) public coefficients;
+
     modifier enabledDepositManager(address asset) {
         require(isDepositManagerEnabled[asset] == true);
         _;
     }
 
+    modifier validDepositTerm(uint8 term) {
+        require(term == 1 || term == 7 || term == 30, "Valid deposit terms are 1, 7 and 30.");
+        _;
+    }
+    
+    modifier validLoanTerm(uint8 term) {
+        require(term == 1 || term == 3 || term == 7 || term == 30, "Valid loan terms are 1, 3, 7 and 30.");
+        _;
+    }
+
     // PUBLIC  -----------------------------------------------------------------
 
-    function deposit(address asset, uint8 term, uint amount, bool isRecurring) external enabledDepositManager(asset) {
-        require(term == 1 || term == 7 || term == 30, "Valid deposit terms are 1, 7 and 30.");
-
+    function deposit(
+        address asset, 
+        uint8 term, 
+        uint amount, 
+        bool isRecurring
+    ) 
+        external enabledDepositManager(asset) validDepositTerm(term) 
+    {
         DepositManager depositManager = depositManagers[asset];
 
         if (isRecurring) {
@@ -101,6 +123,15 @@ contract Core is Ownable, Pausable {
 
         collateralRatioMap[asset][collateral] = collateralRatio;
         liquidationDiscountMap[asset][collateral] = liquidationDiscount;
+    }
+
+    function setCoefficient(uint8 depositTerm, uint8 loanTerm, uint value) 
+        external
+        onlyOwner
+        validDepositTerm(depositTerm)
+        validLoanTerm(loanTerm) 
+    {
+        coefficients[depositTerm][loanTerm] = value;
     }
 
     function updateDepositMaturity(address asset) external onlyOwner enabledDepositManager(asset) {
