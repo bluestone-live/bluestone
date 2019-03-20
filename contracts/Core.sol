@@ -5,6 +5,7 @@ import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./DepositManager.sol";
+import "./LiquidityPools.sol";
 
 
 /// @title The main contract that interacts with the external world.
@@ -27,6 +28,9 @@ contract Core is Ownable, Pausable {
     /// pool to draw money when a loan is made. 
     /// e.g., a307 = coefficient[30][7] = 0.3
     mapping(uint8 => mapping(uint8 => uint)) public coefficients;
+
+    bool private isLiquidityPoolsInitialized = false;
+    LiquidityPools private _liquidityPools;
 
     modifier enabledDepositManager(address asset) {
         require(isDepositManagerEnabled[asset] == true);
@@ -91,8 +95,13 @@ contract Core is Ownable, Pausable {
         /// Seems there is no obvious way to determine if a contract has been
         /// properly initialized in a mapping, so we use another variable
         /// to check and initialize the contract if necessary.
+        if (!isLiquidityPoolsInitialized) {
+            _liquidityPools = new LiquidityPools();
+            isLiquidityPoolsInitialized = true;
+        }
+
         if (!isDepositManagerInitialized[asset]) {
-            depositManagers[asset] = new DepositManager();
+            depositManagers[asset] = new DepositManager(_liquidityPools);
             isDepositManagerInitialized[asset] = true;
         }
 

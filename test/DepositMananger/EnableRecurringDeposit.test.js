@@ -1,12 +1,14 @@
 const DepositManager = artifacts.require('DepositManager')
 const Deposit = artifacts.require('Deposit')
+const LiquidityPools = artifacts.require('LiquidityPools')
 
 contract('DepositManager', ([owner]) => {
   let manager
 
   describe('enableRecurringDeposit', () => {
     beforeEach(async () => {
-      manager = await DepositManager.new()
+      let liquidityPools = await LiquidityPools.new()
+      manager = await DepositManager.new(liquidityPools.address)
     })
 
     it('succeeds to enable recurring deposit', async () => {

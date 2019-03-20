@@ -1,6 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./LiquidityPools.sol";
 import "./PoolGroup.sol";
 import "./Deposit.sol";
 
@@ -9,10 +10,6 @@ contract DepositManager {
     using SafeMath for uint;
 
     uint constant private ONE = 10 ** 18;
-    
-    ///@dev deposit term -> pool group
-    mapping(uint8 => PoolGroup) poolGroups;
-
     uint private _depositId;
 
     ///@dev ID -> deposit
@@ -20,11 +17,11 @@ contract DepositManager {
 
     mapping(uint8 => uint) interestIndexPerTerm;
     mapping(uint8 => uint) lastTimestampPerTerm;
+
+    LiquidityPools private _liquidityPools;
     
-    constructor() public {
-        poolGroups[1] = new PoolGroup(1);
-        poolGroups[7] = new PoolGroup(7);
-        poolGroups[30] = new PoolGroup(30);
+    constructor(LiquidityPools liquidityPools) public {
+        _liquidityPools = liquidityPools;
 
         interestIndexPerTerm[1] = ONE;
         interestIndexPerTerm[7] = ONE;
@@ -32,15 +29,17 @@ contract DepositManager {
     }
 
     function getOneTimeDepositFromPool(uint8 depositTerm, uint8 poolTerm) external view returns (uint) {
-        return poolGroups[depositTerm].getOneTimeDeposit(poolTerm);
+        PoolGroup poolGroup = _liquidityPools.poolGroups(depositTerm);
+        return poolGroup.getOneTimeDeposit(poolTerm);
     }
 
     function getRecurringDepositFromPool(uint8 depositTerm, uint8 poolTerm) external view returns (uint) {
-        return poolGroups[depositTerm].getRecurringDeposit(poolTerm);
+        PoolGroup poolGroup = _liquidityPools.poolGroups(depositTerm);
+        return poolGroup.getRecurringDeposit(poolTerm);
     }
 
     function addToOneTimeDeposit(address user, uint8 term, uint amount) external {
-        PoolGroup poolGroup = poolGroups[term];
+        PoolGroup poolGroup = _liquidityPools.poolGroups(term);
         poolGroup.addToOneTimeDeposit(term, amount);
 
         bool isRecurring = false;
@@ -48,7 +47,7 @@ contract DepositManager {
     }
 
     function addToRecurringDeposit(address user, uint8 term, uint amount) external {
-        PoolGroup poolGroup = poolGroups[term];
+        PoolGroup poolGroup = _liquidityPools.poolGroups(term);
         poolGroup.addToRecurringDeposit(term, amount);
 
         bool isRecurring = true;
@@ -70,7 +69,9 @@ contract DepositManager {
             deposit.enableRecurring();
             uint8 term = deposit.term();
             uint amount = deposit.amount();
-            poolGroups[term].transferOneTimeDepositToRecurringDeposit(term, amount);
+
+            PoolGroup poolGroup = _liquidityPools.poolGroups(term);
+            poolGroup.transferOneTimeDepositToRecurringDeposit(term, amount);
         }
     }
 
@@ -82,14 +83,16 @@ contract DepositManager {
             deposit.disableRecurring();
             uint8 term = deposit.term();
             uint amount = deposit.amount();
-            poolGroups[term].transferRecurringDepositToOneTimeDeposit(term, amount);
+
+            PoolGroup poolGroup = _liquidityPools.poolGroups(term);
+            poolGroup.transferRecurringDepositToOneTimeDeposit(term, amount);
         }
     }
 
     function updateDepositMaturity() external {
-        updatePoolGroupDepositMaturity(poolGroups[1]);
-        updatePoolGroupDepositMaturity(poolGroups[7]);
-        updatePoolGroupDepositMaturity(poolGroups[30]);
+        updatePoolGroupDepositMaturity(_liquidityPools.poolGroups(1));
+        updatePoolGroupDepositMaturity(_liquidityPools.poolGroups(7));
+        updatePoolGroupDepositMaturity(_liquidityPools.poolGroups(30));
     }
 
     function updatePoolGroupDepositMaturity(PoolGroup poolGroup) private {

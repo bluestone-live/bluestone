@@ -1,11 +1,13 @@
 const DepositManager = artifacts.require('DepositManager')
+const LiquidityPools = artifacts.require('LiquidityPools')
 
 contract('DepositManager', ([owner]) => {
   let manager
 
   describe('updateDepositMaturity', () => {
     beforeEach(async () => {
-      manager = await DepositManager.new()
+      let liquidityPools = await LiquidityPools.new()
+      manager = await DepositManager.new(liquidityPools.address)
     })
 
     it('updates deposit maturity for 7-day-term pool groups', async () => {
