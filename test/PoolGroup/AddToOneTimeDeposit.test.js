@@ -12,6 +12,8 @@ contract('PoolGroup', () => {
 
       assert.equal(pool.oneTimeDeposit, amount)
       assert.equal(pool.recurringDeposit, 0)
+      assert.equal(pool.loanableAmount, amount)
+      assert.equal((await poolGroup.totalDeposit()), amount)
     })
   })
 })

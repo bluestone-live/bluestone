@@ -5,6 +5,8 @@ contract('PoolGroup', () => {
     it('populates pools and poolIds', async () => {
       const term = 7
       const poolGroup = await PoolGroup.new(term)
+      assert.equal((await poolGroup.totalDeposit()), 0)
+      assert.equal((await poolGroup.totalLoan()), 0)
 
       for (let i = 0; i < term; i++) {
         const poolIndex = await poolGroup.poolIndexes(i)
@@ -12,6 +14,7 @@ contract('PoolGroup', () => {
         assert.equal(poolIndex, i)
         assert.equal(pool.oneTimeDeposit, 0)
         assert.equal(pool.recurringDeposit, 0)
+        assert.equal(pool.loanableAmount, 0)
       }
     })
   })

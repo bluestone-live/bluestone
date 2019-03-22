@@ -17,6 +17,9 @@ contract('PoolGroup', () => {
 
       assert.equal(pool.oneTimeDeposit, depositAmount - withdrawAmount)
       assert.equal(pool.recurringDeposit, 0)
+      assert.equal(pool.loanableAmount, depositAmount - withdrawAmount)
+      assert.equal((await poolGroup.totalDeposit()), depositAmount - withdrawAmount)
+      assert.equal((await poolGroup.totalLoan()), 0)
     })
 
     it('fails if withdraw amount is greater than one-time deposit amount', async () => {
