@@ -1,4 +1,4 @@
-const DepositManager = artifacts.require('DepositManager')
+const DepositManager = artifacts.require('DepositManagerMock')
 const LiquidityPools = artifacts.require('LiquidityPools')
 
 contract('DepositManager', ([owner]) => {

@@ -1,4 +1,4 @@
-const DepositManager = artifacts.require('DepositManager')
+const DepositManager = artifacts.require('DepositManagerMock')
 const Deposit = artifacts.require('Deposit')
 const LiquidityPools = artifacts.require('LiquidityPools')
 

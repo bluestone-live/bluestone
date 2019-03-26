@@ -18,7 +18,7 @@ contract DepositManager {
     mapping(uint8 => uint) interestIndexPerTerm;
     mapping(uint8 => uint) lastTimestampPerTerm;
 
-    LiquidityPools private _liquidityPools;
+    LiquidityPools internal _liquidityPools;
     
     constructor(LiquidityPools liquidityPools) public {
         _liquidityPools = liquidityPools;
@@ -26,16 +26,6 @@ contract DepositManager {
         interestIndexPerTerm[1] = ONE;
         interestIndexPerTerm[7] = ONE;
         interestIndexPerTerm[30] = ONE;
-    }
-
-    function getOneTimeDepositFromPool(uint8 depositTerm, uint8 poolTerm) external view returns (uint) {
-        PoolGroup poolGroup = _liquidityPools.poolGroups(depositTerm);
-        return poolGroup.getOneTimeDeposit(poolTerm);
-    }
-
-    function getRecurringDepositFromPool(uint8 depositTerm, uint8 poolTerm) external view returns (uint) {
-        PoolGroup poolGroup = _liquidityPools.poolGroups(depositTerm);
-        return poolGroup.getRecurringDeposit(poolTerm);
     }
 
     function addToOneTimeDeposit(address user, uint8 term, uint amount) external {
