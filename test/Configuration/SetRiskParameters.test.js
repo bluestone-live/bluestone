@@ -1,12 +1,12 @@
-const Core = artifacts.require('Core')
+const Configuration = artifacts.require('Configuration')
 const { BN, shouldFail } = require('openzeppelin-test-helpers')
 const { createERC20Token } = require('../Utils.js')
 
-contract('Core', function([owner, ...accounts]) {
-  let core, asset, collateral
+contract('Configuration', function([owner, ...accounts]) {
+  let config, asset, collateral
 
   beforeEach(async () => {
-    core = await Core.new()
+    config = await Configuration.new()
     asset = (await createERC20Token(owner)).address
     collateral = (await createERC20Token(owner)).address
   })
@@ -18,7 +18,7 @@ contract('Core', function([owner, ...accounts]) {
       const newCollateralRatio = 15e17.toString()
       const newLiquidationDiscount = 3e16.toString()
 
-      await core.setRiskParameters(
+      await config.setRiskParameters(
         asset, 
         collateral, 
         newCollateralRatio,
@@ -26,11 +26,10 @@ contract('Core', function([owner, ...accounts]) {
         { from: owner }
       )
 
-      const actualCollateralRatio = await core.collateralRatioMap.call(asset, collateral)
-      const actualLiquidationDiscount = await core.liquidationDiscountMap.call(asset, collateral)
+      const params = await config.getRiskParameters(asset, collateral)
 
-      assert.equal(actualCollateralRatio, newCollateralRatio)
-      assert.equal(actualLiquidationDiscount, newLiquidationDiscount)
+      assert.equal(params['0'], newCollateralRatio)
+      assert.equal(params['1'], newLiquidationDiscount)
     })
 
     it('fails if not called by owner', async () => {
@@ -38,7 +37,7 @@ contract('Core', function([owner, ...accounts]) {
       const newLiquidationDiscount = 3e16.toString()
 
       await shouldFail.reverting(
-        core.setRiskParameters(
+        config.setRiskParameters(
           asset, 
           collateral, 
           newCollateralRatio,
@@ -53,7 +52,7 @@ contract('Core', function([owner, ...accounts]) {
       const newLiquidationDiscount = 3e16.toString()
 
       await shouldFail.reverting(
-        core.setRiskParameters(
+        config.setRiskParameters(
           asset, 
           collateral, 
           newCollateralRatio,
@@ -68,7 +67,7 @@ contract('Core', function([owner, ...accounts]) {
       const newLiquidationDiscount = 6e16.toString()
 
       await shouldFail.reverting(
-        core.setRiskParameters(
+        config.setRiskParameters(
           asset, 
           collateral, 
           newCollateralRatio,

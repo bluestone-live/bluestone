@@ -1,11 +1,11 @@
-const Core = artifacts.require('Core')
+const Configuration = artifacts.require('Configuration')
 const { shouldFail } = require('openzeppelin-test-helpers')
 
-contract('Core', function([owner, anotherAccount]) {
-  let core
+contract('Configuration', function([owner, anotherAccount]) {
+  let config
 
   beforeEach(async () => {
-    core = await Core.new()
+    config = await Configuration.new()
   })
 
   describe('setCoefficient', () => {
@@ -15,15 +15,15 @@ contract('Core', function([owner, anotherAccount]) {
 
     describe('when called by owner', () => {
       it('succeeds', async () => {
-        await core.setCoefficient(depositTerm, loanTerm, value.toString(), { from: owner })
-        assert.equal((await core.coefficients.call(depositTerm, loanTerm)), value)
+        await config.setCoefficient(depositTerm, loanTerm, value.toString(), { from: owner })
+        assert.equal((await config.getCoefficient(depositTerm, loanTerm)), value)
       })
     })
 
     describe('when not called by owner', () => {
       it('reverts', async () => {
         await shouldFail.reverting(
-          core.setCoefficient(depositTerm, loanTerm, value.toString(), { from: anotherAccount })
+          config.setCoefficient(depositTerm, loanTerm, value.toString(), { from: anotherAccount })
         )
       })
     })
