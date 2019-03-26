@@ -41,6 +41,12 @@ contract LoanManager {
         _loanId++;
     }
 
+    function addCollateral(address user, uint loanId, uint amount) external {
+        require(user == loans[loanId].owner());
+
+        loans[loanId].addCollateral(amount);
+    }
+
     /// Calculate the total amount to be loaned from a pool group and start loaning from the 
     /// <loan-term>th pool, incrementing the term until the final pool has been reached.
     function loanFromPoolGroup(uint8 depositTerm, uint8 loanTerm, uint loanAmount, uint loanId) private {
