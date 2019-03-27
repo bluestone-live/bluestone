@@ -47,25 +47,27 @@ contract LoanManager {
         loans[loanId].addCollateral(amount);
     }
 
-    /// Calculate the total amount to be loaned from a pool group and start loaning from the 
-    /// <loan-term>th pool, incrementing the term until the final pool has been reached.
     function loanFromPoolGroup(uint8 depositTerm, uint8 loanTerm, uint loanAmount, uint loanId) private {
         PoolGroup poolGroup = _liquidityPools.poolGroups(depositTerm);
         uint coefficient = _config.getCoefficient(depositTerm, loanTerm);
+
+        // Calculate the total amount to be loaned from this pool group 
         uint remainingLoanAmount = coefficient.mulFixed(loanAmount);
 
         /// Assuming the calculated loan amount is always not more than the amount the 
         /// pool group can provide. TODO: add a check here just in case.
 
-        uint8 term = loanTerm;
+        uint8 poolGroupIndex = loanTerm - 1;
+        uint8 poolGroupLength = depositTerm;
 
-        while (remainingLoanAmount > 0 && term <= depositTerm) {
-            uint loanableAmountFromPool = poolGroup.getLoanableAmount(term);
-            uint loanAmountFromPool = Math.min(remainingLoanAmount, loanableAmountFromPool);
-            poolGroup.loan(term, loanAmountFromPool);
-            loans[loanId].setRecord(depositTerm, term, loanAmountFromPool);
-            remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
-            term++;
+        /// Incrementing the pool group index and loaning from each pool until loan amount is fulfilled.
+        while (remainingLoanAmount > 0 && poolGroupIndex < poolGroupLength) {
+            uint loanableAmount = poolGroup.getLoanableAmountFromPool(poolGroupIndex);
+            uint loanedAmount = Math.min(remainingLoanAmount, loanableAmount);
+            poolGroup.loanFromPool(poolGroupIndex, loanedAmount);
+            loans[loanId].setRecord(depositTerm, poolGroupIndex, loanedAmount);
+            remainingLoanAmount = remainingLoanAmount.sub(loanedAmount);
+            poolGroupIndex++;
         }
     }
 }

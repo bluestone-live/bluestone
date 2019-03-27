@@ -1,16 +1,16 @@
 const PoolGroup = artifacts.require('PoolGroup')
 
 contract('PoolGroup', () => {
-  describe('incrementPoolIndexes', () => {
+  describe('updatePoolIds', () => {
     it('increments pool indexes correctly after one day', async () => {
       const term = 7
       const poolGroup = await PoolGroup.new(term)
-      await poolGroup.incrementPoolIndexes()
+      await poolGroup.updatePoolIds()
       const updatedPoolIndexes = [1, 2, 3, 4, 5, 6, 0]
             
       for (let i = 0; i < term; i++) {
-        const poolIndex = await poolGroup.poolIndexes(i)
-        assert.equal(poolIndex, updatedPoolIndexes[i])
+        const poolId = await poolGroup.poolIds(i)
+        assert.equal(poolId, updatedPoolIndexes[i])
       }
     })
 
@@ -20,12 +20,12 @@ contract('PoolGroup', () => {
       const updatedPoolIndexes = [0, 1, 2, 3, 4, 5, 6]
 
       for (let i = 0; i < term; i++) {
-        await poolGroup.incrementPoolIndexes()
+        await poolGroup.updatePoolIds()
       } 
 
       for (let i = 0; i < term; i++) {
-        const poolIndex = await poolGroup.poolIndexes(i)
-        assert.equal(poolIndex, updatedPoolIndexes[i])
+        const poolId = await poolGroup.poolIds(i)
+        assert.equal(poolId, updatedPoolIndexes[i])
       }
     })
   })

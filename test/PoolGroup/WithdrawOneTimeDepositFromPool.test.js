@@ -2,18 +2,18 @@ const PoolGroup = artifacts.require('PoolGroup')
 const { shouldFail } = require('openzeppelin-test-helpers')
 
 contract('PoolGroup', () => {
-  describe('withdrawOneTimeDeposit', () => {
+  describe('withdrawOneTimeDepositFromPool', () => {
     it('succeeds to withdraw one-time deposit', async () => {
       const poolGroup = await PoolGroup.new(7)
-      const term = 1
+      const index = 0
       const depositAmount = 100e18
       const withdrawAmount = 50e18
 
-      await poolGroup.addToOneTimeDeposit(term, depositAmount.toString())
-      await poolGroup.withdrawOneTimeDeposit(term, withdrawAmount.toString())
+      await poolGroup.addOneTimeDepositToPool(index, depositAmount.toString())
+      await poolGroup.withdrawOneTimeDepositFromPool(index, withdrawAmount.toString())
 
-      const poolIndex = await poolGroup.getPoolIndexByTerm(term)
-      const pool = await poolGroup.pools(poolIndex)
+      const poolId = await poolGroup.poolIds(index)
+      const pool = await poolGroup.poolsById(poolId)
 
       assert.equal(pool.oneTimeDeposit, depositAmount - withdrawAmount)
       assert.equal(pool.recurringDeposit, 0)
@@ -24,13 +24,13 @@ contract('PoolGroup', () => {
 
     it('fails if withdraw amount is greater than one-time deposit amount', async () => {
       const poolGroup = await PoolGroup.new(7)
-      const term = 1
+      const index = 0
       const depositAmount = 100e18
       const withdrawAmount = 101e18
 
-      await poolGroup.addToOneTimeDeposit(term, depositAmount.toString())
+      await poolGroup.addOneTimeDepositToPool(index, depositAmount.toString())
 
-      const promise = poolGroup.withdrawOneTimeDeposit(term, withdrawAmount.toString())
+      const promise = poolGroup.withdrawOneTimeDepositFromPool(index, withdrawAmount.toString())
       await shouldFail.reverting(promise)
     })
   })

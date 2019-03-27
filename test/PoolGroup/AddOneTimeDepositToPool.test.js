@@ -1,14 +1,14 @@
 const PoolGroup = artifacts.require('PoolGroup')
 
 contract('PoolGroup', () => {
-  describe('addOneTimeDeposit', () => {
+  describe('addOneTimeDepositToPool', () => {
     it('succeeds to add one-time deposit', async () => {
       const poolGroup = await PoolGroup.new(7)
-      const term = 1
+      const index = 0
       const amount = 100e18
-      await poolGroup.addToOneTimeDeposit(term, amount.toString())
-      const poolIndex = await poolGroup.getPoolIndexByTerm(term)
-      const pool = await poolGroup.pools(poolIndex)
+      await poolGroup.addOneTimeDepositToPool(index, amount.toString())
+      const poolId = await poolGroup.poolIds(index)
+      const pool = await poolGroup.poolsById(poolId)
 
       assert.equal(pool.oneTimeDeposit, amount)
       assert.equal(pool.recurringDeposit, 0)

@@ -2,8 +2,11 @@ pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-/// @title A group of pools where the size is defined by the terms.
-/// Each pool can be deposited to and withdrawn from.
+/// A group of pools where the size is defined by the deposit term.
+/// 
+/// - Pool ID: an internal identifier used to lookup a Pool struct. 
+/// - Pool Index: used to mark the pool position, starting from 0. For example, 
+///     a pool group of size 7 includes pool indices from 0 to 6, respectively.
 contract PoolGroup {
     using SafeMath for uint;
 
@@ -16,106 +19,104 @@ contract PoolGroup {
         uint loanableAmount;
     }
 
-    /// A fixed-size list of pools. To get a N-day pool, use `pools[N - 1]`.
-    Pool[] public pools;
+    /// A static array initialized to actual pools, where each pool is identified by an ID.
+    Pool[] public poolsById;
 
-    /// A fixed-size list of pool indexes which can be used to retreive a pool given a term:
-    /// Term -> Index -> Pool: `pools[poolIndexes[term - 1]]`.
-    uint8[] public poolIndexes;
-
-    constructor(uint8 term) public {
-        for (uint8 i = 0; i < term; i++) {
-            pools.push(Pool({
-                oneTimeDeposit: 0,
-                recurringDeposit: 0,
-                loanableAmount: 0
-            }));
-
-            poolIndexes.push(i);
-        }
-    }
-
-    function getPoolIndexByTerm(uint8 term) public view returns (uint8) {
-        return poolIndexes[term - 1];
-    }
-
-    function getOneTimeDeposit(uint8 term) external view returns (uint) {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        return pools[poolIndex].oneTimeDeposit;
-    }
-
-    function getRecurringDeposit(uint8 term) external view returns (uint) {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        return pools[poolIndex].recurringDeposit;
-    }
-
-    function getLoanableAmount(uint8 term) external view returns (uint) {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        return pools[poolIndex].loanableAmount;
-    }
-
-    function addToOneTimeDeposit(uint8 term, uint amount) external {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        Pool storage pool = pools[poolIndex];
-        pool.oneTimeDeposit = pool.oneTimeDeposit.add(amount); 
-        pool.loanableAmount = pool.loanableAmount.add(amount);
-        totalDeposit = totalDeposit.add(amount);
-    }
-
-    function addToRecurringDeposit(uint8 term, uint amount) external {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        Pool storage pool = pools[poolIndex];
-        pool.recurringDeposit = pool.recurringDeposit.add(amount); 
-        pool.loanableAmount = pool.loanableAmount.add(amount);
-        totalDeposit = totalDeposit.add(amount);
-    }
-
-    function withdrawOneTimeDeposit(uint8 term, uint amount) external {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        Pool storage pool = pools[poolIndex];
-        pool.oneTimeDeposit = pool.oneTimeDeposit.sub(amount);
-        pool.loanableAmount = pool.loanableAmount.sub(amount);
-        totalDeposit = totalDeposit.sub(amount);
-    }
-
-    function loan(uint8 term, uint amount) external {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        Pool storage pool = pools[poolIndex];
-        pool.loanableAmount = pool.loanableAmount.sub(amount);
-        totalLoan = totalLoan.add(amount);
-    }
-
-    function repayLoan(uint8 term, uint amount) external {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        Pool storage pool = pools[poolIndex];
-        pool.loanableAmount = pool.loanableAmount.add(amount);
-        totalLoan = totalLoan.sub(amount);
-    }
-
-    function transferRecurringDepositToOneTimeDeposit(uint8 term, uint amount) external {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        Pool storage pool = pools[poolIndex];
-        pool.recurringDeposit = pool.recurringDeposit.sub(amount);
-        pool.oneTimeDeposit = pool.oneTimeDeposit.add(amount);
-    }
-
-    function transferOneTimeDepositToRecurringDeposit(uint8 term, uint amount) external {
-        uint8 poolIndex = getPoolIndexByTerm(term);
-        Pool storage pool = pools[poolIndex];
-        pool.oneTimeDeposit = pool.oneTimeDeposit.sub(amount);
-        pool.recurringDeposit = pool.recurringDeposit.add(amount);
-    }
-
-    /// Increment each pool index to reflect the maturity of the pools. 
-    /// For example, for 7-day term pools:
+    /// Given a pool index, it resolves to a pool ID. Basically it stores all pool IDs 
+    /// and updates them after one day to reflect the maturity change. 
+    /// 
+    /// For a pool group of size 7, the state of this array changing overtime:
     /// 1st day: [0, 1, 2, 3, 4, 5, 6]
     /// 2nd day: [1, 2, 3, 4, 5, 6, 0]
     /// 3rd day: [2, 3, 4, 5, 6, 0, 1]
     /// …
     /// 7th day: [6, 0, 1, 2, 3, 4, 5]
-    function incrementPoolIndexes() external {
-        for (uint8 i = 0; i < poolIndexes.length; i++) {
-            poolIndexes[i] = (poolIndexes[i] + 1) % uint8(poolIndexes.length);           
+    uint8[] public poolIds;
+
+    constructor(uint8 term) public {
+        for (uint8 i = 0; i < term; i++) {
+            poolsById.push(Pool({
+                oneTimeDeposit: 0,
+                recurringDeposit: 0,
+                loanableAmount: 0
+            }));
+
+            poolIds.push(i);
+        }
+    }
+
+    function getOneTimeDepositFromPool(uint8 index) external view returns (uint) {
+        uint8 poolId = poolIds[index];
+        return poolsById[poolId].oneTimeDeposit;
+    }
+
+    function getRecurringDepositFromPool(uint8 index) external view returns (uint) {
+        uint8 poolId = poolIds[index];
+        return poolsById[poolId].recurringDeposit;
+    }
+
+    function getLoanableAmountFromPool(uint8 index) external view returns (uint) {
+        uint8 poolId = poolIds[index];
+        return poolsById[poolId].loanableAmount;
+    }
+
+    function addOneTimeDepositToPool(uint8 index, uint amount) external {
+        uint8 poolId = poolIds[index];
+        Pool storage pool = poolsById[poolId];
+        pool.oneTimeDeposit = pool.oneTimeDeposit.add(amount); 
+        pool.loanableAmount = pool.loanableAmount.add(amount);
+        totalDeposit = totalDeposit.add(amount);
+    }
+
+    function addRecurringDepositToPool(uint8 index, uint amount) external {
+        uint8 poolId = poolIds[index];
+        Pool storage pool = poolsById[poolId];
+        pool.recurringDeposit = pool.recurringDeposit.add(amount); 
+        pool.loanableAmount = pool.loanableAmount.add(amount);
+        totalDeposit = totalDeposit.add(amount);
+    }
+
+    function withdrawOneTimeDepositFromPool(uint8 index, uint amount) external {
+        uint8 poolId = poolIds[index];
+        Pool storage pool = poolsById[poolId];
+        pool.oneTimeDeposit = pool.oneTimeDeposit.sub(amount);
+        pool.loanableAmount = pool.loanableAmount.sub(amount);
+        totalDeposit = totalDeposit.sub(amount);
+    }
+
+    function loanFromPool(uint8 index, uint amount) external {
+        uint8 poolId = poolIds[index];
+        Pool storage pool = poolsById[poolId];
+        pool.loanableAmount = pool.loanableAmount.sub(amount);
+        totalLoan = totalLoan.add(amount);
+    }
+
+    function repayLoanToPool(uint8 index, uint amount) external {
+        uint8 poolId = poolIds[index];
+        Pool storage pool = poolsById[poolId];
+        pool.loanableAmount = pool.loanableAmount.add(amount);
+        totalLoan = totalLoan.sub(amount);
+    }
+
+    function transferRecurringDepositToOneTimeDeposit(uint8 index, uint amount) external {
+        uint8 poolId = poolIds[index];
+        Pool storage pool = poolsById[poolId];
+        pool.recurringDeposit = pool.recurringDeposit.sub(amount);
+        pool.oneTimeDeposit = pool.oneTimeDeposit.add(amount);
+    }
+
+    function transferOneTimeDepositToRecurringDeposit(uint8 index, uint amount) external {
+        uint8 poolId = poolIds[index];
+        Pool storage pool = poolsById[poolId];
+        pool.oneTimeDeposit = pool.oneTimeDeposit.sub(amount);
+        pool.recurringDeposit = pool.recurringDeposit.add(amount);
+    }
+
+    /// Update pool ID at each index to reflect the maturity change of the pools using formula:
+    /// poolId = (poolId + 1) % poolGroup.length
+    function updatePoolIds() external {
+        for (uint8 i = 0; i < poolIds.length; i++) {
+            poolIds[i] = (poolIds[i] + 1) % uint8(poolIds.length);           
         }
     }
 }

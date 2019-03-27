@@ -2,22 +2,22 @@ const PoolGroup = artifacts.require('PoolGroup')
 const { shouldFail } = require('openzeppelin-test-helpers')
 
 contract('PoolGroup', () => {
-  describe('loan', () => {
+  describe('loanFromPool', () => {
     describe('when loanable amount is enough', () => {
       it('succeeds', async () => {
         const poolGroup = await PoolGroup.new(7)
-        const term = 1
+        const index = 0
         const amount = 100e18
-        await poolGroup.addToOneTimeDeposit(term, amount.toString())
-        const poolIndex = await poolGroup.getPoolIndexByTerm(term)
-        const prevPool = await poolGroup.pools(poolIndex)
+        await poolGroup.addOneTimeDepositToPool(index, amount.toString())
+        const poolId = await poolGroup.poolIds(index)
+        const prevPool = await poolGroup.poolsById(poolId)
 
         assert.equal(prevPool.loanableAmount, amount)
         assert.equal((await poolGroup.totalLoan()), 0)
 
-        await poolGroup.loan(term, amount.toString())
+        await poolGroup.loanFromPool(index, amount.toString())
 
-        const currPool = await poolGroup.pools(poolIndex)
+        const currPool = await poolGroup.poolsById(poolId)
         assert.equal(currPool.loanableAmount, 0)
         assert.equal((await poolGroup.totalLoan()), amount)
       })
@@ -26,12 +26,12 @@ contract('PoolGroup', () => {
     describe('when loanable amount is not enough', () => {
       it('reverts', async () => {
         const poolGroup = await PoolGroup.new(7)
-        const term = 1
+        const index = 0
         const amount = 100e18
-        await poolGroup.addToOneTimeDeposit(term, amount.toString())
+        await poolGroup.addOneTimeDepositToPool(index, amount.toString())
 
         await shouldFail.reverting(
-          poolGroup.loan(term, 101e18.toString())
+          poolGroup.loanFromPool(index, 101e18.toString())
         )
       })
     })

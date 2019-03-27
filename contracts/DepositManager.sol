@@ -30,7 +30,8 @@ contract DepositManager {
 
     function addToOneTimeDeposit(address user, uint8 term, uint amount) external {
         PoolGroup poolGroup = _liquidityPools.poolGroups(term);
-        poolGroup.addToOneTimeDeposit(term, amount);
+        uint8 lastPoolIndex = term - 1;
+        poolGroup.addOneTimeDepositToPool(lastPoolIndex, amount);
 
         bool isRecurring = false;
         addToDeposit(user, term, amount, isRecurring);
@@ -38,7 +39,8 @@ contract DepositManager {
 
     function addToRecurringDeposit(address user, uint8 term, uint amount) external {
         PoolGroup poolGroup = _liquidityPools.poolGroups(term);
-        poolGroup.addToRecurringDeposit(term, amount);
+        uint8 lastPoolIndex = term - 1;
+        poolGroup.addRecurringDepositToPool(lastPoolIndex, amount);
 
         bool isRecurring = true;
         addToDeposit(user, term, amount, isRecurring);
@@ -61,7 +63,8 @@ contract DepositManager {
             uint amount = deposit.amount();
 
             PoolGroup poolGroup = _liquidityPools.poolGroups(term);
-            poolGroup.transferOneTimeDepositToRecurringDeposit(term, amount);
+            uint8 lastPoolIndex = term - 1;
+            poolGroup.transferOneTimeDepositToRecurringDeposit(lastPoolIndex, amount);
         }
     }
 
@@ -75,7 +78,8 @@ contract DepositManager {
             uint amount = deposit.amount();
 
             PoolGroup poolGroup = _liquidityPools.poolGroups(term);
-            poolGroup.transferRecurringDepositToOneTimeDeposit(term, amount);
+            uint8 lastPoolIndex = term - 1;
+            poolGroup.transferRecurringDepositToOneTimeDeposit(lastPoolIndex, amount);
         }
     }
 
@@ -86,10 +90,10 @@ contract DepositManager {
     }
 
     function updatePoolGroupDepositMaturity(PoolGroup poolGroup) private {
-        uint8 term = 1;
-        uint oneTimeDeposit = poolGroup.getOneTimeDeposit(term);
-        poolGroup.withdrawOneTimeDeposit(term, oneTimeDeposit);
-        poolGroup.incrementPoolIndexes();
+        uint8 index = 0;
+        uint oneTimeDeposit = poolGroup.getOneTimeDepositFromPool(index);
+        poolGroup.withdrawOneTimeDepositFromPool(index, oneTimeDeposit);
+        poolGroup.updatePoolIds();
     }
 
     function calculateInterestIndex(uint8 term, uint currTimestamp, uint lastTimestamp) private view returns (uint) {

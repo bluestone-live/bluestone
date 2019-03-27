@@ -19,16 +19,16 @@ contract('DepositManager', ([owner]) => {
 
       for (let i = 0; i < term; i++) {
         // Verify that deposits are moving forward each day
-        const prevOneTimeDeposit = await manager.getOneTimeDepositFromPool(term, term - i)
-        const prevRecurringDeposit = await manager.getRecurringDepositFromPool(term, term - i)
+        const prevOneTimeDeposit = await manager.getOneTimeDepositFromPool(term, term - 1 - i)
+        const prevRecurringDeposit = await manager.getRecurringDepositFromPool(term, term - 1 - i)
         assert.equal(prevOneTimeDeposit, oneTimeDeposit)
         assert.equal(prevRecurringDeposit, recurringDeposit)
 
         await manager.updateDepositMaturity()
       }
 
-      const currOneTimeDeposit = await manager.getOneTimeDepositFromPool(term, 7)
-      const currRecurringDeposit = await manager.getRecurringDepositFromPool(term, 7)
+      const currOneTimeDeposit = await manager.getOneTimeDepositFromPool(term, 6)
+      const currRecurringDeposit = await manager.getRecurringDepositFromPool(term, 6)
       assert.equal(currOneTimeDeposit, 0)
       assert.equal(currRecurringDeposit, recurringDeposit)
     })
