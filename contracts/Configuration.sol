@@ -12,6 +12,7 @@ contract Configuration is Ownable, Term {
     mapping(address => mapping(address => uint)) private collateralRatioMap;
     mapping(address => mapping(address => uint)) private liquidationDiscountMap;
     mapping(uint8 => mapping(uint8 => uint)) private coefficients;
+    mapping(uint8 => uint) private loanInterestRates;
 
     function getCoefficient(uint8 depositTerm, uint8 loanTerm) 
         external
@@ -28,6 +29,10 @@ contract Configuration is Ownable, Term {
             collateralRatioMap[asset][collateral],
             liquidationDiscountMap[asset][collateral]
         );
+    }
+
+    function getLoanInterestRate(uint8 loanTerm) external view validLoanTerm(loanTerm) returns (uint) {
+        return loanInterestRates[loanTerm];
     }
 
     function setCoefficient(uint8 depositTerm, uint8 loanTerm, uint value)
@@ -59,5 +64,13 @@ contract Configuration is Ownable, Term {
 
         collateralRatioMap[asset][collateral] = collateralRatio;
         liquidationDiscountMap[asset][collateral] = liquidationDiscount;
+    }
+
+    function setLoanInterestRate(uint8 loanTerm, uint value)
+        external
+        onlyOwner
+        validLoanTerm(loanTerm)
+    {
+        loanInterestRates[loanTerm] = value;
     }
 }
