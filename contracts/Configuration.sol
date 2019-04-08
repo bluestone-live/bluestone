@@ -36,7 +36,7 @@ contract Configuration is Ownable, Term {
     }
 
     function setCoefficient(uint8 depositTerm, uint8 loanTerm, uint value)
-        external
+        public
         onlyOwner
         validDepositTerm(depositTerm)
         validLoanTerm(loanTerm)
@@ -56,7 +56,7 @@ contract Configuration is Ownable, Term {
         uint collateralRatio, 
         uint liquidationDiscount
     ) 
-        external onlyOwner 
+        public onlyOwner 
     {
         require(collateralRatio >= MIN_COLLATERAL_RATIO);
         require(liquidationDiscount >= 0);
@@ -67,7 +67,7 @@ contract Configuration is Ownable, Term {
     }
 
     function setLoanInterestRate(uint8 loanTerm, uint value)
-        external
+        public
         onlyOwner
         validLoanTerm(loanTerm)
     {

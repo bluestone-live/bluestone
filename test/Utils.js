@@ -6,6 +6,17 @@ const createERC20Token = async (initialHolder, initialSupply = new BN(100)) => {
   return token
 }
 
+const printLogs = logs => {
+  logs.forEach(({event, args}) => {
+    console.log('---')
+    console.log(`Event: ${event}`)
+    Object.keys(args)
+      .filter(key => key !== '0' && key !== '__length__')
+      .forEach(key => console.log(`Arg: ${key}, Value: ${args[key]}`))
+  })
+}
+
 module.exports = {
-  createERC20Token
+  createERC20Token,
+  printLogs
 }

@@ -18,4 +18,9 @@ contract DepositManagerMock is DepositManager {
         PoolGroup poolGroup = _liquidityPools.poolGroups(depositTerm);
         return poolGroup.getRecurringDepositFromPool(index);
     }
+
+    function getLoanableAmountFromPool(uint8 depositTerm, uint8 index) public view returns (uint) {
+        PoolGroup poolGroup = _liquidityPools.poolGroups(depositTerm);
+        return poolGroup.getLoanableAmountFromPool(index);
+    }
 }

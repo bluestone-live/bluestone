@@ -11,7 +11,15 @@ contract PoolGroup {
     using SafeMath for uint;
 
     uint public totalDeposit;
-    uint public totalLoan;
+    uint public totalLoan; 
+    uint public totalRepaid;
+    uint public totalLoanableAmount;
+
+    // The total amount that has loaned to each loan term
+    mapping(uint8 => uint) public totalLoanPerTerm;
+
+    // The total amount that has repaid to each loan term
+    mapping(uint8 => uint) public totalRepaidPerTerm;
 
     struct Pool {
         uint oneTimeDeposit;
@@ -66,6 +74,7 @@ contract PoolGroup {
         pool.oneTimeDeposit = pool.oneTimeDeposit.add(amount); 
         pool.loanableAmount = pool.loanableAmount.add(amount);
         totalDeposit = totalDeposit.add(amount);
+        totalLoanableAmount = totalLoanableAmount.add(amount);
     }
 
     function addRecurringDepositToPool(uint8 index, uint amount) external {
@@ -74,6 +83,7 @@ contract PoolGroup {
         pool.recurringDeposit = pool.recurringDeposit.add(amount); 
         pool.loanableAmount = pool.loanableAmount.add(amount);
         totalDeposit = totalDeposit.add(amount);
+        totalLoanableAmount = totalLoanableAmount.add(amount);
     }
 
     function withdrawOneTimeDepositFromPool(uint8 index, uint amount) external {
@@ -82,20 +92,25 @@ contract PoolGroup {
         pool.oneTimeDeposit = pool.oneTimeDeposit.sub(amount);
         pool.loanableAmount = pool.loanableAmount.sub(amount);
         totalDeposit = totalDeposit.sub(amount);
+        totalLoanableAmount = totalLoanableAmount.sub(amount);
     }
 
-    function loanFromPool(uint8 index, uint amount) external {
+    function loanFromPool(uint8 index, uint amount, uint8 loanTerm) external {
         uint8 poolId = poolIds[index];
         Pool storage pool = poolsById[poolId];
         pool.loanableAmount = pool.loanableAmount.sub(amount);
         totalLoan = totalLoan.add(amount);
+        totalLoanableAmount = totalLoanableAmount.sub(amount);
+        totalLoanPerTerm[loanTerm] = totalLoanPerTerm[loanTerm].add(amount);
     }
 
-    function repayLoanToPool(uint8 index, uint amount) external {
+    function repayLoanToPool(uint8 index, uint amount, uint8 loanTerm) external {
         uint8 poolId = poolIds[index];
         Pool storage pool = poolsById[poolId];
         pool.loanableAmount = pool.loanableAmount.add(amount);
-        totalLoan = totalLoan.sub(amount);
+        totalRepaid = totalRepaid.add(amount);
+        totalLoanableAmount = totalLoanableAmount.add(amount);
+        totalRepaidPerTerm[loanTerm] = totalRepaidPerTerm[loanTerm].add(amount);
     }
 
     function transferRecurringDepositToOneTimeDeposit(uint8 index, uint amount) external {

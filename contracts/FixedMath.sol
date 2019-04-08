@@ -11,4 +11,8 @@ library FixedMath {
     function mulFixed(uint a, uint b) internal pure returns (uint) {
         return a.mul(b).div(PRECISION);
     }
+
+    function divFixed(uint a, uint b) internal pure returns (uint) {
+        return a.mul(PRECISION).div(b);
+    }
 }
