@@ -31,6 +31,14 @@ contract Configuration is Ownable, Term {
         );
     }
 
+    function getCollateralRatio(address asset, address collateral) external view returns (uint) {
+        return collateralRatioMap[asset][collateral];
+    } 
+
+    function getLiquidationDiscount(address asset, address collateral) external view returns (uint) {
+        return liquidationDiscountMap[asset][collateral];
+    } 
+
     function getLoanInterestRate(uint8 loanTerm) external view validLoanTerm(loanTerm) returns (uint) {
         return loanInterestRates[loanTerm];
     }

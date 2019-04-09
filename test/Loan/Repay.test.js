@@ -10,10 +10,20 @@ contract('Loan', ([owner, anotherAccount]) => {
   const loanAmount = 100e18
   const collateralAmount = 300e18
   const interestRate = 5e10
+  const minCollateralRatio = 15e17
+  const liquidationDiscount = 5e16
   let loan
 
   beforeEach(async () => {
-      loan = await Loan.new(owner, term, loanAmount.toString(), collateralAmount.toString(), interestRate.toString())
+    loan = await Loan.new(
+      owner, 
+      term, 
+      loanAmount.toString(), 
+      collateralAmount.toString(), 
+      interestRate.toString(),
+      minCollateralRatio.toString(),
+      liquidationDiscount.toString()
+    )
   })
 
   describe('repay', () => {
@@ -31,13 +41,13 @@ contract('Loan', ([owner, anotherAccount]) => {
         await time.increase(twoDays) 
 
         // TODO: refactor using BigNumber library
-        let accuredInterest = loanAmount * interestRate * twoDays / 1e18 
-        assert.isBelow((await loan.accuredInterest()) - accuredInterest, ACCEPTABLE_INTEREST_ERROR);
+        let accruedInterest = loanAmount * interestRate * twoDays / 1e18 
+        assert.isBelow((await loan.accruedInterest()) - accruedInterest, ACCEPTABLE_INTEREST_ERROR);
 
         await time.increase(twoDays) 
 
-        accuredInterest = loanAmount * interestRate * twoDays * 2 / 1e18
-        assert.isBelow((await loan.accuredInterest()) - accuredInterest, ACCEPTABLE_INTEREST_ERROR);
+        accruedInterest = loanAmount * interestRate * twoDays * 2 / 1e18
+        assert.isBelow((await loan.accruedInterest()) - accruedInterest, ACCEPTABLE_INTEREST_ERROR);
 
         const repayAmount = 50e18
 
@@ -49,9 +59,9 @@ contract('Loan', ([owner, anotherAccount]) => {
 
         await loan.repay(new BN(-1))
 
-        accuredInterest += (loanAmount + accuredInterest - repayAmount) * interestRate * threeDays / 1e18   
-        assert.isBelow((await loan.accuredInterest()) - accuredInterest, ACCEPTABLE_INTEREST_ERROR);
-        assert.isTrue((await loan.isFullyRepaid()));
+        accruedInterest += (loanAmount + accruedInterest - repayAmount) * interestRate * threeDays / 1e18   
+        assert.isBelow((await loan.accruedInterest()) - accruedInterest, ACCEPTABLE_INTEREST_ERROR);
+        assert.isTrue((await loan.isClosed()));
       })
     })
   })

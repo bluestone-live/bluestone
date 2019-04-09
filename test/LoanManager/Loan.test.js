@@ -1,19 +1,32 @@
 const LoanManager = artifacts.require('LoanManager')
 const DepositManager = artifacts.require('DepositManagerMock')
 const Configuration = artifacts.require('ConfigurationMock')
+const PriceOracle = artifacts.require('PriceOracle')
 const LiquidityPools = artifacts.require('LiquidityPools')
+const { createERC20Token } = require('../Utils.js')
 
 contract('LoanManager', ([owner, anotherAccount]) => {
   const term = 7
   const depositAmount = 200e18
   const loanAmount = 100e18
   const collateralAmount = 300e18
-  let loanManager, depositManager, liquidityPools
+  let loanManager, depositManager
 
   beforeEach(async () => {
     const configuration = await Configuration.new()
-    liquidityPools = await LiquidityPools.new()
-    loanManager = await LoanManager.new(liquidityPools.address, configuration.address)
+    const priceOracle = await PriceOracle.new()
+    const asset = await createERC20Token(anotherAccount)
+    const collateral = await createERC20Token(anotherAccount)
+    const liquidityPools = await LiquidityPools.new()
+
+    loanManager = await LoanManager.new(
+      asset.address, 
+      collateral.address, 
+      liquidityPools.address, 
+      configuration.address, 
+      priceOracle.address
+    )
+
     depositManager = await DepositManager.new(liquidityPools.address)
   })
 

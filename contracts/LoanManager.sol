@@ -6,6 +6,7 @@ import "./LiquidityPools.sol";
 import "./PoolGroup.sol";
 import "./FixedMath.sol";
 import "./Configuration.sol";
+import "./PriceOracle.sol";
 import "./Loan.sol";
 
 
@@ -13,20 +14,46 @@ contract LoanManager {
     using SafeMath for uint;
     using FixedMath for uint;
 
+    address _loanAsset;
+    address _collateralAsset;
+
     LiquidityPools private _liquidityPools;
     Configuration private _config;
+    PriceOracle private _priceOracle;
 
     uint private _loanId;
     mapping(uint => Loan) private loans;
 
-    constructor(LiquidityPools liquidityPools, address config) public {
+    constructor(
+        address loanAsset, 
+        address collateralAsset, 
+        LiquidityPools liquidityPools, 
+        address config, 
+        address priceOracle
+    ) 
+        public 
+    {
+        _loanAsset = loanAsset;
+        _collateralAsset = collateralAsset;
         _liquidityPools = liquidityPools;
         _config = Configuration(config);
+        _priceOracle = PriceOracle(priceOracle);
     }
 
     function loan(address user, uint8 loanTerm, uint loanAmount, uint collateralAmount) external {
         uint interestRate = _config.getLoanInterestRate(loanTerm);
-        loans[_loanId] = new Loan(user, loanTerm, loanAmount, collateralAmount, interestRate);
+        uint minCollateralRatio = _config.getCollateralRatio(_loanAsset, _collateralAsset);
+        uint liquidationDiscount = _config.getLiquidationDiscount(_loanAsset, _collateralAsset);
+
+        loans[_loanId] = new Loan(
+            user, 
+            loanTerm, 
+            loanAmount, 
+            collateralAmount, 
+            interestRate, 
+            minCollateralRatio, 
+            liquidationDiscount
+        );
 
         if (loanTerm == 1) {
             loanFromPoolGroup(1, loanTerm, loanAmount, _loanId);
@@ -63,6 +90,35 @@ contract LoanManager {
         repayLoanToPoolGroup(1, totalRepayAmount, loanId);
 
         return totalRepayAmount;
+    }
+
+    /// @param liquidator The address of liquidator
+    /// @param loanId ID to lookup the Loan
+    /// @param amount The amount to liquidate
+    /// @return (liquidatedAmount, soldCollateralAmount)
+    function liquidateLoan(address liquidator, uint loanId, uint amount) external returns (uint, uint) {
+        Loan currLoan = loans[loanId];
+        require(liquidator != currLoan.owner(), "Loan cannot be liquidated by the owner.");
+
+        uint loanAssetPrice = _priceOracle.getPrice(_loanAsset);
+        uint collateralAssetPrice = _priceOracle.getPrice(_collateralAsset);
+
+        require(
+            currLoan.isLiquidatable(loanAssetPrice, collateralAssetPrice), 
+            "Loan is not liquidatable."
+        );
+
+        (uint liquidatedAmount, uint soldCollateralAmount) = currLoan.liquidate(
+            amount, 
+            loanAssetPrice, 
+            collateralAssetPrice
+        );
+
+        repayLoanToPoolGroup(30, liquidatedAmount, loanId);
+        repayLoanToPoolGroup(7, liquidatedAmount, loanId);
+        repayLoanToPoolGroup(1, liquidatedAmount, loanId);
+
+        return (liquidatedAmount, soldCollateralAmount);
     }
 
     function loanFromPoolGroup(uint8 depositTerm, uint8 loanTerm, uint loanAmount, uint loanId) private {
