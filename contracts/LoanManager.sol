@@ -45,6 +45,11 @@ contract LoanManager {
         uint minCollateralRatio = _config.getCollateralRatio(_loanAsset, _collateralAsset);
         uint liquidationDiscount = _config.getLiquidationDiscount(_loanAsset, _collateralAsset);
 
+        require(
+            collateralAmount.divFixed(loanAmount) >= minCollateralRatio,
+            "Collateral ratio is below requirement."
+        );
+
         loans[_loanId] = new Loan(
             user, 
             loanTerm, 

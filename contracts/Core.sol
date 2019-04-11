@@ -1,7 +1,6 @@
 pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./DepositManager.sol";
@@ -11,7 +10,7 @@ import "./Term.sol";
 
 
 /// @title The main contract that interacts with the external world.
-contract Core is Ownable, Pausable, Term {
+contract Core is Ownable, Term {
     using SafeERC20 for ERC20;
     using SafeMath for uint;
 
@@ -73,6 +72,34 @@ contract Core is Ownable, Pausable, Term {
         // Send tokens to the customer account from the protocol
         ERC20 token = ERC20(asset);
         token.safeTransfer(msg.sender, amount);
+    }
+
+    function loan(
+        uint8 term,
+        address loanAsset,
+        address collateralAsset,
+        uint loanAmount,
+        uint collateralAmount,
+        uint requestedFreedCollateral
+    ) 
+        external 
+        validLoanTerm(term)
+    {
+        require(loanAmount > 0);
+        require(collateralAmount > 0 || requestedFreedCollateral > 0);
+
+        address user = msg.sender;
+        uint availableFreedCollateral = _freedCollaterals[user][collateralAsset];
+
+        require(requestedFreedCollateral <= availableFreedCollateral, "Not enough freed collateral.");
+
+        _freedCollaterals[user][collateralAsset] = availableFreedCollateral.sub(requestedFreedCollateral);
+
+        uint totalCollateralAmount = collateralAmount.add(requestedFreedCollateral);
+        LoanManager manager = loanManagers[loanAsset][collateralAsset];
+        manager.loan(user, term, loanAmount, totalCollateralAmount);
+
+        // TODO: balance transfer
     }
 
     function repayLoan(address loanAsset, address collateralAsset, uint loanId, uint amount) 
