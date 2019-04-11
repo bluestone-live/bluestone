@@ -47,7 +47,7 @@ contract('LoanManager', ([owner, anotherAccount]) => {
 
     describe('when loan is undercollateralized', () => {
       beforeEach(async () => {
-        await priceOracle.setPrice(asset.address, 300e18.toString())
+        await priceOracle.setPrice(asset.address, 210e18.toString())
         await priceOracle.setPrice(collateral.address, 100e18.toString())
       })
 
@@ -81,7 +81,7 @@ contract('LoanManager', ([owner, anotherAccount]) => {
         await loanManager.loan(owner, term, loanAmount.toString(), collateralAmount.toString())
 
         const loanId = 0
-        const firstLiquidationAmount = 50e18
+        const firstLiquidationAmount = 5e18
         await loanManager.liquidateLoan(anotherAccount, loanId, firstLiquidationAmount.toString())
 
         let pool7LoanableAmount = await depositManager.getLoanableAmountFromPool(7, 6) 

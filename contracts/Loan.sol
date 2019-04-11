@@ -75,8 +75,8 @@ contract Loan {
     }
 
     /// @param amount The amount to repay (or -1 for max)
-    /// @return repaid amount
-    function repay(uint amount) external returns (uint) {
+    /// @return (repaidAmount, freedCollateralAmount)
+    function repay(uint amount) external returns (uint, uint) {
         require(!_isClosed);
 
         updateAccruedInterest();
@@ -91,19 +91,21 @@ contract Loan {
         }
 
         _alreadyPaidAmount = _alreadyPaidAmount.add(repaidAmount);
+        _lastRepaidAt = now;
 
         if (remainingDebt() == 0) {
             _isClosed = true;
+
+            uint freedCollateralAmount = _collateralAmount.sub(_soldCollateralAmount);
+            return (repaidAmount, freedCollateralAmount);
+        } else {
+            return (repaidAmount, 0);
         }
-
-        _lastRepaidAt = now;
-
-        return repaidAmount;
     }
 
     function liquidate(uint requestedAmount, uint loanAssetPrice, uint collateralAssetPrice) 
         external
-        returns (uint, uint) 
+        returns (uint, uint, uint)
     {
         require(!_isClosed, "Loan must not be closed.");                        
         require(loanAssetPrice > 0, "Asset price must be greater than 0.");
@@ -131,14 +133,16 @@ contract Loan {
 
         _soldCollateralAmount = _soldCollateralAmount.add(soldCollateralAmount);
         _liquidatedAmount = _liquidatedAmount.add(liquidatingAmount);
+        _lastLiquidatedAt = now;
 
         if (remainingDebt() == 0) {
             _isClosed = true;
+
+            uint freedCollateralAmount = _collateralAmount.sub(_soldCollateralAmount);
+            return (liquidatingAmount, soldCollateralAmount, freedCollateralAmount);
+        } else {
+            return (liquidatingAmount, soldCollateralAmount, 0);
         }
-
-        _lastLiquidatedAt = now;
-
-        return (liquidatingAmount, soldCollateralAmount);
     }
 
     function owner() external view returns (address) {

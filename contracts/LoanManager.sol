@@ -78,25 +78,25 @@ contract LoanManager {
     /// @param user The address of payer
     /// @param loanId ID to lookup the Loan
     /// @param amount The amount to repay (or -1 for max)
-    function repayLoan(address user, uint loanId, uint amount) external returns (uint) {
+    /// @return (totalRepayAmount, freedCollateralAmount)
+    function repayLoan(address user, uint loanId, uint amount) external returns (uint, uint) {
         Loan currLoan = loans[loanId];
         require(user == currLoan.owner());
 
-        // The amount of money, including accrued interest, waiting to be repaid to pools
-        uint totalRepayAmount = currLoan.repay(amount);
+        (uint totalRepayAmount, uint freedCollateralAmount) = currLoan.repay(amount);
 
         repayLoanToPoolGroup(30, totalRepayAmount, loanId);
         repayLoanToPoolGroup(7, totalRepayAmount, loanId);
         repayLoanToPoolGroup(1, totalRepayAmount, loanId);
 
-        return totalRepayAmount;
+        return (totalRepayAmount, freedCollateralAmount);
     }
 
     /// @param liquidator The address of liquidator
     /// @param loanId ID to lookup the Loan
     /// @param amount The amount to liquidate
-    /// @return (liquidatedAmount, soldCollateralAmount)
-    function liquidateLoan(address liquidator, uint loanId, uint amount) external returns (uint, uint) {
+    /// @return (liquidatedAmount, soldCollateralAmount, freedCollateralAmount)
+    function liquidateLoan(address liquidator, uint loanId, uint amount) external returns (uint, uint, uint) {
         Loan currLoan = loans[loanId];
         require(liquidator != currLoan.owner(), "Loan cannot be liquidated by the owner.");
 
@@ -108,7 +108,7 @@ contract LoanManager {
             "Loan is not liquidatable."
         );
 
-        (uint liquidatedAmount, uint soldCollateralAmount) = currLoan.liquidate(
+        (uint liquidatedAmount, uint soldCollateralAmount, uint freedCollateralAmount) = currLoan.liquidate(
             amount, 
             loanAssetPrice, 
             collateralAssetPrice
@@ -118,7 +118,7 @@ contract LoanManager {
         repayLoanToPoolGroup(7, liquidatedAmount, loanId);
         repayLoanToPoolGroup(1, liquidatedAmount, loanId);
 
-        return (liquidatedAmount, soldCollateralAmount);
+        return (liquidatedAmount, soldCollateralAmount, freedCollateralAmount);
     }
 
     function loanFromPoolGroup(uint8 depositTerm, uint8 loanTerm, uint loanAmount, uint loanId) private {

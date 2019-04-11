@@ -5,6 +5,7 @@ import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./DepositManager.sol";
+import "./LoanManager.sol";
 import "./LiquidityPools.sol";
 import "./Term.sol";
 
@@ -17,6 +18,9 @@ contract Core is Ownable, Pausable, Term {
     mapping(address => DepositManager) public depositManagers;
     mapping(address => bool) public isDepositManagerInitialized;
     mapping(address => bool) public isDepositManagerEnabled;
+
+    // loan asset -> collateral asset -> LoanManager
+    mapping(address => mapping(address => LoanManager)) private loanManagers;
 
     // user -> asset -> freed collateral
     mapping(address => mapping(address => uint)) private _freedCollaterals;
@@ -69,6 +73,41 @@ contract Core is Ownable, Pausable, Term {
         // Send tokens to the customer account from the protocol
         ERC20 token = ERC20(asset);
         token.safeTransfer(msg.sender, amount);
+    }
+
+    function repayLoan(address loanAsset, address collateralAsset, uint loanId, uint amount) 
+        external 
+        returns (uint)
+    {
+        LoanManager manager = loanManagers[loanAsset][collateralAsset];
+        address user = msg.sender;
+
+        (uint totalRepayAmount, uint freedCollateralAmount) = manager.repayLoan(user, loanId, amount);
+
+        // TODO: balance transfer
+
+        _freedCollaterals[user][collateralAsset] = _freedCollaterals[user][collateralAsset]
+            .add(freedCollateralAmount);
+
+        return (totalRepayAmount);
+    }
+
+    function liquidateLoan(address loanAsset, address collateralAsset, uint loanId, uint amount) 
+        external 
+        returns (uint, uint)
+    {
+        LoanManager manager = loanManagers[loanAsset][collateralAsset];
+        address user = msg.sender;
+
+        (uint liquidatedAmount, uint soldCollateralAmount, uint freedCollateralAmount) = manager
+            .liquidateLoan(user, loanId, amount);
+
+        // TODO: balance transfer
+
+        _freedCollaterals[user][collateralAsset] = _freedCollaterals[user][collateralAsset]
+            .add(freedCollateralAmount);
+
+        return (liquidatedAmount, soldCollateralAmount);
     }
 
     function withdrawFreedCollateral(address asset, uint amount) external {
