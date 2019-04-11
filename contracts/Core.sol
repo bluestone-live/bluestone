@@ -12,10 +12,14 @@ import "./Term.sol";
 /// @title The main contract that interacts with the external world.
 contract Core is Ownable, Pausable, Term {
     using SafeERC20 for ERC20;
+    using SafeMath for uint;
 
     mapping(address => DepositManager) public depositManagers;
     mapping(address => bool) public isDepositManagerInitialized;
     mapping(address => bool) public isDepositManagerEnabled;
+
+    // user -> asset -> freed collateral
+    mapping(address => mapping(address => uint)) private _freedCollaterals;
 
     bool private isLiquidityPoolsInitialized = false;
     LiquidityPools private _liquidityPools;
@@ -63,6 +67,20 @@ contract Core is Ownable, Pausable, Term {
         uint amount = manager.withdraw(msg.sender, depositId);
 
         // Send tokens to the customer account from the protocol
+        ERC20 token = ERC20(asset);
+        token.safeTransfer(msg.sender, amount);
+    }
+
+    function withdrawFreedCollateral(address asset, uint amount) external {
+        require(amount > 0, "Withdraw amount must be greater than 0.");
+
+        address user = msg.sender;
+        uint availableToWithdraw = _freedCollaterals[user][asset];
+
+        require(amount <= availableToWithdraw, "Not enough freed collateral to withdraw.");
+
+        _freedCollaterals[user][asset] = _freedCollaterals[user][asset].sub(amount);
+
         ERC20 token = ERC20(asset);
         token.safeTransfer(msg.sender, amount);
     }
