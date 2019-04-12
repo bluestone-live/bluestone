@@ -113,10 +113,9 @@ contract Core is Ownable, Term {
 
         // TODO: balance transfer
 
-        _freedCollaterals[user][collateralAsset] = _freedCollaterals[user][collateralAsset]
-            .add(freedCollateralAmount);
+        _depositFreedCollateral(user, collateralAsset, freedCollateralAmount);
 
-        return (totalRepayAmount);
+        return totalRepayAmount;
     }
 
     function liquidateLoan(address loanAsset, address collateralAsset, uint loanId, uint amount) 
@@ -131,8 +130,7 @@ contract Core is Ownable, Term {
 
         // TODO: balance transfer
 
-        _freedCollaterals[user][collateralAsset] = _freedCollaterals[user][collateralAsset]
-            .add(freedCollateralAmount);
+        _depositFreedCollateral(user, collateralAsset, freedCollateralAmount);
 
         return (liquidatedAmount, soldCollateralAmount);
     }
@@ -145,10 +143,14 @@ contract Core is Ownable, Term {
 
         require(amount <= availableToWithdraw, "Not enough freed collateral to withdraw.");
 
-        _freedCollaterals[user][asset] = _freedCollaterals[user][asset].sub(amount);
+        _freedCollaterals[user][asset] = availableToWithdraw.sub(amount);
 
         ERC20 token = ERC20(asset);
-        token.safeTransfer(msg.sender, amount);
+        token.safeTransfer(user, amount);
+    }
+
+    function getFreedCollateral(address asset) external view returns (uint) {
+        return _freedCollaterals[msg.sender][asset];
     }
 
     // ADMIN ONLY --------------------------------------------------------------
@@ -177,5 +179,11 @@ contract Core is Ownable, Term {
     function updateDepositMaturity(address asset) external onlyOwner enabledDepositManager(asset) {
         DepositManager manager = depositManagers[asset];
         manager.updateDepositMaturity();
+    }
+
+    // INTERNAL --------------------------------------------------------------
+
+    function _depositFreedCollateral(address user, address asset, uint amount) internal {
+        _freedCollaterals[user][asset] = _freedCollaterals[user][asset].add(amount);
     }
 }

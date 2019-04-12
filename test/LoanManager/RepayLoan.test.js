@@ -13,7 +13,7 @@ contract('LoanManager', ([owner, anotherAccount]) => {
   let loanManager, depositManager, liquidityPools, configuration, priceOracle
   let asset, collateral
 
-  beforeEach(async () => {
+  before(async () => {
     configuration = await Configuration.new()
     priceOracle = await PriceOracle.new()
     asset = await createERC20Token(anotherAccount)
@@ -21,7 +21,7 @@ contract('LoanManager', ([owner, anotherAccount]) => {
     liquidityPools = await LiquidityPools.new()
   })
 
-  describe('repayLoan', () => {
+  describe('#repayLoan', () => {
     beforeEach(async () => {
       loanManager = await LoanManager.new(
         asset.address, 

@@ -12,21 +12,22 @@ contract('Loan', ([owner, anotherAccount]) => {
   const interestRate = 5e10
   const minCollateralRatio = 15e17
   const liquidationDiscount = 5e16
-  let loan
 
-  beforeEach(async () => {
-    loan = await Loan.new(
-      owner, 
-      term, 
-      loanAmount.toString(), 
-      collateralAmount.toString(), 
-      interestRate.toString(),
-      minCollateralRatio.toString(),
-      liquidationDiscount.toString()
-    )
-  })
+  describe('#repay', () => {
+    let loan
 
-  describe('repay', () => {
+    beforeEach(async () => {
+      loan = await Loan.new(
+        owner, 
+        term, 
+        loanAmount.toString(), 
+        collateralAmount.toString(), 
+        interestRate.toString(),
+        minCollateralRatio.toString(),
+        liquidationDiscount.toString()
+      )
+    })
+
     describe('when amount is more than remaining debt', () => {
       it('fails', async () => {
         await shouldFail.reverting(
@@ -36,32 +37,48 @@ contract('Loan', ([owner, anotherAccount]) => {
     })
 
     describe('when amount is not more than remaining debt', () => {
-      it('repays multiple times', async () => {
-        const twoDays = 2 * 24 * 60 * 60
-        await time.increase(twoDays) 
+      describe('when repay in full', async () => {
+        it('returns freed collateral', async () => {
+          const res = await loan.repay.call(new BN(-1))    
+          assert.equal(res[1], collateralAmount)
+        })
+      })
 
-        // TODO: refactor using BigNumber library
-        let accruedInterest = loanAmount * interestRate * twoDays / 1e18 
-        assert.isBelow((await loan.accruedInterest()) - accruedInterest, ACCEPTABLE_INTEREST_ERROR);
+      describe('when not repay in full', async () => {
+        it.only('does not return freed collateral', async () => {
+          const res = await loan.repay.call(50e18.toString())    
+          assert.equal(res[1], 0)
+        })
+      })
 
-        await time.increase(twoDays) 
+      describe('when repay multiple times', async () => {
+        it('succeeds', async () => {
+          const twoDays = 2 * 24 * 60 * 60
+          await time.increase(twoDays) 
 
-        accruedInterest = loanAmount * interestRate * twoDays * 2 / 1e18
-        assert.isBelow((await loan.accruedInterest()) - accruedInterest, ACCEPTABLE_INTEREST_ERROR);
+          // TODO: refactor using BigNumber library
+          let accruedInterest = loanAmount * interestRate * twoDays / 1e18 
+          assert.isBelow((await loan.accruedInterest()) - accruedInterest, ACCEPTABLE_INTEREST_ERROR);
 
-        const repayAmount = 50e18
+          await time.increase(twoDays) 
 
-        await loan.repay(repayAmount.toString())
-        assert.equal((await loan.alreadyPaidAmount()), repayAmount.toString());
+          accruedInterest = loanAmount * interestRate * twoDays * 2 / 1e18
+          assert.isBelow((await loan.accruedInterest()) - accruedInterest, ACCEPTABLE_INTEREST_ERROR);
 
-        const threeDays = 3 * 24 * 60 * 60
-        await time.increase(threeDays)
+          const repayAmount = 50e18
 
-        await loan.repay(new BN(-1))
+          await loan.repay(repayAmount.toString())
+          assert.equal((await loan.alreadyPaidAmount()), repayAmount.toString());
 
-        accruedInterest += (loanAmount + accruedInterest - repayAmount) * interestRate * threeDays / 1e18   
-        assert.isBelow((await loan.accruedInterest()) - accruedInterest, ACCEPTABLE_INTEREST_ERROR);
-        assert.isTrue((await loan.isClosed()));
+          const threeDays = 3 * 24 * 60 * 60
+          await time.increase(threeDays)
+
+          await loan.repay(new BN(-1))
+
+          accruedInterest += (loanAmount + accruedInterest - repayAmount) * interestRate * threeDays / 1e18   
+          assert.isBelow((await loan.accruedInterest()) - accruedInterest, ACCEPTABLE_INTEREST_ERROR);
+          assert.isTrue((await loan.isClosed()));
+        })
       })
     })
   })
