@@ -7,10 +7,9 @@ const { shouldFail, BN } = require('openzeppelin-test-helpers')
 const { createERC20Token } = require('../Utils.js')
 
 contract('LoanManager', ([owner, anotherAccount]) => {
-  const depositAmount = 200e18
   const loanAmount = 100e18
   const collateralAmount = 300e18
-  let loanManager, depositManager, liquidityPools, configuration, priceOracle
+  let loanManager, depositManager, configuration, priceOracle
   let asset, collateral
 
   before(async () => {
@@ -18,11 +17,12 @@ contract('LoanManager', ([owner, anotherAccount]) => {
     priceOracle = await PriceOracle.new()
     asset = await createERC20Token(anotherAccount)
     collateral = await createERC20Token(anotherAccount)
-    liquidityPools = await LiquidityPools.new()
   })
 
   describe('#repayLoan', () => {
     beforeEach(async () => {
+      const liquidityPools = await LiquidityPools.new()
+
       loanManager = await LoanManager.new(
         asset.address, 
         collateral.address, 

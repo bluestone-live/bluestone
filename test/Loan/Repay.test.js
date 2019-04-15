@@ -45,7 +45,7 @@ contract('Loan', ([owner, anotherAccount]) => {
       })
 
       describe('when not repay in full', async () => {
-        it.only('does not return freed collateral', async () => {
+        it('does not return freed collateral', async () => {
           const res = await loan.repay.call(50e18.toString())    
           assert.equal(res[1], 0)
         })
