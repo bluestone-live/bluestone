@@ -1,111 +1,148 @@
 pragma solidity ^0.5.0;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/math/Math.sol";
+import "./Configuration.sol";
+import "./PriceOracle.sol";
+import "./TokenManager.sol";
 import "./LiquidityPools.sol";
 import "./PoolGroup.sol";
+import "./FixedMath.sol";
 import "./Deposit.sol";
+import "./Term.sol";
 
 
-contract DepositManager {
+contract DepositManager is Ownable, Term {
     using SafeMath for uint;
+    using FixedMath for uint;
 
-    uint constant private ONE = 10 ** 18;
+    Configuration private _config;
+    PriceOracle private _priceOracle;
+    TokenManager private _tokenManager;
+    LiquidityPools private _liquidityPools;
+
+    mapping(address => bool) private _isDepositAssetEnabled;
+    mapping(uint8 => uint) private _interestIndexPerTerm;
+    mapping(uint8 => uint) private _lastTimestampPerTerm;
+    mapping(uint => Deposit) private _deposits;
     uint private _depositId;
 
-    ///@dev ID -> deposit
-    mapping(uint => Deposit) public deposits;
+    uint constant private ONE = 10 ** 18;
 
-    mapping(uint8 => uint) interestIndexPerTerm;
-    mapping(uint8 => uint) lastTimestampPerTerm;
+    modifier enabledDepositAsset(address asset) {
+        require(_isDepositAssetEnabled[asset] == true, "Deposit Asset must be enabled.");
+        _;
+    }
 
-    LiquidityPools internal _liquidityPools;
+    constructor(address config, address priceOracle, address tokenManager, address liquidityPools) public {
+        _config = Configuration(config);
+        _priceOracle = PriceOracle(priceOracle);
+        _tokenManager = TokenManager(tokenManager);
+        _liquidityPools = LiquidityPools(liquidityPools);
+
+        _interestIndexPerTerm[1] = ONE;
+        _interestIndexPerTerm[7] = ONE;
+        _interestIndexPerTerm[30] = ONE;
+    }
+
+    // PUBLIC  -----------------------------------------------------------------
+
+    function deposit(address asset, uint8 term, uint amount, bool isRecurring) 
+        external 
+        enabledDepositAsset(asset) 
+        validDepositTerm(term) 
+    {
+        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
+        uint8 lastPoolIndex = term - 1;
+
+        if (isRecurring) {
+            poolGroup.addRecurringDepositToPool(lastPoolIndex, amount);
+        } else {
+            poolGroup.addOneTimeDepositToPool(lastPoolIndex, amount);
+        }
+
+        uint currTimestamp = now;
+        uint lastTimestamp = _lastTimestampPerTerm[term];
+        _interestIndexPerTerm[term] = _calculateInterestIndex(term, currTimestamp, lastTimestamp);
+        _lastTimestampPerTerm[term] = currTimestamp;
+
+        address user = msg.sender;
+        _deposits[_depositId] = new Deposit(user, term, amount, _interestIndexPerTerm[term], isRecurring);
+        _depositId++;
+
+        _tokenManager.receiveFrom(user, asset, amount);
+    }
     
-    constructor(LiquidityPools liquidityPools) public {
-        _liquidityPools = liquidityPools;
+    function setRecurringDeposit(address asset, uint depositId, bool enableRecurring) 
+        external enabledDepositAsset(asset) 
+    {
+        Deposit currDeposit = _deposits[depositId];
+        require(msg.sender == currDeposit.owner());
 
-        interestIndexPerTerm[1] = ONE;
-        interestIndexPerTerm[7] = ONE;
-        interestIndexPerTerm[30] = ONE;
-    }
-
-    function addToOneTimeDeposit(address user, uint8 term, uint amount) external {
-        PoolGroup poolGroup = _liquidityPools.poolGroups(term);
+        uint8 term = currDeposit.term();
+        uint amount = currDeposit.amount();
         uint8 lastPoolIndex = term - 1;
-        poolGroup.addOneTimeDepositToPool(lastPoolIndex, amount);
+        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
 
-        bool isRecurring = false;
-        addToDeposit(user, term, amount, isRecurring);
-    }
-
-    function addToRecurringDeposit(address user, uint8 term, uint amount) external {
-        PoolGroup poolGroup = _liquidityPools.poolGroups(term);
-        uint8 lastPoolIndex = term - 1;
-        poolGroup.addRecurringDepositToPool(lastPoolIndex, amount);
-
-        bool isRecurring = true;
-        addToDeposit(user, term, amount, isRecurring);
-    }
-
-    function withdraw(address user, uint depositId) external returns (uint) {
-        Deposit deposit = deposits[depositId];
-        uint8 term = deposit.term();
-        uint amount = deposit.withdraw(user, interestIndexPerTerm[term]);
-        return amount;
-    }
-
-    function enableRecurringDeposit(address user, uint depositId) external {
-        Deposit deposit = deposits[depositId];
-        require(user == deposit.owner());
-
-        if (!deposit.isRecurring()) {
-            deposit.enableRecurring();
-            uint8 term = deposit.term();
-            uint amount = deposit.amount();
-
-            PoolGroup poolGroup = _liquidityPools.poolGroups(term);
-            uint8 lastPoolIndex = term - 1;
+        if (enableRecurring && !currDeposit.isRecurring()) {
+            currDeposit.enableRecurring();
             poolGroup.transferOneTimeDepositToRecurringDeposit(lastPoolIndex, amount);
-        }
-    }
-
-    function disableRecurringDeposit(address user, uint depositId) external {
-        Deposit deposit = deposits[depositId];
-        require(user == deposit.owner());
-
-        if (deposit.isRecurring()) {
-            deposit.disableRecurring();
-            uint8 term = deposit.term();
-            uint amount = deposit.amount();
-
-            PoolGroup poolGroup = _liquidityPools.poolGroups(term);
-            uint8 lastPoolIndex = term - 1;
+        } else if (!enableRecurring && currDeposit.isRecurring()) {
+            currDeposit.disableRecurring();
             poolGroup.transferRecurringDepositToOneTimeDeposit(lastPoolIndex, amount);
+        } else {
+            revert("Invalid operation.");
+        }
+    }
+    
+    function withdraw(address asset, uint depositId) external enabledDepositAsset(asset) {
+        Deposit currDeposit = _deposits[depositId];
+        uint8 term = currDeposit.term();
+        address user = msg.sender;
+        uint amount = currDeposit.withdraw(user, _interestIndexPerTerm[term]);
+
+        _tokenManager.sendTo(user, asset, amount);
+    }
+
+    // ADMIN --------------------------------------------------------------
+
+    function enableDepositAsset(address asset) external onlyOwner {
+        if (!_isDepositAssetEnabled[asset]) {
+            _liquidityPools.initPoolGroupsIfNeeded(asset);
+            _isDepositAssetEnabled[asset] = true;
         }
     }
 
-    function updateDepositMaturity() external {
-        updatePoolGroupDepositMaturity(_liquidityPools.poolGroups(1));
-        updatePoolGroupDepositMaturity(_liquidityPools.poolGroups(7));
-        updatePoolGroupDepositMaturity(_liquidityPools.poolGroups(30));
+    function disableDepositAsset(address asset) external onlyOwner enabledDepositAsset(asset) {
+        _isDepositAssetEnabled[asset] = false;
     }
 
-    function updatePoolGroupDepositMaturity(PoolGroup poolGroup) private {
+    function updateDepositMaturity(address asset) external onlyOwner enabledDepositAsset(asset) {
+        _updatePoolGroupDepositMaturity(asset, 1);
+        _updatePoolGroupDepositMaturity(asset, 7);
+        _updatePoolGroupDepositMaturity(asset, 30);
+    }
+
+    // PRIVATE --------------------------------------------------------------
+
+    function _updatePoolGroupDepositMaturity(address asset, uint8 term) private {
+        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
         uint8 index = 0;
         uint oneTimeDeposit = poolGroup.getOneTimeDepositFromPool(index);
         poolGroup.withdrawOneTimeDepositFromPool(index, oneTimeDeposit);
         poolGroup.updatePoolIds();
     }
 
-    function calculateInterestIndex(uint8 term, uint currTimestamp, uint lastTimestamp) private view returns (uint) {
+    function _calculateInterestIndex(uint8 term, uint currTimestamp, uint lastTimestamp) private view returns (uint) {
         // TODO: replace dummy value
         uint interestRate = ONE;
         uint duration = currTimestamp.sub(lastTimestamp);
 
         // index = index * (1 + r * t)
-        return interestIndexPerTerm[term].mul(ONE.add(interestRate.mul(duration)));
+        return _interestIndexPerTerm[term].mul(ONE.add(interestRate.mul(duration)));
     }
 
-    // function calculateInterestRate(uint8 term) private returns (uint) {
+    // function _calculateInterestRate(uint8 term) private returns (uint) {
         // https://freebanking.quip.com/NUZ2AqG32qJG/ASSET-LIQUIDITY-MISMATCH-MODEL
         
         // Rs7 = (Mb1 * Rb1 * a71 + Mb7 * Rb7 * a77) / S7
@@ -118,14 +155,4 @@ contract DepositManager {
 
         // return ONE;
     // }
-
-    function addToDeposit(address user, uint8 term, uint amount, bool isRecurring) private {
-        uint currTimestamp = now;
-        uint lastTimestamp = lastTimestampPerTerm[term];
-        interestIndexPerTerm[term] = calculateInterestIndex(term, currTimestamp, lastTimestamp);
-        lastTimestampPerTerm[term] = currTimestamp;
-
-        deposits[_depositId] = new Deposit(user, term, amount, interestIndexPerTerm[term], isRecurring);
-        _depositId++;
-    }
 }

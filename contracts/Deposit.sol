@@ -65,10 +65,10 @@ contract Deposit {
     }
 
     function withdraw(address user, uint currentInterestIndex) external returns (uint) {
-        require(user == _owner);
-        require(_isRecurring == false);
-        require(!isWithdrawn());
-        require(isMatured());
+        require(user == _owner, "Must be owner.");
+        require(!_isRecurring, "Must not be recurring.");
+        require(!isWithdrawn(), "Must not be withdrawn already.");
+        require(isMatured(), "Must be matured.");
 
         uint withdrawAmount = calculateWithdrawableAmount(currentInterestIndex);
 

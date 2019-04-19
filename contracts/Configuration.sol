@@ -9,10 +9,10 @@ contract Configuration is Ownable, Term {
     uint private constant MIN_COLLATERAL_RATIO = 12 * (10 ** 17); // 1.2 (120%)
     uint private constant MAX_LIQUIDATION_DISCOUNT = 5 * (10 ** 16); // 0.05 (5%)
 
-    mapping(address => mapping(address => uint)) private collateralRatioMap;
-    mapping(address => mapping(address => uint)) private liquidationDiscountMap;
-    mapping(uint8 => mapping(uint8 => uint)) private coefficients;
-    mapping(uint8 => uint) private loanInterestRates;
+    mapping(address => mapping(address => uint)) private _collateralRatioMap;
+    mapping(address => mapping(address => uint)) private _liquidationDiscountMap;
+    mapping(uint8 => mapping(uint8 => uint)) private _coefficients;
+    mapping(uint8 => uint) private _loanInterestRates;
 
     function getCoefficient(uint8 depositTerm, uint8 loanTerm) 
         external
@@ -21,26 +21,26 @@ contract Configuration is Ownable, Term {
         validLoanTerm(loanTerm)
         returns (uint)
     {
-        return coefficients[depositTerm][loanTerm];
+        return _coefficients[depositTerm][loanTerm];
     }
 
     function getRiskParameters(address asset, address collateral) external view returns (uint, uint) {
         return (
-            collateralRatioMap[asset][collateral],
-            liquidationDiscountMap[asset][collateral]
+            _collateralRatioMap[asset][collateral],
+            _liquidationDiscountMap[asset][collateral]
         );
     }
 
     function getCollateralRatio(address asset, address collateral) external view returns (uint) {
-        return collateralRatioMap[asset][collateral];
+        return _collateralRatioMap[asset][collateral];
     } 
 
     function getLiquidationDiscount(address asset, address collateral) external view returns (uint) {
-        return liquidationDiscountMap[asset][collateral];
+        return _liquidationDiscountMap[asset][collateral];
     } 
 
     function getLoanInterestRate(uint8 loanTerm) external view validLoanTerm(loanTerm) returns (uint) {
-        return loanInterestRates[loanTerm];
+        return _loanInterestRates[loanTerm];
     }
 
     function setCoefficient(uint8 depositTerm, uint8 loanTerm, uint value)
@@ -49,7 +49,7 @@ contract Configuration is Ownable, Term {
         validDepositTerm(depositTerm)
         validLoanTerm(loanTerm)
     {
-        coefficients[depositTerm][loanTerm] = value;
+        _coefficients[depositTerm][loanTerm] = value;
     }
 
     /// Set risk parameters, i.e., collateral ratio and liquidation discount, 
@@ -70,8 +70,8 @@ contract Configuration is Ownable, Term {
         require(liquidationDiscount >= 0);
         require(liquidationDiscount <= MAX_LIQUIDATION_DISCOUNT);
 
-        collateralRatioMap[asset][collateral] = collateralRatio;
-        liquidationDiscountMap[asset][collateral] = liquidationDiscount;
+        _collateralRatioMap[asset][collateral] = collateralRatio;
+        _liquidationDiscountMap[asset][collateral] = liquidationDiscount;
     }
 
     function setLoanInterestRate(uint8 loanTerm, uint value)
@@ -79,6 +79,6 @@ contract Configuration is Ownable, Term {
         onlyOwner
         validLoanTerm(loanTerm)
     {
-        loanInterestRates[loanTerm] = value;
+        _loanInterestRates[loanTerm] = value;
     }
 }

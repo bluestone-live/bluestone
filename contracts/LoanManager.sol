@@ -1,112 +1,134 @@
 pragma solidity ^0.5.0;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/math/Math.sol";
+import "./Configuration.sol";
+import "./PriceOracle.sol";
+import "./TokenManager.sol";
 import "./LiquidityPools.sol";
 import "./PoolGroup.sol";
 import "./FixedMath.sol";
-import "./Configuration.sol";
-import "./PriceOracle.sol";
 import "./Loan.sol";
+import "./Term.sol";
 
 
-contract LoanManager {
+contract LoanManager is Ownable, Term {
+    using SafeERC20 for ERC20;
     using SafeMath for uint;
     using FixedMath for uint;
 
-    address _loanAsset;
-    address _collateralAsset;
-
-    LiquidityPools private _liquidityPools;
     Configuration private _config;
     PriceOracle private _priceOracle;
+    TokenManager private _tokenManager;
+    LiquidityPools private _liquidityPools;
 
+    // loan asset -> collateral asset -> enabled
+    mapping(address => mapping(address => bool)) private _isLoanAssetPairEnabled;
+    mapping(uint => Loan) private _loans;
     uint private _loanId;
-    mapping(uint => Loan) private loans;
 
-    constructor(
-        address loanAsset, 
-        address collateralAsset, 
-        LiquidityPools liquidityPools, 
-        address config, 
-        address priceOracle
-    ) 
-        public 
-    {
-        _loanAsset = loanAsset;
-        _collateralAsset = collateralAsset;
-        _liquidityPools = liquidityPools;
-        _config = Configuration(config);
-        _priceOracle = PriceOracle(priceOracle);
+    // user -> asset -> freed collateral
+    mapping(address => mapping(address => uint)) private _freedCollaterals;
+
+    modifier enabledLoanAssetPair(address loanAsset, address collateralAsset) {
+        require (_isLoanAssetPairEnabled[loanAsset][collateralAsset]);
+        _;
     }
 
-    function loan(address user, uint8 loanTerm, uint loanAmount, uint collateralAmount) external {
-        uint interestRate = _config.getLoanInterestRate(loanTerm);
-        uint minCollateralRatio = _config.getCollateralRatio(_loanAsset, _collateralAsset);
-        uint liquidationDiscount = _config.getLiquidationDiscount(_loanAsset, _collateralAsset);
+    constructor(address config, address priceOracle, address tokenManager, address liquidityPools) public {
+        _config = Configuration(config);
+        _priceOracle = PriceOracle(priceOracle);
+        _tokenManager = TokenManager(tokenManager);
+        _liquidityPools = LiquidityPools(liquidityPools);
+    }
 
-        require(
-            collateralAmount.divFixed(loanAmount) >= minCollateralRatio,
-            "Collateral ratio is below requirement."
+    // PUBLIC  -----------------------------------------------------------------
+
+    function loan(
+        uint8 term,
+        address loanAsset,
+        address collateralAsset,
+        uint loanAmount,
+        uint collateralAmount,
+        uint requestedFreedCollateral
+    ) 
+        external 
+        validLoanTerm(term)
+        enabledLoanAssetPair(loanAsset, collateralAsset)
+    {
+        require(loanAmount > 0);
+        require(collateralAmount > 0 || requestedFreedCollateral > 0);
+
+        uint availableFreedCollateral = _freedCollaterals[msg.sender][collateralAsset];
+
+        require(requestedFreedCollateral <= availableFreedCollateral, "Not enough freed collateral.");
+
+        _freedCollaterals[msg.sender][collateralAsset] = availableFreedCollateral.sub(requestedFreedCollateral);
+        uint totalCollateralAmount = collateralAmount.add(requestedFreedCollateral);
+        
+        _ensureCollateralRatio(
+            collateralAsset, 
+            loanAsset,
+            totalCollateralAmount,
+            loanAmount
         );
 
-        loans[_loanId] = new Loan(
-            user, 
-            loanTerm, 
+        uint interestRate = _config.getLoanInterestRate(term);
+        uint minCollateralRatio = _config.getCollateralRatio(loanAsset, collateralAsset);
+        uint liquidationDiscount = _config.getLiquidationDiscount(loanAsset, collateralAsset);
+
+        _loans[_loanId] = new Loan(
+            msg.sender, 
+            term, 
             loanAmount, 
-            collateralAmount, 
-            interestRate, 
+            totalCollateralAmount, 
+            interestRate,
             minCollateralRatio, 
             liquidationDiscount
         );
 
-        if (loanTerm == 1) {
-            loanFromPoolGroup(1, loanTerm, loanAmount, _loanId);
-            loanFromPoolGroup(7, loanTerm, loanAmount, _loanId);
-            loanFromPoolGroup(30, loanTerm, loanAmount, _loanId);
-        } else if (loanTerm == 3 || loanTerm == 7) {
-            loanFromPoolGroup(7, loanTerm, loanAmount, _loanId);
-            loanFromPoolGroup(30, loanTerm, loanAmount, _loanId);
-        } else if (loanTerm == 30) {
-            loanFromPoolGroup(30, loanTerm, loanAmount, _loanId);
-        }
+        _loanFromPoolGroups(loanAsset, term, loanAmount, _loanId);        
 
         _loanId++;
+
+        // TODO: balance transfer
     }
 
-    function addCollateral(address user, uint loanId, uint amount) external {
-        require(user == loans[loanId].owner());
+    function repayLoan(address loanAsset, address collateralAsset, uint loanId, uint amount) 
+        external 
+        enabledLoanAssetPair(loanAsset, collateralAsset)
+        returns (uint)
+    {
+        address user = msg.sender;
+        Loan currLoan = _loans[loanId];
 
-        loans[loanId].addCollateral(amount);
-    }
-
-    /// @param user The address of payer
-    /// @param loanId ID to lookup the Loan
-    /// @param amount The amount to repay (or -1 for max)
-    /// @return (totalRepayAmount, freedCollateralAmount)
-    function repayLoan(address user, uint loanId, uint amount) external returns (uint, uint) {
-        Loan currLoan = loans[loanId];
         require(user == currLoan.owner());
 
         (uint totalRepayAmount, uint freedCollateralAmount) = currLoan.repay(amount);
 
-        repayLoanToPoolGroup(30, totalRepayAmount, loanId);
-        repayLoanToPoolGroup(7, totalRepayAmount, loanId);
-        repayLoanToPoolGroup(1, totalRepayAmount, loanId);
+        _repayLoanToPoolGroups(loanAsset, totalRepayAmount, loanId);
 
-        return (totalRepayAmount, freedCollateralAmount);
+        // TODO: balance transfer
+
+        _depositFreedCollateral(user, collateralAsset, freedCollateralAmount);
+
+        return totalRepayAmount;
     }
 
-    /// @param liquidator The address of liquidator
-    /// @param loanId ID to lookup the Loan
-    /// @param amount The amount to liquidate
-    /// @return (liquidatedAmount, soldCollateralAmount, freedCollateralAmount)
-    function liquidateLoan(address liquidator, uint loanId, uint amount) external returns (uint, uint, uint) {
-        Loan currLoan = loans[loanId];
+    function liquidateLoan(address loanAsset, address collateralAsset, uint loanId, uint amount) 
+        external 
+        enabledLoanAssetPair(loanAsset, collateralAsset)
+        returns (uint, uint)
+    {
+        address liquidator = msg.sender;
+        Loan currLoan = _loans[loanId];
+
         require(liquidator != currLoan.owner(), "Loan cannot be liquidated by the owner.");
 
-        uint loanAssetPrice = _priceOracle.getPrice(_loanAsset);
-        uint collateralAssetPrice = _priceOracle.getPrice(_collateralAsset);
+        uint loanAssetPrice = _priceOracle.getPrice(loanAsset);
+        uint collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
 
         require(
             currLoan.isLiquidatable(loanAssetPrice, collateralAssetPrice), 
@@ -119,15 +141,94 @@ contract LoanManager {
             collateralAssetPrice
         );
 
-        repayLoanToPoolGroup(30, liquidatedAmount, loanId);
-        repayLoanToPoolGroup(7, liquidatedAmount, loanId);
-        repayLoanToPoolGroup(1, liquidatedAmount, loanId);
+        _repayLoanToPoolGroups(loanAsset, liquidatedAmount, loanId);
 
-        return (liquidatedAmount, soldCollateralAmount, freedCollateralAmount);
+        // TODO: balance transfer
+
+        _depositFreedCollateral(liquidator, collateralAsset, freedCollateralAmount);
+
+        return (liquidatedAmount, soldCollateralAmount);
     }
 
-    function loanFromPoolGroup(uint8 depositTerm, uint8 loanTerm, uint loanAmount, uint loanId) private {
-        PoolGroup poolGroup = _liquidityPools.poolGroups(depositTerm);
+    function withdrawFreedCollateral(address asset, uint amount) external {
+        require(amount > 0, "Withdraw amount must be greater than 0.");
+
+        address user = msg.sender;
+        uint availableToWithdraw = _freedCollaterals[user][asset];
+
+        require(amount <= availableToWithdraw, "Not enough freed collateral to withdraw.");
+
+        _freedCollaterals[user][asset] = availableToWithdraw.sub(amount);
+
+        _tokenManager.sendTo(user, asset, amount);
+    }
+
+    function getFreedCollateral(address asset) external view returns (uint) {
+        return _freedCollaterals[msg.sender][asset];
+    }
+
+    // ADMIN --------------------------------------------------------------
+
+    function enableLoanAssetPair(address loanAsset, address collateralAsset) 
+        external 
+        onlyOwner 
+    {
+        _isLoanAssetPairEnabled[loanAsset][collateralAsset] = true;
+    }
+
+    function disableLoanAssetPair(address loanAsset, address collateralAsset) 
+        external 
+        onlyOwner 
+        enabledLoanAssetPair(loanAsset, collateralAsset)
+    {
+        _isLoanAssetPairEnabled[loanAsset][collateralAsset] = false;
+    }
+
+    // INTERNAL --------------------------------------------------------------
+
+    function _depositFreedCollateral(address user, address asset, uint amount) internal {
+        _freedCollaterals[user][asset] = _freedCollaterals[user][asset].add(amount);
+    }
+
+    // PRIVATE --------------------------------------------------------------
+
+    function _ensureCollateralRatio(
+        address collateralAsset, 
+        address loanAsset,
+        uint collateralAmount, 
+        uint loanAmount
+    ) 
+        private
+        view
+    {
+        uint collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
+        uint loanAssetPrice = _priceOracle.getPrice(loanAsset);
+
+        uint currCollateralRatio = collateralAmount
+            .mulFixed(collateralAssetPrice)
+            .divFixed(loanAmount)
+            .divFixed(loanAssetPrice);
+
+        uint minCollateralRatio = _config.getCollateralRatio(loanAsset, collateralAsset);
+
+        require(currCollateralRatio >= minCollateralRatio, "Collateral ratio is below requirement.");
+    }
+
+    function _loanFromPoolGroups(address loanAsset, uint8 loanTerm, uint loanAmount, uint loanId) private {
+        if (loanTerm == 1) {
+            _loanFromPoolGroup(loanAsset, 1, loanTerm, loanAmount, loanId);
+            _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, loanId);
+            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, loanId);
+        } else if (loanTerm == 3 || loanTerm == 7) {
+            _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, loanId);
+            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, loanId);
+        } else if (loanTerm == 30) {
+            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, loanId);
+        }
+    }
+
+    function _loanFromPoolGroup(address asset, uint8 depositTerm, uint8 loanTerm, uint loanAmount, uint loanId) private {
+        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
         uint coefficient = _config.getCoefficient(depositTerm, loanTerm);
             
         // Calculate the total amount to be loaned from this pool group 
@@ -147,7 +248,7 @@ contract LoanManager {
                 uint loanedAmount = Math.min(remainingLoanAmount, loanableAmount);
 
                 poolGroup.loanFromPool(poolIndex, loanedAmount, loanTerm);
-                loans[loanId].setRecord(depositTerm, poolIndex, loanedAmount);
+                _loans[loanId].setRecord(depositTerm, poolIndex, loanedAmount);
                 remainingLoanAmount = remainingLoanAmount.sub(loanedAmount);
             }
 
@@ -155,9 +256,17 @@ contract LoanManager {
         }
     }
 
-    function repayLoanToPoolGroup(uint8 depositTerm, uint totalRepayAmount, uint loanId) private returns (uint) {
-        PoolGroup poolGroup = _liquidityPools.poolGroups(depositTerm);
-        Loan currLoan = loans[loanId];
+    function _repayLoanToPoolGroups(address asset, uint totalRepayAmount, uint loanId) private {
+        _repayLoanToPoolGroup(asset, 30, totalRepayAmount, loanId);
+        _repayLoanToPoolGroup(asset, 7, totalRepayAmount, loanId);
+        _repayLoanToPoolGroup(asset, 1, totalRepayAmount, loanId);
+    }
+
+    function _repayLoanToPoolGroup(address asset, uint8 depositTerm, uint totalRepayAmount, uint loanId) 
+        private returns (uint) 
+    {
+        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
+        Loan currLoan = _loans[loanId];
 
         uint totalLoanAmount = currLoan.loanAmount();
 
