@@ -131,6 +131,44 @@ contract DepositManager is Ownable, Term {
         _updatePoolGroupDepositMaturity(asset, 30);
     }
 
+    // INTERNAL  --------------------------------------------------------------
+
+    /// Calculate deposit interest rate according to the following formula:
+    ///
+    /// rs<term> = interestEarned / totalLoanableAmount
+    /// rs1 = (mb1 * rb1 * a11) / s1
+    /// rs7 = (mb1 * rb1 * a71 + mb7 * rb7 * a77) / s7
+    /// rs30 = (mb1 * rb1 * a301 + mb7 * rb7 * a307 + mb30 * rb30 * a3030) / s30
+    ///
+    /// where rs1 = The deposit interest rate of 1-day term
+    ///       mb1 = The amount has loaned on 1-day term
+    ///       rb1 = The loan interest rate of 1-day term
+    ///       a71 = The coefficient of 1-day loan borrowed from 7-day deposit pool group
+    ///       s7  = The loanable amount of 7-day pool group
+    function _calculateInterestRate(address asset, uint8 depositTerm) internal view returns (uint) {
+        uint8[3] memory loanTerms = [1, 7, 30];
+        uint interestEarned = 0;
+
+        for (uint i = 0; i < loanTerms.length; i++) {
+            uint8 loanTerm = loanTerms[i];
+
+            // Depending on the depositTerm, we update interestEarned
+            if (loanTerm <= depositTerm) {
+                uint totalLoan = _liquidityPools.poolGroups(asset, loanTerm).totalLoan();
+                uint loanInterestRate = _config.getLoanInterestRate(loanTerm);
+                uint coefficient = _config.getCoefficient(depositTerm, loanTerm);
+
+                interestEarned = interestEarned.add(
+                    totalLoan.mulFixed(loanInterestRate).mulFixed(coefficient)
+                );
+            }
+        }
+
+        uint totalLoanableAmount = _liquidityPools.poolGroups(asset, depositTerm).totalLoanableAmount();
+
+        return interestEarned.divFixed(totalLoanableAmount);
+    }
+
     // PRIVATE --------------------------------------------------------------
 
     function _updatePoolGroupDepositMaturity(address asset, uint8 term) private {
@@ -147,31 +185,15 @@ contract DepositManager is Ownable, Term {
         uint currTimestamp = now;
         uint lastTimestamp = depositAsset.lastTimestampPerTerm[term];
         uint prevInterestIndex = depositAsset.interestIndexPerTerm[term];
-
-        // TODO: Replace dummy value
-        uint interestRate = ONE;
+        uint interestRate = _calculateInterestRate(asset, term);
         uint duration = currTimestamp.sub(lastTimestamp);
 
         // index = index * (1 + r * t)
-        uint currInterestIndex = prevInterestIndex.mul(ONE.add(interestRate.mul(duration)));
+        uint currInterestIndex = prevInterestIndex.mulFixed(ONE.add(interestRate.mulFixed(duration)));
 
         depositAsset.interestIndexPerTerm[term] = currInterestIndex;
         depositAsset.lastTimestampPerTerm[term] = currTimestamp;
 
         return currInterestIndex;
     }
-
-    // function _calculateInterestRate(uint8 term) private returns (uint) {
-        // https://freebanking.quip.com/NUZ2AqG32qJG/ASSET-LIQUIDITY-MISMATCH-MODEL
-        
-        // Rs7 = (Mb1 * Rb1 * a71 + Mb7 * Rb7 * a77) / S7
-        // where Mb1 = The amount has loaned on 1-day term
-        //       Rb1 = The loan interest rate for 1-day term
-        //       a71 = B71 / Mb1 
-        //           = The amount has loaned from pool 7 to 1-day term /
-        //             The amount has loaded on 1-day term
-        //       S7  = The amount of deposit on 7-day term
-
-        // return ONE;
-    // }
 }
