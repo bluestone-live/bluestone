@@ -21,16 +21,20 @@ contract DepositManager is Ownable, Term {
     TokenManager private _tokenManager;
     LiquidityPools private _liquidityPools;
 
-    mapping(address => bool) private _isDepositAssetEnabled;
-    mapping(uint8 => uint) private _interestIndexPerTerm;
-    mapping(uint8 => uint) private _lastTimestampPerTerm;
+    struct DepositAsset {
+        bool isEnabled;
+        mapping(uint8 => uint) interestIndexPerTerm;
+        mapping(uint8 => uint) lastTimestampPerTerm;
+    }
+
+    mapping(address => DepositAsset) private _depositAssets;
     mapping(uint => Deposit) private _deposits;
     uint private _depositId;
 
     uint constant private ONE = 10 ** 18;
 
     modifier enabledDepositAsset(address asset) {
-        require(_isDepositAssetEnabled[asset] == true, "Deposit Asset must be enabled.");
+        require(_depositAssets[asset].isEnabled == true, "Deposit Asset must be enabled.");
         _;
     }
 
@@ -39,10 +43,6 @@ contract DepositManager is Ownable, Term {
         _priceOracle = PriceOracle(priceOracle);
         _tokenManager = TokenManager(tokenManager);
         _liquidityPools = LiquidityPools(liquidityPools);
-
-        _interestIndexPerTerm[1] = ONE;
-        _interestIndexPerTerm[7] = ONE;
-        _interestIndexPerTerm[30] = ONE;
     }
 
     // PUBLIC  -----------------------------------------------------------------
@@ -61,13 +61,10 @@ contract DepositManager is Ownable, Term {
             poolGroup.addOneTimeDepositToPool(lastPoolIndex, amount);
         }
 
-        uint currTimestamp = now;
-        uint lastTimestamp = _lastTimestampPerTerm[term];
-        _interestIndexPerTerm[term] = _calculateInterestIndex(term, currTimestamp, lastTimestamp);
-        _lastTimestampPerTerm[term] = currTimestamp;
+        uint currInterestIndex = _updateInterestIndexAndTimestamp(asset, term);
 
         address user = msg.sender;
-        _deposits[_depositId] = new Deposit(user, term, amount, _interestIndexPerTerm[term], isRecurring);
+        _deposits[_depositId] = new Deposit(user, term, amount, currInterestIndex, isRecurring);
         _depositId++;
 
         _tokenManager.receiveFrom(user, asset, amount);
@@ -99,7 +96,7 @@ contract DepositManager is Ownable, Term {
         Deposit currDeposit = _deposits[depositId];
         uint8 term = currDeposit.term();
         address user = msg.sender;
-        uint amount = currDeposit.withdraw(user, _interestIndexPerTerm[term]);
+        uint amount = currDeposit.withdraw(user, _depositAssets[asset].interestIndexPerTerm[term]);
 
         _tokenManager.sendTo(user, asset, amount);
     }
@@ -107,14 +104,25 @@ contract DepositManager is Ownable, Term {
     // ADMIN --------------------------------------------------------------
 
     function enableDepositAsset(address asset) external onlyOwner {
-        if (!_isDepositAssetEnabled[asset]) {
+        DepositAsset storage depositAsset = _depositAssets[asset];
+
+        if (!depositAsset.isEnabled) {
             _liquidityPools.initPoolGroupsIfNeeded(asset);
-            _isDepositAssetEnabled[asset] = true;
+
+            // Initialize interest index if not done yet
+            if (depositAsset.interestIndexPerTerm[1] == 0) {
+                depositAsset.interestIndexPerTerm[1] = ONE;
+                depositAsset.interestIndexPerTerm[7] = ONE;
+                depositAsset.interestIndexPerTerm[30] = ONE;
+            }
+
+            depositAsset.isEnabled = true;
         }
     }
 
     function disableDepositAsset(address asset) external onlyOwner enabledDepositAsset(asset) {
-        _isDepositAssetEnabled[asset] = false;
+        DepositAsset storage depositAsset = _depositAssets[asset];
+        depositAsset.isEnabled = false;
     }
 
     function updateDepositMaturity(address asset) external onlyOwner enabledDepositAsset(asset) {
@@ -133,13 +141,24 @@ contract DepositManager is Ownable, Term {
         poolGroup.updatePoolIds();
     }
 
-    function _calculateInterestIndex(uint8 term, uint currTimestamp, uint lastTimestamp) private view returns (uint) {
-        // TODO: replace dummy value
+    function _updateInterestIndexAndTimestamp(address asset, uint8 term) private returns (uint) {
+        DepositAsset storage depositAsset = _depositAssets[asset];
+
+        uint currTimestamp = now;
+        uint lastTimestamp = depositAsset.lastTimestampPerTerm[term];
+        uint prevInterestIndex = depositAsset.interestIndexPerTerm[term];
+
+        // TODO: Replace dummy value
         uint interestRate = ONE;
         uint duration = currTimestamp.sub(lastTimestamp);
 
         // index = index * (1 + r * t)
-        return _interestIndexPerTerm[term].mul(ONE.add(interestRate.mul(duration)));
+        uint currInterestIndex = prevInterestIndex.mul(ONE.add(interestRate.mul(duration)));
+
+        depositAsset.interestIndexPerTerm[term] = currInterestIndex;
+        depositAsset.lastTimestampPerTerm[term] = currTimestamp;
+
+        return currInterestIndex;
     }
 
     // function _calculateInterestRate(uint8 term) private returns (uint) {
