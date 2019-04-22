@@ -11,7 +11,7 @@ contract('DepositManager', ([owner, depositor]) => {
     tokenManager = await TokenManager.deployed()
   })
 
-  describe('deposit #1', () => {
+  describe('deposit flow positive #1', () => {
     const initialSupply = toFixedBN(100)
     const term = 1
     let asset
@@ -43,26 +43,6 @@ contract('DepositManager', ([owner, depositor]) => {
 
       it('withdraws deposit', async () => {
         await depositManager.withdraw(asset.address, depositId, { from: depositor })
-      })
-    })
-
-    context('when the depositor does not have enough balance', () => {
-      it('reverts deposit', async () => {
-        await shouldFail.reverting(
-          depositManager.deposit(asset.address, term, toFixedBN(51), false, { from: depositor })
-        )
-      })
-    })
-
-    context('when the asset is disabled', () => {
-      before(async () => {
-        await depositManager.disableDepositAsset(asset.address, { from: owner })
-      })
-
-      it('reverts deposit', async() => {
-        await shouldFail.reverting(
-          depositManager.deposit(asset.address, term, toFixedBN(50), false, { from: depositor })
-        )
       })
     })
   })

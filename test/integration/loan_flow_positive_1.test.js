@@ -15,7 +15,7 @@ contract('LoanManager', ([owner, depositor, loaner]) => {
     priceOracle = await PriceOracle.deployed()
   })
 
-  describe('loan #1', () => {
+  describe('loan flow positive #1', () => {
     let loanAsset, collateralAsset
 
     before(async () => {
