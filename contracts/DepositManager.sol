@@ -23,8 +23,17 @@ contract DepositManager is Ownable, Term {
 
     struct DepositAsset {
         bool isEnabled;
+        bool isInitialized;
         mapping(uint8 => uint) interestIndexPerTerm;
         mapping(uint8 => uint) lastTimestampPerTerm;
+        mapping(uint8 => uint) lastInterestRatePerTerm;
+        mapping(uint8 => InterestIndexHistory) interestIndexHistoryPerTerm;
+    }
+
+    struct InterestIndexHistory {
+        mapping(uint => uint) interestIndexPerDay;
+        uint firstDay;
+        uint lastDay;
     }
 
     mapping(address => DepositAsset) private _depositAssets;
@@ -32,6 +41,7 @@ contract DepositManager is Ownable, Term {
     uint private _depositId;
 
     uint constant private ONE = 10 ** 18;
+    uint constant private DAYS_OF_INTEREST_INDEX_TO_KEEP = 30;
 
     modifier enabledDepositAsset(address asset) {
         require(_depositAssets[asset].isEnabled == true, "Deposit Asset must be enabled.");
@@ -109,11 +119,16 @@ contract DepositManager is Ownable, Term {
         if (!depositAsset.isEnabled) {
             _liquidityPools.initPoolGroupsIfNeeded(asset);
 
-            // Initialize interest index if not done yet
-            if (depositAsset.interestIndexPerTerm[1] == 0) {
+            if (!depositAsset.isInitialized) {
                 depositAsset.interestIndexPerTerm[1] = ONE;
                 depositAsset.interestIndexPerTerm[7] = ONE;
                 depositAsset.interestIndexPerTerm[30] = ONE;
+
+                depositAsset.interestIndexHistoryPerTerm[1].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP;
+                depositAsset.interestIndexHistoryPerTerm[7].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP;
+                depositAsset.interestIndexHistoryPerTerm[30].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP;
+
+                depositAsset.isInitialized = true;
             }
 
             depositAsset.isEnabled = true;
@@ -129,6 +144,24 @@ contract DepositManager is Ownable, Term {
         _updatePoolGroupDepositMaturity(asset, 1);
         _updatePoolGroupDepositMaturity(asset, 7);
         _updatePoolGroupDepositMaturity(asset, 30);
+    }
+
+    function updateInterestIndexHistories(address asset) external onlyOwner enabledDepositAsset(asset) {
+        DepositAsset storage depositAsset = _depositAssets[asset];
+        uint8[3] memory terms = [1, 7, 30];
+
+        for (uint i = 0; i < terms.length; i++) {
+            uint8 term = terms[i];
+
+            uint currTimestamp = now;
+            uint lastTimestamp = depositAsset.lastTimestampPerTerm[term];
+            uint prevInterestIndex = depositAsset.interestIndexPerTerm[term];
+            uint interestRate = depositAsset.lastInterestRatePerTerm[term];
+            uint duration = currTimestamp.sub(lastTimestamp);
+            uint currInterestIndex = _calculateInterestIndex(prevInterestIndex, interestRate, duration);
+
+            _updateInterestIndexHistory(asset, term, currInterestIndex);
+        }
     }
 
     // INTERNAL  --------------------------------------------------------------
@@ -169,6 +202,26 @@ contract DepositManager is Ownable, Term {
         return interestEarned.divFixed(totalLoanableAmount);
     }
 
+    function _updateInterestIndexHistory(address asset, uint8 term, uint interestIndex) internal {
+        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
+
+        // Add a new interest index
+        history.interestIndexPerDay[history.lastDay] = interestIndex;
+        history.lastDay++;
+
+        if (history.firstDay >= DAYS_OF_INTEREST_INDEX_TO_KEEP) {
+            // Remove the oldest interest index
+            delete history.interestIndexPerDay[history.firstDay];
+        }
+
+        history.firstDay++;
+    }
+
+    function _getInterestIndexFromDaysAgo(address asset, uint8 term, uint numDaysAgo) internal view returns (uint) {
+        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
+        return history.interestIndexPerDay[history.lastDay.sub(numDaysAgo)];
+    }
+
     // PRIVATE --------------------------------------------------------------
 
     function _updatePoolGroupDepositMaturity(address asset, uint8 term) private {
@@ -188,12 +241,25 @@ contract DepositManager is Ownable, Term {
         uint interestRate = _calculateInterestRate(asset, term);
         uint duration = currTimestamp.sub(lastTimestamp);
 
-        // index = index * (1 + r * t)
-        uint currInterestIndex = prevInterestIndex.mulFixed(ONE.add(interestRate.mulFixed(duration)));
+        uint currInterestIndex = _calculateInterestIndex(prevInterestIndex, interestRate, duration);
 
         depositAsset.interestIndexPerTerm[term] = currInterestIndex;
         depositAsset.lastTimestampPerTerm[term] = currTimestamp;
+        depositAsset.lastInterestRatePerTerm[term] = interestRate;
 
         return currInterestIndex;
+    }
+
+    function _calculateInterestIndex(
+        uint prevInterestIndex, 
+        uint interestRate, 
+        uint duration
+    ) 
+        private 
+        pure 
+        returns (uint) 
+    {
+        // index = index * (1 + r * t)
+        return prevInterestIndex.mulFixed(ONE.add(interestRate.mulFixed(duration)));
     }
 }
