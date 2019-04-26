@@ -38,7 +38,7 @@ contract('DepositManager', ([owner, depositor]) => {
 
     context('when deposit term is matured', () => {
       before(async () => {
-        await time.increase(time.duration.hours(25))        
+        await time.increase(time.duration.days(2))        
       })
 
       it('withdraws deposit', async () => {
