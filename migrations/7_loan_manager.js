@@ -3,6 +3,7 @@ const PriceOracle = artifacts.require("./PriceOracle.sol");
 const TokenManager = artifacts.require("./TokenManager.sol");
 const LiquidityPools = artifacts.require("./LiquidityPools.sol");
 const LoanManager = artifacts.require("./LoanManager.sol");
+const DepositManager = artifacts.require("./DepositManager.sol");
 
 module.exports = async function(deployer) {
   await deployer.deploy(
@@ -10,6 +11,7 @@ module.exports = async function(deployer) {
     Configuration.address, 
     PriceOracle.address, 
     TokenManager.address,
-    LiquidityPools.address
+    LiquidityPools.address,
+    DepositManager.address
   );
 };

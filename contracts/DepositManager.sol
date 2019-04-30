@@ -71,7 +71,7 @@ contract DepositManager is Ownable, Term {
             poolGroup.addOneTimeDepositToPool(lastPoolIndex, amount);
         }
 
-        uint currInterestIndex = _updateInterestIndexAndTimestamp(asset, term);
+        uint currInterestIndex = updateDepositAssetInterestInfo(asset, term);
 
         address user = msg.sender;
         _deposits[_depositId] = new Deposit(user, term, amount, currInterestIndex, isRecurring);
@@ -164,6 +164,26 @@ contract DepositManager is Ownable, Term {
         }
     }
 
+    function updateDepositAssetInterestInfo(address asset, uint8 term) public returns (uint) {
+        // TODO: verify msg.sender to be DepositManager or LoanManager
+
+        DepositAsset storage depositAsset = _depositAssets[asset];
+
+        uint currTimestamp = now;
+        uint lastTimestamp = depositAsset.lastTimestampPerTerm[term];
+        uint prevInterestIndex = depositAsset.interestIndexPerTerm[term];
+        uint interestRate = _calculateInterestRate(asset, term);
+        uint duration = currTimestamp.sub(lastTimestamp);
+
+        uint currInterestIndex = _calculateInterestIndex(prevInterestIndex, interestRate, duration);
+
+        depositAsset.interestIndexPerTerm[term] = currInterestIndex;
+        depositAsset.lastTimestampPerTerm[term] = currTimestamp;
+        depositAsset.lastInterestRatePerTerm[term] = interestRate;
+
+        return currInterestIndex;
+    }
+
     // INTERNAL  --------------------------------------------------------------
 
     /// Calculate deposit interest rate according to the following formula:
@@ -230,24 +250,6 @@ contract DepositManager is Ownable, Term {
         uint oneTimeDeposit = poolGroup.getOneTimeDepositFromPool(index);
         poolGroup.withdrawOneTimeDepositFromPool(index, oneTimeDeposit);
         poolGroup.updatePoolIds();
-    }
-
-    function _updateInterestIndexAndTimestamp(address asset, uint8 term) private returns (uint) {
-        DepositAsset storage depositAsset = _depositAssets[asset];
-
-        uint currTimestamp = now;
-        uint lastTimestamp = depositAsset.lastTimestampPerTerm[term];
-        uint prevInterestIndex = depositAsset.interestIndexPerTerm[term];
-        uint interestRate = _calculateInterestRate(asset, term);
-        uint duration = currTimestamp.sub(lastTimestamp);
-
-        uint currInterestIndex = _calculateInterestIndex(prevInterestIndex, interestRate, duration);
-
-        depositAsset.interestIndexPerTerm[term] = currInterestIndex;
-        depositAsset.lastTimestampPerTerm[term] = currTimestamp;
-        depositAsset.lastInterestRatePerTerm[term] = interestRate;
-
-        return currInterestIndex;
     }
 
     function _calculateInterestIndex(

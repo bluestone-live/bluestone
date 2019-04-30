@@ -8,6 +8,7 @@ import "./Configuration.sol";
 import "./PriceOracle.sol";
 import "./TokenManager.sol";
 import "./LiquidityPools.sol";
+import "./DepositManager.sol";
 import "./PoolGroup.sol";
 import "./FixedMath.sol";
 import "./Loan.sol";
@@ -23,6 +24,7 @@ contract LoanManager is Ownable, Term {
     PriceOracle private _priceOracle;
     TokenManager private _tokenManager;
     LiquidityPools private _liquidityPools;
+    DepositManager private _depositManager;
 
     // loan asset -> collateral asset -> enabled
     mapping(address => mapping(address => bool)) private _isLoanAssetPairEnabled;
@@ -37,11 +39,12 @@ contract LoanManager is Ownable, Term {
         _;
     }
 
-    constructor(address config, address priceOracle, address tokenManager, address liquidityPools) public {
+    constructor(address config, address priceOracle, address tokenManager, address liquidityPools, address depositManager) public {
         _config = Configuration(config);
         _priceOracle = PriceOracle(priceOracle);
         _tokenManager = TokenManager(tokenManager);
         _liquidityPools = LiquidityPools(liquidityPools);
+        _depositManager = DepositManager(depositManager);
     }
 
     // PUBLIC  -----------------------------------------------------------------
@@ -254,6 +257,8 @@ contract LoanManager is Ownable, Term {
 
             poolIndex++;
         }
+
+        _depositManager.updateDepositAssetInterestInfo(asset, depositTerm);
     }
 
     function _repayLoanToPoolGroups(address asset, uint totalRepayAmount, uint loanId) private {
@@ -285,5 +290,7 @@ contract LoanManager is Ownable, Term {
             uint repayAmount = totalRepayAmount.mulFixed(loanAmount).divFixed(totalLoanAmount);
             poolGroup.repayLoanToPool(poolIndex, repayAmount, currLoan.term());
         }
+
+        _depositManager.updateDepositAssetInterestInfo(asset, depositTerm);
     }
 }

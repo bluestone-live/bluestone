@@ -6,6 +6,7 @@ const { shouldFail, BN, time } = require('openzeppelin-test-helpers')
 const { createERC20Token, toFixedBN } = require('../Utils.js')
 
 contract('LoanManager', ([owner, depositor, loaner]) => {
+  const initialSupply = toFixedBN(1000)
   let depositManager, loanManager, tokenManager
 
   before(async () => {
@@ -16,16 +17,19 @@ contract('LoanManager', ([owner, depositor, loaner]) => {
   })
 
   describe('loan flow positive #1', () => {
+    const depositAmount = toFixedBN(100)
     let loanAsset, collateralAsset
 
     before(async () => {
-      loanAsset = await createERC20Token(depositor, toFixedBN(100))
-      collateralAsset = await createERC20Token(loaner, toFixedBN(300))
+      loanAsset = await createERC20Token(depositor, initialSupply)
+      collateralAsset = await createERC20Token(loaner, initialSupply)
       await priceOracle.setPrice(loanAsset.address, toFixedBN(10))
       await priceOracle.setPrice(collateralAsset.address, toFixedBN(10))
-      await loanAsset.approve(tokenManager.address, toFixedBN(100), { from: depositor })
+      await loanAsset.approve(tokenManager.address, initialSupply, { from: depositor })
       await depositManager.enableDepositAsset(loanAsset.address, { from: owner })
-      await depositManager.deposit(loanAsset.address, 30, toFixedBN(100), false, { from: depositor })
+      await depositManager.deposit(loanAsset.address, 1, depositAmount, false, { from: depositor })
+      await depositManager.deposit(loanAsset.address, 7, depositAmount, false, { from: depositor })
+      await depositManager.deposit(loanAsset.address, 30, depositAmount, false, { from: depositor })
       await loanManager.enableLoanAssetPair(loanAsset.address, collateralAsset.address, { from: owner })
     })
 
