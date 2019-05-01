@@ -102,13 +102,31 @@ contract DepositManager is Ownable, Term {
         }
     }
     
-    function withdraw(address asset, uint depositId) external enabledDepositAsset(asset) {
+    function withdraw(address asset, uint depositId) external enabledDepositAsset(asset) returns (uint) {
         Deposit currDeposit = _deposits[depositId];
-        uint8 term = currDeposit.term();
         address user = msg.sender;
-        uint amount = currDeposit.withdraw(user, _depositAssets[asset].interestIndexPerTerm[term]);
+ 
+        require(user == currDeposit.owner(), "Must be owner.");
+        require(!currDeposit.isRecurring(), "Deposit must not be recurring.");
+        require(!currDeposit.isWithdrawn(), "Deposit must not be withdrawn already.");
+        require(currDeposit.isMatured(), "Deposit must be matured.");
+
+        uint8 term = currDeposit.term();
+        uint amount;
+
+        if (currDeposit.isOverDue()) {
+            amount = currDeposit.withdrawDeposit();
+        } else {
+            uint numDaysAgo = DateTime.toDays(now - currDeposit.createdAt());
+            uint interestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
+            amount = currDeposit.withdrawDepositAndInterest(interestIndex);
+        }
 
         _tokenManager.sendTo(user, asset, amount);
+
+        updateDepositAssetInterestInfo(asset, term);
+
+        return amount;
     }
 
     // ADMIN --------------------------------------------------------------
@@ -262,6 +280,6 @@ contract DepositManager is Ownable, Term {
         returns (uint) 
     {
         // index = index * (1 + r * t)
-        return prevInterestIndex.mulFixed(ONE.add(interestRate.mulFixed(duration)));
+        return prevInterestIndex.mulFixed(ONE.add(interestRate.mul(duration)));
     }
 }

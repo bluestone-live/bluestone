@@ -27,4 +27,8 @@ library DateTime {
         
         return DAY_IN_SECONDS - hour * HOUR_IN_SECONDS - minute * MINUTE_IN_SECONDS - second;
     }
+
+    function toDays(uint timestamp) public pure returns (uint) {
+        return timestamp / DAY_IN_SECONDS;
+    }
 }

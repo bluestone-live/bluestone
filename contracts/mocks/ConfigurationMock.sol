@@ -14,10 +14,6 @@ contract ConfigurationMock is Configuration {
         setCoefficient(7, 1, 3e17);
         setCoefficient(30, 1, 4e17);
 
-        // a73 + a303 = 1
-        setCoefficient(7, 3, 5e17);
-        setCoefficient(30, 3, 5e17);
-
         // a77 + a307 = 1
         setCoefficient(7, 7, 5e17);
         setCoefficient(30, 7, 5e17);

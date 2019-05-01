@@ -52,4 +52,18 @@ contract('DateTime', () => {
       expect(await datetime.secondsUntilMidnight(63072000)).to.be.bignumber.equal(new BN(DAY_IN_SECONDS))
     })
   })
+
+  describe('#toDays', () => {
+    it('returns 0', async () => {
+      expect(await datetime.toDays(86399)).to.be.bignumber.equal(new BN(0))
+    })
+
+    it('returns 1', async () => {
+      expect(await datetime.toDays(86400)).to.be.bignumber.equal(new BN(1))
+    })
+
+    it('returns 2', async () => {
+      expect(await datetime.toDays(172800)).to.be.bignumber.equal(new BN(2))
+    })
+  })
 })

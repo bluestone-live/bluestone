@@ -32,7 +32,7 @@ contract('Deposit', ([owner, anotherAccount]) => {
     })
   })
 
-  describe('#withdraw', () => {
+  describe('#withdrawDepositAndInterest', () => {
     const term = 1
     const isRecurring = false
     let deposit
@@ -41,42 +41,27 @@ contract('Deposit', ([owner, anotherAccount]) => {
       deposit = await Deposit.new(owner, term, amount, interestIndex, isRecurring)
     })
 
-    context('when deposit is not matured', () => {
-      it('reverts', async () => {
-        await shouldFail.reverting(deposit.withdraw(owner, interestIndex))
-      })
-    })
-
-    context('when deposit is matured', () => {
-      beforeEach(async () => {
-        await time.increase(time.duration.days(2))
-      })
-
-      it('succeeds', async () => {
-        await deposit.withdraw(owner, interestIndex) 
-        expect(await deposit.isWithdrawn()).to.be.true
-      })       
-
-      context('when deposit is recurring', () => {
-        beforeEach(async () => {
-          await deposit.enableRecurring()
-        })
-
-        it('reverts', async () => {
-          await shouldFail.reverting(deposit.withdraw(owner, interestIndex))
-        })       
-      })
-
-      context('when deposit has been withdrawn', () => {
-        beforeEach(async () => {
-          await deposit.withdraw(owner, interestIndex) 
-        })
-
-        it('reverts', async () => {
-          await shouldFail.reverting(deposit.withdraw(owner, interestIndex))
-        })       
-      })
-    })
+    it('succeeds', async () => {
+      await deposit.withdrawDepositAndInterest(toFixedBN(2)) 
+      expect(await deposit.isWithdrawn()).to.be.true
+      expect(await deposit.withdrewAmount()).to.be.bignumber.above(amount)
+    })       
   })
+
+  describe('#withdrawDeposit', () => {
+    const term = 1
+    const isRecurring = false
+    let deposit
+
+    beforeEach(async () => {
+      deposit = await Deposit.new(owner, term, amount, interestIndex, isRecurring)
+    })
+
+    it('succeeds', async () => {
+      await deposit.withdrawDeposit() 
+      expect(await deposit.isWithdrawn()).to.be.true
+      expect(await deposit.withdrewAmount()).to.be.bignumber.equal(amount)
+    })       
+  })       
 })
 

@@ -1,16 +1,19 @@
 pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./FixedMath.sol";
 import "./DateTime.sol";
 
 
 contract Deposit {
     using SafeMath for uint;
+    using FixedMath for uint;
 
     address private _owner;
     uint8 private _term;
     uint private _amount;
     uint private _interestIndex;
+    uint private _withdrewAmount;
     bool private _isRecurring;
     uint private _createdAt;
     uint private _maturedAt;
@@ -25,6 +28,7 @@ contract Deposit {
         _term = term;
         _amount = amount;
         _interestIndex = interestIndex;
+        _withdrewAmount = 0;
         _isRecurring = isRecurring;
         _createdAt = now;
 
@@ -37,7 +41,7 @@ contract Deposit {
 
     function calculateWithdrawableAmount(uint currentInterestIndex) public view returns (uint) {
         // total = amount * (currentInterestIndex / depositInterestIndex)
-        return _amount.mul(currentInterestIndex.div(_interestIndex));
+        return _amount.mulFixed(currentInterestIndex).divFixed(_interestIndex);
     }
 
     function isWithdrawn() public view returns (bool) {
@@ -48,12 +52,20 @@ contract Deposit {
         return now >= _maturedAt;
     }
 
+    function isOverDue() public view returns (bool) {
+        return now >= _maturedAt + 30 * DAY_IN_SECONDS;
+    }
+
     function owner() external view returns (address) {
         return _owner;
     }
 
     function amount() external view returns (uint) {
         return _amount;
+    }
+
+    function withdrewAmount() external view returns (uint) {
+        return _withdrewAmount;
     }
 
     function term() external view returns (uint8) {
@@ -80,19 +92,18 @@ contract Deposit {
         _isRecurring = false;
     }
 
-    function withdraw(address user, uint currentInterestIndex) external returns (uint) {
-        require(user == _owner, "Must be owner.");
-        require(!_isRecurring, "Must not be recurring.");
-        require(!isWithdrawn(), "Must not be withdrawn already.");
-        require(isMatured(), "Must be matured.");
-
-        uint withdrawAmount = calculateWithdrawableAmount(currentInterestIndex);
-
-        // TODO: actual transfer of ERC20 token
-
+    function withdrawDepositAndInterest(uint currentInterestIndex) external returns (uint) {
+        _withdrewAmount = calculateWithdrawableAmount(currentInterestIndex);
         _withdrewAt = now;
 
-        return withdrawAmount;
+        return _withdrewAmount;
+    }
+
+    function withdrawDeposit() external returns (uint) {
+        _withdrewAmount = _amount;
+        _withdrewAt = now;
+
+        return _withdrewAmount;
     }
 
     function calculateInterest(uint currentInterestIndex) external view returns (uint) {

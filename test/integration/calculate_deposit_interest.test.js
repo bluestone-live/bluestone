@@ -4,12 +4,13 @@ const PriceOracle = artifacts.require('PriceOracle')
 const TokenManager = artifacts.require('TokenManager')
 const LiquidityPools = artifacts.require('LiquidityPools')
 const LoanManager = artifacts.require('LoanManager')
+const DateTime = artifacts.require('DateTime')
 const { shouldFail, time } = require('openzeppelin-test-helpers')
 const { createERC20Token, toFixedBN, printLogs } = require('../Utils.js')
 const { expect } = require('chai')
 
 contract('DepositManager', ([owner, depositor, loaner]) => {
-  let depositManager, config, priceOracle, tokenManager, liquidityPools, loanManager
+  let depositManager, config, priceOracle, tokenManager, liquidityPools, loanManager, datetime
   let loanAsset, collateralAsset
   const initialSupply = toFixedBN(3000)
   const depositAmount = toFixedBN(1000)
@@ -34,7 +35,14 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
       tokenManager.address,
       liquidityPools.address
     ) 
-    loanManager = await LoanManager.deployed()
+    loanManager = await LoanManager.new(
+      config.address,
+      priceOracle.address,
+      tokenManager.address,
+      liquidityPools.address,
+      depositManager.address
+    )
+    datetime = await DateTime.new()
     loanAsset = await createERC20Token(depositor, initialSupply)
     collateralAsset = await createERC20Token(loaner, initialSupply)
     await loanAsset.approve(tokenManager.address, initialSupply, { from: depositor })
@@ -56,7 +64,7 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     await config.setCoefficient(30, 30, a3030)
   })
 
-  describe('#calculateInterestRate', () => {
+  describe('calculate deposit interest', () => {
     const loanAmount = toFixedBN(100)
     const collateralAmount = toFixedBN(200)
 
@@ -159,6 +167,42 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
           .div(toFixedBN(1))
         const actualInterestRate = await depositManager.calculateInterestRate(loanAsset.address, term)
         expect(actualInterestRate).to.be.bignumber.equal(expectedInterestRate)
+      })
+    })
+
+    context('when 1-day deposit is matured', () => {
+      before(async () => {
+        const now = await time.latest()
+        const secondsUntilMidnight = await datetime.secondsUntilMidnight(now)
+
+        // At the first midnight, update interest index
+        await time.increase(secondsUntilMidnight)        
+        await depositManager.updateInterestIndexHistories(loanAsset.address, { from: owner })
+
+        // At the second midnight, update interest index
+        await time.increase(time.duration.days(1))
+        depositManager.updateInterestIndexHistories(loanAsset.address, { from: owner })
+
+        // Pass through the second midnight
+        await time.increase(time.duration.hours(1))
+      })
+
+      it('withdraws deposit and interest', async () => {
+        const depositId = 0
+        const amount = await depositManager.withdraw.call(loanAsset.address, depositId, { from: depositor })
+        expect(amount).to.be.bignumber.above(depositAmount)
+      })
+    })
+
+    context('when 7-day deposit is overdue', () => {
+      before(async () => {
+        await time.increase(time.duration.days(40))
+      }) 
+
+      it('withdraws deposit only', async () => {
+        const depositId = 1
+        const amount = await depositManager.withdraw.call(loanAsset.address, depositId, { from: depositor })
+        expect(amount).to.be.bignumber.equal(depositAmount)
       })
     })
   })
