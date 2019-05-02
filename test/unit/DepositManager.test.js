@@ -27,22 +27,22 @@ contract('DepositManager', ([owner, anotherAccount]) => {
     })
 
     it('updates interestIndex of lastDay', async () => {
-      const actualInterestIndex = await depositManager.getInterestIndexFromDaysAgo(asset.address, term, 1);
+      const actualInterestIndex = await depositManager.getInterestIndexFromDaysAgo(asset.address, term, 0);
       expect(actualInterestIndex).to.be.bignumber.equal(updatedInterestIndex)
     })
 
     it('does not update interestIndex of the day before lastDay', async () => {
-      const actualInterestIndex = await depositManager.getInterestIndexFromDaysAgo(asset.address, term, 2);
+      const actualInterestIndex = await depositManager.getInterestIndexFromDaysAgo(asset.address, term, 1);
       expect(actualInterestIndex).to.be.bignumber.equal(initialInterestIndex)
     })
 
     it('does not update interestIndex of firstDay', async () => {
-      const actualInterestIndex = await depositManager.getInterestIndexFromDaysAgo(asset.address, term, numDays);
+      const actualInterestIndex = await depositManager.getInterestIndexFromDaysAgo(asset.address, term, numDays - 1);
       expect(actualInterestIndex).to.be.bignumber.equal(initialInterestIndex)
     })
 
     it('clears interestIndex of the day before firstDay', async () => {
-      const actualInterestIndex = await depositManager.getInterestIndexFromDaysAgo(asset.address, term, numDays + 1);
+      const actualInterestIndex = await depositManager.getInterestIndexFromDaysAgo(asset.address, term, numDays);
       expect(actualInterestIndex).to.be.bignumber.equal('0')
     })
   })

@@ -32,7 +32,6 @@ contract DepositManager is Ownable, Term {
 
     struct InterestIndexHistory {
         mapping(uint => uint) interestIndexPerDay;
-        uint firstDay;
         uint lastDay;
     }
 
@@ -117,7 +116,7 @@ contract DepositManager is Ownable, Term {
         if (currDeposit.isOverDue()) {
             amount = currDeposit.withdrawDeposit();
         } else {
-            uint numDaysAgo = DateTime.toDays(now - currDeposit.createdAt());
+            uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
             uint interestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
             amount = currDeposit.withdrawDepositAndInterest(interestIndex);
         }
@@ -142,9 +141,9 @@ contract DepositManager is Ownable, Term {
                 depositAsset.interestIndexPerTerm[7] = ONE;
                 depositAsset.interestIndexPerTerm[30] = ONE;
 
-                depositAsset.interestIndexHistoryPerTerm[1].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP;
-                depositAsset.interestIndexHistoryPerTerm[7].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP;
-                depositAsset.interestIndexHistoryPerTerm[30].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP;
+                depositAsset.interestIndexHistoryPerTerm[1].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
+                depositAsset.interestIndexHistoryPerTerm[7].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
+                depositAsset.interestIndexHistoryPerTerm[30].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
 
                 depositAsset.isInitialized = true;
             }
@@ -244,15 +243,15 @@ contract DepositManager is Ownable, Term {
         InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
 
         // Add a new interest index
-        history.interestIndexPerDay[history.lastDay] = interestIndex;
         history.lastDay++;
+        history.interestIndexPerDay[history.lastDay] = interestIndex;
 
-        if (history.firstDay >= DAYS_OF_INTEREST_INDEX_TO_KEEP) {
+        uint dayToBeDropped = history.lastDay - DAYS_OF_INTEREST_INDEX_TO_KEEP;
+
+        if (dayToBeDropped >= DAYS_OF_INTEREST_INDEX_TO_KEEP) {
             // Remove the oldest interest index
-            delete history.interestIndexPerDay[history.firstDay];
+            delete history.interestIndexPerDay[dayToBeDropped];
         }
-
-        history.firstDay++;
     }
 
     function _getInterestIndexFromDaysAgo(address asset, uint8 term, uint numDaysAgo) internal view returns (uint) {
