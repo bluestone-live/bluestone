@@ -61,42 +61,25 @@ contract LoanManager is Ownable, Term {
         validLoanTerm(term)
         enabledLoanAssetPair(loanAsset, collateralAsset)
     {
-        require(loanAmount > 0);
-        require(collateralAmount > 0 || requestedFreedCollateral > 0);
+        address loaner = msg.sender;
 
-        uint availableFreedCollateral = _freedCollaterals[msg.sender][collateralAsset];
-
-        require(requestedFreedCollateral <= availableFreedCollateral, "Not enough freed collateral.");
-
-        _freedCollaterals[msg.sender][collateralAsset] = availableFreedCollateral.sub(requestedFreedCollateral);
-        uint totalCollateralAmount = collateralAmount.add(requestedFreedCollateral);
-        
-        _ensureCollateralRatio(
-            collateralAsset, 
+        // Group logics into a function to avoid stack too deep
+        _validateAndLoan(
+            loaner,
+            term,
             loanAsset,
-            totalCollateralAmount,
-            loanAmount
-        );
-
-        uint interestRate = _config.getLoanInterestRate(term);
-        uint minCollateralRatio = _config.getCollateralRatio(loanAsset, collateralAsset);
-        uint liquidationDiscount = _config.getLiquidationDiscount(loanAsset, collateralAsset);
-
-        _loans[_loanId] = new Loan(
-            msg.sender, 
-            term, 
-            loanAmount, 
-            totalCollateralAmount, 
-            interestRate,
-            minCollateralRatio, 
-            liquidationDiscount
+            collateralAsset,
+            loanAmount,
+            collateralAmount,
+            requestedFreedCollateral
         );
 
         _loanFromPoolGroups(loanAsset, term, loanAmount, _loanId);        
 
         _loanId++;
 
-        // TODO: balance transfer
+        _tokenManager.receiveFrom(loaner, collateralAsset, collateralAmount);
+        _tokenManager.sendTo(loaner, loanAsset, loanAmount);
     }
 
     function repayLoan(address loanAsset, address collateralAsset, uint loanId, uint amount) 
@@ -104,18 +87,18 @@ contract LoanManager is Ownable, Term {
         enabledLoanAssetPair(loanAsset, collateralAsset)
         returns (uint)
     {
-        address user = msg.sender;
+        address loaner = msg.sender;
         Loan currLoan = _loans[loanId];
 
-        require(user == currLoan.owner());
+        require(loaner == currLoan.owner());
 
         (uint totalRepayAmount, uint freedCollateralAmount) = currLoan.repay(amount);
 
         _repayLoanToPoolGroups(loanAsset, totalRepayAmount, loanId);
 
-        // TODO: balance transfer
+        _depositFreedCollateral(loaner, collateralAsset, freedCollateralAmount);
 
-        _depositFreedCollateral(user, collateralAsset, freedCollateralAmount);
+        _tokenManager.receiveFrom(loaner, loanAsset, totalRepayAmount);
 
         return totalRepayAmount;
     }
@@ -126,29 +109,21 @@ contract LoanManager is Ownable, Term {
         returns (uint, uint)
     {
         address liquidator = msg.sender;
-        Loan currLoan = _loans[loanId];
 
-        require(liquidator != currLoan.owner(), "Loan cannot be liquidated by the owner.");
-
-        uint loanAssetPrice = _priceOracle.getPrice(loanAsset);
-        uint collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
-
-        require(
-            currLoan.isLiquidatable(loanAssetPrice, collateralAssetPrice), 
-            "Loan is not liquidatable."
-        );
-
-        (uint liquidatedAmount, uint soldCollateralAmount, uint freedCollateralAmount) = currLoan.liquidate(
-            amount, 
-            loanAssetPrice, 
-            collateralAssetPrice
+        // Group logics into a function to avoid stack too deep
+        (uint liquidatedAmount, uint soldCollateralAmount, uint freedCollateralAmount) = _validateAndLiquidateLoan(
+            liquidator, 
+            loanId,
+            loanAsset, 
+            collateralAsset, 
+            amount
         );
 
         _repayLoanToPoolGroups(loanAsset, liquidatedAmount, loanId);
 
-        // TODO: balance transfer
-
         _depositFreedCollateral(liquidator, collateralAsset, freedCollateralAmount);
+
+        _tokenManager.receiveFrom(liquidator, loanAsset, liquidatedAmount);
 
         return (liquidatedAmount, soldCollateralAmount);
     }
@@ -195,19 +170,36 @@ contract LoanManager is Ownable, Term {
 
     // PRIVATE --------------------------------------------------------------
 
-    function _ensureCollateralRatio(
-        address collateralAsset, 
+    function _validateAndLoan(
+        address loaner,
+        uint8 term,
         address loanAsset,
-        uint collateralAmount, 
-        uint loanAmount
-    ) 
-        private
-        view
+        address collateralAsset,
+        uint loanAmount,
+        uint collateralAmount,
+        uint requestedFreedCollateral
+    )
+        private 
     {
+        require(loanAmount > 0, "Invalid loan amount.");
+        require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
+
+        uint totalCollateralAmount = collateralAmount;
+
+        // Combine freed collateral if needed
+        if (requestedFreedCollateral > 0) {
+            uint availableFreedCollateral = _freedCollaterals[loaner][collateralAsset];
+
+            require(requestedFreedCollateral <= availableFreedCollateral, "Not enough freed collateral.");
+
+            _freedCollaterals[loaner][collateralAsset] = availableFreedCollateral.sub(requestedFreedCollateral);
+            totalCollateralAmount = totalCollateralAmount.add(requestedFreedCollateral);
+        } 
+        
         uint collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
         uint loanAssetPrice = _priceOracle.getPrice(loanAsset);
 
-        uint currCollateralRatio = collateralAmount
+        uint currCollateralRatio = totalCollateralAmount
             .mulFixed(collateralAssetPrice)
             .divFixed(loanAmount)
             .divFixed(loanAssetPrice);
@@ -215,6 +207,48 @@ contract LoanManager is Ownable, Term {
         uint minCollateralRatio = _config.getCollateralRatio(loanAsset, collateralAsset);
 
         require(currCollateralRatio >= minCollateralRatio, "Collateral ratio is below requirement.");
+
+        uint interestRate = _config.getLoanInterestRate(term);
+        uint liquidationDiscount = _config.getLiquidationDiscount(loanAsset, collateralAsset);
+
+        _loans[_loanId] = new Loan(
+            loaner, 
+            term, 
+            loanAmount, 
+            totalCollateralAmount, 
+            interestRate,
+            minCollateralRatio, 
+            liquidationDiscount
+        );
+    }
+
+    function _validateAndLiquidateLoan(
+        address liquidator, 
+        uint loanId,
+        address loanAsset,
+        address collateralAsset,
+        uint amount
+    ) 
+        private
+        returns (uint liquidatedAmount, uint soldCollateralAmount, uint freedCollateralAmount)
+    {
+        Loan currLoan = _loans[loanId];
+
+        require(liquidator != currLoan.owner(), "Loan cannot be liquidated by the owner.");
+
+        uint loanAssetPrice = _priceOracle.getPrice(loanAsset);
+        uint collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
+
+        require(
+            currLoan.isLiquidatable(loanAssetPrice, collateralAssetPrice), 
+            "Loan is not liquidatable."
+        );
+
+        return currLoan.liquidate(
+            amount, 
+            loanAssetPrice, 
+            collateralAssetPrice
+        );
     }
 
     function _loanFromPoolGroups(address loanAsset, uint8 loanTerm, uint loanAmount, uint loanId) private {

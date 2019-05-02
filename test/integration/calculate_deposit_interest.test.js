@@ -46,6 +46,7 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     loanAsset = await createERC20Token(depositor, initialSupply)
     collateralAsset = await createERC20Token(loaner, initialSupply)
     await loanAsset.approve(tokenManager.address, initialSupply, { from: depositor })
+    await collateralAsset.approve(tokenManager.address, initialSupply, { from: loaner })
 
     await depositManager.enableDepositAsset(loanAsset.address, { from: owner })
     await loanManager.enableLoanAssetPair(loanAsset.address, collateralAsset.address, { from: owner })
