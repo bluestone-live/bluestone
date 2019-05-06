@@ -189,7 +189,7 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
       })
 
       it('withdraws deposit and interest', async () => {
-        const depositId = 0
+        const depositId = await depositManager.depositIds.call(0)
         const amount = await depositManager.withdraw.call(loanAsset.address, depositId, { from: depositor })
         expect(amount).to.be.bignumber.above(depositAmount)
       })
@@ -201,7 +201,7 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
       }) 
 
       it('withdraws deposit only', async () => {
-        const depositId = 1
+        const depositId = await depositManager.depositIds.call(1)
         const amount = await depositManager.withdraw.call(loanAsset.address, depositId, { from: depositor })
         expect(amount).to.be.bignumber.equal(depositAmount)
       })

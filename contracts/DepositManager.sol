@@ -36,8 +36,8 @@ contract DepositManager is Ownable, Term {
     }
 
     mapping(address => DepositAsset) private _depositAssets;
-    mapping(uint => Deposit) private _deposits;
-    uint private _depositId;
+    mapping(bytes32 => Deposit) private _deposits;
+    uint private _numDeposit;
 
     uint constant private ONE = 10 ** 18;
     uint constant private DAYS_OF_INTEREST_INDEX_TO_KEEP = 30;
@@ -57,9 +57,10 @@ contract DepositManager is Ownable, Term {
     // PUBLIC  -----------------------------------------------------------------
 
     function deposit(address asset, uint8 term, uint amount, bool isRecurring) 
-        external 
+        public 
         enabledDepositAsset(asset) 
         validDepositTerm(term) 
+        returns (bytes32)
     {
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
         uint8 lastPoolIndex = term - 1;
@@ -70,16 +71,21 @@ contract DepositManager is Ownable, Term {
             poolGroup.addOneTimeDepositToPool(lastPoolIndex, amount);
         }
 
+        address user = msg.sender;
         uint currInterestIndex = updateDepositAssetInterestInfo(asset, term);
 
-        address user = msg.sender;
-        _deposits[_depositId] = new Deposit(user, term, amount, currInterestIndex, isRecurring);
-        _depositId++;
+        _numDeposit++;
+
+        // Generate a unique hash as deposit ID
+        bytes32 depositId = keccak256(abi.encode(_numDeposit));
+        _deposits[depositId] = new Deposit(user, term, amount, currInterestIndex, isRecurring);
 
         _tokenManager.receiveFrom(user, asset, amount);
+
+        return depositId;
     }
     
-    function setRecurringDeposit(address asset, uint depositId, bool enableRecurring) 
+    function setRecurringDeposit(address asset, bytes32 depositId, bool enableRecurring) 
         external enabledDepositAsset(asset) 
     {
         Deposit currDeposit = _deposits[depositId];
@@ -101,7 +107,7 @@ contract DepositManager is Ownable, Term {
         }
     }
     
-    function withdraw(address asset, uint depositId) external enabledDepositAsset(asset) returns (uint) {
+    function withdraw(address asset, bytes32 depositId) external enabledDepositAsset(asset) returns (uint) {
         Deposit currDeposit = _deposits[depositId];
         address user = msg.sender;
  
