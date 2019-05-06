@@ -1,20 +1,30 @@
-const LoanManager = artifacts.require('LoanManager')
+const LoanManager = artifacts.require('LoanManagerMock')
 const DepositManager = artifacts.require('DepositManager')
-const TokenManager = artifacts.require('TokenManager')
+const Configuration = artifacts.require('Configuration')
 const PriceOracle = artifacts.require('PriceOracle')
+const TokenManager = artifacts.require('TokenManager')
+const LiquidityPools = artifacts.require('LiquidityPools')
 const { shouldFail, BN, time } = require('openzeppelin-test-helpers')
 const { createERC20Token, toFixedBN } = require('../Utils.js')
 const { expect } = require('chai')
 
 contract('LoanManager', ([owner, depositor, loaner]) => {
   const initialSupply = toFixedBN(1000)
-  let depositManager, loanManager, tokenManager
+  let config, priceOracle, tokenManager, liquidityPools, depositManager, loanManager 
 
   before(async () => {
-    depositManager = await DepositManager.deployed()
-    loanManager = await LoanManager.deployed() 
-    tokenManager = await TokenManager.deployed()
+    config = await Configuration.deployed()
     priceOracle = await PriceOracle.deployed()
+    tokenManager = await TokenManager.deployed()
+    liquidityPools = await LiquidityPools.deployed()
+    depositManager = await DepositManager.deployed()
+    loanManager = await LoanManager.new(
+      config.address,
+      priceOracle.address,
+      tokenManager.address,
+      liquidityPools.address,
+      depositManager.address
+    ) 
   })
 
   describe('loan flow positive #1', () => {
@@ -77,7 +87,7 @@ contract('LoanManager', ([owner, depositor, loaner]) => {
       })
 
       it('repays in full', async () => {
-        const loanId = 0
+        const loanId = await loanManager.loanIds.call(0);
 
         repayAmount = await loanManager.repayLoan.call(
           loanAsset.address, 
