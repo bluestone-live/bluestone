@@ -1,14 +1,19 @@
 const TokenManager = artifacts.require('TokenManager')
+const Configuration = artifacts.require('Configuration')
+const DateTime = artifacts.require('DateTime')
 const { shouldFail, time } = require('openzeppelin-test-helpers')
 const { createERC20Token, toFixedBN } = require('../Utils.js')
 const { DepositManagerMock } = require('../Mocks.js')
 
 contract('DepositManager', ([owner, depositor]) => {
-  let depositManager, tokenManager
+  let depositManager, tokenManager, config, datetime
 
   before(async () => {
     depositManager = await DepositManagerMock() 
     tokenManager = await TokenManager.deployed()
+    config = await Configuration.deployed()
+    datetime = await DateTime.new()
+    await config.setShareholderAddress(owner)
   })
 
   describe('deposit flow positive #1', () => {
@@ -39,7 +44,19 @@ contract('DepositManager', ([owner, depositor]) => {
 
     context('when deposit term is matured', () => {
       before(async () => {
-        await time.increase(time.duration.days(2))        
+        const now = await time.latest()
+        const secondsUntilMidnight = await datetime.secondsUntilMidnight(now)
+
+        // At the first midnight, update interest index
+        await time.increase(secondsUntilMidnight)        
+        await depositManager.updateInterestIndexHistories(asset.address, { from: owner })
+
+        // At the second midnight, update interest index
+        await time.increase(time.duration.days(1))
+        depositManager.updateInterestIndexHistories(asset.address, { from: owner })
+
+        // Pass through the second midnight
+        await time.increase(time.duration.hours(1))
       })
 
       it('withdraws deposit', async () => {

@@ -71,14 +71,22 @@ contract DepositManager is Ownable, Term {
             poolGroup.addOneTimeDepositToPool(lastPoolIndex, amount);
         }
 
-        address user = msg.sender;
-        uint currInterestIndex = updateDepositAssetInterestInfo(asset, term);
-
         _numDeposit++;
 
         // Generate a unique hash as deposit ID
         bytes32 depositId = keccak256(abi.encode(_numDeposit));
-        _deposits[depositId] = new Deposit(user, term, amount, currInterestIndex, isRecurring);
+        address user = msg.sender;
+        uint currInterestIndex = updateDepositAssetInterestInfo(asset, term);
+        uint distributionRatio = _config.getDistributionRatio();
+
+        _deposits[depositId] = new Deposit(
+            user, 
+            term, 
+            amount, 
+            currInterestIndex, 
+            distributionRatio, 
+            isRecurring
+        );
 
         _tokenManager.receiveFrom(user, asset, amount);
 
@@ -117,21 +125,25 @@ contract DepositManager is Ownable, Term {
         require(currDeposit.isMatured(), "Deposit must be matured.");
 
         uint8 term = currDeposit.term();
-        uint amount;
+        updateDepositAssetInterestInfo(asset, term);
 
         if (currDeposit.isOverDue()) {
-            amount = currDeposit.withdrawDeposit();
+            uint withdrewAmount = currDeposit.withdrawDeposit();
+            _tokenManager.sendTo(user, asset, withdrewAmount);
+
+            // Note: interests profit will remain in tokenManager account
+            return withdrewAmount;
         } else {
             uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
             uint interestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
-            amount = currDeposit.withdrawDepositAndInterest(interestIndex);
+            (uint withdrewAmount, uint interestsForShareholders) = currDeposit.withdrawDepositAndInterest(interestIndex);
+            address shareholder = _config.getShareholderAddress();
+
+            _tokenManager.sendTo(user, asset, withdrewAmount);
+            _tokenManager.sendTo(shareholder, asset, interestsForShareholders);
+
+            return withdrewAmount;
         }
-
-        _tokenManager.sendTo(user, asset, amount);
-
-        updateDepositAssetInterestInfo(asset, term);
-
-        return amount;
     }
 
     // ADMIN --------------------------------------------------------------

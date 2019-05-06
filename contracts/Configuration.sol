@@ -8,11 +8,18 @@ import "./Term.sol";
 contract Configuration is Ownable, Term {
     uint private constant MIN_COLLATERAL_RATIO = 12 * (10 ** 17); // 1.2 (120%)
     uint private constant MAX_LIQUIDATION_DISCOUNT = 5 * (10 ** 16); // 0.05 (5%)
+    uint private constant MAX_DISTRIBUTION_RATIO = 3 * (10 ** 17); // 0.3 (30%)
 
     mapping(address => mapping(address => uint)) private _collateralRatioMap;
     mapping(address => mapping(address => uint)) private _liquidationDiscountMap;
     mapping(uint8 => mapping(uint8 => uint)) private _coefficients;
     mapping(uint8 => uint) private _loanInterestRates;
+
+    // The percentage we take from deposit interest as profit
+    uint private _distributionRatio = 15 * (10 ** 16); // 0.15 (15%)
+
+    // Shareholder address which receives profit
+    address private _shareholderAddress;
 
     function getCoefficient(uint8 depositTerm, uint8 loanTerm) 
         external
@@ -41,6 +48,14 @@ contract Configuration is Ownable, Term {
 
     function getLoanInterestRate(uint8 loanTerm) external view validLoanTerm(loanTerm) returns (uint) {
         return _loanInterestRates[loanTerm];
+    }
+
+    function getDistributionRatio() external view returns (uint) {
+        return _distributionRatio;
+    }
+
+    function getShareholderAddress() external view returns (address) {
+        return _shareholderAddress;
     }
 
     function setCoefficient(uint8 depositTerm, uint8 loanTerm, uint value)
@@ -80,5 +95,17 @@ contract Configuration is Ownable, Term {
         validLoanTerm(loanTerm)
     {
         _loanInterestRates[loanTerm] = value;
+    }
+
+    function setDistributionRatio(uint value) public onlyOwner {
+        require(value <= MAX_DISTRIBUTION_RATIO, "Invalid distribution ratio.");
+
+        _distributionRatio = value;
+    }
+
+    function setShareholderAddress(address shareholderAddress) public onlyOwner {
+        require(shareholderAddress != address(0), "Invalid shareholder address.");
+
+        _shareholderAddress = shareholderAddress;
     }
 }

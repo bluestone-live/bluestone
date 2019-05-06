@@ -63,6 +63,7 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     await config.setCoefficient(7, 7, a77)
     await config.setCoefficient(30, 7, a307)
     await config.setCoefficient(30, 30, a3030)
+    await config.setShareholderAddress(owner)
   })
 
   describe('calculate deposit interest', () => {

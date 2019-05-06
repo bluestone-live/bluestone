@@ -7,6 +7,7 @@ const { expect } = require('chai')
 contract('Deposit', ([owner, anotherAccount]) => {
   const amount = toFixedBN(100)
   const interestIndex = toFixedBN(1)
+  const distributionRatio = toFixedBN(0.15)
 
   describe('#constructor', async () => {
     const term = new BN(7)
@@ -14,7 +15,7 @@ contract('Deposit', ([owner, anotherAccount]) => {
     let deposit, datetime, now, createdAt
 
     before(async () => {
-      deposit = await Deposit.new(owner, term, amount, interestIndex, isRecurring)
+      deposit = await Deposit.new(owner, term, amount, interestIndex, distributionRatio, isRecurring)
       now = await time.latest()
       datetime = await DateTime.new()
     })
@@ -38,13 +39,20 @@ contract('Deposit', ([owner, anotherAccount]) => {
     let deposit
 
     beforeEach(async () => {
-      deposit = await Deposit.new(owner, term, amount, interestIndex, isRecurring)
+      deposit = await Deposit.new(owner, term, amount, interestIndex, distributionRatio, isRecurring)
     })
 
     it('succeeds', async () => {
-      await deposit.withdrawDepositAndInterest(toFixedBN(2)) 
-      expect(await deposit.isWithdrawn()).to.be.true
-      expect(await deposit.withdrewAmount()).to.be.bignumber.above(amount)
+      const currInterestIndex = toFixedBN(2)
+      const { '0': withdrewAmount, '1': interestsForShareholders } = 
+        await deposit.withdrawDepositAndInterest.call(currInterestIndex) 
+
+      const expectedTotalInterests = amount.mul(currInterestIndex).div(interestIndex).sub(amount)
+      const expectedInterestsForShareholder = expectedTotalInterests.mul(distributionRatio).div(toFixedBN(1))
+      const expectedInterestsForDepositor = expectedTotalInterests.sub(expectedInterestsForShareholder)
+      const expectedWithdrewAmount = amount.add(expectedInterestsForDepositor)
+      expect(withdrewAmount).to.be.bignumber.equal(expectedWithdrewAmount)
+      expect(interestsForShareholders).to.be.bignumber.equal(expectedInterestsForShareholder)
     })       
   })
 
@@ -54,7 +62,7 @@ contract('Deposit', ([owner, anotherAccount]) => {
     let deposit
 
     beforeEach(async () => {
-      deposit = await Deposit.new(owner, term, amount, interestIndex, isRecurring)
+      deposit = await Deposit.new(owner, term, amount, interestIndex, distributionRatio, isRecurring)
     })
 
     it('succeeds', async () => {

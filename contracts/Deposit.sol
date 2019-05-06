@@ -13,6 +13,7 @@ contract Deposit {
     uint8 private _term;
     uint private _amount;
     uint private _interestIndex;
+    uint private _distributionRatio;
     uint private _withdrewAmount;
     bool private _isRecurring;
     uint private _createdAt;
@@ -21,13 +22,21 @@ contract Deposit {
 
     uint private constant DAY_IN_SECONDS = 86400;
 
-    constructor(address owner, uint8 term, uint amount, uint interestIndex, bool isRecurring) public {
+    constructor(
+        address owner, 
+        uint8 term, 
+        uint amount, 
+        uint interestIndex, 
+        uint distributionRatio,
+        bool isRecurring
+    ) public {
         require(amount > 0);
 
         _owner = owner;
         _term = term;
         _amount = amount;
         _interestIndex = interestIndex;
+        _distributionRatio = distributionRatio;
         _withdrewAmount = 0;
         _isRecurring = isRecurring;
         _createdAt = now;
@@ -38,11 +47,6 @@ contract Deposit {
             DateTime.secondsUntilMidnight(_createdAt) +
             _term * DAY_IN_SECONDS;
     } 
-
-    function calculateWithdrawableAmount(uint currentInterestIndex) public view returns (uint) {
-        // total = amount * (currentInterestIndex / depositInterestIndex)
-        return _amount.mulFixed(currentInterestIndex).divFixed(_interestIndex);
-    }
 
     function isWithdrawn() public view returns (bool) {
         return _withdrewAt != 0;
@@ -92,11 +96,15 @@ contract Deposit {
         _isRecurring = false;
     }
 
-    function withdrawDepositAndInterest(uint currentInterestIndex) external returns (uint) {
-        _withdrewAmount = calculateWithdrawableAmount(currentInterestIndex);
+    function withdrawDepositAndInterest(uint currInterestIndex) external returns (uint, uint) {
+        uint totalInterests = _amount.mulFixed(currInterestIndex).divFixed(_interestIndex).sub(_amount);
+        uint interestsForShareholders = totalInterests.mulFixed(_distributionRatio);
+        uint interestsForDepositor = totalInterests.sub(interestsForShareholders);
+
+        _withdrewAmount = _amount.add(interestsForDepositor);
         _withdrewAt = now;
 
-        return _withdrewAmount;
+        return (_withdrewAmount, interestsForShareholders);
     }
 
     function withdrawDeposit() external returns (uint) {
@@ -104,9 +112,5 @@ contract Deposit {
         _withdrewAt = now;
 
         return _withdrewAmount;
-    }
-
-    function calculateInterest(uint currentInterestIndex) external view returns (uint) {
-        return calculateWithdrawableAmount(currentInterestIndex).sub(_amount);
     }
 }
