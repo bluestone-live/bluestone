@@ -1,4 +1,5 @@
 {
+  "license": "NOLICENSE",
   "scripts": {
     "compile": "./scripts/compile",
     "lint": "./scripts/lint",
