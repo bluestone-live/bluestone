@@ -1,5 +1,6 @@
 {
-  "license": "NOLICENSE",
+  "license": "UNLICENSED",
+  "private": "true",
   "scripts": {
     "compile": "./scripts/compile",
     "lint": "./scripts/lint",
