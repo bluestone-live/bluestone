@@ -11,7 +11,17 @@ contract PriceOracle is Ownable {
         return _assetPrices[asset];
     }
     
-    function setPrice(address asset, uint requestedPrice) external onlyOwner {
+   function setPrices(address[] calldata assetList, uint[] calldata requestedPriceList) external onlyOwner {
+        require(assetList.length == requestedPriceList.length, "Invalid input.");
+
+        for (uint i = 0; i < assetList.length; i++) {
+            setPrice(assetList[i], requestedPriceList[i]);
+        }
+   }
+
+    function setPrice(address asset, uint requestedPrice) public onlyOwner {
+        require(requestedPrice > 0, "Invalid price.");
+
         // TODO: make sure new price is reasonable
         _assetPrices[asset] = requestedPrice;
    }
