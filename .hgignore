@@ -1,3 +1,13 @@
+# general
 node_modules/
 build/
+
+# osx
+.DS_Store
+
+# arcanist
 .phutil_module_cache
+
+# configs
+development.json
+production.json
