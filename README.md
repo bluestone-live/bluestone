@@ -11,6 +11,15 @@ Install the following tools:
 
 ## Setup
 
+Create a config file for development purpose:
+
+```
+cd config
+cp default.json development.json
+```
+
+Fill in any credentials if needed.
+
 ```
 yarn
 npx truffle compile

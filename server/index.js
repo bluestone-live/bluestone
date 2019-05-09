@@ -2,8 +2,7 @@ const Koa = require('koa')
 const Router = require('koa-router')
 const koaBody = require('koa-body')
 const route = require('./route.js')
-
-const PORT = 3000
+const { port } = require('config').get('server')
 
 const app = new Koa()
 const router = new Router()
@@ -15,5 +14,5 @@ app
   .use(router.routes())
   .use(router.allowedMethods())
 
-app.listen(PORT)
-console.log(`Listening on port: ${PORT}`)
+app.listen(port)
+console.log(`Listening on port: ${port}`)
