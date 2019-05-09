@@ -2,8 +2,8 @@
   "license": "UNLICENSED",
   "private": "true",
   "scripts": {
-    "start": "NODE_ENV=development DEBUG=koa* nodemon server/index.js",
-    "test:scripts": "NODE_ENV=development jest",
+    "start": "DEBUG=koa* nodemon server/index.js",
+    "test:scripts": "jest",
     "test:truffle": "npx truffle test"
   },
   "devDependencies": {
@@ -16,7 +16,6 @@
     "truffle": "^5.0.5"
   },
   "dependencies": {
-    "config": "^3.1.0",
     "koa": "^2.7.0",
     "koa-body": "^4.1.0",
     "koa-router": "^7.4.0",

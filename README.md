@@ -14,8 +14,7 @@ Install the following tools:
 Create a config file for development purpose:
 
 ```
-cd config
-cp default.json development.json
+cp config.example.js config.js
 ```
 
 Fill in any credentials if needed.

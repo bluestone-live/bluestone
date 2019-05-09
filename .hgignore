@@ -8,6 +8,5 @@ build/
 # arcanist
 .phutil_module_cache
 
-# configs
-development.json
-production.json
+# config
+config.js

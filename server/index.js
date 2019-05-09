@@ -2,7 +2,7 @@ const Koa = require('koa')
 const Router = require('koa-router')
 const koaBody = require('koa-body')
 const route = require('./route.js')
-const { port } = require('config').get('server')
+const { port } = require('../config.js').server
 
 const app = new Koa()
 const router = new Router()

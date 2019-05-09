@@ -1,8 +1,7 @@
 const CoinMarketCap = require('../services/CoinMarketCap.js')
-const config = require('config')
+const config = require('../config.js')
 
-const apiKey = config.get('coinmarketcap.apiKey')
-const sandbox = config.get('coinmarketcap.sandbox')
+const { apiKey, sandbox } = config.coinmarketcap
 const coinMarketCap = new CoinMarketCap(apiKey, sandbox)
 
 const fetchTokenPrices = async (tokenList, currencyCode = 'USD') => {
