@@ -1,7 +1,8 @@
 const PriceOracle = artifacts.require('./PriceOracle.sol')
 const TokenFactory = artifacts.require('./TokenFactory.sol')
 const fetchTokenPrices = require('./fetchTokenPrices.js')
-const { constants } = require('openzeppelin-test-helpers')
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 /**
  * Given a list of tokens, each with name and deployed address, 
@@ -18,7 +19,7 @@ const postTokenPrices = async tokenSymbolList => {
     const symbol = tokenSymbolList[i]
     const address = await tokenFactory.getToken(symbol)
 
-    if (address === constants.ZERO_ADDRESS) {
+    if (address === ZERO_ADDRESS) {
       throw 'Make sure you have tokens deployed. Did you forget to run script deployTokens?'
     } else {
       tokenAddressList.push(address)
