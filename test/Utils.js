@@ -1,11 +1,5 @@
 const { BN, time } = require('openzeppelin-test-helpers')
 
-const createERC20Token = async (initialHolder, initialSupply = toFixedBN(100)) => {
-  const ERC20Mock = artifacts.require('ERC20Mock')
-  const token = await ERC20Mock.new(initialHolder, initialSupply)
-  return token
-}
-
 const printLogs = logs => {
   logs.forEach(({event, args}) => {
     console.log('---')
@@ -34,8 +28,20 @@ function toFixedBN(num, significant = 18) {
   }
 }
 
+const createERC20Token = async (owner, initialSupply = toFixedBN(1000), name = 'NewToken', symbol = 'NT') => {
+  const TokenFactory = artifacts.require('./TokenFactory.sol') 
+  const ERC20Mock = artifacts.require('./ERC20Mock.sol') 
+
+  const tokenFactory = await TokenFactory.deployed()
+  const tx = await tokenFactory.createToken(name, symbol, owner, initialSupply)
+  const tokenAddress = tx.logs
+    .filter(log => log.event === 'TokenCreated')[0]
+    .args['token']
+  return ERC20Mock.at(tokenAddress)
+}
+
 module.exports = {
-  createERC20Token,
   printLogs,
+  createERC20Token,
   toFixedBN
 }

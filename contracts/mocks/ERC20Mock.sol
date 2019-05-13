@@ -4,8 +4,20 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 
 contract ERC20Mock is ERC20 {
-    constructor (address initialAccount, uint256 initialBalance) public {
-        _mint(initialAccount, initialBalance);
+    string public name;
+    string public symbol;
+
+    constructor (
+        string memory tokenName, 
+        string memory tokenSymbol, 
+        address owner,
+        uint initialSupply
+    ) 
+        public 
+    {
+        name = tokenName;
+        symbol = tokenSymbol;
+        _mint(owner, initialSupply);
     }
 
     function mint(address account, uint value) public {
