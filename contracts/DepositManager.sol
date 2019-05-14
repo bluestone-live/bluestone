@@ -146,28 +146,32 @@ contract DepositManager is Ownable, Term {
         }
     }
 
+    function isDepositAssetEnabled(address asset) external view returns (bool) {
+        return _depositAssets[asset].isEnabled;
+    }
+
     // ADMIN --------------------------------------------------------------
 
     function enableDepositAsset(address asset) external onlyOwner {
         DepositAsset storage depositAsset = _depositAssets[asset];
 
-        if (!depositAsset.isEnabled) {
-            _liquidityPools.initPoolGroupsIfNeeded(asset);
+        require(!depositAsset.isEnabled, "This asset is enabled already.");
 
-            if (!depositAsset.isInitialized) {
-                depositAsset.interestIndexPerTerm[1] = ONE;
-                depositAsset.interestIndexPerTerm[7] = ONE;
-                depositAsset.interestIndexPerTerm[30] = ONE;
+        _liquidityPools.initPoolGroupsIfNeeded(asset);
 
-                depositAsset.interestIndexHistoryPerTerm[1].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
-                depositAsset.interestIndexHistoryPerTerm[7].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
-                depositAsset.interestIndexHistoryPerTerm[30].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
+        if (!depositAsset.isInitialized) {
+            depositAsset.interestIndexPerTerm[1] = ONE;
+            depositAsset.interestIndexPerTerm[7] = ONE;
+            depositAsset.interestIndexPerTerm[30] = ONE;
 
-                depositAsset.isInitialized = true;
-            }
+            depositAsset.interestIndexHistoryPerTerm[1].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
+            depositAsset.interestIndexHistoryPerTerm[7].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
+            depositAsset.interestIndexHistoryPerTerm[30].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
 
-            depositAsset.isEnabled = true;
+            depositAsset.isInitialized = true;
         }
+
+        depositAsset.isEnabled = true;
     }
 
     function disableDepositAsset(address asset) external onlyOwner enabledDepositAsset(asset) {

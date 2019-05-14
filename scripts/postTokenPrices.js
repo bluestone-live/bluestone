@@ -1,8 +1,7 @@
 const PriceOracle = artifacts.require('./PriceOracle.sol')
 const TokenFactory = artifacts.require('./TokenFactory.sol')
-const fetchTokenPrices = require('./fetchTokenPrices.js')
-
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+const { fetchTokenPrices } = require('./utils.js')
+const { constants } = require('./utils.js')
 
 /**
  * Given a list of tokens, each with name and deployed address, 
@@ -19,7 +18,7 @@ const postTokenPrices = async tokenSymbolList => {
     const symbol = tokenSymbolList[i]
     const address = await tokenFactory.getToken(symbol)
 
-    if (address === ZERO_ADDRESS) {
+    if (address === constants.ZERO_ADDRESS) {
       throw 'Make sure you have tokens deployed. Did you forget to run script deployTokens?'
     } else {
       tokenAddressList.push(address)
@@ -55,6 +54,7 @@ module.exports = async (callback = () => {}) => {
     return tokenPriceList
   } catch (err) {
     console.error(err)
-    process.exit(1)
+    callback()
+    return false
   }
 }

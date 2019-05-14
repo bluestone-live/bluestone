@@ -6,14 +6,8 @@ const getTokenAddress = tx => {
     .args['token']
 }
 
-const deployTokens = async () => {
+const deployTokens = async tokenList => {
   const tokenFactory = await TokenFactory.deployed()
-  const tokenList = [
-    { name: 'Ether', symbol: 'ETH' },
-    { name: 'Dai', symbol: 'DAI' },
-    { name: 'USD Coin', symbol: 'USDC' },
-  ]
-
   let tokenAddressList = []
 
   for (let i = 0; i < tokenList.length; i++) {
@@ -28,12 +22,19 @@ const deployTokens = async () => {
 }
 
 module.exports = async (callback = () => {}) => {
+  const tokenList = [
+    { name: 'Ether', symbol: 'ETH' },
+    { name: 'Dai', symbol: 'DAI' },
+    { name: 'USD Coin', symbol: 'USDC' },
+  ]
+
   try {
-    const tokenAddresses = await deployTokens()
+    const tokenAddresses = await deployTokens(tokenList)
     callback()
     return tokenAddresses
   } catch (err) {
     console.error(err)
-    process.exit(1)
+    callback()
+    return false
   }
 }
