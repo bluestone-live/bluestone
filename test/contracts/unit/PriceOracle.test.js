@@ -1,5 +1,5 @@
 const PriceOracle = artifacts.require('PriceOracle')
-const { createERC20Token, toFixedBN } = require('../Utils.js')
+const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('PriceOracle', function([owner, account]) {

@@ -1,6 +1,6 @@
 const Loan = artifacts.require('Loan')
 const { shouldFail, time, BN } = require('openzeppelin-test-helpers')
-const { toFixedBN } = require('../Utils.js')
+const { toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('Loan', ([owner, anotherAccount]) => {

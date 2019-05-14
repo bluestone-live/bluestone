@@ -1,6 +1,6 @@
 const TokenManager = artifacts.require('TokenManager')
 const { shouldFail } = require('openzeppelin-test-helpers')
-const { createERC20Token, toFixedBN } = require('../Utils.js')
+const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('TokenManager', ([owner, customer]) => {

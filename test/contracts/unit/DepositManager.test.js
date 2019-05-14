@@ -1,6 +1,6 @@
 const { shouldFail, time } = require('openzeppelin-test-helpers')
-const { toFixedBN, createERC20Token } = require('../Utils.js')
-const { DepositManagerMock } = require('../Mocks.js')
+const { toFixedBN, createERC20Token } = require('../../utils/index.js')
+const { DepositManagerMock } = require('../../utils/mocks.js')
 const { expect } = require('chai')
 
 contract('DepositManager', ([owner, anotherAccount]) => {

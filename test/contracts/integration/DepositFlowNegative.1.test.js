@@ -1,7 +1,7 @@
 const DepositManager = artifacts.require('DepositManager')
 const TokenManager = artifacts.require('TokenManager')
 const { shouldFail, time } = require('openzeppelin-test-helpers')
-const { createERC20Token, toFixedBN } = require('../Utils.js')
+const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 
 contract('DepositManager', ([owner, depositor]) => {
   let depositManager, tokenManager

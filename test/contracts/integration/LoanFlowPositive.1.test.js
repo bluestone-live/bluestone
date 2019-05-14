@@ -5,7 +5,7 @@ const PriceOracle = artifacts.require('PriceOracle')
 const TokenManager = artifacts.require('TokenManager')
 const LiquidityPools = artifacts.require('LiquidityPools')
 const { shouldFail, BN, time } = require('openzeppelin-test-helpers')
-const { createERC20Token, toFixedBN } = require('../Utils.js')
+const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('LoanManager', ([owner, depositor, loaner]) => {

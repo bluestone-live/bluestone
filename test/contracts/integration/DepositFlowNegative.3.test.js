@@ -1,17 +1,17 @@
-const DepositManager = artifacts.require('DepositManager')
 const TokenManager = artifacts.require('TokenManager')
 const { shouldFail, time } = require('openzeppelin-test-helpers')
-const { createERC20Token, toFixedBN } = require('../Utils.js')
+const { createERC20Token, toFixedBN } = require('../../utils/index.js')
+const { DepositManagerMock } = require('../../utils/mocks.js')
 
 contract('DepositManager', ([owner, depositor]) => {
   let depositManager, tokenManager
 
   before(async () => {
-    depositManager = await DepositManager.deployed() 
+    depositManager = await DepositManagerMock()
     tokenManager = await TokenManager.deployed()
   })
 
-  describe('deposit flow negative #2', () => {
+  describe('deposit flow negative #3', () => {
     const initialSupply = toFixedBN(100)
     const term = 1
     let asset
@@ -22,10 +22,16 @@ contract('DepositManager', ([owner, depositor]) => {
       await depositManager.enableDepositAsset(asset.address, { from: owner })
     })
 
-    context('when the depositor does not have enough balance', () => {
-      it('reverts deposit', async () => {
+    it('deposits without recurring', async () => {
+      await depositManager.deposit(asset.address, term, toFixedBN(50), false, { from: depositor })
+    })
+
+    context('when the deposit is not mature', () => {
+      it('reverts withdraw', async() => {
+        const depositId = await depositManager.depositIds.call(0)
+
         await shouldFail.reverting(
-          depositManager.deposit(asset.address, term, toFixedBN(101), false, { from: depositor })
+          depositManager.withdraw(asset.address, depositId, { from: depositor })
         )
       })
     })

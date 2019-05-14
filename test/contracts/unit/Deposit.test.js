@@ -1,7 +1,7 @@
 const Deposit = artifacts.require('Deposit')
 const DateTime = artifacts.require('DateTime')
 const { BN, shouldFail, time } = require('openzeppelin-test-helpers')
-const { toFixedBN } = require('../Utils.js')
+const { toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('Deposit', ([owner, anotherAccount]) => {

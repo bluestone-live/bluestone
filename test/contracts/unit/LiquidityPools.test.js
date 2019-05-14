@@ -1,6 +1,6 @@
 const LiquidityPools = artifacts.require('LiquidityPools')
 const { shouldFail, constants } = require('openzeppelin-test-helpers')
-const { createERC20Token, toFixedBN } = require('../Utils.js')
+const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('LiquidityPools', ([owner, account]) => {

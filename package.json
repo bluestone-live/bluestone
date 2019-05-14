@@ -3,14 +3,12 @@
   "private": "true",
   "scripts": {
     "start": "DEBUG=koa* nodemon server/index.js",
-    "test:scripts": "jest",
-    "test:truffle": "npx truffle test",
+    "test": "npx truffle test",
     "tokens:deploy": "npx truffle exec scripts/deployTokens.js",
     "tokens:post-prices": "npx truffle exec scripts/postTokenPrices.js"
   },
   "devDependencies": {
     "ethlint": "^1.2.3",
-    "jest": "^24.8.0",
     "nodemon": "^1.19.0",
     "openzeppelin-test-helpers": "^0.1.2",
     "request": "^2.88.0",

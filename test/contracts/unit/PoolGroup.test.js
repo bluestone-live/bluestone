@@ -1,6 +1,6 @@
 const PoolGroup = artifacts.require('PoolGroup')
 const { shouldFail, BN } = require('openzeppelin-test-helpers')
-const { toFixedBN } = require('../Utils.js')
+const { toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('PoolGroup', () => {

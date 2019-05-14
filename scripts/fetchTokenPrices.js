@@ -1,4 +1,4 @@
-const CoinMarketCap = require('../services/CoinMarketCap.js')
+const CoinMarketCap = require('../libs/CoinMarketCap.js')
 const config = require('../config.js')
 
 const { apiKey, sandbox } = config.coinmarketcap

@@ -6,7 +6,7 @@ const LiquidityPools = artifacts.require('LiquidityPools')
 const LoanManager = artifacts.require('LoanManager')
 const DateTime = artifacts.require('DateTime')
 const { shouldFail, time } = require('openzeppelin-test-helpers')
-const { createERC20Token, toFixedBN, printLogs } = require('../Utils.js')
+const { createERC20Token, toFixedBN, printLogs } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('DepositManager', ([owner, depositor, loaner]) => {

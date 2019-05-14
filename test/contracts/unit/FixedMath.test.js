@@ -1,5 +1,5 @@
 const FixedMath = artifacts.require('FixedMathMock')
-const { toFixedBN } = require('../Utils.js')
+const { toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('FixedMath', () => {
