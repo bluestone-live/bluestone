@@ -35,7 +35,7 @@ contract LoanManager is Ownable, Term {
     mapping(address => mapping(address => uint)) private _freedCollaterals;
 
     modifier enabledLoanAssetPair(address loanAsset, address collateralAsset) {
-        require (_isLoanAssetPairEnabled[loanAsset][collateralAsset]);
+        require (_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
         _;
     }
 
@@ -146,12 +146,18 @@ contract LoanManager is Ownable, Term {
         return _freedCollaterals[msg.sender][asset];
     }
 
+    function isLoanAssetPairEnabled(address loanAsset, address collateralAsset) external view returns (bool) {
+        return _isLoanAssetPairEnabled[loanAsset][collateralAsset];
+    }
+
     // ADMIN --------------------------------------------------------------
 
     function enableLoanAssetPair(address loanAsset, address collateralAsset) 
         external 
         onlyOwner 
     {
+        require(loanAsset != collateralAsset, "Two assets must be different.");
+        require(!_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair is already enabled.");
         _isLoanAssetPairEnabled[loanAsset][collateralAsset] = true;
     }
 

@@ -1,6 +1,10 @@
 # Scripts
 
-Here we describe each script and their usages (assuming invoked from root directory).
+Here we describe each script and their usages (assuming invoked from root directory). All js scripts should be exectued by [truffle exec](https://truffleframework.com/docs/truffle/getting-started/writing-external-scripts), which helps us connect to the Ethereum client and access to truffle environment.
+
+Argument description:
+
+- `<token-symbol>`: Can be `ETH`, `DAI` or `USDC`.
 
 ## deployTokens.js
 
@@ -18,10 +22,24 @@ Disable an asset for deposit. The target asset must not be already disabled.
 npx truffle exec scripts/disableDepositAsset.js <token-symbol>
 ```
 
-Valid `<token-symbol>` are `ETH`, `DAI` and `USDC`. For example, to disable `ETH`:
+For example, to disable `ETH`:
 
 ```
 npx truffle exec scripts/disableDepositAsset.js ETH
+```
+
+## disableLoanAssetPair.js
+
+Disable an asset pair for loan. The target asset pair must not be already disabled.
+
+```
+npx truffle exec scripts/disableLoanAssetPair.js <loan-token-symbol> <collateral-token-symbol>
+```
+
+For example, to disable asset pair `ETH` and `DAI`:
+
+```
+npx truffle exec scripts/disableLoanAssetPair.js ETH DAI
 ```
 
 ## enableDepositAsset.js
@@ -32,10 +50,24 @@ Enable an asset for deposit. The target asset must not be already enabled.
 npx truffle exec scripts/enableDepositAsset.js <token-symbol>
 ```
 
-Valid `<token-symbol>` are `ETH`, `DAI` and `USDC`. For example, to enable `ETH`:
+For example, to enable `ETH`:
 
 ```
 npx truffle exec scripts/enableDepositAsset.js ETH
+```
+
+## enableLoanAssetPair.js
+
+Enable an asset pair for loan. The target asset pair must not be already enabled.
+
+```
+npx truffle exec scripts/enableLoanAssetPair.js <loan-token-symbol> <collateral-token-symbol>
+```
+
+For example, to enable asset pair `ETH` and `DAI`:
+
+```
+npx truffle exec scripts/enableLoanAssetPair.js ETH DAI
 ```
 
 ## postTokenPrices.js
