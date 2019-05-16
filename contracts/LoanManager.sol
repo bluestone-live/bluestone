@@ -1,6 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/math/Math.sol";
@@ -15,7 +16,7 @@ import "./Loan.sol";
 import "./Term.sol";
 
 
-contract LoanManager is Ownable, Term {
+contract LoanManager is Ownable, Pausable, Term {
     using SafeERC20 for ERC20;
     using SafeMath for uint;
     using FixedMath for uint;
@@ -58,6 +59,7 @@ contract LoanManager is Ownable, Term {
         uint requestedFreedCollateral
     ) 
         public 
+        whenNotPaused
         validLoanTerm(term)
         enabledLoanAssetPair(loanAsset, collateralAsset)
         returns (bytes32)
@@ -85,6 +87,7 @@ contract LoanManager is Ownable, Term {
 
     function repayLoan(address loanAsset, address collateralAsset, bytes32 loanId, uint amount) 
         external 
+        whenNotPaused
         enabledLoanAssetPair(loanAsset, collateralAsset)
         returns (uint)
     {
@@ -106,6 +109,7 @@ contract LoanManager is Ownable, Term {
 
     function liquidateLoan(address loanAsset, address collateralAsset, bytes32 loanId, uint amount) 
         external 
+        whenNotPaused
         enabledLoanAssetPair(loanAsset, collateralAsset)
         returns (uint, uint)
     {
@@ -129,7 +133,7 @@ contract LoanManager is Ownable, Term {
         return (liquidatedAmount, soldCollateralAmount);
     }
 
-    function withdrawFreedCollateral(address asset, uint amount) external {
+    function withdrawFreedCollateral(address asset, uint amount) external whenNotPaused {
         require(amount > 0, "Withdraw amount must be greater than 0.");
 
         address user = msg.sender;
@@ -142,11 +146,11 @@ contract LoanManager is Ownable, Term {
         _tokenManager.sendTo(user, asset, amount);
     }
 
-    function getFreedCollateral(address asset) external view returns (uint) {
+    function getFreedCollateral(address asset) external whenNotPaused view returns (uint) {
         return _freedCollaterals[msg.sender][asset];
     }
 
-    function isLoanAssetPairEnabled(address loanAsset, address collateralAsset) external view returns (bool) {
+    function isLoanAssetPairEnabled(address loanAsset, address collateralAsset) external whenNotPaused view returns (bool) {
         return _isLoanAssetPairEnabled[loanAsset][collateralAsset];
     }
 
@@ -154,6 +158,7 @@ contract LoanManager is Ownable, Term {
 
     function enableLoanAssetPair(address loanAsset, address collateralAsset) 
         external 
+        whenNotPaused
         onlyOwner 
     {
         require(loanAsset != collateralAsset, "Two assets must be different.");
@@ -163,6 +168,7 @@ contract LoanManager is Ownable, Term {
 
     function disableLoanAssetPair(address loanAsset, address collateralAsset) 
         external 
+        whenNotPaused
         onlyOwner 
         enabledLoanAssetPair(loanAsset, collateralAsset)
     {

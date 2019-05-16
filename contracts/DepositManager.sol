@@ -1,6 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/math/Math.sol";
 import "./Configuration.sol";
 import "./PriceOracle.sol";
@@ -12,7 +13,7 @@ import "./Deposit.sol";
 import "./Term.sol";
 
 
-contract DepositManager is Ownable, Term {
+contract DepositManager is Ownable, Pausable, Term {
     using SafeMath for uint;
     using FixedMath for uint;
 
@@ -58,6 +59,7 @@ contract DepositManager is Ownable, Term {
 
     function deposit(address asset, uint8 term, uint amount, bool isRecurring) 
         public 
+        whenNotPaused
         enabledDepositAsset(asset) 
         validDepositTerm(term) 
         returns (bytes32)
@@ -94,7 +96,9 @@ contract DepositManager is Ownable, Term {
     }
     
     function setRecurringDeposit(address asset, bytes32 depositId, bool enableRecurring) 
-        external enabledDepositAsset(asset) 
+        external 
+        whenNotPaused
+        enabledDepositAsset(asset) 
     {
         Deposit currDeposit = _deposits[depositId];
         require(msg.sender == currDeposit.owner());
@@ -115,7 +119,12 @@ contract DepositManager is Ownable, Term {
         }
     }
     
-    function withdraw(address asset, bytes32 depositId) external enabledDepositAsset(asset) returns (uint) {
+    function withdraw(address asset, bytes32 depositId) 
+        external 
+        whenNotPaused
+        enabledDepositAsset(asset) 
+        returns (uint) 
+    {
         Deposit currDeposit = _deposits[depositId];
         address user = msg.sender;
  
@@ -146,13 +155,13 @@ contract DepositManager is Ownable, Term {
         }
     }
 
-    function isDepositAssetEnabled(address asset) external view returns (bool) {
+    function isDepositAssetEnabled(address asset) external whenNotPaused view returns (bool) {
         return _depositAssets[asset].isEnabled;
     }
 
     // ADMIN --------------------------------------------------------------
 
-    function enableDepositAsset(address asset) external onlyOwner {
+    function enableDepositAsset(address asset) external whenNotPaused onlyOwner {
         DepositAsset storage depositAsset = _depositAssets[asset];
 
         require(!depositAsset.isEnabled, "This asset is enabled already.");
@@ -174,18 +183,18 @@ contract DepositManager is Ownable, Term {
         depositAsset.isEnabled = true;
     }
 
-    function disableDepositAsset(address asset) external onlyOwner enabledDepositAsset(asset) {
+    function disableDepositAsset(address asset) external whenNotPaused onlyOwner enabledDepositAsset(asset) {
         DepositAsset storage depositAsset = _depositAssets[asset];
         depositAsset.isEnabled = false;
     }
 
-    function updateDepositMaturity(address asset) external onlyOwner enabledDepositAsset(asset) {
+    function updateDepositMaturity(address asset) external whenNotPaused onlyOwner enabledDepositAsset(asset) {
         _updatePoolGroupDepositMaturity(asset, 1);
         _updatePoolGroupDepositMaturity(asset, 7);
         _updatePoolGroupDepositMaturity(asset, 30);
     }
 
-    function updateInterestIndexHistories(address asset) external onlyOwner enabledDepositAsset(asset) {
+    function updateInterestIndexHistories(address asset) external whenNotPaused onlyOwner enabledDepositAsset(asset) {
         DepositAsset storage depositAsset = _depositAssets[asset];
         uint8[3] memory terms = [1, 7, 30];
 
@@ -203,7 +212,7 @@ contract DepositManager is Ownable, Term {
         }
     }
 
-    function updateDepositAssetInterestInfo(address asset, uint8 term) public returns (uint) {
+    function updateDepositAssetInterestInfo(address asset, uint8 term) public whenNotPaused returns (uint) {
         // TODO: verify msg.sender to be DepositManager or LoanManager
 
         DepositAsset storage depositAsset = _depositAssets[asset];

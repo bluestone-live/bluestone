@@ -2,9 +2,10 @@
 
 Here we describe each script and their usages (assuming invoked from root directory). All js scripts should be exectued by [truffle exec](https://truffleframework.com/docs/truffle/getting-started/writing-external-scripts), which helps us connect to the Ethereum client and access to truffle environment.
 
-Argument description:
+Common arguments:
 
 - `<token-symbol>`: Can be `ETH`, `DAI` or `USDC`.
+- `<contract-name>`: The name of a contract, e.g., `DepositManager`.
 
 ## deployTokens.js
 
@@ -68,6 +69,34 @@ For example, to enable asset pair `ETH` and `DAI`:
 
 ```
 npx truffle exec scripts/enableLoanAssetPair.js ETH DAI
+```
+
+## pauseContract.js
+
+Pause a contract that inherits from `Pausable` contract. 
+
+```
+npx truffle exec scripts/pauseContract.js <contract-name>
+```
+
+For example, to pause `DepositManager`:
+
+```
+npx truffle exec scripts/pauseContract.js DepositManager 
+```
+
+## unpauseContract.js
+
+Unpause a contract that inherits from `Pausable` contract. 
+
+```
+npx truffle exec scripts/unpauseContract.js <contract-name>
+```
+
+For example, to unpause `DepositManager`:
+
+```
+npx truffle exec scripts/unpauseContract.js DepositManager 
 ```
 
 ## postTokenPrices.js
