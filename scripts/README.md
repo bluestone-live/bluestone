@@ -85,6 +85,20 @@ For example, to pause `DepositManager`:
 npx truffle exec scripts/pauseContract.js DepositManager 
 ```
 
+## setCoefficient.js
+
+Set coefficient `a`. The decimal value must not be greater than 1.
+
+```
+npx truffle exec scripts/setCoefficient.js <deposit-term> <loan-term> <decimal-value>
+```
+
+For example:
+
+```
+npx truffle exec scripts/setCoefficient.js 30 7 0.33
+```
+
 ## unpauseContract.js
 
 Unpause a contract that inherits from `Pausable` contract. 

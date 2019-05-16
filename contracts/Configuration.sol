@@ -64,6 +64,7 @@ contract Configuration is Ownable, Term {
         validDepositTerm(depositTerm)
         validLoanTerm(loanTerm)
     {
+        require(value <= 10 ** 18, "Invalid coefficient value.");
         _coefficients[depositTerm][loanTerm] = value;
     }
 
