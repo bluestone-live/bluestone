@@ -1,5 +1,5 @@
-const unpauseContract = require('../../scripts/unpauseContract.js')
-const pauseContract = require('../../scripts/pauseContract.js')
+const unpauseContract = require('../../scripts/javascript/unpauseContract.js')
+const pauseContract = require('../../scripts/javascript/pauseContract.js')
 const { expect } = require('chai')
 
 const cb = () => {}

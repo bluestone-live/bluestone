@@ -22,7 +22,7 @@ const createCronJob = (cronTime, onTick) => {
  * Here's how Maker does it: https://developer.makerdao.com/feeds/
  */
 const postTokenPrices = createCronJob('* * * * *', async () => {
-  const { stdout, stderr } = await exec('npx truffle exec scripts/postTokenPrices.js')
+  const { stdout, stderr } = await exec('./scripts/bash/postTokenPrices')
   console.log(stdout)
   console.log(stderr)
 })

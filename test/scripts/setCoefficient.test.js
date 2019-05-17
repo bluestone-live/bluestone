@@ -1,5 +1,5 @@
 const Configuration = artifacts.require('Configuration')
-const setCoefficient = require('../../scripts/setCoefficient.js')
+const setCoefficient = require('../../scripts/javascript/setCoefficient.js')
 const { toFixedBN } = require('../utils/index.js')
 const { expect } = require('chai')
 

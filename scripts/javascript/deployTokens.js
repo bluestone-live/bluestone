@@ -1,4 +1,6 @@
+const debug = require('debug')('script:deployTokens')
 const TokenFactory = artifacts.require('./TokenFactory.sol') 
+const { makeTruffleScript } = require('./utils.js')
 
 const getTokenAddress = tx => {
   return tx.logs
@@ -6,7 +8,13 @@ const getTokenAddress = tx => {
     .args['token']
 }
 
-const deployTokens = async tokenList => {
+module.exports = makeTruffleScript(async () => {
+  const tokenList = [
+    { name: 'Ether', symbol: 'ETH' },
+    { name: 'Dai', symbol: 'DAI' },
+    { name: 'USD Coin', symbol: 'USDC' },
+  ]
+
   const tokenFactory = await TokenFactory.deployed()
   let tokenAddressList = []
 
@@ -14,27 +22,9 @@ const deployTokens = async tokenList => {
     const { name, symbol } = tokenList[i]
     const tx = await tokenFactory.createToken(name, symbol)
     const address = getTokenAddress(tx)
-    console.log(`Deployed ${symbol} at ${address}`)
+    debug(`Deployed ${symbol} at ${address}`)
     tokenAddressList.push(address)
   }
 
   return tokenAddressList
-}
-
-module.exports = async (callback = () => {}) => {
-  const tokenList = [
-    { name: 'Ether', symbol: 'ETH' },
-    { name: 'Dai', symbol: 'DAI' },
-    { name: 'USD Coin', symbol: 'USDC' },
-  ]
-
-  try {
-    const tokenAddresses = await deployTokens(tokenList)
-    callback()
-    return tokenAddresses
-  } catch (err) {
-    console.error(err)
-    callback()
-    return false
-  }
-}
+})

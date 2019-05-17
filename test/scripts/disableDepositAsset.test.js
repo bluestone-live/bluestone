@@ -1,8 +1,8 @@
 const TokenFactory = artifacts.require('./TokenFactory.sol')
 const DepositManager = artifacts.require("./DepositManager.sol")
-const enableDepositAsset = require('../../scripts/enableDepositAsset.js')
-const disableDepositAsset = require('../../scripts/disableDepositAsset.js')
-const deployTokens = require('../../scripts/deployTokens.js')
+const enableDepositAsset = require('../../scripts/javascript/enableDepositAsset.js')
+const disableDepositAsset = require('../../scripts/javascript/disableDepositAsset.js')
+const deployTokens = require('../../scripts/javascript/deployTokens.js')
 const { constants, shouldFail } = require('openzeppelin-test-helpers')
 const { expect } = require('chai')
 

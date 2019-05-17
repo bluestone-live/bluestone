@@ -1,4 +1,4 @@
-const { fetchTokenPrices } = require('../../scripts/utils.js')
+const { fetchTokenPrices } = require('../../scripts/javascript/utils.js')
 const { expect } = require('chai')
 
 describe('scripts utils', () => {

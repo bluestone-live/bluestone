@@ -1,5 +1,5 @@
 const TokenFactory = artifacts.require('./TokenFactory.sol')
-const deployTokens = require('../../scripts/deployTokens.js')
+const deployTokens = require('../../scripts/javascript/deployTokens.js')
 const { constants } = require('openzeppelin-test-helpers')
 const { expect } = require('chai')
 

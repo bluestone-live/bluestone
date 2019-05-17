@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -eo pipefail
+
+if [ "$1" == "help" ]; then
+  echo "Deploy tokens to test network."
+  echo "Usage: ./scripts/bash/deployTokens"
+  exit 1
+fi
+
+DIR=`dirname $0`
+
+npx truffle compile
+
+env DEBUG='script:*' npx truffle exec "$DIR/../javascript/deployTokens.js"

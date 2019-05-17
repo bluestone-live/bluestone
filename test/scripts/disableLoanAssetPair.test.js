@@ -1,8 +1,8 @@
 const TokenFactory = artifacts.require('./TokenFactory.sol')
 const LoanManager = artifacts.require("./LoanManager.sol")
-const enableLoanAssetPair = require('../../scripts/enableLoanAssetPair.js')
-const disableLoanAssetPair = require('../../scripts/disableLoanAssetPair.js')
-const deployTokens = require('../../scripts/deployTokens.js')
+const enableLoanAssetPair = require('../../scripts/javascript/enableLoanAssetPair.js')
+const disableLoanAssetPair = require('../../scripts/javascript/disableLoanAssetPair.js')
+const deployTokens = require('../../scripts/javascript/deployTokens.js')
 const { constants, shouldFail } = require('openzeppelin-test-helpers')
 const { expect } = require('chai')
 

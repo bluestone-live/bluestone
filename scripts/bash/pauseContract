@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -eo pipefail
+
+if [[ "$1" == "help" || "$#" -ne 1 ]]; then
+  echo "Pause a contract that inherits from Pausable contract."
+  echo "Usage: ./scripts/bash/pauseContract <contract_name>"
+  echo "Example: ./scripts/bash/pauseContract DepositManager"
+  exit 1
+fi
+
+DIR=`dirname $0`
+contract_name="$1"
+
+npx truffle compile
+
+env DEBUG='script:*' npx truffle exec "$DIR/../javascript/pauseContract.js" $contract_name

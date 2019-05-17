@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -eo pipefail
+
+if [ "$1" == "help" ]; then
+  echo "Fetch new token prices and post them to the PriceOracle. This script will be ran periodically by the server, so we do not need to run it by hand."
+  echo "Usage: ./scripts/bash/postTokenPrices"
+  exit 1
+fi
+
+DIR=`dirname $0`
+
+npx truffle compile
+
+env DEBUG='script:*' npx truffle exec "$DIR/../javascript/postTokenPrices.js"
