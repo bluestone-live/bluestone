@@ -2,7 +2,7 @@
   "license": "UNLICENSED",
   "private": "true",
   "scripts": {
-    "start": "DEBUG=koa* nodemon server/index.js",
+    "start": "DEBUG=* nodemon server/index.js",
     "test": "npx truffle test",
     "tokens:deploy": "npx truffle exec scripts/deployTokens.js",
     "tokens:post-prices": "npx truffle exec scripts/postTokenPrices.js"

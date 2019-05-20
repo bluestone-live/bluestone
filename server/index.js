@@ -11,6 +11,7 @@ const router = new Router()
 route(router)
 
 jobs.postTokenPrices.start()
+jobs.updateDepositMaturity.start()
 
 app
   .use(koaBody())

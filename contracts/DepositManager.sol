@@ -188,10 +188,16 @@ contract DepositManager is Ownable, Pausable, Term {
         depositAsset.isEnabled = false;
     }
 
-    function updateDepositMaturity(address asset) external whenNotPaused onlyOwner enabledDepositAsset(asset) {
+    function updateDepositMaturity(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
         _updatePoolGroupDepositMaturity(asset, 1);
         _updatePoolGroupDepositMaturity(asset, 7);
         _updatePoolGroupDepositMaturity(asset, 30);
+    }
+
+    function updateAllDepositMaturity(address[] calldata assetList) external whenNotPaused onlyOwner {
+        for (uint i = 0; i < assetList.length; i++) {
+            updateDepositMaturity(assetList[i]);
+        }
     }
 
     function updateInterestIndexHistories(address asset) external whenNotPaused onlyOwner enabledDepositAsset(asset) {
