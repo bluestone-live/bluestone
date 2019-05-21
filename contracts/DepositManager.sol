@@ -200,7 +200,7 @@ contract DepositManager is Ownable, Pausable, Term {
         }
     }
 
-    function updateInterestIndexHistories(address asset) external whenNotPaused onlyOwner enabledDepositAsset(asset) {
+    function updateInterestIndexHistories(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
         DepositAsset storage depositAsset = _depositAssets[asset];
         uint8[3] memory terms = [1, 7, 30];
 
@@ -215,6 +215,12 @@ contract DepositManager is Ownable, Pausable, Term {
             uint currInterestIndex = _calculateInterestIndex(prevInterestIndex, interestRate, duration);
 
             _updateInterestIndexHistory(asset, term, currInterestIndex);
+        }
+    }
+
+    function updateAllInterestIndexHistories(address[] calldata assetList) external whenNotPaused onlyOwner {
+        for (uint i = 0; i < assetList.length; i++) {
+            updateInterestIndexHistories(assetList[i]);
         }
     }
 

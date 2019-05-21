@@ -12,6 +12,7 @@ route(router)
 
 jobs.postTokenPrices.start()
 jobs.updateDepositMaturity.start()
+jobs.updateInterestIndexHistories.start()
 
 app
   .use(koaBody())
