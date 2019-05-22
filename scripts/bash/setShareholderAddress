@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -eo pipefail
+
+if [[ "$1" == "help" || "$#" -ne 1 ]]; then
+  echo "Set shareholder address."
+  echo "Usage: ./scripts/bash/setShareholderAddress <address>"
+  exit 1
+fi
+
+DIR=`dirname $0`
+address="$1"
+
+npx truffle compile
+
+env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setShareholderAddress.js" $address
