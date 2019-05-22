@@ -31,19 +31,12 @@ contract Configuration is Ownable, Term {
         return _coefficients[depositTerm][loanTerm];
     }
 
-    function getRiskParameters(address asset, address collateral) external view returns (uint, uint) {
-        return (
-            _collateralRatioMap[asset][collateral],
-            _liquidationDiscountMap[asset][collateral]
-        );
-    }
-
-    function getCollateralRatio(address asset, address collateral) external view returns (uint) {
-        return _collateralRatioMap[asset][collateral];
+    function getCollateralRatio(address loanAsset, address collateralAsset) external view returns (uint) {
+        return _collateralRatioMap[loanAsset][collateralAsset];
     } 
 
-    function getLiquidationDiscount(address asset, address collateral) external view returns (uint) {
-        return _liquidationDiscountMap[asset][collateral];
+    function getLiquidationDiscount(address loanAsset, address collateralAsset) external view returns (uint) {
+        return _liquidationDiscountMap[loanAsset][collateralAsset];
     } 
 
     function getLoanInterestRate(address asset, uint8 loanTerm) external view validLoanTerm(loanTerm) returns (uint) {
@@ -68,26 +61,17 @@ contract Configuration is Ownable, Term {
         _coefficients[depositTerm][loanTerm] = value;
     }
 
-    /// Set risk parameters, i.e., collateral ratio and liquidation discount, 
-    /// for a asset/collateral pair.
-    /// @param asset asset token
-    /// @param collateral collateral token
-    /// @param collateralRatio collateral ratio scaled by 1e18.
-    /// @param liquidationDiscount liquidation discount scaled by 1e18.
-    function setRiskParameters(
-        address asset, 
-        address collateral, 
-        uint collateralRatio, 
-        uint liquidationDiscount
-    ) 
-        public onlyOwner 
-    {
+    function setCollateralRatio(address loanAsset, address collateralAsset, uint collateralRatio) public onlyOwner {
         require(collateralRatio >= MIN_COLLATERAL_RATIO);
+
+        _collateralRatioMap[loanAsset][collateralAsset] = collateralRatio;
+    }
+
+    function setLiquidationDiscount(address loanAsset, address collateralAsset, uint liquidationDiscount) public onlyOwner {
         require(liquidationDiscount >= 0);
         require(liquidationDiscount <= MAX_LIQUIDATION_DISCOUNT);
 
-        _collateralRatioMap[asset][collateral] = collateralRatio;
-        _liquidationDiscountMap[asset][collateral] = liquidationDiscount;
+        _liquidationDiscountMap[loanAsset][collateralAsset] = liquidationDiscount;
     }
 
     function setLoanInterestRate(address asset, uint8 loanTerm, uint value)

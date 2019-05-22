@@ -37,7 +37,7 @@ contract('Configuration', function([owner, anotherAccount]) {
     })
   })
 
-  describe('#setRiskParameters', () => {
+  describe('#setCollateralRatio', () => {
     let loanAsset, collateralAsset
 
     before(async () => {
@@ -47,50 +47,68 @@ contract('Configuration', function([owner, anotherAccount]) {
 
     context('when collateral ratio is valid', () => {
       const collateralRatio = toFixedBN(1.5)
-      const liquidationDiscount = toFixedBN(0.03)
 
       it('succeeds', async () => {
-        await config.setRiskParameters(
+        await config.setCollateralRatio(
           loanAsset.address, 
           collateralAsset.address, 
           collateralRatio,
-          liquidationDiscount, 
           { from: owner }
         )
 
-        const res = await config.getRiskParameters(loanAsset.address, collateralAsset.address)
-        expect(res['0']).to.be.bignumber.equal(collateralRatio)
-        expect(res['1']).to.be.bignumber.equal(liquidationDiscount)
+        const res = await config.getCollateralRatio(loanAsset.address, collateralAsset.address)
+        expect(res).to.be.bignumber.equal(collateralRatio)
       })
     })
 
     context('when collateral ratio is invalid', () => {
       const collateralRatio = toFixedBN(1.1)
-      const liquidationDiscount = toFixedBN(0.03)
 
       it('reverts', async () => {
         await shouldFail.reverting(
-          config.setRiskParameters(
+          config.setCollateralRatio(
             loanAsset.address, 
             collateralAsset.address, 
             collateralRatio,
-            liquidationDiscount, 
             { from: owner }
           )
         )
       })
     })
+  })
+
+  describe('#setLiquidationDiscount', () => {
+    let loanAsset, collateralAsset
+
+    before(async () => {
+      loanAsset = await createERC20Token(owner)
+      collateralAsset = await createERC20Token(owner)
+    }) 
+
+    context('when liquidation discount is valid', () => {
+      const liquidationDiscount = toFixedBN(0.03)
+
+      it('succeeds', async () => {
+        await config.setLiquidationDiscount(
+          loanAsset.address, 
+          collateralAsset.address, 
+          liquidationDiscount, 
+          { from: owner }
+        )
+
+        const res = await config.getLiquidationDiscount(loanAsset.address, collateralAsset.address)
+        expect(res).to.be.bignumber.equal(liquidationDiscount)
+      })
+    })
 
     context('when liquidation discount is invalid', () => {
-      const collateralRatio = toFixedBN(1.5)
       const liquidationDiscount = toFixedBN(0.06)
 
       it('reverts', async () => {
         await shouldFail.reverting(
-          config.setRiskParameters(
+          config.setLiquidationDiscount(
             loanAsset.address, 
             collateralAsset.address, 
-            collateralRatio,
             liquidationDiscount, 
             { from: owner }
           )
