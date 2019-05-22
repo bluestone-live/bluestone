@@ -79,14 +79,14 @@ contract DepositManager is Ownable, Pausable, Term {
         bytes32 depositId = keccak256(abi.encode(_numDeposit));
         address user = msg.sender;
         uint currInterestIndex = updateDepositAssetInterestInfo(asset, term);
-        uint distributionRatio = _config.getDistributionRatio();
+        uint profitRatio = _config.getProfitRatio();
 
         _deposits[depositId] = new Deposit(
             user, 
             term, 
             amount, 
             currInterestIndex, 
-            distributionRatio, 
+            profitRatio,
             isRecurring
         );
 

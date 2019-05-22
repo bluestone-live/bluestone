@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -eo pipefail
+
+if [[ "$1" == "help" || "$#" -ne 1 ]]; then
+  echo "Set profit ratio."
+  echo "Usage: ./scripts/bash/setProfitRatio <decimal_value>"
+  exit 1
+fi
+
+DIR=`dirname $0`
+decimal_value="$1"
+
+npx truffle compile
+
+env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setProfitRatio.js" $decimal_value
