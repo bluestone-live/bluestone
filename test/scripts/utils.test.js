@@ -1,7 +1,9 @@
 const { fetchTokenPrices } = require('../../scripts/javascript/utils.js')
 const { expect } = require('chai')
 
-describe('scripts utils', () => {
+describe('scripts utils', function() {
+  this.timeout(5000)
+
   describe('#fetchTokenPrices', () => {
     it('fetches prices for ETH, DAI and USDC', async () => {
       const tokenList = ['ETH', 'DAI', 'USDC']
