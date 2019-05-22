@@ -268,7 +268,7 @@ contract DepositManager is Ownable, Pausable, Term {
             // Depending on the depositTerm, we update interestEarned
             if (loanTerm <= depositTerm) {
                 uint totalLoan = _liquidityPools.poolGroups(asset, loanTerm).totalLoan();
-                uint loanInterestRate = _config.getLoanInterestRate(loanTerm);
+                uint loanInterestRate = _config.getLoanInterestRate(asset, loanTerm);
                 uint coefficient = _config.getCoefficient(depositTerm, loanTerm);
 
                 interestEarned = interestEarned.add(

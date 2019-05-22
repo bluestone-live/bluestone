@@ -54,9 +54,9 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     await priceOracle.setPrice(loanAsset.address, toFixedBN(10))
     await priceOracle.setPrice(collateralAsset.address, toFixedBN(10))
 
-    await config.setLoanInterestRate(1, loanInterestRate1)
-    await config.setLoanInterestRate(7, loanInterestRate7)
-    await config.setLoanInterestRate(30, loanInterestRate30)
+    await config.setLoanInterestRate(loanAsset.address, 1, loanInterestRate1)
+    await config.setLoanInterestRate(loanAsset.address, 7, loanInterestRate7)
+    await config.setLoanInterestRate(loanAsset.address, 30, loanInterestRate30)
     await config.setCoefficient(1, 1, a11)
     await config.setCoefficient(7, 1, a71)
     await config.setCoefficient(30, 1, a301)

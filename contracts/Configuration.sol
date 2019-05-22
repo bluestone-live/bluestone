@@ -12,8 +12,8 @@ contract Configuration is Ownable, Term {
 
     mapping(address => mapping(address => uint)) private _collateralRatioMap;
     mapping(address => mapping(address => uint)) private _liquidationDiscountMap;
+    mapping(address => mapping(uint8 => uint)) private _loanInterestRates;
     mapping(uint8 => mapping(uint8 => uint)) private _coefficients;
-    mapping(uint8 => uint) private _loanInterestRates;
 
     // The percentage we take from deposit interest as profit
     uint private _distributionRatio = 15 * (10 ** 16); // 0.15 (15%)
@@ -46,8 +46,8 @@ contract Configuration is Ownable, Term {
         return _liquidationDiscountMap[asset][collateral];
     } 
 
-    function getLoanInterestRate(uint8 loanTerm) external view validLoanTerm(loanTerm) returns (uint) {
-        return _loanInterestRates[loanTerm];
+    function getLoanInterestRate(address asset, uint8 loanTerm) external view validLoanTerm(loanTerm) returns (uint) {
+        return _loanInterestRates[asset][loanTerm];
     }
 
     function getDistributionRatio() external view returns (uint) {
@@ -90,12 +90,12 @@ contract Configuration is Ownable, Term {
         _liquidationDiscountMap[asset][collateral] = liquidationDiscount;
     }
 
-    function setLoanInterestRate(uint8 loanTerm, uint value)
+    function setLoanInterestRate(address asset, uint8 loanTerm, uint value)
         public
         onlyOwner
         validLoanTerm(loanTerm)
     {
-        _loanInterestRates[loanTerm] = value;
+        _loanInterestRates[asset][loanTerm] = value;
     }
 
     function setDistributionRatio(uint value) public onlyOwner {

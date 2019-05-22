@@ -22,12 +22,18 @@ contract('Configuration', function([owner, anotherAccount]) {
   })
 
   describe('#setLoanInterestRate', () => {
+    let loanAsset
+
+    before(async () => {
+      loanAsset = await createERC20Token(owner)
+    }) 
+
     const loanTerm = 1
     const value = toFixedBN(0.05)
 
     it('succeeds', async () => {
-      await config.setLoanInterestRate(loanTerm, value, { from: owner })
-      expect(await config.getLoanInterestRate(loanTerm)).to.be.bignumber.equal(value)
+      await config.setLoanInterestRate(loanAsset.address, loanTerm, value, { from: owner })
+      expect(await config.getLoanInterestRate(loanAsset.address, loanTerm)).to.be.bignumber.equal(value)
     })
   })
 

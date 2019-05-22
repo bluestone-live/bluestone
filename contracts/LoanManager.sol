@@ -222,7 +222,7 @@ contract LoanManager is Ownable, Pausable, Term {
 
         require(currCollateralRatio >= minCollateralRatio, "Collateral ratio is below requirement.");
 
-        uint interestRate = _config.getLoanInterestRate(term);
+        uint interestRate = _config.getLoanInterestRate(loanAsset, term);
         uint liquidationDiscount = _config.getLiquidationDiscount(loanAsset, collateralAsset);
 
         _numLoans++;
