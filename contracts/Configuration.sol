@@ -13,7 +13,7 @@ contract Configuration is Ownable, Term {
     mapping(address => mapping(address => uint)) private _collateralRatioMap;
     mapping(address => mapping(address => uint)) private _liquidationDiscountMap;
     mapping(address => mapping(uint8 => uint)) private _loanInterestRates;
-    mapping(uint8 => mapping(uint8 => uint)) private _coefficients;
+    mapping(address => mapping(uint8 => mapping(uint8 => uint))) private _coefficients;
 
     // The percentage we take from deposit interest as profit
     uint private _profitRatio = 15 * (10 ** 16); // 0.15 (15%)
@@ -21,14 +21,14 @@ contract Configuration is Ownable, Term {
     // Shareholder address which receives profit
     address private _shareholderAddress;
 
-    function getCoefficient(uint8 depositTerm, uint8 loanTerm) 
+    function getCoefficient(address asset, uint8 depositTerm, uint8 loanTerm) 
         external
         view
         validDepositTerm(depositTerm)
         validLoanTerm(loanTerm)
         returns (uint)
     {
-        return _coefficients[depositTerm][loanTerm];
+        return _coefficients[asset][depositTerm][loanTerm];
     }
 
     function getCollateralRatio(address loanAsset, address collateralAsset) external view returns (uint) {
@@ -51,14 +51,15 @@ contract Configuration is Ownable, Term {
         return _shareholderAddress;
     }
 
-    function setCoefficient(uint8 depositTerm, uint8 loanTerm, uint value)
+    function setCoefficient(address asset, uint8 depositTerm, uint8 loanTerm, uint value)
         public
         onlyOwner
         validDepositTerm(depositTerm)
         validLoanTerm(loanTerm)
     {
         require(value <= 10 ** 18, "Invalid coefficient value.");
-        _coefficients[depositTerm][loanTerm] = value;
+
+        _coefficients[asset][depositTerm][loanTerm] = value;
     }
 
     function setCollateralRatio(address loanAsset, address collateralAsset, uint collateralRatio) public onlyOwner {

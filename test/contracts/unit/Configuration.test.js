@@ -4,10 +4,11 @@ const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('Configuration', function([owner, anotherAccount]) {
-  let config
+  let config, token
 
   before(async () => {
     config = await Configuration.deployed()
+    token = await createERC20Token(owner)
   })
 
   describe('#setCoefficient', () => {
@@ -16,8 +17,8 @@ contract('Configuration', function([owner, anotherAccount]) {
     const value = toFixedBN(0.5)
 
     it('succeeds', async () => {
-      await config.setCoefficient(depositTerm, loanTerm, value, { from: owner })
-      expect(await config.getCoefficient(depositTerm, loanTerm)).to.be.bignumber.equal(value)
+      await config.setCoefficient(token.address, depositTerm, loanTerm, value, { from: owner })
+      expect(await config.getCoefficient(token.address, depositTerm, loanTerm)).to.be.bignumber.equal(value)
     })
   })
 

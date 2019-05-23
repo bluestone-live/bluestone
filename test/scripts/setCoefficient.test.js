@@ -1,14 +1,17 @@
 const Configuration = artifacts.require('Configuration')
 const setCoefficient = require('../../scripts/javascript/setCoefficient.js')
+const deployTokens = require('../../scripts/javascript/deployTokens.js')
 const { toFixedBN } = require('../utils/index.js')
 const { expect } = require('chai')
 
 contract('Configuration', function([owner]) {
   let config
   const cb = () => {}
+  const tokenSymbol = 'ETH'
 
   before(async () => {
     config = await Configuration.deployed()
+    await deployTokens()
   })
 
   describe('script: setCoefficient', () => {
@@ -17,10 +20,9 @@ contract('Configuration', function([owner]) {
         const depositTerm = 30
         const loanTerm = 1
         const value = 0.5
-        const succeed = await setCoefficient(cb, depositTerm, loanTerm, value)
+        const tokenAddress = await setCoefficient(cb, tokenSymbol, depositTerm, loanTerm, value)
 
-        expect(succeed).to.be.true
-        expect(await config.getCoefficient(depositTerm, loanTerm)).to.be.bignumber.equal(toFixedBN(value))
+        expect(await config.getCoefficient(tokenAddress, depositTerm, loanTerm)).to.be.bignumber.equal(toFixedBN(value))
       })
     })
 
@@ -29,7 +31,7 @@ contract('Configuration', function([owner]) {
         const depositTerm = 30
         const loanTerm = 1
         const value = 1.1
-        const succeed = await setCoefficient(cb, depositTerm, loanTerm, value)
+        const succeed = await setCoefficient(cb, tokenSymbol, depositTerm, loanTerm, value)
 
         expect(succeed).to.be.false
       })
@@ -40,7 +42,7 @@ contract('Configuration', function([owner]) {
         const depositTerm = 3
         const loanTerm = 1
         const value = 0.5
-        const succeed = await setCoefficient(cb, depositTerm, loanTerm, value)
+        const succeed = await setCoefficient(cb, tokenSymbol, depositTerm, loanTerm, value)
 
         expect(succeed).to.be.false
       })

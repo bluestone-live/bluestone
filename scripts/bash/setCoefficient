@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -eo pipefail
+
+if [[ "$1" == "help" || "$#" -ne 4 ]]; then
+  echo "Set coefficient for an asset with a specific deposit term and loan term."
+  echo "Usage: ./scripts/bash/setCoefficient <token_symbol> <deposit_term> <loan_term> <decimal_value>"
+  echo "Where <token_symbol> can be ETH/DAI/USDC, <deposit_term> and <loan_term> can be 1/7/30"
+  exit 1
+fi
+
+DIR=`dirname $0`
+token_symbol="$1"
+deposit_term="$2"
+loan_term="$3"
+decimal_value="$4"
+
+npx truffle compile
+
+env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setCoefficient.js" $token_symbol $deposit_term $loan_term $decimal_value

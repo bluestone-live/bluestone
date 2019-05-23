@@ -57,12 +57,19 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     await config.setLoanInterestRate(loanAsset.address, 1, loanInterestRate1)
     await config.setLoanInterestRate(loanAsset.address, 7, loanInterestRate7)
     await config.setLoanInterestRate(loanAsset.address, 30, loanInterestRate30)
-    await config.setCoefficient(1, 1, a11)
-    await config.setCoefficient(7, 1, a71)
-    await config.setCoefficient(30, 1, a301)
-    await config.setCoefficient(7, 7, a77)
-    await config.setCoefficient(30, 7, a307)
-    await config.setCoefficient(30, 30, a3030)
+
+    const assetList = [loanAsset, collateralAsset]
+
+    for (let i = 0; i < assetList.length; i++) {
+      const asset = assetList[i]
+      await config.setCoefficient(asset.address, 1, 1, a11)
+      await config.setCoefficient(asset.address, 7, 1, a71)
+      await config.setCoefficient(asset.address, 30, 1, a301)
+      await config.setCoefficient(asset.address, 7, 7, a77)
+      await config.setCoefficient(asset.address, 30, 7, a307)
+      await config.setCoefficient(asset.address, 30, 30, a3030)
+    }
+
     await config.setShareholderAddress(owner)
   })
 

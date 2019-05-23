@@ -286,7 +286,7 @@ contract LoanManager is Ownable, Pausable, Term {
 
     function _loanFromPoolGroup(address asset, uint8 depositTerm, uint8 loanTerm, uint loanAmount, bytes32 loanId) private {
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
-        uint coefficient = _config.getCoefficient(depositTerm, loanTerm);
+        uint coefficient = _config.getCoefficient(asset, depositTerm, loanTerm);
             
         // Calculate the total amount to be loaned from this pool group 
         uint remainingLoanAmount = coefficient.mulFixed(loanAmount);
