@@ -267,12 +267,18 @@ contract DepositManager is Ownable, Pausable, Term {
 
             // Depending on the depositTerm, we update interestEarned
             if (loanTerm <= depositTerm) {
-                uint totalLoan = _liquidityPools.poolGroups(asset, loanTerm).totalLoan();
+                uint totalLoanAfterRepay = _liquidityPools.poolGroups(asset, loanTerm).getTotalLoanAfterRepay();
+
+                if (totalLoanAfterRepay == 0) {
+                    // Skip interest calculation if there is no outstanding loan
+                    continue;
+                }
+
                 uint loanInterestRate = _config.getLoanInterestRate(asset, loanTerm);
                 uint coefficient = _config.getCoefficient(asset, depositTerm, loanTerm);
 
                 interestEarned = interestEarned.add(
-                    totalLoan.mulFixed(loanInterestRate).mulFixed(coefficient)
+                    totalLoanAfterRepay.mulFixed(loanInterestRate).mulFixed(coefficient)
                 );
             }
         }

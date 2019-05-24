@@ -11,8 +11,14 @@ contract PoolGroup {
     using SafeMath for uint;
 
     uint public totalDeposit;
-    uint public totalLoan; 
+
+    // Total loan amount in history
+    uint public totalLoan;
+
+    // Total repaid loan amount in history. It could be greater than totalLoan
+    // since it also includes loan interest.
     uint public totalRepaid;
+
     uint public totalLoanableAmount;
 
     // The total amount that has loaned to each loan term
@@ -50,6 +56,22 @@ contract PoolGroup {
             }));
 
             poolIds.push(i);
+        }
+    }
+
+    function getTotalLoanAfterRepay() external view returns (uint) {
+        if (totalLoan > totalRepaid) {
+            return totalLoan.sub(totalRepaid);
+        } else {
+            return 0;
+        }
+    }
+
+    function getTotalLoanAfterRepayPerTerm(uint8 loanTerm) external view returns (uint) {
+        if (totalLoanPerTerm[loanTerm] > totalRepaidPerTerm[loanTerm]) {
+            return totalLoanPerTerm[loanTerm].sub(totalRepaidPerTerm[loanTerm]);
+        } else {
+            return 0;
         }
     }
 
