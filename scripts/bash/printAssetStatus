@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -eo pipefail
+
+if [[ "$1" == "help" || "$#" -ne 1 ]]; then
+  echo "Print various status for a given asset from smart contract. Can be used to manually calculate new coefficient."
+  echo "Usage: ./scripts/bash/printAssetStatus <token_symbol>"
+  echo "Where <token_symbol> can be ETH/DAI/USDC"
+  exit 1
+fi
+
+DIR=`dirname $0`
+token_symbol="$1"
+
+npx truffle compile
+
+env DEBUG='script:*' npx truffle exec "$DIR/../javascript/printAssetStatus.js" $token_symbol
