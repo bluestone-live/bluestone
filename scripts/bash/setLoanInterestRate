@@ -14,6 +14,4 @@ token_symbol="$1"
 loan_term="$2"
 decimal_value="$3"
 
-npx truffle compile
-
 env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setLoanInterestRate.js" $token_symbol $loan_term $decimal_value

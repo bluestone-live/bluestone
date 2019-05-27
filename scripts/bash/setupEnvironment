@@ -1,0 +1,56 @@
+#!/bin/bash
+
+set -eo pipefail
+
+if [ "$1" == "help" ]; then
+  echo "Reset and initialize contract state for test environment."
+  echo "Usage: ./scripts/bash/setupEnvironment"
+  exit 1
+fi
+
+DIR=`dirname $0`
+
+npx truffle migrate --reset
+
+$DIR/deployTokens
+
+$DIR/enableDepositAsset ETH
+$DIR/enableDepositAsset DAI
+$DIR/enableDepositAsset USDC
+
+$DIR/enableLoanAssetPair ETH DAI
+$DIR/enableLoanAssetPair ETH USDC
+$DIR/enableLoanAssetPair DAI ETH
+$DIR/enableLoanAssetPair DAI USDC
+$DIR/enableLoanAssetPair USDC ETH
+$DIR/enableLoanAssetPair USDC DAI
+
+$DIR/setCollateralRatio ETH DAI 1.50
+$DIR/setCollateralRatio ETH USDC 1.50
+$DIR/setCollateralRatio DAI ETH 1.50
+$DIR/setCollateralRatio DAI USDC 1.20
+$DIR/setCollateralRatio USDC ETH 1.50
+$DIR/setCollateralRatio USDC DAI 1.20
+
+$DIR/setLiquidationDiscount ETH USDC 0.05
+$DIR/setLiquidationDiscount ETH DAI 0.05
+$DIR/setLiquidationDiscount USDC ETH 0.05
+$DIR/setLiquidationDiscount USDC DAI 0.05
+$DIR/setLiquidationDiscount DAI ETH 0.05
+$DIR/setLiquidationDiscount DAI USDC 0.05
+
+$DIR/setLoanInterestRate ETH 1 0.03
+$DIR/setLoanInterestRate ETH 7 0.04
+$DIR/setLoanInterestRate ETH 30 0.05
+$DIR/setLoanInterestRate DAI 1 0.03
+$DIR/setLoanInterestRate DAI 7 0.04
+$DIR/setLoanInterestRate DAI 30 0.05
+$DIR/setLoanInterestRate USDC 1 0.03
+$DIR/setLoanInterestRate USDC 7 0.04
+$DIR/setLoanInterestRate USDC 30 0.05
+
+$DIR/setShareholderAddressForTest
+
+$DIR/postTokenPrices
+
+# TODO: populate initial account balances, some deposit/loan records and then set initial coefficients

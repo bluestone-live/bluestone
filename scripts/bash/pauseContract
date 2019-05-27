@@ -12,6 +12,4 @@ fi
 DIR=`dirname $0`
 contract_name="$1"
 
-npx truffle compile
-
 env DEBUG='script:*' npx truffle exec "$DIR/../javascript/pauseContract.js" $contract_name

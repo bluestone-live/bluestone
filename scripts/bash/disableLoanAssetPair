@@ -13,6 +13,4 @@ DIR=`dirname $0`
 loan_token_symbol="$1"
 collateral_token_symbol="$2"
 
-npx truffle compile
-
 env DEBUG='script:*' npx truffle exec "$DIR/../javascript/disableLoanAssetPair.js" $loan_token_symbol $collateral_token_symbol

@@ -10,6 +10,4 @@ fi
 
 DIR=`dirname $0`
 
-npx truffle compile
-
 env DEBUG='script:*' npx truffle exec "$DIR/../javascript/postTokenPrices.js"

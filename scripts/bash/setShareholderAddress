@@ -11,6 +11,4 @@ fi
 DIR=`dirname $0`
 address="$1"
 
-npx truffle compile
-
 env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setShareholderAddress.js" $address

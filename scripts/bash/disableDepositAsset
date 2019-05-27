@@ -12,6 +12,4 @@ fi
 DIR=`dirname $0`
 token_symbol="$1"
 
-npx truffle compile
-
 env DEBUG='script:*' npx truffle exec "$DIR/../javascript/disableDepositAsset.js" $token_symbol

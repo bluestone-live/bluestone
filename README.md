@@ -27,6 +27,12 @@ npx truffle migrate
 
 Make sure you have read through [Truffle Documentation](https://truffleframework.com/docs/truffle/overview).
 
+To initialize contract state for test environment:
+
+```
+./scripts/bash/setupEnvironment
+```
+
 ## Development
 
 Read [here](http://47.244.8.26/w/arcanist_workflow/) for general development workflow.

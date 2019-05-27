@@ -14,6 +14,4 @@ loan_token_symbol="$1"
 collateral_token_symbol="$2"
 decimal_value="$3"
 
-npx truffle compile
-
 env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setLiquidationDiscount.js" $loan_token_symbol $collateral_token_symbol $decimal_value

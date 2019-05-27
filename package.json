@@ -3,9 +3,7 @@
   "private": "true",
   "scripts": {
     "start": "DEBUG=* nodemon server/index.js",
-    "test": "npx truffle test",
-    "tokens:deploy": "npx truffle exec scripts/deployTokens.js",
-    "tokens:post-prices": "npx truffle exec scripts/postTokenPrices.js"
+    "test": "npx truffle test"
   },
   "devDependencies": {
     "ethlint": "^1.2.3",

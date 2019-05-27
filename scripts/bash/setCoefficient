@@ -15,6 +15,4 @@ deposit_term="$2"
 loan_term="$3"
 decimal_value="$4"
 
-npx truffle compile
-
 env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setCoefficient.js" $token_symbol $deposit_term $loan_term $decimal_value
