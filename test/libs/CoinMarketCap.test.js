@@ -3,9 +3,10 @@ const config = require('../../config.js')
 const { expect } = require('chai')
 
 describe('lib: CoinMarketCap', function() {
+  this.retries(2)
+
   const { apiKey, sandbox } = config.coinmarketcap
   const coinMarketCap = new CoinMarketCap(apiKey, sandbox)
-  this.timeout(5000)
 
   describe('#getCryptocurrencyQuotesLatest', () => {
     it('gets prices for ETH, DAI and USDC', async () => {
