@@ -56,7 +56,7 @@ In many cases, we can get away with reading compiler error and try to locate err
 
 There is no print statement in Solidity, so we need to leverage [Events](https://solidity.readthedocs.io/en/latest/contracts.html#events):
 
-```solidity
+```
 contract Foo {
   event FooCreated(address creator, uint value);
 
@@ -69,7 +69,7 @@ contract Foo {
 Then, in truffle environment, we could call `printLogs()` function to print out event logs:
 
 
-```javascript
+```
 const { printLogs } = require('./test/utils/index.js')
 const Foo = artifacts.require('./Foo.sol')
 
@@ -84,7 +84,7 @@ It is indeed a lot of work just to print stuff out, but this is what we can do a
 
 If we know the transaction hash, we can leverage the integrated [console](https://truffleframework.com/docs/truffle/getting-started/using-truffle-develop-and-the-console) to easily execute commands and debug issues:
 
-```bash
+```
 npx truffle console
 
 # Then you can call truffle commands directly
