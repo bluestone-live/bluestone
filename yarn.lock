@@ -704,9 +704,10 @@ ethjs-abi@^0.2.1:
     js-sha3 "0.5.5"
     number-to-bn "1.7.0"
 
-ethlint@^1.2.3:
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/ethlint/-/ethlint-1.2.3.tgz#f0efd1970ccebc7156a3b8ae9b0510b3e57c8882"
+ethlint@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/ethlint/-/ethlint-1.2.4.tgz#c264ae20d22529f3b0199979a17d76b6c00e474e"
+  integrity sha512-T0STudObqyISj6QbRo+an240GgWHyt3G1cHnk4jbVdEiesLSMyTybv4Eo7U8mT4OpIQHFsC4YEWw6iKMjeHzqQ==
   dependencies:
     ajv "^5.2.2"
     chokidar "^1.6.0"
@@ -1845,10 +1846,10 @@ node-pre-gyp@^0.12.0:
     semver "^5.3.0"
     tar "^4"
 
-nodemon@^1.19.0:
-  version "1.19.0"
-  resolved "https://registry.yarnpkg.com/nodemon/-/nodemon-1.19.0.tgz#358e005549a1e9e1148cb2b9b8b28957dc4e4527"
-  integrity sha512-NHKpb/Je0Urmwi3QPDHlYuFY9m1vaVfTsRZG5X73rY46xPj0JpNe8WhUGQdkDXQDOxrBNIU3JrcflE9Y44EcuA==
+nodemon@^1.19.1:
+  version "1.19.1"
+  resolved "https://registry.yarnpkg.com/nodemon/-/nodemon-1.19.1.tgz#576f0aad0f863aabf8c48517f6192ff987cd5071"
+  integrity sha512-/DXLzd/GhiaDXXbGId5BzxP1GlsqtMGM9zTmkWrgXtSqjKmGSbLicM/oAy4FR0YWm14jCHRwnR31AHS2dYFHrg==
   dependencies:
     chokidar "^2.1.5"
     debug "^3.1.0"
@@ -1978,10 +1979,10 @@ only@~0.0.2:
   resolved "https://registry.yarnpkg.com/only/-/only-0.0.2.tgz#2afde84d03e50b9a8edc444e30610a70295edfb4"
   integrity sha1-Kv3oTQPlC5qO3EROMGEKcCle37Q=
 
-openzeppelin-solidity@^2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-2.1.2.tgz#94e2bb92b60e91abb22c6fe27d983d92850fb324"
-  integrity sha512-1ggh+AZFpMAgGfgnVMQ8dwYawjD2QN4xuWkQS4FUbeUz1fnCKJpguUl2cyadyfDYjBq1XJ6MA6VkzYpTZtJMqw==
+openzeppelin-solidity@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-2.3.0.tgz#1ab7b4cc3782a5472ed61eb740c56a8bfdd74119"
+  integrity sha512-QYeiPLvB1oSbDt6lDQvvpx7k8ODczvE474hb2kLXZBPKMsxKT1WxTCHBYrCU7kS7hfAku4DcJ0jqOyL+jvjwQw==
 
 openzeppelin-test-helpers@^0.1.2:
   version "0.1.2"
@@ -2651,9 +2652,10 @@ tough-cookie@~2.4.3:
     psl "^1.1.24"
     punycode "^1.4.1"
 
-truffle@^5.0.5:
-  version "5.0.5"
-  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.0.5.tgz#428b5e776bd0bef0272874d636a2607d1fc7ede8"
+truffle@^5.0.19:
+  version "5.0.19"
+  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.0.19.tgz#3187f11168ed526ffa17cfa6a0d9735208569381"
+  integrity sha512-d4fxChHYCjccW33IO/4KLcGqjTDn+mw7vqdGvGi307CMo+KTtns+5c91+1iOKDQcSKiv8SHYgvtyF7cn/+FPAg==
   dependencies:
     app-module-path "^2.2.0"
     mocha "^4.1.0"

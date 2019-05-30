@@ -6,12 +6,12 @@
     "test": "npx truffle test"
   },
   "devDependencies": {
-    "ethlint": "^1.2.3",
-    "nodemon": "^1.19.0",
+    "ethlint": "^1.2.4",
+    "nodemon": "^1.19.1",
     "openzeppelin-test-helpers": "^0.1.2",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
-    "truffle": "^5.0.5"
+    "truffle": "^5.0.19"
   },
   "dependencies": {
     "cron": "^1.7.1",
@@ -19,6 +19,6 @@
     "koa": "^2.7.0",
     "koa-body": "^4.1.0",
     "koa-router": "^7.4.0",
-    "openzeppelin-solidity": "^2.1.2"
+    "openzeppelin-solidity": "^2.3.0"
   }
 }
