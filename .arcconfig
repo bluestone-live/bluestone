@@ -3,5 +3,6 @@
   "unit.engine": "TruffleTestEngine",
   "load": [
     "arcanist-extensions"
-  ]
+  ],
+  "git.default-relative-commit" : "HEAD^"
 }
