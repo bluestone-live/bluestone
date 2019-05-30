@@ -28,12 +28,6 @@ yarn
 npx truffle migrate
 ```
 
-To initialize contract state for test environment:
-
-```
-./scripts/bash/setupEnvironment
-```
-
 ## Structure
 
 - `arcanist-extensions/`: Custom PHP extensions written for arcanist.
@@ -46,7 +40,7 @@ To initialize contract state for test environment:
 
 ## Development
 
-Read [here](http://47.244.8.26/w/arcanist_workflow/) for general development workflow.
+Read [here](http://47.244.8.26/w/workflow/) for general development workflow.
 
 ## Debugging
 
