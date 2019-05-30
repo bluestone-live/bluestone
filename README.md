@@ -1,14 +1,15 @@
-# Free Banking
+# Bluestone
 
 ## Prerequisite
 
 Install the following tools:
 
-- [Mercurial](https://www.mercurial-scm.org/downloads)
+- [Git](https://git-scm.com/downloads)
 - [Arcanist](https://secure.phabricator.com/book/phabricator/article/arcanist_quick_start/)
 - [Yarn](https://yarnpkg.com/en/docs/install)
 - [Ganache](https://truffleframework.com/ganache): after launch, choose **QUICKSTART**.
 
+Make sure you have read through [Truffle Documentation](https://truffleframework.com/docs/truffle/overview).
 
 ## Setup
 
@@ -20,12 +21,12 @@ cp config.example.js config.js
 
 Fill in any credentials if needed.
 
+Install dependencies and migrate contracts:
+
 ```
 yarn
 npx truffle migrate
 ```
-
-Make sure you have read through [Truffle Documentation](https://truffleframework.com/docs/truffle/overview).
 
 To initialize contract state for test environment:
 
