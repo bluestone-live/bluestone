@@ -16,6 +16,7 @@ import "./Loan.sol";
 import "./Term.sol";
 
 
+/// The main contract which handles everything related to loan.
 contract LoanManager is Ownable, Pausable, Term {
     using SafeERC20 for ERC20;
     using SafeMath for uint;

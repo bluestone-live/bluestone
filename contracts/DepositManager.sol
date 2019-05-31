@@ -13,6 +13,7 @@ import "./Deposit.sol";
 import "./Term.sol";
 
 
+/// The main contract which handles everything related to deposit.
 contract DepositManager is Ownable, Pausable, Term {
     using SafeMath for uint;
     using FixedMath for uint;

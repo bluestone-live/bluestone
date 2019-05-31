@@ -2,7 +2,8 @@ pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-/// A group of pools where the size is defined by the deposit term.
+/// A group of pools where each pool stores information on deposit and loanable 
+/// amount. The number of pools for each PoolGroup is defined by the deposit term.
 /// 
 /// - Pool ID: an internal identifier used to lookup a Pool struct. 
 /// - Pool Index: used to mark the pool position, starting from 0. For example, 
@@ -12,11 +13,12 @@ contract PoolGroup {
 
     uint public totalDeposit;
 
-    // Total loan amount in history
+    // Total loan amount since the creation of this PoolGroup
     uint public totalLoan;
 
-    // Total repaid loan amount in history. It could be greater than totalLoan
-    // since it also includes loan interest.
+    /// Total repaid loan amount since the creation of this PoolGroup. 
+    /// It could be greater than totalLoan since it also includes 
+    /// loan interest.
     uint public totalRepaid;
 
     uint public totalLoanableAmount;
