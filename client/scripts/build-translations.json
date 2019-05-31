@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "bluestone-242303",
+  "private_key_id": "5aff66f2f90214470cb6e851fa8686bc55afe092",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDOpecMSeWCPecH\nkBPLgPOtnWvyHPJF4CJVBaUaChvE6pRnecnjnACvY4FEcA6QtKTQ02fyvrxcddbC\n94bXzdKmYZ2C4heI+BDP3mNH1H7IZ02sT9tI6/9eARaiq9czD8gHRP8Eh1r7GbAO\nuJHckZ6hEKhfcpUMKRyq7AQd60qLF/8CHNle3IUK9ts21GDt9YkB3hB01Mxr3bRQ\nAN/5go2jO0CkS7EWn6tGLFcAJd/VWI5zyOnmvkHX+W6aNHT1Xgl+fsBTOuTn7Aqi\nvnQgHzSNviNE1xRBAEO6m3Nj0/VyxTmSocFJ1Jf+S82VHOfgKnaVnvMZfIVH0a/X\nLa6VxHcRAgMBAAECggEACkwimA5roSKYC1yu29Z0bhuY2DMAkKJTW6TBHivQR+7/\nj6t2N8EbmKHO/HvQAf56cwyB0ssV5E6b8dG3VrQjMdbN7Ep7bUAdSFp23Iq2eaKK\nMJK3JOpbqpHH0Lna6qi36ULTKWTcUARu7UDdxd28x55moYD6c+VtkAfcSahiqc0k\noz5XwboMYrPB2sQOqA193kCEf/d/2ag0wMiE3E5IqqL1Hcsiadwdb2urb2WE57Ue\nvmuVZ1PK4L2sbXEth6ygexjM8IY2cYV2/cLKAwThMlXKHu1zNXks7DjlIMrIjUUs\nhceC/JJDxlpSXMNK2MuFtEsCGCm4FjN0RVewrUyaJQKBgQDpnUp2W6ShDrq0/Rgi\n3/7NscSyGfZsVVnN1lL+ictwUq8oatgVPJ+RH55Ta+XEfYifqqEzvE7jZq9xN+W1\n3lEu10Ey2wjkFHttaB92WWejRGiD+1D8zcqbyJXPOJllIH/qNpxN0Xy9g/pmPVyE\nxdhcIIMPDSBvRMxwLasESF3OVQKBgQDicxwcpxZAs0NMQxwZXBY2EjM3ocCVBxZ0\nysBtkjH98g8LNjLIv9/6hIkMLVkv9hQOkcldPXLcWlEhLeVksvlSsGPSx4hzGWja\nRs7nr3uuRhATIS/aRe3hD1+f18BE3g95Bu1OTpnKeidUt/td0wQqMGJQGDYMLiGl\nvbLfh5BJzQKBgA2VsvXNAHbJJ3xM13F3uxZ1Bu4gal8EW5OHqg3ZL3ZZqIveIrCh\ndNn4j7lkJdlWP3KhdnxOr/uzRfJ8gKQhyHDD3au6Zvr0YfULwACe1FL/MGC0ZZI9\n2VFTybpiHTFvQWD6Sf6QdwOCQDZfzRh/dMRus5BVgBRYWNcRIMe/+Yx9AoGBALay\n3mxzli2PM+20e1guhrELUA1DUIgsFr8V0djVScYz5FVMXf6/Z6rMAXI0qC9c32O9\n1XOHn0MPD0OwrtHm3+cJ7w/g8kLCrmjlFguw9h1t44w7i0sUfk7FQ4ZH4JTvgBZK\nM22pVsUYduEQKxrQpByRutAaKIj9MyJwgX989TnFAoGBAL6saMxNIhmgJ1B1Um2f\nKmtDD8UgNuj6RGFlLhB8BQ8tpIqezcl6J76+rmCEa3bbgaSPUf81nrtq61OxBOq1\nie+ZFYYgDaPka+9Er7qRHz2dDoSvUxRceA3ecf1K0Fz8IrF4Yyd5Et4o/pIrYv8n\niDW7w+7OcqZKHHvVKR3NgzIR\n-----END PRIVATE KEY-----\n",
+  "client_email": "translations@bluestone-242303.iam.gserviceaccount.com",
+  "client_id": "110456023934852642848",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/translations%40bluestone-242303.iam.gserviceaccount.com"
+}
