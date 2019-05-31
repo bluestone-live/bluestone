@@ -12,16 +12,36 @@
  */
 
 final class TruffleTestEngine extends ArcanistUnitTestEngine {
-  protected $truffleCommand = 'npx truffle test';
-
   public function run() {
-    $future = new ExecFuture($this->truffleCommand);
+    if ($this->shouldTest()) {
+      $future = new ExecFuture('npx truffle test');
+      list ($error, $stdout, $stderr) = $future->resolve();
+
+      echo $stdout;
+      echo $stderr;
+      
+      return $this->parseTestResults($error);
+    } else {
+      echo "No test needed. \n";
+
+      return $this->parseTestResults(0);
+    }
+  }
+
+  /**
+   * Determine whether we need to run test by inspecting changed files relative to 
+   * the previous commit and check if certain file types are present. For example, 
+   * test is not needed if I only touched markdown files.
+   *
+   * NOTE: This is a very naive strategy. As our project grows, we should switch 
+   * to a more sophiscated strategy which could detect the scopes of our change, 
+   * i.e., contract, client, server, or any combinations, and run relavent tests.
+   */
+  private function shouldTest() {
+    $future = new ExecFuture("git diff HEAD^ --name-only | egrep '/*.(sol|js)'");
     list ($error, $stdout, $stderr) = $future->resolve();
 
-    echo $stdout;
-    echo $stderr;
-    
-    return $this->parseTestResults($error);
+    return $stdout != '';
   }
 
   private function parseTestResults($error) {
