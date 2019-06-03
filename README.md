@@ -37,6 +37,7 @@ npx truffle migrate
 - `scripts/`: Scripts to interact with smart contracts and run common tasks.
 - `server/`: Everything related to a web server.
 - `test/`: All test files go to this directory.
+- `clients/`: All user interfaces using in React, Mobx and TypeScript.
 
 ## Development
 
