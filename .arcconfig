@@ -1,6 +1,6 @@
 {
   "phabricator.uri": "http://47.244.8.26",
-  "unit.engine": "TruffleTestEngine",
+  "unit.engine": "CustomTestEngine",
   "load": [
     "arcanist-extensions"
   ],

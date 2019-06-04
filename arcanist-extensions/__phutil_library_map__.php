@@ -9,10 +9,10 @@
 phutil_register_library_map(array(
   '__library_version__' => 2,
   'class' => array(
-    'TruffleTestEngine' => 'src/TruffleTestEngine.php',
+    'CustomTestEngine' => 'src/CustomTestEngine.php',
   ),
   'function' => array(),
   'xmap' => array(
-    'TruffleTestEngine' => 'ArcanistUnitTestEngine',
+    'CustomTestEngine' => 'ArcanistUnitTestEngine',
   ),
 ));
