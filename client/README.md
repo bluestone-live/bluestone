@@ -4,8 +4,9 @@
 
 ~~~
 src
-  - components: All React components that need to (or will) use multiple places.
-  - containers: React components corresponding single pages.
+  - components: Dumb components. Cares about how things look.
+  - containers: Smart components. Cares about how things work.
+  - pages: Page components where each corresponds to a URL route.
   - layouts: Different layouts. for example: `DefaultLayout` for function page, `CoverLayout` for login or MetaMask alert page.
   - routes: react-router configs
   - stores: Mobx stores declares

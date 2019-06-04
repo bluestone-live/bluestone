@@ -6,7 +6,7 @@ const routes = [
     name: 'index',
     path: '/',
     component: Loadable({
-      loader: () => import('../containers/Main'),
+      loader: () => import('../pages/HomePage'),
       loading: Loading,
     }),
   },
