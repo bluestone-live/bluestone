@@ -1,4 +1,3 @@
-// TODO: Try to use quip docs instead
 const GoogleSpreadsheet = require('google-spreadsheet');
 const { promisify } = require('util');
 const path = require('path');

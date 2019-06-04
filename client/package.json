@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "bn.js": "^4.11.8",
     "i18next": "^15.1.3",
     "i18next-browser-languagedetector": "^3.0.1",
     "i18next-localforage-cache": "^1.0.3",
@@ -27,7 +28,8 @@
     "react-router-dom": "^5.0.0",
     "styled-components": "^4.2.0",
     "tslib": "^1.9.3",
-    "web3": "1.0.0-beta.55"
+    "web3": "1.0.0-beta.55",
+    "web3-utils": "^1.0.0-beta.55"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
@@ -35,8 +37,7 @@
     "@babel/plugin-proposal-decorators": "^7.4.4",
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-react": "^7.0.0",
-    "@commitlint/cli": "^7.6.1",
-    "@types/classnames": "^2.2.7",
+    "@types/bn.js": "^4.11.5",
     "@types/dotenv": "^6.1.1",
     "@types/history": "^4.7.2",
     "@types/i18next": "^12.1.0",
