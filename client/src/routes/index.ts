@@ -1,4 +1,4 @@
-import * as Loadable from 'react-loadable';
+import Loadable from 'react-loadable';
 import Loading from '../components/common/Loading';
 
 const routes = [

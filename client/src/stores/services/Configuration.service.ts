@@ -1,7 +1,8 @@
-import { Configuration } from './web3-client';
+import { getContracts } from './web3-client';
 
 export const ConfigurationService = {
-  getProfitRatio() {
-    return Configuration.methods.getProfitRatio().call();
+  async getProfitRatio() {
+    const contract = await getContracts();
+    return contract.Configuration.methods.getProfitRatio().call();
   },
 };

@@ -1,18 +1,17 @@
 import { observable, action } from 'mobx';
+import { getAccount } from './services/Account.service';
 
 export class Account {
   @observable accountName: string = 'ZhangRui';
 
-  @observable address: string = '0x11111';
-
   @action.bound
-  getAddressSuccess(address: string) {
-    this.address = address;
+  async getAccountSuccess(account: any) {
+    this.accountName = account;
   }
 
   @action.bound
-  async getAddress() {
-    // TODO: call web3 method
-    return this.getAddressSuccess('');
+  async getAccount() {
+    const account = await getAccount();
+    return this.getAccountSuccess(account);
   }
 }

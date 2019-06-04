@@ -3,6 +3,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
+import { Account } from '../stores';
 import Header from '../components/common/Header';
 
 interface IProps extends RouteComponentProps, WithTranslation {
@@ -40,10 +41,10 @@ class Default extends React.Component<IProps, IStates> {
   };
 
   render() {
-    const { children } = this.props;
+    const { children, account } = this.props;
     return (
       <div className="layout default">
-        <Header />
+        <Header account={account} />
         <StyledContainer className="container">{children}</StyledContainer>
       </div>
     );
