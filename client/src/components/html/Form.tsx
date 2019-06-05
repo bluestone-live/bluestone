@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components';
 
 interface IFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  children: React.ReactChild;
+  children: React.ReactChild[];
   horizontal?: boolean;
 }
 
@@ -12,7 +12,7 @@ const StyledForm = styled.form`
   flex-direction: column;
   margin: ${props => props.theme.spacingUnit.medium} auto;
 
-  ${props =>
+  ${(props: IFormProps) =>
     props.horizontal &&
     css`
       flex-direction: row;

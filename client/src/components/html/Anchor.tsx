@@ -2,7 +2,7 @@ import * as React from 'react';
 import styled, { css } from 'styled-components';
 
 interface IProps {
-  children: React.ReactChildren;
+  children: React.ReactChild | React.ReactChild[];
   href: string;
 }
 

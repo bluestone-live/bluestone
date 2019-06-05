@@ -2,8 +2,8 @@ import * as React from 'react';
 import styled, { css } from 'styled-components';
 
 interface IProps {
-  children: React.ReactChildren;
-  onClick?: (e: React.FormEvent<HTMLFormElement>) => void;
+  children: React.ReactChild[];
+  onClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   primary?: boolean;
   fullWidth?: boolean;
   disabled?: boolean;
@@ -22,7 +22,7 @@ const StyledButton = styled.button`
   cursor: pointer;
   outline: none;
 
-  ${props =>
+  ${(props: IProps) =>
     props.primary &&
     css`
       border-color: ${p => p.theme.primaryColor};
@@ -34,13 +34,13 @@ const StyledButton = styled.button`
       }
     `};
 
-  ${props =>
+  ${(props: IProps) =>
     props.fullWidth &&
     css`
       width: 100%;
     `};
 
-  ${props =>
+  ${(props: IProps) =>
     props.disabled &&
     css`
       cursor: not-allowed;

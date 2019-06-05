@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as stores from './stores';
 import * as OfflinePluginRuntime from 'offline-plugin/runtime';
-import { Switch, Route, Redirect, BrowserRouter } from 'react-router-dom';
+import { Switch, Route, BrowserRouter } from 'react-router-dom';
 import { Provider as MobxProvider } from 'mobx-react';
 import { I18nextProvider } from 'react-i18next';
 import { ThemeProvider } from 'styled-components';

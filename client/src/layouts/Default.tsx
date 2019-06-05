@@ -4,13 +4,13 @@ import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 import { Account } from '../stores';
 import Header from '../components/common/Header';
+import AuthorizationReminder from '../containers/AuthorizationReminder';
 import Container from '../components/common/Container';
-import AuthorizationReminder from '../containers/Authorization';
 
 interface IProps extends WithTranslation {
   children: React.ReactChild;
   account: Account;
-  title?: string | React.ReactChildren;
+  title?: React.ReactChild | React.ReactChild[];
 }
 
 const StyledMain = styled.main`
@@ -28,7 +28,13 @@ const StyledMain = styled.main`
 @observer
 class Default extends React.Component<IProps> {
   async componentDidMount() {
-    await this.props.account.getAccounts();
+    const { account } = this.props;
+    /*
+     * we should call getAccounts at first time,
+     * because in some special cases we can get accounts before they confirm connect
+     */
+    await account.getAccounts();
+    account.bindOnUpdateEvent();
   }
 
   render() {

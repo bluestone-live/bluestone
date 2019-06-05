@@ -4,8 +4,6 @@ import { observer, inject } from 'mobx-react';
 import { Account } from '../stores';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-const AuthImg = require('../styles/images/auth-eg.png');
-
 interface IProps extends WithTranslation {
   account?: Account;
 }
@@ -21,12 +19,9 @@ const StyledImagePanel = styled.section`
 class AuthorizationReminder extends React.Component<IProps> {
   render() {
     const { account, t } = this.props;
-    return account!.defaultAccount ? null : (
-      <StyledImagePanel>
-        {t('please_click_connect')}
-        <img src={AuthImg} alt={t('please_click_connect')} />
-      </StyledImagePanel>
-    );
+    return account!.defaultAccount ? (
+      <StyledImagePanel>{t('please_click_connect')}</StyledImagePanel>
+    ) : null;
   }
 }
 
