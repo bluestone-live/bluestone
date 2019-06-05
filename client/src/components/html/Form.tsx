@@ -2,7 +2,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 interface IFormProps {
-  onSubmit: (e: Event) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   children: React.ReactChild;
 }
 

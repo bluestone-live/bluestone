@@ -1,19 +1,15 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { RouteComponentProps } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 import { Account } from '../stores';
 import Header from '../components/common/Header';
+import AuthorizationReminder from '../containers/Authorization';
 
-interface IProps extends RouteComponentProps, WithTranslation {
+interface IProps extends WithTranslation {
   children: React.ReactChild;
   account: Account;
   title?: string | React.ReactChildren;
-}
-
-interface IStates {
-  openDrawer: boolean;
 }
 
 const StyledContainer = styled.div`
@@ -29,23 +25,21 @@ const StyledContainer = styled.div`
 
 @inject('account')
 @observer
-class Default extends React.Component<IProps, IStates> {
-  state = {
-    openDrawer: false,
-  };
-
-  toggleDrawer = () => {
-    this.setState({
-      openDrawer: !this.state.openDrawer,
-    });
-  };
+class Default extends React.Component<IProps> {
+  async componentDidMount() {
+    await this.props.account.getAccounts();
+  }
 
   render() {
     const { children, account } = this.props;
     return (
       <div className="layout default">
-        <Header account={account} />
-        <StyledContainer className="container">{children}</StyledContainer>
+        <Header defaultAccount={account.defaultAccount} />
+        {account.defaultAccount ? (
+          <StyledContainer className="container">{children}</StyledContainer>
+        ) : (
+          <AuthorizationReminder />
+        )}
       </div>
     );
   }

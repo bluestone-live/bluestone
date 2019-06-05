@@ -10,12 +10,7 @@ interface IProps {
 @inject('configuration', 'account')
 @observer
 export default class Main extends React.Component<IProps> {
-  async componentDidMount() {
-    await this.props.configuration.getProfitRatio();
-    await this.props.account.getAccount();
-  }
-
   render() {
-    return <div>Account: {this.props.account.accountName}</div>;
+    return <div>Account: {this.props.account.defaultAccount}</div>;
   }
 }

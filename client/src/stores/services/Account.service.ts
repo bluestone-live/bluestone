@@ -1,6 +1,6 @@
 import { web3 } from './web3-client';
 
-export const getAccount = async () => {
+export const getAccounts = async () => {
   if (!web3.eth.defaultAccount) {
     try {
       await (global as any).ethereum.enable();

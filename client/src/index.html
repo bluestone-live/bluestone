@@ -7,9 +7,27 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
     />
+    <style>
+      .loading {
+        animation: move 1s infinite;
+      }
+
+      @keyframes move {
+        0% {
+          transform: rotateX(0deg);
+        }
+        50% {
+          transform: rotateX(180deg);
+        }
+        100% {
+          transform: rotateX(0deg);
+        }
+      }
+    </style>
   </head>
 
   <body>
     <div id="app"></div>
+    <div class="loading">LOADING...</div>
   </body>
 </html>

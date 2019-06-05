@@ -5,6 +5,7 @@ const routes = [
   {
     name: 'index',
     path: '/',
+    private: true,
     component: Loadable({
       loader: () => import('../pages/HomePage'),
       loading: Loading,

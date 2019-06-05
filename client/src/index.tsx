@@ -30,9 +30,6 @@ const App = () => (
               .filter(route => route.path)
               .map(({ component: Component, layout: Layout, ...rest }) => {
                 const renderHandler = (props: any) => {
-                  // if (rest.private && !stores.auth.isAuthorized) {
-                  //   return <Redirect to={`/login?redirect=${rest.path}`} />;
-                  // }
                   if (Layout) {
                     return (
                       <Layout {...props} title={rest.title}>
