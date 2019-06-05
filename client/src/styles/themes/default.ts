@@ -12,4 +12,9 @@ export default {
   backgroundColor: 'f6f9fc',
   borderColor: '#e8e8e8',
   borderRadius: '4px',
+  spacingUnit: {
+    small: '10px',
+    medium: '20px',
+    large: '30px',
+  },
 };

@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components';
 
 interface IProps {
   children: React.ReactChildren;
-  onClick: (e: React.FormEvent<HTMLFormElement>) => void;
+  onClick?: (e: React.FormEvent<HTMLFormElement>) => void;
   primary?: boolean;
   fullWidth?: boolean;
   disabled?: boolean;

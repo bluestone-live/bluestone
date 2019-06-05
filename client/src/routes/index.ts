@@ -11,6 +11,14 @@ const routes = [
       loading: Loading,
     }),
   },
+  {
+    name: 'loan',
+    path: '/loan',
+    component: Loadable({
+      loader: () => import('../pages/LoanOverviewPage'),
+      loading: Loading,
+    }),
+  },
 ];
 
 export default routes;

@@ -1,20 +1,27 @@
 import * as React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 interface IFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   children: React.ReactChild;
+  horizontal?: boolean;
 }
 
 const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
-  margin: 0 auto;
+  margin: ${props => props.theme.spacingUnit.medium} auto;
+
+  ${props =>
+    props.horizontal &&
+    css`
+      flex-direction: row;
+    `}
 `;
 
 const Form = (props: IFormProps) => {
-  const { onSubmit, children } = props;
-  return <StyledForm onSubmit={onSubmit}>{children}</StyledForm>;
+  const { children } = props;
+  return <StyledForm {...props}>{children}</StyledForm>;
 };
 
 interface IFromItemProps {
@@ -22,7 +29,7 @@ interface IFromItemProps {
 }
 
 const StyledFormItem = styled.div`
-  margin: 8px 0;
+  margin: 8px;
 `;
 
 Form.Item = (props: IFromItemProps) => {
