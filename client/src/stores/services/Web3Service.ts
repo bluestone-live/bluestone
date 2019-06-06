@@ -1,12 +1,14 @@
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 
-const resolveContractFromJSON = (contractName: string) =>
+const requireContract = (contractName: string) =>
   require(`../../../../build/contracts/${contractName}.json`);
 
-const contracts = ['Configuration', 'LiquidityPools'].map(
-  resolveContractFromJSON,
-);
+// * declare contract JSON interface here
+const contracts = {
+  Configuration: requireContract('Configuration'),
+  LiquidityPools: requireContract('LiquidityPools'),
+};
 
 type ContractInstances = typeof contracts;
 
