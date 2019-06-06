@@ -4,6 +4,7 @@ import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 import { Account } from '../stores';
 import Header from '../components/common/Header';
+import Container from '../components/common/Container';
 import AuthorizationReminder from '../containers/Authorization';
 
 interface IProps extends WithTranslation {
@@ -12,7 +13,7 @@ interface IProps extends WithTranslation {
   title?: string | React.ReactChildren;
 }
 
-const StyledContainer = styled.div`
+const StyledMain = styled.main`
   display: flex;
   min-height: 100vh;
   flex-direction: column;
@@ -35,11 +36,11 @@ class Default extends React.Component<IProps> {
     return (
       <div className="layout default">
         <Header defaultAccount={account.defaultAccount} />
-        {account.defaultAccount ? (
-          <StyledContainer className="container">{children}</StyledContainer>
-        ) : (
-          <AuthorizationReminder />
-        )}
+        <StyledMain>
+          <Container>
+            {account.defaultAccount ? children : <AuthorizationReminder />}
+          </Container>
+        </StyledMain>
       </div>
     );
   }
