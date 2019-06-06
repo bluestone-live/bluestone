@@ -1,4 +1,4 @@
-import { web3 } from './web3-client';
+import { web3 } from './Web3Service';
 
 export const getAccounts = async () => {
   if (!web3.eth.defaultAccount) {

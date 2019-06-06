@@ -1,4 +1,4 @@
-import { getContracts } from './web3-client';
+import { getContracts } from './Web3Service';
 
 export const ConfigurationService = {
   async getProfitRatio() {

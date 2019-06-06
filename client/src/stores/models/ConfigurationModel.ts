@@ -1,6 +1,6 @@
 import { observable, action } from 'mobx';
-import { ConfigurationService } from './services/Configuration.service';
-import { BigNumber, BN } from '../utils/BigNumber';
+import { ConfigurationService } from '../services/ConfigurationService';
+import { BigNumber, BN } from '../../utils/BigNumber';
 
 export class Configuration {
   @observable profitRatio: BigNumber = new BN(0);

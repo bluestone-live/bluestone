@@ -1,6 +1,6 @@
 import { observable, action, computed } from 'mobx';
-import { getAccounts } from './services/Account.service';
-import { onAccountsChanged } from './services/Ethereum.service';
+import { getAccounts } from '../services/AccountService';
+import { onAccountsChanged } from '../services/EthereumService';
 
 export class Account {
   @observable accounts: string[] = [];
