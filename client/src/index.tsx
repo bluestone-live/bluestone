@@ -64,6 +64,11 @@ const mount = async () => {
   // load basic data
   await stores.initStore();
 
+  const $loading = document.querySelector('.loading');
+  if ($loading) {
+    document.querySelector('body')!.removeChild($loading);
+  }
+
   ReactDOM.render(<App />, document.getElementById('app'));
 };
 

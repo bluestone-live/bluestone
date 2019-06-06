@@ -7,23 +7,42 @@ interface IProps extends WithTranslation {
 }
 
 const StyledHeader = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0px 5px;
-  margin-bottom: 15px;
+  margin-bottom: ${props => props.theme.spacingUnit.small};
+  height: 70px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid ${props => props.theme.borderColor};
 `;
 
 const Brand = styled.div`
-  flex: 1;
   font-size: 24px;
   font-weight: bolder;
+  position: absolute;
+  text-align: center;
+  width: 100%;
+  height: 70px;
+  line-height: 70px;
 `;
 
 const ActionBar = styled.div`
-  flex: 1;
-  max-width: 40vw;
+  height: 100%;
+  width: 45%;
+  float: right;
+
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+`;
+
+const ActionBarItem = styled.div`
+  float: right;
+  line-height: 70px;
+  padding: 0 8px;
+`;
+
+const AccountItem = styled(ActionBarItem)`
+  max-width: 120px;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -36,7 +55,10 @@ class Header extends React.PureComponent<IProps> {
       <StyledHeader>
         <Brand>BlueStone</Brand>
         <ActionBar>
-          {defaultAccount ? defaultAccount : t('waiting_for_connect')}
+          <AccountItem>
+            {defaultAccount ? defaultAccount : t('no_account')}
+          </AccountItem>
+          <ActionBarItem>{t('FAQ')}</ActionBarItem>
         </ActionBar>
       </StyledHeader>
     );
