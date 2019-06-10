@@ -9,6 +9,8 @@ export const contractJsonInterface = {
   Configuration: requireContract('Configuration'),
   LiquidityPools: requireContract('LiquidityPools'),
   TokenFactory: requireContract('TokenFactory'),
+  DepositManager: requireContract('DepositManager'),
+  LoanManager: requireContract('LoanManager'),
 
   // Non-deployed contracts (may have multiple-instances)
   PoolGroup: requireContract('PoolGroup'),

@@ -1,16 +1,16 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { Configuration, Account } from '../stores';
+import { ConfigurationStore, AccountStore } from '../stores';
 
 interface IProps {
-  configuration: Configuration;
-  account: Account;
+  configurationStore: ConfigurationStore;
+  accountStore: AccountStore;
 }
 
-@inject('configuration', 'account')
+@inject('configurationStore', 'accountStore')
 @observer
 export default class Main extends React.Component<IProps> {
   render() {
-    return <div>Account: {this.props.account.defaultAccount}</div>;
+    return <div>Account: {this.props.accountStore.defaultAccount}</div>;
   }
 }

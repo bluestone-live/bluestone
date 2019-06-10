@@ -10,6 +10,7 @@ export const liquidityPoolsStore = new LiquidityPoolsStore();
 
 export const initStore = async () => {
   // TODO: get basic data
+  await tokenStore.initTokens();
 };
 
 export * from './AccountStore';
