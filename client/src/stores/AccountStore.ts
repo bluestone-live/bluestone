@@ -1,8 +1,8 @@
 import { observable, action, computed } from 'mobx';
-import { getAccounts } from '../services/AccountService';
-import { onAccountsChanged } from '../services/EthereumService';
+import { getAccounts } from './services/AccountService';
+import { onAccountsChanged } from './services/EthereumService';
 
-export class Account {
+export class AccountStore {
   @observable accounts: string[] = [];
 
   @observable defaultAccountChanged: boolean = false;

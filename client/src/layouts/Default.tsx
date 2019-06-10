@@ -2,14 +2,14 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
-import { Account } from '../stores';
+import { AccountStore } from '../stores';
 import Header from '../components/common/Header';
 import AuthorizationReminder from '../containers/AuthorizationReminder';
 import Container from '../components/common/Container';
 
 interface IProps extends WithTranslation {
   children: React.ReactChild;
-  account: Account;
+  accountStore: AccountStore;
   title?: React.ReactChild | React.ReactChild[];
 }
 
@@ -24,27 +24,27 @@ const StyledMain = styled.main`
   background-color: ${props => props.theme.backgroundColor};
 `;
 
-@inject('account')
+@inject('accountStore')
 @observer
 class Default extends React.Component<IProps> {
   async componentDidMount() {
-    const { account } = this.props;
+    const { accountStore } = this.props;
     /*
      * we should call getAccounts at first time,
      * because in some special cases we can get accounts before they confirm connect
      */
-    await account.getAccounts();
-    account.bindOnUpdateEvent();
+    await accountStore.getAccounts();
+    accountStore.bindOnUpdateEvent();
   }
 
   render() {
-    const { children, account } = this.props;
+    const { children, accountStore } = this.props;
     return (
       <div className="layout default">
-        <Header defaultAccount={account.defaultAccount} />
+        <Header defaultAccount={accountStore.defaultAccount} />
         <StyledMain>
           <Container>
-            {account.defaultAccount ? children : <AuthorizationReminder />}
+            {accountStore.defaultAccount ? children : <AuthorizationReminder />}
           </Container>
         </StyledMain>
       </div>

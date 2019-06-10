@@ -1,15 +1,15 @@
-import { Account } from './models/AccountModel';
-import { Configuration } from './models/ConfigurationModel';
-import { TokenStore } from './models/TokenModel';
+import { AccountStore } from './AccountStore';
+import { ConfigurationStore } from './ConfigurationStore';
+import { TokenStore } from './TokenStore';
 
-export const account = new Account();
-export const configuration = new Configuration();
+export const accountStore = new AccountStore();
+export const configurationStore = new ConfigurationStore();
 export const tokenStore = new TokenStore();
 
 export const initStore = async () => {
   // TODO: get basic data
 };
 
-export * from './models/AccountModel';
-export * from './models/ConfigurationModel';
-export * from './models/TokenModel';
+export * from './AccountStore';
+export * from './ConfigurationStore';
+export * from './TokenStore';

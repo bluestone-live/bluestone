@@ -1,5 +1,5 @@
 import { observable, action } from 'mobx';
-import { getTokenAddress } from '../services/TokenService';
+import { getTokenAddress } from './services/TokenService';
 
 interface IToken {
   address: string;

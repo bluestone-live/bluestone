@@ -1,11 +1,11 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
-import { Account } from '../stores';
+import { AccountStore } from '../stores';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
 interface IProps extends WithTranslation {
-  account?: Account;
+  accountStore?: AccountStore;
 }
 
 const StyledImagePanel = styled.section`
@@ -14,12 +14,12 @@ const StyledImagePanel = styled.section`
   font-size: ${props => props.theme.fontSize};
 `;
 
-@inject('account')
+@inject('accountStore')
 @observer
 class AuthorizationReminder extends React.Component<IProps> {
   render() {
-    const { account, t } = this.props;
-    return account!.defaultAccount ? (
+    const { accountStore, t } = this.props;
+    return accountStore!.defaultAccount ? (
       <StyledImagePanel>{t('please_click_connect')}</StyledImagePanel>
     ) : null;
   }
