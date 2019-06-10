@@ -4,14 +4,17 @@ import { AbiItem } from 'web3-utils';
 const requireContract = (contractName: string) =>
   require(`../../../../build/contracts/${contractName}.json`);
 
-// * declare contract JSON interface here
-const contracts = {
+export const contractJsonInterface = {
+  // Deployed contracts (single-instance)
   Configuration: requireContract('Configuration'),
   LiquidityPools: requireContract('LiquidityPools'),
   TokenFactory: requireContract('TokenFactory'),
+
+  // Non-deployed contracts (may have multiple-instances)
+  PoolGroup: requireContract('PoolGroup'),
 };
 
-type ContractInstances = typeof contracts;
+type ContractInstances = typeof contractJsonInterface;
 
 // * export web3 for some special use
 export let web3: Web3;
@@ -48,10 +51,10 @@ export const getContracts = async (): Promise<ContractInstances> => {
 
   // build contract Instance by factory
   const pairs = await Promise.all(
-    Object.keys(contracts)
+    Object.keys(contractJsonInterface)
       .map(k => ({
         k,
-        v: (contracts as any)[k],
+        v: (contractJsonInterface as any)[k],
       }))
       .map(async ({ k, v }) => {
         const instance = await contractInstanceFactory(v);
@@ -68,7 +71,7 @@ export const getContracts = async (): Promise<ContractInstances> => {
       ...o,
       [k]: v,
     }),
-    contracts,
+    contractJsonInterface,
   );
 
   return contractInstances;

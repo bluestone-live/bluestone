@@ -16,7 +16,7 @@ export class TokenStore {
   @action.bound
   async loadTokenIfNeeded(tokenSymbol: string) {
     if (!this.tokens.has(tokenSymbol)) {
-      this.loadToken(tokenSymbol);
+      await this.loadToken(tokenSymbol);
     }
   }
 
