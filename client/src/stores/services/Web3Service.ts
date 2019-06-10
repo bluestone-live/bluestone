@@ -8,6 +8,7 @@ const requireContract = (contractName: string) =>
 const contracts = {
   Configuration: requireContract('Configuration'),
   LiquidityPools: requireContract('LiquidityPools'),
+  TokenFactory: requireContract('TokenFactory'),
 };
 
 type ContractInstances = typeof contracts;

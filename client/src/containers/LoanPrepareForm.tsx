@@ -2,12 +2,22 @@ import * as React from 'react';
 import Form from '../components/html/Form';
 import Button from '../components/html/Button';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { observer, inject } from 'mobx-react';
+import { TokenStore } from '../stores';
 
 interface IProps extends WithTranslation {
-  tokenName: string;
+  tokenSymbol: string;
+  tokenStore: TokenStore;
 }
 
+@observer
+@inject('tokenStore')
 class LoanPrepareForm extends React.Component<IProps> {
+  async componentDidMount() {
+    const { tokenSymbol, tokenStore } = this.props;
+    await tokenStore.loadTokenIfNeeded(tokenSymbol);
+  }
+
   handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -15,12 +25,12 @@ class LoanPrepareForm extends React.Component<IProps> {
   }
 
   render() {
-    const { tokenName, t } = this.props;
+    const { tokenSymbol, t } = this.props;
     const loanTerms = [1, 7, 30];
 
     return (
       <Form horizontal onSubmit={this.handleSubmit}>
-        <Form.Item>{tokenName}</Form.Item>
+        <Form.Item>{tokenSymbol}</Form.Item>
         <Form.Item>
           <select>
             <option value="">{t('select_a_term')}</option>
