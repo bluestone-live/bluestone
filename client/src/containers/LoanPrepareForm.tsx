@@ -7,7 +7,7 @@ import { TokenStore } from '../stores';
 
 interface IProps extends WithTranslation {
   tokenSymbol: string;
-  tokenStore: TokenStore;
+  tokenStore?: TokenStore;
 }
 
 @observer
@@ -15,7 +15,7 @@ interface IProps extends WithTranslation {
 class LoanPrepareForm extends React.Component<IProps> {
   async componentDidMount() {
     const { tokenSymbol, tokenStore } = this.props;
-    await tokenStore.loadTokenIfNeeded(tokenSymbol);
+    await tokenStore!.loadTokenIfNeeded(tokenSymbol);
   }
 
   handleSubmit(e: React.FormEvent<HTMLFormElement>) {

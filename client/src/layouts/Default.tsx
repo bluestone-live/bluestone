@@ -33,7 +33,6 @@ class Default extends React.Component<IProps> {
      * we should call getAccounts at first time,
      * because in some special cases we can get accounts before they confirm connect
      */
-    await accountStore.getAccounts();
     accountStore.bindOnUpdateEvent();
   }
 
@@ -41,7 +40,10 @@ class Default extends React.Component<IProps> {
     const { children, accountStore } = this.props;
     return (
       <div className="layout default">
-        <Header defaultAccount={accountStore.defaultAccount} />
+        <Header
+          defaultAccount={accountStore.defaultAccount}
+          onAccountClick={accountStore.getAccounts}
+        />
         <StyledMain>
           <Container>
             {accountStore.defaultAccount ? children : <AuthorizationReminder />}

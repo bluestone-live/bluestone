@@ -4,6 +4,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 
 interface IProps extends WithTranslation {
   defaultAccount?: string;
+  onAccountClick: () => void;
 }
 
 const StyledHeader = styled.div`
@@ -27,6 +28,8 @@ const ActionBar = styled.div`
   height: 100%;
   width: 45%;
   float: right;
+  position: relative;
+  z-index: 10;
 
   &::after {
     content: '';
@@ -39,6 +42,7 @@ const ActionBarItem = styled.div`
   float: right;
   line-height: 70px;
   padding: 0 8px;
+  cursor: pointer;
 `;
 
 const AccountItem = styled(ActionBarItem)`
@@ -50,12 +54,12 @@ const AccountItem = styled(ActionBarItem)`
 
 class Header extends React.PureComponent<IProps> {
   render() {
-    const { defaultAccount, t } = this.props;
+    const { defaultAccount, t, onAccountClick } = this.props;
     return (
       <StyledHeader>
         <Brand>BlueStone</Brand>
         <ActionBar>
-          <AccountItem>
+          <AccountItem onClick={onAccountClick}>
             {defaultAccount ? defaultAccount : t('no_account')}
           </AccountItem>
           <ActionBarItem>{t('FAQ')}</ActionBarItem>
