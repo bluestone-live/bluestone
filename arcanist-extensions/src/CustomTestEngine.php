@@ -51,10 +51,9 @@ final class CustomTestEngine extends ArcanistUnitTestEngine {
       array_push($testCommands, 'npx truffle test');
     }
 
-    // TODO: setup client test
-    /* if ($this->shouldRunClientTest()) { */
-    /*   array_push($testCommands, '') */
-    /* } */
+    if ($this->shouldRunClientTest()) {
+      array_push($testCommands, 'cd client && yarn test');
+    }
 
     return $testCommands;
   }
