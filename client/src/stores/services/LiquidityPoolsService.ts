@@ -1,4 +1,8 @@
-import { getContracts, contractJsonInterface, web3 } from './Web3Service';
+import {
+  getContracts,
+  nonDeployedContractJsonInterface,
+  web3,
+} from './Web3Service';
 
 export const getPoolGroup = async (tokenAddress: string, term: number) => {
   const { LiquidityPools } = await getContracts();
@@ -7,7 +11,7 @@ export const getPoolGroup = async (tokenAddress: string, term: number) => {
     .call();
 
   return new web3.eth.Contract(
-    contractJsonInterface.PoolGroup.abi,
+    nonDeployedContractJsonInterface.PoolGroup.abi,
     poolGroupAddress,
   );
 };

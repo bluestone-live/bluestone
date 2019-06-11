@@ -4,19 +4,21 @@ import { AbiItem } from 'web3-utils';
 const requireContract = (contractName: string) =>
   require(`../../../../build/contracts/${contractName}.json`);
 
-export const contractJsonInterface = {
-  // Deployed contracts (single-instance)
+// Single instance
+const deployedContractJsonInterface = {
   Configuration: requireContract('Configuration'),
   LiquidityPools: requireContract('LiquidityPools'),
   TokenFactory: requireContract('TokenFactory'),
   DepositManager: requireContract('DepositManager'),
   LoanManager: requireContract('LoanManager'),
+};
 
-  // Non-deployed contracts (may have multiple-instances)
+// May have multiple-instances
+export const nonDeployedContractJsonInterface = {
   PoolGroup: requireContract('PoolGroup'),
 };
 
-type ContractInstances = typeof contractJsonInterface;
+type DeployedContractInstances = typeof deployedContractJsonInterface;
 
 // * export web3 for some special use
 export let web3: Web3;
@@ -32,7 +34,7 @@ if ((global as any).ethereum) {
  * create contract instance by JSON interface
  * @param contract: contract JSON interface
  */
-const contractInstanceFactory = async (contract: any) => {
+const deployedContractInstanceFactory = async (contract: any) => {
   const netId = await web3.eth.net.getId();
   return new web3.eth.Contract(
     contract.abi as AbiItem[],
@@ -40,26 +42,26 @@ const contractInstanceFactory = async (contract: any) => {
   );
 };
 
-let contractInstances: ContractInstances;
+let deployedContractInstances: DeployedContractInstances;
 
 /**
  * get all declared contract instances
  * @returns Promise<ContractInstance>
  */
-export const getContracts = async (): Promise<ContractInstances> => {
-  if (contractInstances) {
-    return contractInstances;
+export const getContracts = async (): Promise<DeployedContractInstances> => {
+  if (deployedContractInstances) {
+    return deployedContractInstances;
   }
 
   // build contract Instance by factory
   const pairs = await Promise.all(
-    Object.keys(contractJsonInterface)
+    Object.keys(deployedContractJsonInterface)
       .map(k => ({
         k,
-        v: (contractJsonInterface as any)[k],
+        v: (deployedContractJsonInterface as any)[k],
       }))
       .map(async ({ k, v }) => {
-        const instance = await contractInstanceFactory(v);
+        const instance = await deployedContractInstanceFactory(v);
         return {
           k,
           v: instance,
@@ -68,13 +70,13 @@ export const getContracts = async (): Promise<ContractInstances> => {
   );
 
   // compose to an object
-  contractInstances = pairs.reduce(
+  deployedContractInstances = pairs.reduce(
     (o, { k, v }) => ({
       ...o,
       [k]: v,
     }),
-    contractJsonInterface,
+    deployedContractJsonInterface,
   );
 
-  return contractInstances;
+  return deployedContractInstances;
 };
