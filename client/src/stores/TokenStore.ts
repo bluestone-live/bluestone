@@ -1,10 +1,21 @@
-import { observable, action } from 'mobx';
+import { observable, action, computed } from 'mobx';
 import { getTokenAddress } from './services/TokenService';
 import { isDepositAssetEnabled } from './services/DepositManagerService';
+
+export const enum Term {
+  '1D' = '1D',
+  '7D' = '7D',
+  '30D' = '30D',
+}
+
+type AnnulPercentageRateValues = { [term in Term]: number };
 
 interface IToken {
   symbol: string;
   address: string;
+  defaultLoanPair: string;
+  depositAnnulPercentageRate?: AnnulPercentageRateValues;
+  loanAnnulPercentageRate?: AnnulPercentageRateValues;
   logo?: string;
   depositEnabled: boolean;
 }
@@ -15,6 +26,12 @@ export class TokenStore {
     ['DAI', null],
     ['USDC', null],
   ]);
+
+  @computed get validTokens(): IToken[] {
+    return Array.from(this.tokens.values()).filter(
+      token => token !== null,
+    ) as IToken[];
+  }
 
   getToken(tokenSymbol: string) {
     return this.tokens.get(tokenSymbol);
@@ -44,6 +61,8 @@ export class TokenStore {
     const address = await getTokenAddress(tokenSymbol);
     return this.updateToken(tokenSymbol, {
       symbol: tokenSymbol,
+      defaultLoanPair:
+        tokenSymbol === 'ETH' ? `${tokenSymbol}_DAI` : `${tokenSymbol}_ETH`,
       address,
       depositEnabled: false,
     });

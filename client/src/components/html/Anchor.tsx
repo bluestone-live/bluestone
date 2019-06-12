@@ -1,12 +1,8 @@
 import * as React from 'react';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
+import { Link, LinkProps } from 'react-router-dom';
 
-interface IProps {
-  children: React.ReactChild | React.ReactChild[];
-  href: string;
-}
-
-const StyledAnchor = styled.a`
+const StyledAnchor = styled(Link)`
   color: ${props => props.theme.fontColor};
   text-decoration: none;
   cursor: pointer;
@@ -16,7 +12,7 @@ const StyledAnchor = styled.a`
   }
 `;
 
-const Anchor = (props: IProps) => {
+const Anchor = (props: LinkProps) => {
   const { children } = props;
   return <StyledAnchor {...props}>{children}</StyledAnchor>;
 };

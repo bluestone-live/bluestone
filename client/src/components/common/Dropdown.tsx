@@ -7,14 +7,15 @@ const StyledDropdown = styled.div`
   z-index: 10;
   border: 1px solid ${props => props.theme.borderColor};
   border-radius: ${props => props.theme.borderRadius};
-  width: 200px;
+  width: 100%;
+  min-width: 120px;
   text-align: center;
   height: 44px;
   line-height: 44px;
   cursor: pointer;
 `;
 
-const OptionsContainer = styled.div`
+const StyledOptionsContainer = styled.div`
   position: absolute;
   width: 100%;
   background-color: #fff;
@@ -24,7 +25,7 @@ const OptionsContainer = styled.div`
   left: 0;
 `;
 
-const Option = styled.div`
+const StyledOption = styled.div`
   width: 100%;
   height: 44px;
   border-bottom: 1px solid ${props => props.theme.borderColor};
@@ -76,13 +77,16 @@ class Dropdown extends React.Component<IProps, IState> {
       <StyledDropdown onClick={this.onDropdownClick} onBlur={this.hideOptions}>
         {children}
         {showOptions ? (
-          <OptionsContainer>
+          <StyledOptionsContainer>
             {options.map(option => (
-              <Option key={option.key} onClick={this.onOptionClick(option)}>
+              <StyledOption
+                key={option.key}
+                onClick={this.onOptionClick(option)}
+              >
                 {option.text}
-              </Option>
+              </StyledOption>
             ))}
-          </OptionsContainer>
+          </StyledOptionsContainer>
         ) : null}
       </StyledDropdown>
     );

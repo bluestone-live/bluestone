@@ -14,7 +14,7 @@ const StyledHeader = styled.div`
   border-bottom: 1px solid ${props => props.theme.borderColor};
 `;
 
-const Brand = styled.div`
+const StyledBrand = styled.div`
   font-size: 24px;
   font-weight: bolder;
   position: absolute;
@@ -24,7 +24,7 @@ const Brand = styled.div`
   line-height: 70px;
 `;
 
-const ActionBar = styled.div`
+const StyledActionBar = styled.div`
   height: 100%;
   width: 45%;
   float: right;
@@ -38,14 +38,14 @@ const ActionBar = styled.div`
   }
 `;
 
-const ActionBarItem = styled.div`
+const StyledActionBarItem = styled.div`
   float: right;
   line-height: 70px;
   padding: 0 8px;
   cursor: pointer;
 `;
 
-const AccountItem = styled(ActionBarItem)`
+const StyledAccountItem = styled(StyledActionBarItem)`
   max-width: 120px;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -57,13 +57,13 @@ class Header extends React.PureComponent<IProps> {
     const { defaultAccount, t, onAccountClick } = this.props;
     return (
       <StyledHeader>
-        <Brand>BlueStone</Brand>
-        <ActionBar>
-          <AccountItem onClick={onAccountClick}>
+        <StyledBrand>BlueStone</StyledBrand>
+        <StyledActionBar>
+          <StyledAccountItem onClick={onAccountClick}>
             {defaultAccount ? defaultAccount : t('no_account')}
-          </AccountItem>
-          <ActionBarItem>{t('FAQ')}</ActionBarItem>
-        </ActionBar>
+          </StyledAccountItem>
+          <StyledActionBarItem>{t('FAQ')}</StyledActionBarItem>
+        </StyledActionBar>
       </StyledHeader>
     );
   }
