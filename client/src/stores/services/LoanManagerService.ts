@@ -1,4 +1,5 @@
 import { getContracts } from './Web3Service';
+import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
 
 export const isLoanAssetPairEnabled = async (
@@ -18,7 +19,7 @@ export const loan = async (
   loanAmount: BigNumber,
   collateralAmount: BigNumber,
   requestedFreedCollateral: BigNumber = 0,
-) => {
+): Promise<object> => {
   const contracts = await getContracts();
   return contracts.LoanManager.methods
     .loan(
@@ -29,5 +30,5 @@ export const loan = async (
       collateralAmount,
       requestedFreedCollateral,
     )
-    .call();
+    .send({ from: accountStore.defaultAccount });
 };

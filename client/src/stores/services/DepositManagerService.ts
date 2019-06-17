@@ -1,4 +1,5 @@
 import { getContracts } from './Web3Service';
+import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
 
 export const isDepositAssetEnabled = async (
@@ -26,16 +27,16 @@ export const getDepositInterestRates = async (
 /**
  * deposit token
  * @param isRecurring: is auto renew
- * @returns Promise<depositId>
+ * @returns Promise<PromiEvent>: https://web3js.readthedocs.io/en/1.0/callbacks-promises-events.html#promievent
  */
 export const deposit = async (
   assetAddress: string,
   term: number,
   amount: BigNumber,
   isRecurring: string,
-): Promise<number> => {
+): Promise<object> => {
   const contract = await getContracts();
   return contract.DepositManager.methods
     .deposit(assetAddress, term, amount, isRecurring)
-    .call();
+    .send({ from: accountStore.defaultAccount });
 };
