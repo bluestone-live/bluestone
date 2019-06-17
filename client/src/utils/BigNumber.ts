@@ -1,4 +1,9 @@
-const originalBN = require('bn.js');
+import BigNumber from 'bn.js';
 
-export type BigNumber = typeof originalBN;
-export const BN = originalBN;
+export { BigNumber };
+
+export const toFixed = (bn: BigNumber, fractionDigits: number) =>
+  bn.toNumber().toFixed(fractionDigits);
+
+export const convertWeiToDecimal = (bn: BigNumber) =>
+  Number.parseFloat(bn.toString()) / 1e18;

@@ -5,6 +5,11 @@ import DropDown from '../components/common/Dropdown';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Anchor from '../components/html/Anchor';
+import { toFixed } from '../utils/BigNumber';
+import {
+  calculateRate,
+  RatePeriod,
+} from '../utils/interestRateCalcutateHelper';
 
 const StyledHomePage = styled.div`
   height: 100%;
@@ -131,16 +136,18 @@ class HomePage extends React.Component<IProps, IState> {
                 </td>
                 <td>
                   {token.depositAnnualPercentageRates
-                    ? token.depositAnnualPercentageRates[
-                        selectedTerm.key
-                      ].toString()
+                    ? `${calculateRate(
+                        token.depositAnnualPercentageRates[selectedTerm.key],
+                        RatePeriod.Annual,
+                      )}%`
                     : '0%'}
                 </td>
                 <td>
                   {token.loanAnnualPercentageRates
-                    ? token.loanAnnualPercentageRates[
-                        selectedTerm.key
-                      ].toString()
+                    ? `${calculateRate(
+                        token.loanAnnualPercentageRates[selectedTerm.key],
+                        RatePeriod.Annual,
+                      )}%`
                     : '0%'}
                 </td>
                 <td>

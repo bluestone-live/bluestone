@@ -5,8 +5,9 @@ import {
   getDepositInterestRates,
   IAnnualPercentageRateValues,
 } from './services/DepositManagerService';
+import { getLoanInterestRate } from './services/ConfigurationService';
 
-interface IToken {
+export interface IToken {
   symbol: string;
   address: string;
   defaultLoanPair: string;
@@ -48,6 +49,7 @@ export class TokenStore {
     await Promise.all(tokens.map(this.loadTokenIfNeeded));
     await Promise.all(tokens.map(this.isDepositAssetEnabled));
     await Promise.all(tokens.map(this.getDepositInterestRates));
+    await Promise.all(tokens.map(this.getLoanInterestRates));
   }
 
   @action.bound
@@ -82,6 +84,26 @@ export class TokenStore {
     return this.updateToken(tokenSymbol, {
       ...token,
       depositAnnualPercentageRates: {
+        1: rates[0],
+        7: rates[1],
+        30: rates[2],
+      },
+    });
+  }
+
+  @action.bound
+  async getLoanInterestRates(tokenSymbol: string) {
+    const token = this.tokens.get(tokenSymbol);
+    if (!token) {
+      throw new Error(`no such token: ${tokenSymbol}`);
+    }
+    const terms = [1, 7, 30];
+    const rates = await Promise.all(
+      terms.map(term => getLoanInterestRate(token.address, term)),
+    );
+    this.updateToken(tokenSymbol, {
+      ...token,
+      loanAnnualPercentageRates: {
         1: rates[0],
         7: rates[1],
         30: rates[2],
