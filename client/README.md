@@ -30,9 +30,7 @@ Connect MetaMask to local Ganache RPC server:
 4. Find `New Network` and fill in: `http://127.0.0.1:7545`.
 5. Click `Save`.
 
-You should be able to see your account address and balance being identical to the first account showing in Ganache GUI.
-
-If you want to import another Ganache account:
+To import a Ganache account:
 
 1. In Ganache Accounts panel, locate the account you want to import.
 2. Click on the right-most key icon and copy the private key.
