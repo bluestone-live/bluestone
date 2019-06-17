@@ -1,5 +1,10 @@
 import { observable, action, computed } from 'mobx';
-import { getAccounts } from './services/AccountService';
+import {
+  getAccounts,
+  connectToMetaMask,
+  setMetaMaskConnected,
+  isMetaMaskConnected,
+} from './services/AccountService';
 import { onAccountsChanged } from './services/EthereumService';
 
 export class AccountStore {
@@ -9,13 +14,25 @@ export class AccountStore {
 
   @action.bound
   async setAccounts(accounts: string[]) {
+    // won't be connect next time if accounts is empty
+    setMetaMaskConnected(accounts.length !== 0);
     this.accounts = accounts;
+  }
+
+  @action.bound
+  isMetaMaskConnected() {
+    return isMetaMaskConnected();
+  }
+
+  @action.bound
+  connectToMetaMask() {
+    return connectToMetaMask();
   }
 
   @action.bound
   async getAccounts() {
     const accounts = await getAccounts();
-    if (accounts) {
+    if (accounts.length > 0) {
       return this.setAccounts(accounts);
     }
   }

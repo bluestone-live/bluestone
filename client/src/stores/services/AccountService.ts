@@ -1,15 +1,14 @@
 import { web3 } from './Web3Service';
+import localforage from 'localforage';
 
-export const getAccounts = async () => {
-  if (!web3.eth.defaultAccount) {
-    try {
-      await (global as any).ethereum.enable();
-    } catch (e) {
-      // TODO: notify user that they canceled the authorization
-      return;
-    }
-  }
-  return web3.eth.getAccounts();
-};
+export const getAccounts = async () => web3.eth.getAccounts();
+
+export const connectToMetaMask = async () => (global as any).ethereum.enable();
+
+export const isMetaMaskConnected = () =>
+  localforage.getItem<boolean>('bluestone_connected');
+
+export const setMetaMaskConnected = (hasConnected: boolean = true) =>
+  localforage.setItem('bluestone_connected', hasConnected);
 
 export const getCoinBase = async () => web3.eth.getCoinbase();

@@ -29,12 +29,22 @@ const StyledMain = styled.main`
 class Default extends React.Component<IProps> {
   async componentDidMount() {
     const { accountStore } = this.props;
-    /*
-     * we should call getAccounts at first time,
-     * because in some special cases we can get accounts before they confirm connect
-     */
-    accountStore.bindOnUpdateEvent();
+    // auto connect after first time
+    const isMetaMaskConnected = await accountStore.isMetaMaskConnected();
+    if (isMetaMaskConnected) {
+      await accountStore.getAccounts();
+      accountStore.bindOnUpdateEvent();
+    }
   }
+
+  getAccounts = async () => {
+    const { accountStore } = this.props;
+    if (accountStore.defaultAccount) {
+      return;
+    }
+    await accountStore.connectToMetaMask();
+    await accountStore.getAccounts();
+  };
 
   render() {
     const { children, accountStore } = this.props;
@@ -42,7 +52,7 @@ class Default extends React.Component<IProps> {
       <div className="layout default">
         <Header
           defaultAccount={accountStore.defaultAccount}
-          onAccountClick={accountStore.getAccounts}
+          onAccountClick={this.getAccounts}
         />
         <StyledMain>
           <Container>

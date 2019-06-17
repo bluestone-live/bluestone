@@ -5,7 +5,6 @@ import DropDown from '../components/common/Dropdown';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Anchor from '../components/html/Anchor';
-import { toJS } from 'mobx';
 
 const StyledHomePage = styled.div`
   height: 100%;
