@@ -1,21 +1,17 @@
 import { observable, action, computed } from 'mobx';
 import { getTokenAddress } from './services/TokenService';
-import { isDepositAssetEnabled } from './services/DepositManagerService';
-
-export const enum Term {
-  '1D' = '1D',
-  '7D' = '7D',
-  '30D' = '30D',
-}
-
-type AnnulPercentageRateValues = { [term in Term]: number };
+import {
+  isDepositAssetEnabled,
+  getDepositInterestRates,
+  IAnnualPercentageRateValues,
+} from './services/DepositManagerService';
 
 interface IToken {
   symbol: string;
   address: string;
   defaultLoanPair: string;
-  depositAnnulPercentageRate?: AnnulPercentageRateValues;
-  loanAnnulPercentageRate?: AnnulPercentageRateValues;
+  depositAnnualPercentageRates?: IAnnualPercentageRateValues;
+  loanAnnualPercentageRates?: IAnnualPercentageRateValues;
   logo?: string;
   depositEnabled: boolean;
 }
@@ -48,12 +44,10 @@ export class TokenStore {
 
   @action.bound
   async initTokens() {
-    await Promise.all(
-      Array.from(this.tokens.keys()).map(this.loadTokenIfNeeded),
-    );
-    return Promise.all(
-      Array.from(this.tokens.keys()).map(this.isDepositAssetEnabled),
-    );
+    const tokens = Array.from(this.tokens.keys());
+    await Promise.all(tokens.map(this.loadTokenIfNeeded));
+    await Promise.all(tokens.map(this.isDepositAssetEnabled));
+    await Promise.all(tokens.map(this.getDepositInterestRates));
   }
 
   @action.bound
@@ -76,6 +70,23 @@ export class TokenStore {
     }
     const depositEnabled = await isDepositAssetEnabled(token.address);
     return this.updateToken(token.symbol, { ...token, depositEnabled });
+  }
+
+  @action.bound
+  async getDepositInterestRates(tokenSymbol: string) {
+    const token = this.tokens.get(tokenSymbol);
+    if (!token) {
+      throw new Error(`no such token: ${tokenSymbol}`);
+    }
+    const rates = await getDepositInterestRates(token.address);
+    return this.updateToken(tokenSymbol, {
+      ...token,
+      depositAnnualPercentageRates: {
+        1: rates[0],
+        7: rates[1],
+        30: rates[2],
+      },
+    });
   }
 
   @action.bound

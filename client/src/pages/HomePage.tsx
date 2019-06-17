@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { TokenStore, Term } from '../stores';
+import { TokenStore } from '../stores';
 import DropDown from '../components/common/Dropdown';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Anchor from '../components/html/Anchor';
+import { toJS } from 'mobx';
 
 const StyledHomePage = styled.div`
   height: 100%;
@@ -61,7 +62,7 @@ interface IProps extends WithTranslation {
 
 interface ITermOption {
   text: string;
-  key: Term;
+  key: number;
 }
 
 interface IState {
@@ -71,15 +72,15 @@ interface IState {
 const terms: ITermOption[] = [
   {
     text: '1 Day',
-    key: Term['1D'],
+    key: 1,
   },
   {
     text: '7 Days',
-    key: Term['7D'],
+    key: 7,
   },
   {
     text: '30 Days',
-    key: Term['30D'],
+    key: 30,
   },
 ];
 
@@ -116,9 +117,9 @@ class HomePage extends React.Component<IProps, IState> {
         <StyledTokenList>
           <thead>
             <tr>
-              <th>Token</th>
-              <th>Deposit ARP</th>
-              <th>Loan ARP</th>
+              <th>{t('token')}</th>
+              <th>{t('deposit_apr')}</th>
+              <th>{t('loan_apr')}</th>
               <th />
             </tr>
           </thead>
@@ -130,21 +131,25 @@ class HomePage extends React.Component<IProps, IState> {
                   {token.symbol}
                 </td>
                 <td>
-                  {token.depositAnnulPercentageRate
-                    ? token.depositAnnulPercentageRate[selectedTerm.key]
+                  {token.depositAnnualPercentageRates
+                    ? token.depositAnnualPercentageRates[
+                        selectedTerm.key
+                      ].toString()
                     : '0%'}
                 </td>
                 <td>
-                  {token.loanAnnulPercentageRate
-                    ? token.loanAnnulPercentageRate[selectedTerm.key]
+                  {token.loanAnnualPercentageRates
+                    ? token.loanAnnualPercentageRates[
+                        selectedTerm.key
+                      ].toString()
                     : '0%'}
                 </td>
                 <td>
                   <StyledAnchor to={`/deposit/${token.symbol}`}>
-                    Deposit
+                    {t('deposit')}
                   </StyledAnchor>
                   <StyledAnchor to={`/loan/${token.defaultLoanPair}`}>
-                    Loan
+                    {t('loan')}
                   </StyledAnchor>
                 </td>
               </StyledTokenListRow>

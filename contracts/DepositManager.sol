@@ -58,6 +58,14 @@ contract DepositManager is Ownable, Pausable, Term {
 
     // PUBLIC  -----------------------------------------------------------------
 
+    function getDepositInterestRates(address asset) external view enabledDepositAsset(asset) returns (uint, uint, uint) {
+        return (
+            _depositAssets[asset].lastInterestRatePerTerm[1],
+            _depositAssets[asset].lastInterestRatePerTerm[7],
+            _depositAssets[asset].lastInterestRatePerTerm[30]
+        );
+    }
+
     function deposit(address asset, uint8 term, uint amount, bool isRecurring) 
         public 
         whenNotPaused
