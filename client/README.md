@@ -1,6 +1,6 @@
-# Blue Stone Client
+# Client
 
-## folders
+## Structures
 
 ~~~
 src
@@ -14,23 +14,36 @@ src
   - utils: some useful utils or helpers
 ~~~
 
-## requirements
+## Prerequisites
 
 - nodejs >= 8
+- Copy and rename .env.example to .env.dev (for development) or .env.prod (for production)
+- Install MetaMask[https://metamask.io/] browser extension.
 
-## Install Dependencies
+### Configure MetaMask
+
+Connect MetaMask to local Ganache RPC server:
+
+1. Click on MetaMask extension icon.
+2. Click the account icon on top-right corner.
+3. Select `Settings` -> `Advacnced`.
+4. Find `New Network` and fill in: `http://127.0.0.1:7545`.
+5. Click `Save`.
+
+You should be able to see your account address and balance being identical to the first account showing in Ganache GUI.
+
+If you want to import another Ganache account:
+
+1. In Ganache Accounts panel, locate the account you want to import.
+2. Click on the right-most key icon and copy the private key.
+3. Open MetaMask, click the account icon on top-right corner.
+4. Click `Import Account`.
+5. Paste the private key and click `Import`.
+
+## Development
 
 ```
 yarn
-```
-
-## Environment Configuration
-
-rename .env.example to .env.dev(for development) or .env.prod(for production)
-
-## Run Dev
-
-```
 yarn dev
 ```
 
