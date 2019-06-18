@@ -1,20 +1,37 @@
 import adjustColor from '../utils/adjustColor';
-
-const primaryColor = '#0096b7';
+import { black, blue, grey1, grey2, grey3, grey4, white } from './colors';
 
 export default {
   fontFamily: 'Helvetica, Arial, sans-serif',
-  fontSize: '14px',
-  fontColor: '#333',
-  fontColorLight: '#777',
-  primaryColor,
-  primaryColorLight: adjustColor(primaryColor, 40),
-  backgroundColor: 'f6f9fc',
-  borderColor: '#e8e8e8',
+  fontSize: {
+    medium: '14px',
+    large: '18px',
+    huge: '34px',
+  },
+  fontColors: {
+    highlight: blue,
+    primary: black,
+    secondary: grey1,
+    inverted: white,
+  },
+  colors: {
+    primary: blue,
+    primaryLight: adjustColor(blue, 40),
+  },
+  backgroundColor: {
+    primary: white,
+    secondary: grey4,
+    hover: grey3,
+  },
+  borderColor: {
+    primary: grey2,
+    secondary: grey3,
+  },
   borderRadius: '4px',
-  spacingUnit: {
-    small: '10px',
-    medium: '20px',
-    large: '30px',
+  gap: {
+    small: '7px',
+    medium: '14px',
+    large: '21px',
+    largest: '28px',
   },
 };

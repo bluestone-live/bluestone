@@ -10,8 +10,8 @@ interface IProps extends WithTranslation {
 
 const StyledImagePanel = styled.section`
   text-align: center;
-  color: ${props => props.theme.fontColor};
-  font-size: ${props => props.theme.fontSize};
+  color: ${props => props.theme.fontColors.primary};
+  font-size: ${props => props.theme.fontSize.medium};
 `;
 
 @inject('accountStore')

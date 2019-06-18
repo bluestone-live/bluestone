@@ -17,7 +17,7 @@ const StyledHomePage = styled.div`
 
 const StyledTokenList = styled.table`
   width: 100%;
-  border: 1px solid ${props => props.theme.borderColor};
+  border: 1px solid ${props => props.theme.borderColor.secondary};
   border-spacing: 0;
 
   & thead th {
@@ -31,7 +31,7 @@ const StyledTokenListRow = styled.tr`
   & td {
     text-align: center;
     padding: 0;
-    border-top: 1px solid ${props => props.theme.borderColor};
+    border-top: 1px solid ${props => props.theme.borderColor.secondary};
   }
 
   &:hover {
@@ -42,9 +42,9 @@ const StyledTokenListRow = styled.tr`
 const StyledActionBar = styled.div`
   display: flex;
   background-color: #fff;
-  border: 1px solid ${props => props.theme.borderColor};
+  border: 1px solid ${props => props.theme.borderColor.secondary};
   border-radius: ${props => props.theme.borderRadius};
-  margin-bottom: ${props => props.theme.spacingUnit.small};
+  margin-bottom: ${props => props.theme.gap.small};
   justify-content: space-evenly;
 `;
 
@@ -53,7 +53,7 @@ const StyledHomePageDropDown = styled(DropDown)`
 `;
 
 const StyledAnchor = styled(Anchor)`
-  border: 1px solid ${props => props.theme.borderColor};
+  border: 1px solid ${props => props.theme.borderColor.secondary};
   margin: 0 8px;
   padding: 6px 8px;
   border-radius: ${props => props.theme.borderRadius};

@@ -5,7 +5,7 @@ import styled from 'styled-components';
 const StyledDropdown = styled.div`
   position: relative;
   z-index: 10;
-  border: 1px solid ${props => props.theme.borderColor};
+  border: 1px solid ${props => props.theme.borderColor.secondary};
   border-radius: ${props => props.theme.borderRadius};
   width: 100%;
   min-width: 120px;
@@ -19,7 +19,7 @@ const StyledOptionsContainer = styled.div`
   position: absolute;
   width: 100%;
   background-color: #fff;
-  border: 1px solid ${props => props.theme.borderColor};
+  border: 1px solid ${props => props.theme.borderColor.secondary};
   border-radius: ${props => props.theme.borderRadius};
   top: 44px;
   left: 0;
@@ -28,7 +28,7 @@ const StyledOptionsContainer = styled.div`
 const StyledOption = styled.div`
   width: 100%;
   height: 44px;
-  border-bottom: 1px solid ${props => props.theme.borderColor};
+  border-bottom: 1px solid ${props => props.theme.borderColor.secondary};
   cursor: pointer;
 `;
 

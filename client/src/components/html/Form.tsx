@@ -10,7 +10,7 @@ interface IFormProps {
 const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
-  margin: ${props => props.theme.spacingUnit.medium} auto;
+  margin: ${props => props.theme.gap.medium} auto;
 
   ${(props: IFormProps) =>
     props.horizontal &&

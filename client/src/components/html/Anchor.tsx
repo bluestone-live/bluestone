@@ -3,12 +3,12 @@ import styled from 'styled-components';
 import { Link, LinkProps } from 'react-router-dom';
 
 const StyledAnchor = styled(Link)`
-  color: ${props => props.theme.fontColor};
+  color: ${props => props.theme.fontColors.primary};
   text-decoration: none;
   cursor: pointer;
 
   :hover {
-    color: ${props => props.theme.primaryColor};
+    color: ${props => props.theme.fontColors.highlight};
   }
 `;
 

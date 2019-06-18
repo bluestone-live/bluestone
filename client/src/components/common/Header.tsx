@@ -8,10 +8,10 @@ interface IProps extends WithTranslation {
 }
 
 const StyledHeader = styled.div`
-  margin-bottom: ${props => props.theme.spacingUnit.small};
+  margin-bottom: ${props => props.theme.gap.small};
   height: 70px;
   background-color: #f8f8f8;
-  border-bottom: 1px solid ${props => props.theme.borderColor};
+  border-bottom: 1px solid ${props => props.theme.borderColor.primary};
 `;
 
 const StyledBrand = styled.div`
@@ -41,7 +41,7 @@ const StyledActionBar = styled.div`
 const StyledActionBarItem = styled.div`
   float: right;
   line-height: 70px;
-  padding: 0 8px;
+  padding: 0 ${props => props.theme.gap.small};
   cursor: pointer;
 `;
 

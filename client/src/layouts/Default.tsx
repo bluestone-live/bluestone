@@ -20,8 +20,8 @@ const StyledMain = styled.main`
   margin: 0 auto;
   padding: 0;
   font-family: ${props => props.theme.fontFamily};
-  font-size: ${props => props.theme.fontSize};
-  background-color: ${props => props.theme.backgroundColor};
+  font-size: ${props => props.theme.fontSize.medium};
+  background-color: ${props => props.theme.backgroundColor.primary};
 `;
 
 @inject('accountStore')

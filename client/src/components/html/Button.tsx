@@ -12,9 +12,9 @@ interface IProps {
 const StyledButton = styled.button`
   border-width: 1px;
   border-style: solid;
-  border-color: ${props => props.theme.borderColor};
+  border-color: ${props => props.theme.borderColor.secondary};
   border-radius: ${props => props.theme.borderRadius};
-  color: ${props => props.theme.fontColor};
+  color: ${props => props.theme.fontColor.primary};
   background-color: white;
   padding: 8px 16px;
   letter-spacing: 1px;
@@ -25,12 +25,12 @@ const StyledButton = styled.button`
   ${(props: IProps) =>
     props.primary &&
     css`
-      border-color: ${p => p.theme.primaryColor};
-      color: white;
-      background-color: ${p => p.theme.primaryColor};
+      border-color: ${p => p.theme.colors.primary};
+      color: ${p => p.theme.colors.inverted};
+      background-color: ${p => p.theme.colors.primary};
 
       &:hover {
-        background: ${p => p.theme.primaryColorLight};
+        background: ${p => p.theme.colors.primaryLight};
       }
     `};
 
@@ -44,11 +44,11 @@ const StyledButton = styled.button`
     props.disabled &&
     css`
       cursor: not-allowed;
-      background-color: #ccc;
-      border-color: #ccc;
+      background-color: ${p => p.theme.backgroundColor.secondary};
+      border-color: ${p => p.theme.borderColor.secondary};
 
       &:hover {
-        background: #ccc;
+        background: ${p => p.theme.backgroundColor.secondary};
       }
     `};
 `;
