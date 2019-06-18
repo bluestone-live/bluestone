@@ -26,11 +26,11 @@ const Form = (props: IFormProps) => {
 };
 
 interface IFromItemProps {
-  children: React.ReactChild;
+  children: React.ReactChild | React.ReactChild[];
 }
 
 const StyledFormItem = styled.div`
-  margin: 8px;
+  margin: ${(props: ThemedProps) => props.theme.gap.medium};
 `;
 
 Form.Item = (props: IFromItemProps) => {

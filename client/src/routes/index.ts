@@ -15,7 +15,7 @@ const routes = [
     name: 'loan',
     path: '/loan',
     component: Loadable({
-      loader: () => import('../pages/LoanOverviewPage'),
+      loader: () => import('../pages/LoanPage'),
       loading: Loading,
     }),
   },

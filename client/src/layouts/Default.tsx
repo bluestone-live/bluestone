@@ -5,8 +5,8 @@ import styled from 'styled-components';
 import { AccountStore } from '../stores';
 import Header from '../components/common/Header';
 import AuthorizationReminder from '../containers/AuthorizationReminder';
-import Container from '../components/common/Container';
 import Card from '../components/common/Card';
+import Container from '../components/common/Container';
 import { ThemedProps } from '../styles/themes';
 
 interface IProps extends WithTranslation {

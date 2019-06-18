@@ -12,10 +12,6 @@ import Card from '../components/common/Card';
 import { ThemedProps } from '../styles/themes';
 import Radio from '../components/common/Radio';
 
-const StyledHomePage = styled(Card)`
-  height: 100%;
-`;
-
 const StyledTokenList = styled.table`
   width: 100%;
   border: 1px solid ${(props: ThemedProps) => props.theme.borderColor.secondary};
@@ -129,64 +125,70 @@ class HomePage extends React.Component<IProps, IState> {
     const { selectedTerm } = this.state;
 
     return (
-      <StyledHomePage>
-        <StyledActionBar>
-          <StyledTermSelector>
-            {t('select_term')}
-            <Radio
-              name="term"
-              onChange={this.onTermSelect}
-              selectedOption={selectedTerm}
-              options={terms}
-            />
-          </StyledTermSelector>
-        </StyledActionBar>
-        <StyledTokenList>
-          <thead>
-            <tr>
-              <th style={{ minWidth: '220px' }}>{t('token')}</th>
-              <th style={{ minWidth: '250px' }}>{t('deposit_apr')}</th>
-              <th style={{ minWidth: '250px' }}>{t('loan_apr')}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {validTokens.map(token => (
-              <StyledTokenListRow key={token.symbol}>
-                <td>
-                  {token.logo}
-                  {token.symbol}
-                </td>
-                <td>
-                  {token.depositAnnualPercentageRates
-                    ? `${calculateRate(
-                        token.depositAnnualPercentageRates[selectedTerm.value],
-                        RatePeriod.Annual,
-                      )}%`
-                    : '0%'}
-                </td>
-                <td>
-                  {token.loanAnnualPercentageRates
-                    ? `${calculateRate(
-                        token.loanAnnualPercentageRates[selectedTerm.value],
-                        RatePeriod.Annual,
-                      )}%`
-                    : '0%'}
-                </td>
-                <td>
-                  <StyledAnchor to={`/deposit/${token.symbol}`}>
-                    {t('deposit')}
-                  </StyledAnchor>
-                  <StyledPrimaryAnchor to={`/loan/${token.defaultLoanPair}`}>
-                    {t('loan')}
-                  </StyledPrimaryAnchor>
-                </td>
-              </StyledTokenListRow>
-            ))}
-            <tr />
-          </tbody>
-        </StyledTokenList>
-      </StyledHomePage>
+      <div>
+        <Card>
+          <StyledActionBar>
+            <StyledTermSelector>
+              {t('select_term')}
+              <Radio
+                name="term"
+                onChange={this.onTermSelect}
+                selectedOption={selectedTerm}
+                options={terms}
+              />
+            </StyledTermSelector>
+          </StyledActionBar>
+          <StyledTokenList>
+            <thead>
+              <tr>
+                <th style={{ minWidth: '220px' }}>{t('token')}</th>
+                <th style={{ minWidth: '250px' }}>{t('deposit_apr')}</th>
+                <th style={{ minWidth: '250px' }}>{t('loan_apr')}</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {validTokens.map(token => (
+                <StyledTokenListRow key={token.symbol}>
+                  <td>
+                    {token.logo}
+                    {token.symbol}
+                  </td>
+                  <td>
+                    {token.depositAnnualPercentageRates
+                      ? `${calculateRate(
+                          token.depositAnnualPercentageRates[
+                            selectedTerm.value
+                          ],
+                          RatePeriod.Annual,
+                        )}%`
+                      : '0%'}
+                  </td>
+                  <td>
+                    {token.loanAnnualPercentageRates
+                      ? `${calculateRate(
+                          token.loanAnnualPercentageRates[selectedTerm.value],
+                          RatePeriod.Annual,
+                        )}%`
+                      : '0%'}
+                  </td>
+                  <td>
+                    <StyledAnchor to={`/deposit/${token.symbol}`}>
+                      {t('deposit')}
+                    </StyledAnchor>
+                    <StyledPrimaryAnchor
+                      to={`/loan?loanTokenSymbol=${token.symbol}`}
+                    >
+                      {t('loan')}
+                    </StyledPrimaryAnchor>
+                  </td>
+                </StyledTokenListRow>
+              ))}
+              <tr />
+            </tbody>
+          </StyledTokenList>
+        </Card>
+      </div>
     );
   }
 }

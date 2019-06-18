@@ -27,7 +27,7 @@ const StyledButton = styled.button`
     props.primary &&
     css`
       border-color: ${p => p.theme.colors.primary};
-      color: ${p => p.theme.colors.inverted};
+      color: ${p => p.theme.fontColors.inverted};
       background-color: ${p => p.theme.colors.primary};
 
       &:hover {
