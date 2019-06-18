@@ -1,5 +1,6 @@
 import * as React from 'react';
 import styled, { css } from 'styled-components';
+import { ThemedProps } from '../../styles/themes';
 
 interface IFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -10,9 +11,9 @@ interface IFormProps {
 const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
-  margin: ${props => props.theme.gap.medium} auto;
+  margin: ${(props: ThemedProps) => props.theme.gap.medium} auto;
 
-  ${(props: IFormProps) =>
+  ${(props: ThemedProps<IFormProps>) =>
     props.horizontal &&
     css`
       flex-direction: row;

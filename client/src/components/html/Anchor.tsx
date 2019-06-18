@@ -1,14 +1,15 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { Link, LinkProps } from 'react-router-dom';
+import { ThemedProps } from '../../styles/themes';
 
 const StyledAnchor = styled(Link)`
-  color: ${props => props.theme.fontColors.primary};
+  color: ${(props: ThemedProps) => props.theme.fontColors.primary};
   text-decoration: none;
   cursor: pointer;
 
   :hover {
-    color: ${props => props.theme.fontColors.highlight};
+    color: ${(props: ThemedProps) => props.theme.fontColors.highlight};
   }
 `;
 

@@ -11,7 +11,7 @@ import flatten from './utils/flatten';
 import routes from './routes';
 import { Default } from './layouts';
 import NotFound from './components/common/NotFount';
-import defaultTheme from './styles/themes/default';
+import { DefaultTheme } from './styles/themes';
 import 'normalize.css';
 
 const renderError = (ErrorComponent: React.ComponentType) => (props: any) => (
@@ -23,7 +23,7 @@ const renderError = (ErrorComponent: React.ComponentType) => (props: any) => (
 const App = () => (
   <I18nextProvider i18n={i18n}>
     <MobxProvider {...stores}>
-      <ThemeProvider theme={defaultTheme}>
+      <ThemeProvider theme={DefaultTheme}>
         <BrowserRouter>
           <Switch>
             {flatten(routes, 'subRoutes')

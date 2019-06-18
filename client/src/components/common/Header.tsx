@@ -1,6 +1,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { ThemedProps } from '../../styles/themes';
 
 interface IProps extends WithTranslation {
   defaultAccount?: string;
@@ -8,27 +9,25 @@ interface IProps extends WithTranslation {
 }
 
 const StyledHeader = styled.div`
-  margin-bottom: ${props => props.theme.gap.small};
-  height: 70px;
-  background-color: #f8f8f8;
-  border-bottom: 1px solid ${props => props.theme.borderColor.primary};
+  height: 77px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
 `;
 
 const StyledBrand = styled.div`
-  font-size: 24px;
-  font-weight: bolder;
-  position: absolute;
+  font-size: ${(props: ThemedProps) => props.theme.fontSize.large};
+  font-weight: bold;
   text-align: center;
-  width: 100%;
-  height: 70px;
-  line-height: 70px;
+  width: 200px;
+  height: 77px;
+  line-height: 77px;
 `;
 
-const StyledActionBar = styled.div`
-  height: 100%;
-  width: 45%;
-  float: right;
-  position: relative;
+const StyledMenu = styled.div`
+  height: 77px;
+  line-height: 77px;
+  display: flex;
   z-index: 10;
 
   &::after {
@@ -38,15 +37,18 @@ const StyledActionBar = styled.div`
   }
 `;
 
-const StyledActionBarItem = styled.div`
-  float: right;
-  line-height: 70px;
-  padding: 0 ${props => props.theme.gap.small};
+const StyledMenuItem = styled.div`
+  font-size: ${(props: ThemedProps) => props.theme.fontSize.large};
+  font-weight: bold;
+  min-width: 80px;
+  height: 77px;
+  line-height: 77px;
+  padding: 0 ${(props: ThemedProps) => props.theme.gap.medium};
   cursor: pointer;
 `;
 
-const StyledAccountItem = styled(StyledActionBarItem)`
-  max-width: 120px;
+const StyledAccountItem = styled(StyledMenuItem)`
+  width: 150px;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -58,12 +60,12 @@ class Header extends React.PureComponent<IProps> {
     return (
       <StyledHeader>
         <StyledBrand>BlueStone</StyledBrand>
-        <StyledActionBar>
+        <StyledMenu>
+          <StyledMenuItem>{t('FAQ')}</StyledMenuItem>
           <StyledAccountItem onClick={onAccountClick}>
             {defaultAccount ? defaultAccount : t('no_account')}
           </StyledAccountItem>
-          <StyledActionBarItem>{t('FAQ')}</StyledActionBarItem>
-        </StyledActionBar>
+        </StyledMenu>
       </StyledHeader>
     );
   }

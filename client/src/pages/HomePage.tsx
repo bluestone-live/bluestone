@@ -1,63 +1,79 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { TokenStore } from '../stores';
-import DropDown from '../components/common/Dropdown';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Anchor from '../components/html/Anchor';
-import { toFixed } from '../utils/BigNumber';
 import {
   calculateRate,
   RatePeriod,
-} from '../utils/interestRateCalcutateHelper';
+} from '../utils/interestRateCalculateHelper';
+import Card from '../components/common/Card';
+import { ThemedProps } from '../styles/themes';
+import Radio from '../components/common/Radio';
 
-const StyledHomePage = styled.div`
+const StyledHomePage = styled(Card)`
   height: 100%;
 `;
 
 const StyledTokenList = styled.table`
   width: 100%;
-  border: 1px solid ${props => props.theme.borderColor.secondary};
+  border: 1px solid ${(props: ThemedProps) => props.theme.borderColor.secondary};
   border-spacing: 0;
 
   & thead th {
-    height: 50px;
+    height: 60px;
+    font-weight: normal;
+    font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
+    color: ${(props: ThemedProps) => props.theme.fontColors.secondary};
   }
 `;
 
 const StyledTokenListRow = styled.tr`
-  height: 50px;
+  height: 100px;
 
   & td {
     text-align: center;
     padding: 0;
-    border-top: 1px solid ${props => props.theme.borderColor.secondary};
-  }
-
-  &:hover {
-    background-color: #f8f8f8;
+    border-top: 1px solid
+      ${(props: ThemedProps) => props.theme.borderColor.secondary};
   }
 `;
 
 const StyledActionBar = styled.div`
   display: flex;
-  background-color: #fff;
-  border: 1px solid ${props => props.theme.borderColor.secondary};
-  border-radius: ${props => props.theme.borderRadius};
-  margin-bottom: ${props => props.theme.gap.small};
-  justify-content: space-evenly;
+  justify-content: flex-end;
+  height: 60px;
+  align-items: stretch;
+  padding-right: ${(props: ThemedProps) => props.theme.gap.medium};
 `;
 
-const StyledHomePageDropDown = styled(DropDown)`
-  border: 0;
+const StyledTermSelector = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const StyledAnchor = styled(Anchor)`
-  border: 1px solid ${props => props.theme.borderColor.secondary};
-  margin: 0 8px;
-  padding: 6px 8px;
-  border-radius: ${props => props.theme.borderRadius};
-  background-color: #fff;
+  border: 1px solid ${(props: ThemedProps) => props.theme.borderColor.secondary};
+  margin: 0 ${(props: ThemedProps) => props.theme.gap.small};
+  display: inline-block;
+  min-width: 100px;
+  padding: 0 ${(props: ThemedProps) => props.theme.gap.small};
+  height: 30px;
+  line-height: 30px;
+  border-radius: ${(props: ThemedProps) => props.theme.borderRadius.medium};
+`;
+
+const StyledPrimaryAnchor = styled(StyledAnchor)`
+  background-color: ${(props: ThemedProps) => props.theme.colors.primary};
+  color: ${(props: ThemedProps) => props.theme.fontColors.inverted};
+  border-color: transparent;
+
+  &:hover {
+    color: ${(props: ThemedProps) => props.theme.fontColors.inverted};
+    background-color: ${(props: ThemedProps) =>
+      props.theme.colors.primaryLight};
+  }
 `;
 
 interface IProps extends WithTranslation {
@@ -66,7 +82,7 @@ interface IProps extends WithTranslation {
 
 interface ITermOption {
   text: string;
-  key: number;
+  value: number;
 }
 
 interface IState {
@@ -76,15 +92,15 @@ interface IState {
 const terms: ITermOption[] = [
   {
     text: '1 Day',
-    key: 1,
+    value: 1,
   },
   {
     text: '7 Days',
-    key: 7,
+    value: 7,
   },
   {
     text: '30 Days',
-    key: 30,
+    value: 30,
   },
 ];
 
@@ -95,10 +111,15 @@ class HomePage extends React.Component<IProps, IState> {
     selectedTerm: terms[0],
   };
 
-  onTermSelect = (termOption: ITermOption) =>
+  onTermSelect = (value: string | number) => {
+    const term = terms.find(t => t.value === value);
+    if (!term) {
+      return;
+    }
     this.setState({
-      selectedTerm: termOption,
+      selectedTerm: term,
     });
+  };
 
   render() {
     const {
@@ -110,20 +131,22 @@ class HomePage extends React.Component<IProps, IState> {
     return (
       <StyledHomePage>
         <StyledActionBar>
-          {t('select_term')!}
-          <StyledHomePageDropDown
-            options={terms}
-            onSelected={this.onTermSelect}
-          >
-            {selectedTerm.text}
-          </StyledHomePageDropDown>
+          <StyledTermSelector>
+            {t('select_term')}
+            <Radio
+              name="term"
+              onChange={this.onTermSelect}
+              selectedOption={selectedTerm}
+              options={terms}
+            />
+          </StyledTermSelector>
         </StyledActionBar>
         <StyledTokenList>
           <thead>
             <tr>
-              <th>{t('token')}</th>
-              <th>{t('deposit_apr')}</th>
-              <th>{t('loan_apr')}</th>
+              <th style={{ minWidth: '220px' }}>{t('token')}</th>
+              <th style={{ minWidth: '250px' }}>{t('deposit_apr')}</th>
+              <th style={{ minWidth: '250px' }}>{t('loan_apr')}</th>
               <th />
             </tr>
           </thead>
@@ -137,7 +160,7 @@ class HomePage extends React.Component<IProps, IState> {
                 <td>
                   {token.depositAnnualPercentageRates
                     ? `${calculateRate(
-                        token.depositAnnualPercentageRates[selectedTerm.key],
+                        token.depositAnnualPercentageRates[selectedTerm.value],
                         RatePeriod.Annual,
                       )}%`
                     : '0%'}
@@ -145,7 +168,7 @@ class HomePage extends React.Component<IProps, IState> {
                 <td>
                   {token.loanAnnualPercentageRates
                     ? `${calculateRate(
-                        token.loanAnnualPercentageRates[selectedTerm.key],
+                        token.loanAnnualPercentageRates[selectedTerm.value],
                         RatePeriod.Annual,
                       )}%`
                     : '0%'}
@@ -154,9 +177,9 @@ class HomePage extends React.Component<IProps, IState> {
                   <StyledAnchor to={`/deposit/${token.symbol}`}>
                     {t('deposit')}
                   </StyledAnchor>
-                  <StyledAnchor to={`/loan/${token.defaultLoanPair}`}>
+                  <StyledPrimaryAnchor to={`/loan/${token.defaultLoanPair}`}>
                     {t('loan')}
-                  </StyledAnchor>
+                  </StyledPrimaryAnchor>
                 </td>
               </StyledTokenListRow>
             ))}

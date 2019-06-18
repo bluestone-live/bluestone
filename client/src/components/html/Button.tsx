@@ -1,5 +1,6 @@
 import * as React from 'react';
 import styled, { css } from 'styled-components';
+import { ThemedProps } from '../../styles/themes';
 
 interface IProps {
   children: React.ReactChild[];
@@ -12,9 +13,9 @@ interface IProps {
 const StyledButton = styled.button`
   border-width: 1px;
   border-style: solid;
-  border-color: ${props => props.theme.borderColor.secondary};
-  border-radius: ${props => props.theme.borderRadius};
-  color: ${props => props.theme.fontColor.primary};
+  border-color: ${(props: ThemedProps) => props.theme.borderColor.secondary};
+  border-radius: ${(props: ThemedProps) => props.theme.borderRadius.medium};
+  color: ${(props: ThemedProps) => props.theme.fontColors.primary};
   background-color: white;
   padding: 8px 16px;
   letter-spacing: 1px;
@@ -22,7 +23,7 @@ const StyledButton = styled.button`
   cursor: pointer;
   outline: none;
 
-  ${(props: IProps) =>
+  ${(props: ThemedProps<IProps>) =>
     props.primary &&
     css`
       border-color: ${p => p.theme.colors.primary};
@@ -34,13 +35,13 @@ const StyledButton = styled.button`
       }
     `};
 
-  ${(props: IProps) =>
+  ${(props: ThemedProps<IProps>) =>
     props.fullWidth &&
     css`
       width: 100%;
     `};
 
-  ${(props: IProps) =>
+  ${(props: ThemedProps<IProps>) =>
     props.disabled &&
     css`
       cursor: not-allowed;

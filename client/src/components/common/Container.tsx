@@ -7,10 +7,6 @@ interface IProps {
 }
 
 const StyledContainer = styled.div`
-  margin: 0 auto;
-  width: 100%;
-  max-width: 900px;
-
   ${(props: IProps) =>
     props.maxWidth &&
     css`

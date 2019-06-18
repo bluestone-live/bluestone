@@ -1,12 +1,20 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import styled from 'styled-components';
+import { ThemedProps } from '../../styles/themes';
+
+interface IProps extends WithTranslation {
+  children: React.ReactChild | React.ReactChild[];
+  options: IDropdownOption[];
+  onSelected: (option: IDropdownOption) => void;
+  className?: string;
+}
 
 const StyledDropdown = styled.div`
   position: relative;
   z-index: 10;
-  border: 1px solid ${props => props.theme.borderColor.secondary};
-  border-radius: ${props => props.theme.borderRadius};
+  border: 1px solid ${(props: ThemedProps) => props.theme.borderColor.secondary};
+  border-radius: ${(props: ThemedProps) => props.theme.borderRadius.medium};
   width: 100%;
   min-width: 120px;
   text-align: center;
@@ -19,8 +27,8 @@ const StyledOptionsContainer = styled.div`
   position: absolute;
   width: 100%;
   background-color: #fff;
-  border: 1px solid ${props => props.theme.borderColor.secondary};
-  border-radius: ${props => props.theme.borderRadius};
+  border: 1px solid ${(props: ThemedProps) => props.theme.borderColor.secondary};
+  border-radius: ${(props: ThemedProps) => props.theme.borderRadius.medium};
   top: 44px;
   left: 0;
 `;
@@ -28,19 +36,14 @@ const StyledOptionsContainer = styled.div`
 const StyledOption = styled.div`
   width: 100%;
   height: 44px;
-  border-bottom: 1px solid ${props => props.theme.borderColor.secondary};
+  border-bottom: 1px solid
+    ${(props: ThemedProps) => props.theme.borderColor.secondary};
   cursor: pointer;
 `;
 
 interface IDropdownOption {
   text: string;
   key: any;
-}
-
-interface IProps extends WithTranslation {
-  children: React.ReactChild | React.ReactChild[];
-  options: IDropdownOption[];
-  onSelected: (option: IDropdownOption) => void;
 }
 
 interface IState {
@@ -71,10 +74,14 @@ class Dropdown extends React.Component<IProps, IState> {
   };
 
   render() {
-    const { children, options } = this.props;
+    const { children, options, className } = this.props;
     const { showOptions } = this.state;
     return (
-      <StyledDropdown onClick={this.onDropdownClick} onBlur={this.hideOptions}>
+      <StyledDropdown
+        className={className}
+        onClick={this.onDropdownClick}
+        onBlur={this.hideOptions}
+      >
         {children}
         {showOptions ? (
           <StyledOptionsContainer>

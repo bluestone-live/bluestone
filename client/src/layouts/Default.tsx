@@ -6,6 +6,8 @@ import { AccountStore } from '../stores';
 import Header from '../components/common/Header';
 import AuthorizationReminder from '../containers/AuthorizationReminder';
 import Container from '../components/common/Container';
+import Card from '../components/common/Card';
+import { ThemedProps } from '../styles/themes';
 
 interface IProps extends WithTranslation {
   children: React.ReactChild;
@@ -13,15 +15,25 @@ interface IProps extends WithTranslation {
   title?: React.ReactChild | React.ReactChild[];
 }
 
+const StyledDefaultLayout = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: ${(props: ThemedProps) => props.theme.gap.largest};
+  font-family: ${(props: ThemedProps) => props.theme.fontFamily};
+  font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
+`;
+
+const StyledHeaderCard = styled(Card)`
+  width: 1024px;
+  margin-bottom: ${(props: ThemedProps) => props.theme.gap.largest};
+`;
+
 const StyledMain = styled.main`
   display: flex;
-  min-height: 100vh;
   flex-direction: column;
-  margin: 0 auto;
-  padding: 0;
-  font-family: ${props => props.theme.fontFamily};
-  font-size: ${props => props.theme.fontSize.medium};
-  background-color: ${props => props.theme.backgroundColor.primary};
+  width: 1024px;
 `;
 
 @inject('accountStore')
@@ -49,17 +61,19 @@ class Default extends React.Component<IProps> {
   render() {
     const { children, accountStore } = this.props;
     return (
-      <div className="layout default">
-        <Header
-          defaultAccount={accountStore.defaultAccount}
-          onAccountClick={this.getAccounts}
-        />
+      <StyledDefaultLayout className="layout default">
+        <StyledHeaderCard>
+          <Header
+            defaultAccount={accountStore.defaultAccount}
+            onAccountClick={this.getAccounts}
+          />
+        </StyledHeaderCard>
         <StyledMain>
           <Container>
             {accountStore.defaultAccount ? children : <AuthorizationReminder />}
           </Container>
         </StyledMain>
-      </div>
+      </StyledDefaultLayout>
     );
   }
 }

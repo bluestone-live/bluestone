@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import { AccountStore } from '../stores';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { ThemedProps } from '../styles/themes';
 
 interface IProps extends WithTranslation {
   accountStore?: AccountStore;
@@ -10,8 +11,8 @@ interface IProps extends WithTranslation {
 
 const StyledImagePanel = styled.section`
   text-align: center;
-  color: ${props => props.theme.fontColors.primary};
-  font-size: ${props => props.theme.fontSize.medium};
+  color: ${(props: ThemedProps) => props.theme.fontColors.primary};
+  font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
 `;
 
 @inject('accountStore')
