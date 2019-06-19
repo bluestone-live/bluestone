@@ -10,8 +10,8 @@ import i18n from './i18n';
 import flatten from './utils/flatten';
 import routes from './routes';
 import { Default } from './layouts';
-import NotFound from './components/common/NotFount';
 import { DefaultTheme } from './styles/themes';
+import NotFound from './components/common/NotFound';
 import 'normalize.css';
 
 const renderError = (ErrorComponent: React.ComponentType) => (props: any) => (

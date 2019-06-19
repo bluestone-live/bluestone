@@ -8,9 +8,9 @@ import {
   calculateRate,
   RatePeriod,
 } from '../utils/interestRateCalculateHelper';
-import Card from '../components/common/Card';
 import { ThemedProps } from '../styles/themes';
 import Radio from '../components/common/Radio';
+import Card from '../components/common/Card';
 
 const StyledTokenList = styled.table`
   width: 100%;

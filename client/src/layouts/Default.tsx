@@ -70,7 +70,13 @@ class Default extends React.Component<IProps> {
         </StyledHeaderCard>
         <StyledMain>
           <Container>
-            {accountStore.defaultAccount ? children : <AuthorizationReminder />}
+            <Card>
+              {accountStore.defaultAccount ? (
+                children
+              ) : (
+                <AuthorizationReminder />
+              )}
+            </Card>
           </Container>
         </StyledMain>
       </StyledDefaultLayout>
