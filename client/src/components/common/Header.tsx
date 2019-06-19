@@ -2,6 +2,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { ThemedProps } from '../../styles/themes';
+import Anchor from '../html/Anchor';
 
 interface IProps extends WithTranslation {
   defaultAccount?: string;
@@ -15,7 +16,7 @@ const StyledHeader = styled.div`
   justify-content: space-between;
 `;
 
-const StyledBrand = styled.div`
+const StyledBrand = styled(Anchor)`
   font-size: ${(props: ThemedProps) => props.theme.fontSize.large};
   font-weight: bold;
   text-align: center;
@@ -59,7 +60,7 @@ class Header extends React.PureComponent<IProps> {
     const { defaultAccount, t, onAccountClick } = this.props;
     return (
       <StyledHeader>
-        <StyledBrand>BlueStone</StyledBrand>
+        <StyledBrand to="/">BlueStone</StyledBrand>
         <StyledMenu>
           <StyledMenuItem>{t('FAQ')}</StyledMenuItem>
           <StyledAccountItem onClick={onAccountClick}>
