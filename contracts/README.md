@@ -16,3 +16,8 @@ Here is a list of contracts which will be deployed to the Ethereum network:
 ### Mocks
 
 There are some contracts in `mocks/` directory, which is solely used for testing.
+
+### TODO
+
+- [ ] Add Solidity Events.
+- [ ] Add error handling and error code.

@@ -13,12 +13,14 @@ contract("DepositManager", ([owner, anotherAccount]) => {
   });
 
   describe("#getDepositInterestRates", () => {
-    it("should get deposit rates per term by calling getDepositRates method", async () => {
-      const result = await depositManager.getDepositInterestRates(
+    it("succeeds", async () => {
+      const res = await depositManager.getDepositInterestRates(
         asset.address
       );
-      expect(result.length).to.be(3);
-      result.forEach(interest => expect(interest).to.be.bignumber);
+
+      expect(res[0]).to.be.bignumber.equal('0')
+      expect(res[1]).to.be.bignumber.equal('0')
+      expect(res[2]).to.be.bignumber.equal('0')
     });
   });
 

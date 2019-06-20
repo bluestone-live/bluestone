@@ -39,6 +39,8 @@ npx truffle migrate
 - `test/`: All test files go to this directory.
 - `clients/`: All user interfaces using in React, Mobx and TypeScript.
 
+More details may be presented in individual folder's README.
+
 ## Development
 
 Read [here](http://47.244.8.26/w/workflow/) for general development workflow.
