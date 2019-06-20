@@ -11,6 +11,7 @@ import {
 import { ThemedProps } from '../styles/themes';
 import Radio from '../components/common/Radio';
 import Card from '../components/common/Card';
+import { ITerm, terms } from '../constants/Term';
 
 const StyledTokenList = styled.table`
   width: 100%;
@@ -76,29 +77,9 @@ interface IProps extends WithTranslation {
   tokenStore: TokenStore;
 }
 
-interface ITermOption {
-  text: string;
-  value: number;
-}
-
 interface IState {
-  selectedTerm: ITermOption;
+  selectedTerm: ITerm;
 }
-
-const terms: ITermOption[] = [
-  {
-    text: '1 Day',
-    value: 1,
-  },
-  {
-    text: '7 Days',
-    value: 7,
-  },
-  {
-    text: '30 Days',
-    value: 30,
-  },
-];
 
 @inject('tokenStore')
 @observer
@@ -107,7 +88,7 @@ class HomePage extends React.Component<IProps, IState> {
     selectedTerm: terms[0],
   };
 
-  onTermSelect = (value: string | number) => {
+  onTermSelect = (value: number) => {
     const term = terms.find(t => t.value === value);
     if (!term) {
       return;

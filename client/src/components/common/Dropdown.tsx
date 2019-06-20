@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { ThemedProps } from '../../styles/themes';
 
-interface IProps extends WithTranslation {
+interface IProps {
   children: React.ReactChild | React.ReactChild[];
   options: IDropdownOption[];
   onSelected: (option: IDropdownOption) => void;
@@ -50,7 +49,7 @@ interface IState {
   showOptions: boolean;
 }
 
-class Dropdown extends React.Component<IProps, IState> {
+export default class Dropdown extends React.Component<IProps, IState> {
   state = {
     showOptions: false,
   };
@@ -99,5 +98,3 @@ class Dropdown extends React.Component<IProps, IState> {
     );
   }
 }
-
-export default withTranslation()(Dropdown);

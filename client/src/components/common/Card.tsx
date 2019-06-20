@@ -12,6 +12,8 @@ const StyledCard = styled.div`
   background-color: ${(props: ThemedProps) =>
     props.theme.backgroundColor.primary};
   border-radius: ${(props: ThemedProps) => props.theme.borderRadius.small};
+  padding: ${(props: ThemedProps) => props.theme.gap.small};
+  box-sizing: border-box;
 
   &::after {
     content: '';

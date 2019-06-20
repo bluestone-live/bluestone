@@ -26,12 +26,12 @@ const StyledButton = styled.button`
   ${(props: ThemedProps<IProps>) =>
     props.primary &&
     css`
-      border-color: ${p => p.theme.colors.primary};
-      color: ${p => p.theme.fontColors.inverted};
-      background-color: ${p => p.theme.colors.primary};
+      border-color: ${(p: ThemedProps) => p.theme.colors.primary};
+      color: ${(p: ThemedProps) => p.theme.fontColors.inverted};
+      background-color: ${(p: ThemedProps) => p.theme.colors.primary};
 
       &:hover {
-        background: ${p => p.theme.colors.primaryLight};
+        background: ${(p: ThemedProps) => p.theme.colors.primaryLight};
       }
     `};
 

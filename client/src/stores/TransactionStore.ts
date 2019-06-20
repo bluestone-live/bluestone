@@ -36,9 +36,11 @@ export class TransactionStore {
     token: IToken,
     term: number,
     amount: BigNumber,
-    isRecurring: string,
+    isRecurring: boolean,
   ) {
+    // TODO throw an error: invalid number value
     const depositId = await deposit(token.address, term, amount, isRecurring);
+    // TODO need to declare the return type
     return this.saveOrUpdateTransaction({
       transactionId: depositId,
       type: TransactionType.Deposit,

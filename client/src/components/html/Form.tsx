@@ -4,7 +4,7 @@ import { ThemedProps } from '../../styles/themes';
 
 interface IFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  children: React.ReactChild[];
+  children: React.ReactChild | React.ReactChild[];
   horizontal?: boolean;
 }
 
@@ -31,6 +31,23 @@ interface IFromItemProps {
 
 const StyledFormItem = styled.div`
   margin: ${(props: ThemedProps) => props.theme.gap.medium};
+  display: flex;
+  padding: ${(props: ThemedProps) => props.theme.gap.small};
+  justify-content: flex-end;
+
+  & > * {
+    flex: 1;
+  }
+
+  & > label {
+    flex: 0;
+    font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
+    min-width: 200px;
+    text-align: right;
+    padding: 0 ${(props: ThemedProps) => props.theme.gap.small};
+    line-height: 35px;
+    height: 35px;
+  }
 `;
 
 Form.Item = (props: IFromItemProps) => {

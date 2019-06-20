@@ -33,10 +33,10 @@ export const deposit = async (
   assetAddress: string,
   term: number,
   amount: BigNumber,
-  isRecurring: string,
+  isRecurring: boolean,
 ): Promise<object> => {
   const contract = await getContracts();
   return contract.DepositManager.methods
-    .deposit(assetAddress, term, amount, isRecurring)
+    .deposit(assetAddress, term, amount.toString(), isRecurring)
     .send({ from: accountStore.defaultAccount });
 };

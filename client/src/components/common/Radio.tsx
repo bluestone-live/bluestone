@@ -3,17 +3,17 @@ import styled from 'styled-components';
 import { ThemedProps } from '../../styles/themes';
 import Input from '../html/Input';
 
-interface IRadioOption {
+export interface IRadioOption<T> {
   text: string;
-  value: number | string;
+  value: T;
 }
 
-interface IProps {
-  options: IRadioOption[];
-  onChange: (value: number | string) => void;
+interface IProps<T> {
+  options: Array<IRadioOption<T>>;
+  onChange: (value: T) => void;
   className?: string;
   name: string;
-  selectedOption?: IRadioOption;
+  selectedOption?: IRadioOption<T>;
 }
 
 const StyledRadio = styled.div`
@@ -34,33 +34,31 @@ const StyledRadioInput = styled(Input)`
 
 const StyledLabel = styled.label``;
 
-export default ({
-  options,
-  onChange,
-  className,
-  name,
-  selectedOption,
-}: IProps) => {
-  const onChangeHandler = (option: IRadioOption) => () => {
-    onChange(option.value);
-  };
+// use class component because functional component does not support generic
+export default class Radio<T> extends React.PureComponent<IProps<T>> {
+  onChangeHandler = (option: IRadioOption<T>) => () =>
+    this.props.onChange(option.value);
 
-  return (
-    <StyledRadio className={className}>
-      {options.map(option => (
-        <StyledRadioOption key={`radio-option-${option.value}`}>
-          <StyledRadioInput
-            key={`radio-option-input-${option.value}`}
-            name={name}
-            type="radio"
-            onChange={onChangeHandler(option)}
-            checked={
-              selectedOption ? option.value === selectedOption.value : false
-            }
-          />
-          <StyledLabel>{option.text}</StyledLabel>
-        </StyledRadioOption>
-      ))}
-    </StyledRadio>
-  );
-};
+  render() {
+    const { options, className, name, selectedOption } = this.props;
+
+    return (
+      <StyledRadio className={className}>
+        {options.map(option => (
+          <StyledRadioOption key={`radio-option-${option.value}`}>
+            <StyledRadioInput
+              key={`radio-option-input-${option.value}`}
+              name={name}
+              type="radio"
+              onChange={this.onChangeHandler(option)}
+              checked={
+                selectedOption ? option.value === selectedOption.value : false
+              }
+            />
+            <StyledLabel>{option.text}</StyledLabel>
+          </StyledRadioOption>
+        ))}
+      </StyledRadio>
+    );
+  }
+}

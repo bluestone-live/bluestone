@@ -19,6 +19,22 @@ const routes = [
       loading: Loading,
     }),
   },
+  {
+    name: 'deposit',
+    path: '/deposit',
+    component: Loadable({
+      loader: () => import('../pages/DepositForm'),
+      loading: Loading,
+    }),
+  },
+  {
+    name: 'deposit',
+    path: '/deposit/:symbol',
+    component: Loadable({
+      loader: () => import('../pages/DepositForm'),
+      loading: Loading,
+    }),
+  },
 ];
 
 export default routes;
