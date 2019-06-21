@@ -3,7 +3,8 @@ pragma solidity ^0.5.0;
 import "./PoolGroup.sol";
 
 
-/// Stores PoolGroup instance for each asset and term.
+/// Stores PoolGroup instances, where each holds deposit and loan information
+/// of a specific asset with a specific term.
 contract LiquidityPools {
     // asset -> term -> PoolGroup
     mapping(address => mapping(uint8 => PoolGroup)) public poolGroups;

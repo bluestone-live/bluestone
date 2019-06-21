@@ -11,6 +11,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract PoolGroup {
     using SafeMath for uint;
 
+    // Total deposit amount since the creation of this PoolGroup
     uint public totalDeposit;
 
     // Total loan amount since the creation of this PoolGroup
@@ -21,6 +22,7 @@ contract PoolGroup {
     /// loan interest.
     uint public totalRepaid;
 
+    // Total amount that is available for loan
     uint public totalLoanableAmount;
 
     // The total amount that has loaned to each loan term
@@ -30,8 +32,13 @@ contract PoolGroup {
     mapping(uint8 => uint) public totalRepaidPerTerm;
 
     struct Pool {
+        // Non-recurring deposit that matures once the term has been reached and available for withdraw
         uint oneTimeDeposit;
+
+        // Recurring deposit that renews once the term has been reached and not available for withdraw
         uint recurringDeposit;
+
+        // Total amount that can be loaned out
         uint loanableAmount;
     }
 
@@ -39,9 +46,9 @@ contract PoolGroup {
     Pool[] public poolsById;
 
     /// Given a pool index, it resolves to a pool ID. Basically it stores all pool IDs 
-    /// and updates them after one day to reflect the maturity change. 
-    /// 
-    /// For a pool group of size 7, the state of this array changing overtime:
+    /// which get updated after one day to reflect the maturity change. For example, 
+    /// for a pool group of size 7, this is how pool IDs changing overtime:
+    ///
     /// 1st day: [0, 1, 2, 3, 4, 5, 6]
     /// 2nd day: [1, 2, 3, 4, 5, 6, 0]
     /// 3rd day: [2, 3, 4, 5, 6, 0, 1]

@@ -116,8 +116,11 @@ contract Loan {
         uint liquidatingAmount;
 
         if (requestedAmount == uint(-1)) {
+            // Liquidate the full remaining debt
             liquidatingAmount = currRemainingDebt;
         } else {
+            // Liquidate a partial of remaining debt
+
             require(
                 requestedAmount <= currRemainingDebt, 
                 "Requested amount must not be greater than remaining debt."
@@ -136,11 +139,14 @@ contract Loan {
         _lastLiquidatedAt = now;
 
         if (remainingDebt() == 0) {
+            // Close the loan if debt is clear
             _isClosed = true;
 
+            // Release the collateral
             uint freedCollateralAmount = _collateralAmount.sub(_soldCollateralAmount);
             return (liquidatingAmount, soldCollateralAmount, freedCollateralAmount);
         } else {
+            // Still has remaining debt, do not release the collateral
             return (liquidatingAmount, soldCollateralAmount, 0);
         }
     }
@@ -177,6 +183,7 @@ contract Loan {
         return _isClosed;
     }
 
+    // Check whether the loan is defaulted or under the required collaterization ratio
     function isLiquidatable(uint loanAssetPrice, uint collateralAssetPrice) external returns (bool) {
         updateAccruedInterest();
 
@@ -198,6 +205,7 @@ contract Loan {
         return _accruedInterest.add(newInterest);
     }
 
+    // The remaining debt equals to orignal loan + accrued interest - repaid loan - liquidated loan.
     function remainingDebt() public view returns (uint) {
         return _loanAmount.add(_accruedInterest).sub(_alreadyPaidAmount).sub(_liquidatedAmount);
     }

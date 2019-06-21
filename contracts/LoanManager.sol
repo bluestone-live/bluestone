@@ -16,7 +16,7 @@ import "./Loan.sol";
 import "./Term.sol";
 
 
-/// The main contract which handles everything related to loan.
+// The main contract which handles everything related to loan.
 contract LoanManager is Ownable, Pausable, Term {
     using SafeERC20 for ERC20;
     using SafeMath for uint;
@@ -28,12 +28,19 @@ contract LoanManager is Ownable, Pausable, Term {
     LiquidityPools private _liquidityPools;
     DepositManager private _depositManager;
 
-    // loan asset -> collateral asset -> enabled
+    /// loan asset -> collateral asset -> enabled
+    /// An loan asset pair refers to loan token A using collateral B, i.e., "B -> A",
+    /// Loan-related transactions can happen only if "B -> A" is enabled. 
     mapping(address => mapping(address => bool)) private _isLoanAssetPairEnabled;
+
+    // loan ID -> Loan
     mapping(bytes32 => Loan) private _loans;
+
     uint private _numLoans;
 
-    // user -> asset -> freed collateral
+    /// user -> asset -> freed collateral
+    /// When a loan has been repaid and liquidated, the remaining collaterals
+    /// becomes "free" and can be withdrawn or be used for new loan
     mapping(address => mapping(address => uint)) private _freedCollaterals;
 
     modifier enabledLoanAssetPair(address loanAsset, address collateralAsset) {
@@ -108,6 +115,7 @@ contract LoanManager is Ownable, Pausable, Term {
         return totalRepayAmount;
     }
 
+    // A loan can be liquidated when it is defaulted or the collaterization ratio is below requirement
     function liquidateLoan(address loanAsset, address collateralAsset, bytes32 loanId, uint amount) 
         external 
         whenNotPaused
@@ -298,7 +306,7 @@ contract LoanManager is Ownable, Pausable, Term {
         uint8 poolIndex = loanTerm - 1;
         uint8 poolGroupLength = depositTerm;
 
-        /// Incrementing the pool group index and loaning from each pool until loan amount is fulfilled.
+        // Incrementing the pool group index and loaning from each pool until loan amount is fulfilled.
         while (remainingLoanAmount > 0 && poolIndex < poolGroupLength) {
             uint loanableAmount = poolGroup.getLoanableAmountFromPool(poolIndex);
 
@@ -313,6 +321,8 @@ contract LoanManager is Ownable, Pausable, Term {
             poolIndex++;
         }
 
+        /// Loan amount affects deposit interest rate, so we need to update 
+        /// deposit interest index and interest rate 
         _depositManager.updateDepositAssetInterestInfo(asset, depositTerm);
     }
 
@@ -346,6 +356,8 @@ contract LoanManager is Ownable, Pausable, Term {
             poolGroup.repayLoanToPool(poolIndex, repayAmount, currLoan.term());
         }
 
+        /// Loan amount affects deposit interest rate, so we need to update 
+        /// deposit interest index and interest rate 
         _depositManager.updateDepositAssetInterestInfo(asset, depositTerm);
     }
 }

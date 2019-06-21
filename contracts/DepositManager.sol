@@ -23,25 +23,44 @@ contract DepositManager is Ownable, Pausable, Term {
     TokenManager private _tokenManager;
     LiquidityPools private _liquidityPools;
 
+    // Hold relavent information about a deposit asset
     struct DepositAsset {
+        // Only enabled asset can perform deposit-related transactions
         bool isEnabled;
+
+        // If this asset has been initialized before
         bool isInitialized;
+
+        // deposit term -> interest index as of last update
         mapping(uint8 => uint) interestIndexPerTerm;
+
+        // deposit term -> timestamp as of last update
         mapping(uint8 => uint) lastTimestampPerTerm;
+
+        // deposit term -> interest rate as of last update
         mapping(uint8 => uint) lastInterestRatePerTerm;
+
+        // deposit term -> interest index history
         mapping(uint8 => InterestIndexHistory) interestIndexHistoryPerTerm;
     }
 
+    // Record interest index on a daily basis
     struct InterestIndexHistory {
         mapping(uint => uint) interestIndexPerDay;
         uint lastDay;
     }
 
+    // Token address -> DepositAsset
     mapping(address => DepositAsset) private _depositAssets;
+
+    // Deposit ID -> Deposit
     mapping(bytes32 => Deposit) private _deposits;
+
     uint private _numDeposit;
 
     uint constant private ONE = 10 ** 18;
+
+    // How many days of interest index we want to keep in InterestIndexHistory
     uint constant private DAYS_OF_INTEREST_INDEX_TO_KEEP = 30;
 
     modifier enabledDepositAsset(address asset) {
@@ -138,12 +157,14 @@ contract DepositManager is Ownable, Pausable, Term {
         updateDepositAssetInterestInfo(asset, term);
 
         if (currDeposit.isOverDue()) {
+            // If a deposit is over due, depositor can only receive principle as a penalty
             uint withdrewAmount = currDeposit.withdrawDeposit();
             _tokenManager.sendTo(user, asset, withdrewAmount);
 
             // Note: interests profit will remain in tokenManager account
             return withdrewAmount;
         } else {
+            // Otherwise, depositor receives principle plus accrued interests
             uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
             uint interestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
             (uint withdrewAmount, uint interestsForShareholders) = currDeposit.withdrawDepositAndInterest(interestIndex);
@@ -166,6 +187,27 @@ contract DepositManager is Ownable, Pausable, Term {
             _depositAssets[asset].lastInterestRatePerTerm[7],
             _depositAssets[asset].lastInterestRatePerTerm[30]
         );
+    }
+
+    // Calculate new interest rate and interest index, and update them in DepositAsset
+    function updateDepositAssetInterestInfo(address asset, uint8 term) public whenNotPaused returns (uint) {
+        // TODO: verify msg.sender to be DepositManager or LoanManager
+
+        DepositAsset storage depositAsset = _depositAssets[asset];
+
+        uint currTimestamp = now;
+        uint lastTimestamp = depositAsset.lastTimestampPerTerm[term];
+        uint prevInterestIndex = depositAsset.interestIndexPerTerm[term];
+        uint interestRate = _calculateInterestRate(asset, term);
+        uint duration = currTimestamp.sub(lastTimestamp);
+
+        uint currInterestIndex = _calculateInterestIndex(prevInterestIndex, interestRate, duration);
+
+        depositAsset.interestIndexPerTerm[term] = currInterestIndex;
+        depositAsset.lastTimestampPerTerm[term] = currTimestamp;
+        depositAsset.lastInterestRatePerTerm[term] = interestRate;
+
+        return currInterestIndex;
     }
 
     // ADMIN --------------------------------------------------------------
@@ -197,18 +239,30 @@ contract DepositManager is Ownable, Pausable, Term {
         depositAsset.isEnabled = false;
     }
 
-    function updateDepositMaturity(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
-        _updatePoolGroupDepositMaturity(asset, 1);
-        _updatePoolGroupDepositMaturity(asset, 7);
-        _updatePoolGroupDepositMaturity(asset, 30);
-    }
+    // NOTE: The following admin functions are to be executed by backend jobs everyday at midnight
 
+    // Update deposit maturity for each asset
     function updateAllDepositMaturity(address[] calldata assetList) external whenNotPaused onlyOwner {
         for (uint i = 0; i < assetList.length; i++) {
             updateDepositMaturity(assetList[i]);
         }
     }
 
+    // Update deposit maturity for each PoolGroup of an asset
+    function updateDepositMaturity(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
+        _updatePoolGroupDepositMaturity(asset, 1);
+        _updatePoolGroupDepositMaturity(asset, 7);
+        _updatePoolGroupDepositMaturity(asset, 30);
+    }
+
+    // Update interest index histories for each asset
+    function updateAllInterestIndexHistories(address[] calldata assetList) external whenNotPaused onlyOwner {
+        for (uint i = 0; i < assetList.length; i++) {
+            updateInterestIndexHistories(assetList[i]);
+        }
+    }
+
+    // Update interest index hisotires for different deposit terms of an asset
     function updateInterestIndexHistories(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
         DepositAsset storage depositAsset = _depositAssets[asset];
         uint8[3] memory terms = [1, 7, 30];
@@ -225,32 +279,6 @@ contract DepositManager is Ownable, Pausable, Term {
 
             _updateInterestIndexHistory(asset, term, currInterestIndex);
         }
-    }
-
-    function updateAllInterestIndexHistories(address[] calldata assetList) external whenNotPaused onlyOwner {
-        for (uint i = 0; i < assetList.length; i++) {
-            updateInterestIndexHistories(assetList[i]);
-        }
-    }
-
-    function updateDepositAssetInterestInfo(address asset, uint8 term) public whenNotPaused returns (uint) {
-        // TODO: verify msg.sender to be DepositManager or LoanManager
-
-        DepositAsset storage depositAsset = _depositAssets[asset];
-
-        uint currTimestamp = now;
-        uint lastTimestamp = depositAsset.lastTimestampPerTerm[term];
-        uint prevInterestIndex = depositAsset.interestIndexPerTerm[term];
-        uint interestRate = _calculateInterestRate(asset, term);
-        uint duration = currTimestamp.sub(lastTimestamp);
-
-        uint currInterestIndex = _calculateInterestIndex(prevInterestIndex, interestRate, duration);
-
-        depositAsset.interestIndexPerTerm[term] = currInterestIndex;
-        depositAsset.lastTimestampPerTerm[term] = currTimestamp;
-        depositAsset.lastInterestRatePerTerm[term] = interestRate;
-
-        return currInterestIndex;
     }
 
     // INTERNAL  --------------------------------------------------------------
@@ -297,6 +325,7 @@ contract DepositManager is Ownable, Pausable, Term {
         return interestEarned.divFixed(totalLoanableAmount);
     }
 
+    // Add a new interest index and remove the oldest interest index if necessary
     function _updateInterestIndexHistory(address asset, uint8 term, uint interestIndex) internal {
         InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
 
@@ -319,11 +348,16 @@ contract DepositManager is Ownable, Pausable, Term {
 
     // PRIVATE --------------------------------------------------------------
 
+    // Update deposit maturity for a specific PoolGroup.
     function _updatePoolGroupDepositMaturity(address asset, uint8 term) private {
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
         uint8 index = 0;
         uint oneTimeDeposit = poolGroup.getOneTimeDepositFromPool(index);
+
+        // 1. Withdraw matured non-recurring deposit from the 1-day pool
         poolGroup.withdrawOneTimeDepositFromPool(index, oneTimeDeposit);
+
+        // 2. Update pool IDs to reflect the deposit maturity change
         poolGroup.updatePoolIds();
     }
 
@@ -336,7 +370,7 @@ contract DepositManager is Ownable, Pausable, Term {
         pure 
         returns (uint) 
     {
-        // index = index * (1 + r * t)
+        // currIndex = prevIndex * (1 + interestRate * duration)
         return prevInterestIndex.mulFixed(ONE.add(interestRate.mul(duration)));
     }
 }

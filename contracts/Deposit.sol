@@ -13,7 +13,7 @@ contract Deposit {
     uint8 private _term;
     uint private _amount;
     uint private _interestIndex;
-    uint private _distributionRatio;
+    uint private _profitRatio;
     uint private _withdrewAmount;
     bool private _isRecurring;
     uint private _createdAt;
@@ -27,7 +27,7 @@ contract Deposit {
         uint8 term, 
         uint amount, 
         uint interestIndex, 
-        uint distributionRatio,
+        uint profitRatio,
         bool isRecurring
     ) public {
         require(amount > 0);
@@ -36,7 +36,7 @@ contract Deposit {
         _term = term;
         _amount = amount;
         _interestIndex = interestIndex;
-        _distributionRatio = distributionRatio;
+        _profitRatio = profitRatio;
         _withdrewAmount = 0;
         _isRecurring = isRecurring;
         _createdAt = now;
@@ -98,7 +98,7 @@ contract Deposit {
 
     function withdrawDepositAndInterest(uint currInterestIndex) external returns (uint, uint) {
         uint totalInterests = _amount.mulFixed(currInterestIndex).divFixed(_interestIndex).sub(_amount);
-        uint interestsForShareholders = totalInterests.mulFixed(_distributionRatio);
+        uint interestsForShareholders = totalInterests.mulFixed(_profitRatio);
         uint interestsForDepositor = totalInterests.sub(interestsForShareholders);
 
         _withdrewAmount = _amount.add(interestsForDepositor);

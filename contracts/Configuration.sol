@@ -4,15 +4,31 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Term.sol";
 
 
-/// A deployed service that stores and retrieves business configurations. 
+// Stores and retrieves business configurations. 
 contract Configuration is Ownable, Term {
     uint private constant MIN_COLLATERAL_RATIO = 12 * (10 ** 17); // 1.2 (120%)
     uint private constant MAX_LIQUIDATION_DISCOUNT = 5 * (10 ** 16); // 0.05 (5%)
     uint private constant MAX_PROFIT_RATIO = 3 * (10 ** 17); // 0.3 (30%)
 
+    // loan asset address -> collateral asset address -> collteral ratio 
     mapping(address => mapping(address => uint)) private _collateralRatioMap;
+
+    // loan asset address -> collateral asset address -> liquidation discount
     mapping(address => mapping(address => uint)) private _liquidationDiscountMap;
+
+    // loan asset address -> loan term -> loan interest rate
     mapping(address => mapping(uint8 => uint)) private _loanInterestRates;
+
+    /// loan asset address -> deposit term -> loan term -> coeffcient
+    /// Coefficent `a` defines how much percentage of the loan should be 
+    /// borrowed from a particular PoolGroup.
+    /// 
+    /// If we use `a_<depositTerm>_<loanTerm>` to represent an coefficent, 
+    /// then, for example, when a 1-day loan of 10 ETH is made, 
+    /// the coefficent distribution could look like this:
+    /// - 50% of the loan draws from 1-day PoolGroup (a_1_1 = 0.5)
+    /// - 30% of the loan draws from 7-day PoolGroup (a_7_1 = 0.3)
+    /// - 20% of the loan draws from 30-day PoolGroup (a_30_1 = 0.2)
     mapping(address => mapping(uint8 => mapping(uint8 => uint))) private _coefficients;
 
     // The percentage we take from deposit interest as profit
