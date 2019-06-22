@@ -1,6 +1,7 @@
 import { getContracts } from './Web3Service';
 import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
+import { IGetLoanTransactionResponse } from '../../constants/Transaction';
 
 export const isLoanAssetPairEnabled = async (
   loanAssetAddress: string,
@@ -18,7 +19,7 @@ export const loan = async (
   collateralAssetAddress: string,
   loanAmount: BigNumber,
   collateralAmount: BigNumber,
-  requestedFreedCollateral: BigNumber = 0,
+  requestedFreedCollateral: BigNumber = new BigNumber(0),
 ): Promise<object> => {
   const contracts = await getContracts();
   return contracts.LoanManager.methods
@@ -31,4 +32,34 @@ export const loan = async (
       requestedFreedCollateral,
     )
     .send({ from: accountStore.defaultAccount });
+};
+
+export const getLoanTransactions = async (): Promise<
+  IGetLoanTransactionResponse[]
+> => {
+  // TODO: use real data instead
+  return [
+    {
+      transactionId: 1,
+      owner: '0x111',
+      term: 7,
+      loanAmount: 1e18,
+      minCollateralRatio: 5e17,
+      interestRate: 3e15,
+      createdAt: 0,
+      isClosed: true,
+      accruedInterest: 5e16,
+    },
+    {
+      transactionId: 1,
+      owner: '0x111',
+      term: 30,
+      loanAmount: 1e18,
+      minCollateralRatio: 5e17,
+      interestRate: 3e15,
+      createdAt: 0,
+      isClosed: false,
+      accruedInterest: 5e16,
+    },
+  ];
 };

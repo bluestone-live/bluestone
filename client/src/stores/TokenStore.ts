@@ -3,26 +3,14 @@ import { getTokenAddress } from './services/TokenService';
 import {
   isDepositAssetEnabled,
   getDepositInterestRates,
-  IAnnualPercentageRateValues,
 } from './services/DepositManagerService';
 import { getLoanInterestRate } from './services/ConfigurationService';
-
-export interface IToken {
-  symbol: string;
-  address: string;
-  defaultLoanPair: string;
-  depositAnnualPercentageRates?: IAnnualPercentageRateValues;
-  loanAnnualPercentageRates?: IAnnualPercentageRateValues;
-  logo?: string;
-  depositEnabled: boolean;
-}
+import { IToken, SupportToken } from '../constants/Token';
 
 export class TokenStore {
-  @observable tokens = new Map<string, IToken | null>([
-    ['ETH', null],
-    ['DAI', null],
-    ['USDC', null],
-  ]);
+  @observable tokens = new Map<string, IToken | null>(
+    SupportToken.map(token => [token, null]),
+  );
 
   @computed get validTokens(): IToken[] {
     return Array.from(this.tokens.values()).filter(

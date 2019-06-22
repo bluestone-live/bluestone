@@ -1,6 +1,11 @@
 import { getContracts } from './Web3Service';
 import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
+import { IAnnualPercentageRateValues } from '../../constants/Rate';
+import {
+  IDepositTransaction,
+  IGetDepositTransactionResponse,
+} from '../../constants/Transaction';
 
 export const isDepositAssetEnabled = async (
   tokenAddress: string,
@@ -10,10 +15,6 @@ export const isDepositAssetEnabled = async (
     .isDepositAssetEnabled(tokenAddress)
     .call();
 };
-
-export interface IAnnualPercentageRateValues {
-  [term: number]: BigNumber;
-}
 
 export const getDepositInterestRates = async (
   tokenAddress: string,
@@ -39,4 +40,34 @@ export const deposit = async (
   return contract.DepositManager.methods
     .deposit(assetAddress, term, amount.toString(), isRecurring)
     .send({ from: accountStore.defaultAccount });
+};
+
+export const getDepositTransactions = async (): Promise<
+  IGetDepositTransactionResponse[]
+> => {
+  // TODO: use real data instead
+  return [
+    {
+      owner: 'xxx',
+      transactionId: 1,
+      token: 'eth',
+      term: 7,
+      depositAmount: 1e18,
+      isRecurring: true,
+      interestRate: 0.3,
+      createdAt: 0,
+      maturedAt: 100,
+    },
+    {
+      owner: 'xxx',
+      transactionId: 2,
+      token: 'dai',
+      term: 30,
+      depositAmount: 1e20,
+      isRecurring: false,
+      interestRate: 0.3,
+      createdAt: 0,
+      maturedAt: 100,
+    },
+  ];
 };
