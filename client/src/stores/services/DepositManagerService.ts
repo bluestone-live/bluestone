@@ -2,10 +2,7 @@ import { getContracts } from './Web3Service';
 import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
 import { IAnnualPercentageRateValues } from '../../constants/Rate';
-import {
-  IDepositTransaction,
-  IGetDepositTransactionResponse,
-} from '../../constants/Transaction';
+import { IGetDepositTransactionResponse } from '../../constants/Transaction';
 
 export const isDepositAssetEnabled = async (
   tokenAddress: string,
@@ -50,7 +47,7 @@ export const getDepositTransactions = async (): Promise<
     {
       owner: 'xxx',
       transactionId: 1,
-      token: 'eth',
+      token: 'ETH',
       term: 7,
       depositAmount: 1e18,
       isRecurring: true,
@@ -61,7 +58,7 @@ export const getDepositTransactions = async (): Promise<
     {
       owner: 'xxx',
       transactionId: 2,
-      token: 'dai',
+      token: 'DAI',
       term: 30,
       depositAmount: 1e20,
       isRecurring: false,

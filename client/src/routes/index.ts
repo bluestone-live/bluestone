@@ -35,6 +35,14 @@ const routes = [
       loading: Loading,
     }),
   },
+  {
+    name: 'transaction-list',
+    path: '/transactions',
+    component: Loadable({
+      loader: () => import('../pages/TransactionList'),
+      loading: Loading,
+    }),
+  },
 ];
 
 export default routes;

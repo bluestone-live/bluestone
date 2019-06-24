@@ -10,7 +10,7 @@ export enum TransactionType {
   Unknown,
 }
 
-// TODO: sync required
+// TODO sync required
 export const getLoanTransactionType = (transaction: ILoanTransaction) => {
   if (transaction.isClosed) {
     return TransactionType.Closed;
