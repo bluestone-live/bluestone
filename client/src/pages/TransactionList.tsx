@@ -7,11 +7,17 @@ import Select from '../components/html/Select';
 import Form from '../components/html/Form';
 import { inject, observer } from 'mobx-react';
 import { terms } from '../constants/Term';
+import { Row, Cell } from '../components/common/Layout';
+import styled from 'styled-components';
 
 interface IProps extends WithTranslation {
   tokenStore: TokenStore;
   transactionStore: TransactionStore;
 }
+
+const StyledHeaderCell = styled(Cell)`
+  font-weight: bolder;
+`;
 
 @inject('tokenStore', 'transactionStore')
 @observer
@@ -54,6 +60,13 @@ class TransactionList extends React.Component<IProps> {
           }
         </div>
         <div className="tx-list">
+          <Row>
+            <StyledHeaderCell>{t('token')!}</StyledHeaderCell>
+            <StyledHeaderCell>{t('type')!}</StyledHeaderCell>
+            <StyledHeaderCell>{t('amount')!}</StyledHeaderCell>
+            <StyledHeaderCell>{t('status')!}</StyledHeaderCell>
+            <StyledHeaderCell>{t('actions')!}</StyledHeaderCell>
+          </Row>
           {transactionStore.transactions.map(tx => (
             <TransactionItem key={tx.transactionId} transaction={tx} />
           ))}

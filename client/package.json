@@ -20,6 +20,7 @@
     "lodash": "^4.17.11",
     "mobx": "^5.9.4",
     "mobx-react": "^6.0.0",
+    "moment": "^2.24.0",
     "normalize.css": "^8.0.1",
     "offline-plugin": "^5.0.7",
     "react": "^16.8.6",

@@ -6,10 +6,10 @@ import {
 import { BigNumber } from '../utils/BigNumber';
 import {
   ITransaction,
-  getLoanTransactionType,
   IDepositTransaction,
-  TransactionType,
   ILoanTransaction,
+  getDepositTransactionStatus,
+  TransactionType,
 } from '../constants/Transaction';
 import { IToken } from '../constants/Token';
 import { tokenStore } from '.';
@@ -79,6 +79,7 @@ export class TransactionStore {
         return {
           ...tx,
           type: TransactionType.Deposit,
+          status: getDepositTransactionStatus(tx),
           token,
           term,
         };

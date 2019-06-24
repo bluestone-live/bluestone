@@ -13,7 +13,7 @@ import Form from '../components/html/Form';
 
 interface IProps
   extends WithTranslation,
-    RouteComponentProps<{ symbol: string }> {
+    RouteComponentProps<{ tokenSymbol: string }> {
   transactionStore: TransactionStore;
   tokenStore: TokenStore;
 }
@@ -57,7 +57,7 @@ class DepositForm extends React.Component<IProps, IState> {
   componentDidMount() {
     const { match, history } = this.props;
 
-    if (!match.params.symbol) {
+    if (!match.params.tokenSymbol) {
       history.replace(`/deposit/ETH`);
     }
   }
@@ -88,8 +88,8 @@ class DepositForm extends React.Component<IProps, IState> {
     });
 
   onSubmit = () => {
-    const { transactionStore, tokenStore, match, t } = this.props;
-    const currentToken = tokenStore.getToken(match.params.symbol);
+    const { transactionStore, tokenStore, match } = this.props;
+    const currentToken = tokenStore.getToken(match.params.tokenSymbol);
     const { selectedAutoRenewal, selectedTerm, amount } = this.state;
 
     transactionStore.deposit(
@@ -102,7 +102,7 @@ class DepositForm extends React.Component<IProps, IState> {
 
   render() {
     const { tokenStore, match, t } = this.props;
-    const currentToken = tokenStore.getToken(match.params.symbol);
+    const currentToken = tokenStore.getToken(match.params.tokenSymbol);
     const { selectedTerm, selectedAutoRenewal } = this.state;
 
     return (

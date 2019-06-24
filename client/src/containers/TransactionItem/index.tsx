@@ -1,7 +1,14 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { ITransaction } from '../../constants/Transaction';
+import {
+  ITransaction,
+  IDepositTransaction,
+  ILoanTransaction,
+  TransactionType,
+} from '../../constants/Transaction';
 import { observer, inject } from 'mobx-react';
+import DepositItem from './DepositItem';
+import LoanItem from './LoanItem';
 
 interface IProps extends WithTranslation {
   transaction: ITransaction;
@@ -11,7 +18,13 @@ interface IProps extends WithTranslation {
 @observer
 class TransactionItem extends React.Component<IProps> {
   render() {
-    return <div className="tx-item">TX Item</div>;
+    const { transaction } = this.props;
+    if (transaction.type === TransactionType.Deposit) {
+      return (
+        <DepositItem depositTransaction={transaction as IDepositTransaction} />
+      );
+    }
+    return <LoanItem loanTransaction={transaction as ILoanTransaction} />;
   }
 }
 
