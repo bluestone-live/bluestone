@@ -46,6 +46,7 @@ class Default extends React.Component<IProps> {
     if (isMetaMaskConnected) {
       await accountStore.getAccounts();
       accountStore.bindOnUpdateEvent();
+      await accountStore.initAllowance();
     }
   }
 

@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components';
 import { ThemedProps } from '../../styles/themes';
 
 interface IProps {
-  children: React.ReactChild[];
+  children: React.ReactChild | React.ReactChild[];
   onClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   primary?: boolean;
   fullWidth?: boolean;

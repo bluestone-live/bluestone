@@ -11,11 +11,13 @@ const deployedContractJsonInterface = {
   TokenFactory: requireContract('TokenFactory'),
   DepositManager: requireContract('DepositManager'),
   LoanManager: requireContract('LoanManager'),
+  TokenManager: requireContract('TokenManager'),
 };
 
 // May have multiple-instances
 export const nonDeployedContractJsonInterface = {
   PoolGroup: requireContract('PoolGroup'),
+  ERC20: requireContract('ERC20'),
 };
 
 type DeployedContractInstances = typeof deployedContractJsonInterface;

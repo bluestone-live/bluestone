@@ -6,9 +6,12 @@ import {
   isMetaMaskConnected,
 } from './services/AccountService';
 import { onAccountsChanged } from './services/EthereumService';
+import { tokenStore, tokenManagerStore, IToken } from './index';
+import { BigNumber } from '../utils/BigNumber';
 
 export class AccountStore {
   @observable accounts: string[] = [];
+  @observable allowance = new Map<string, BigNumber>();
 
   @observable defaultAccountChanged: boolean = false;
 
@@ -66,5 +69,41 @@ export class AccountStore {
   @action.bound
   changeAccounts(accounts: string[]) {
     this.accounts = accounts;
+  }
+
+  @action.bound
+  async initAllowance() {
+    await Promise.all(tokenStore.validTokens.map(this.fetchAllowance));
+  }
+
+  @action.bound
+  async fetchAllowance(token: IToken) {
+    const owner = this.defaultAccount;
+    const spender = tokenManagerStore.address;
+    const allowance = await token.erc20.methods
+      .allowance(owner, spender)
+      .call();
+
+    this.allowance.set(`${owner}_${token.symbol}`, allowance);
+  }
+
+  hasAllowance(tokenSymbol: string) {
+    const owner = this.defaultAccount;
+    const allowance = this.allowance.get(`${owner}_${tokenSymbol}`);
+    return allowance ? !allowance.isZero() : false;
+  }
+
+  async approveFullAllowance(token: IToken) {
+    const { erc20 } = token;
+    const spender = tokenManagerStore.address;
+    const amount = await erc20.methods.totalSupply.call();
+    const owner = this.defaultAccount;
+
+    await token.erc20.methods
+      .approve(spender, amount.toString())
+      .send({ from: owner });
+
+    // TODO: subscribe to approval event and update allowance once succeed.
+    // Not sure if this is a good place to subscribe.
   }
 }

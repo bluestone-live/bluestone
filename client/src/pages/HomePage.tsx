@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { TokenStore } from '../stores';
+import { TokenStore, AccountStore, IToken } from '../stores';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Anchor from '../components/html/Anchor';
@@ -11,6 +11,7 @@ import {
 import { ThemedProps } from '../styles/themes';
 import Radio from '../components/common/Radio';
 import Card from '../components/common/Card';
+import Button from '../components/html/Button';
 import { ITerm, terms } from '../constants/Term';
 
 const StyledTokenList = styled.table`
@@ -75,13 +76,14 @@ const StyledPrimaryAnchor = styled(StyledAnchor)`
 
 interface IProps extends WithTranslation {
   tokenStore: TokenStore;
+  accountStore: AccountStore;
 }
 
 interface IState {
   selectedTerm: ITerm;
 }
 
-@inject('tokenStore')
+@inject('tokenStore', 'accountStore')
 @observer
 class HomePage extends React.Component<IProps, IState> {
   state = {
@@ -97,6 +99,36 @@ class HomePage extends React.Component<IProps, IState> {
       selectedTerm: term,
     });
   };
+
+  renderActions(token: IToken) {
+    const { accountStore, t } = this.props;
+
+    const onEnableToken = async () => {
+      await accountStore.approveFullAllowance(token);
+    };
+
+    if (accountStore.hasAllowance(token.symbol)) {
+      return (
+        <React.Fragment>
+          <StyledAnchor to={`/deposit/${token.symbol}`}>
+            {t('deposit')}
+          </StyledAnchor>
+          <StyledPrimaryAnchor to={`/loan?loanTokenSymbol=${token.symbol}`}>
+            {t('loan')}
+          </StyledPrimaryAnchor>
+        </React.Fragment>
+      );
+    } else {
+      // TODO: show button loading state
+      return (
+        <React.Fragment>
+          <Button primary onClick={onEnableToken}>
+            {t('enable')}
+          </Button>
+        </React.Fragment>
+      );
+    }
+  }
 
   render() {
     const {
@@ -153,16 +185,7 @@ class HomePage extends React.Component<IProps, IState> {
                         )}%`
                       : '0%'}
                   </td>
-                  <td>
-                    <StyledAnchor to={`/deposit/${token.symbol}`}>
-                      {t('deposit')}
-                    </StyledAnchor>
-                    <StyledPrimaryAnchor
-                      to={`/loan?loanTokenSymbol=${token.symbol}`}
-                    >
-                      {t('loan')}
-                    </StyledPrimaryAnchor>
-                  </td>
+                  <td>{this.renderActions(token)}</td>
                 </StyledTokenListRow>
               ))}
               <tr />

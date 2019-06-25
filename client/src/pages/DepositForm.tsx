@@ -87,12 +87,14 @@ class DepositForm extends React.Component<IProps, IState> {
       amount: Number.parseFloat(e.currentTarget.value),
     });
 
-  onSubmit = () => {
+  onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     const { transactionStore, tokenStore, match } = this.props;
     const currentToken = tokenStore.getToken(match.params.tokenSymbol);
     const { selectedAutoRenewal, selectedTerm, amount } = this.state;
 
-    transactionStore.deposit(
+    await transactionStore.deposit(
       currentToken!,
       selectedTerm.value,
       convertDecimalToWei(amount),

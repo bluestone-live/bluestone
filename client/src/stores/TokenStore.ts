@@ -1,5 +1,5 @@
 import { observable, action, computed } from 'mobx';
-import { getTokenAddress } from './services/TokenService';
+import { getTokenAddress, getERC20Token } from './services/TokenService';
 import {
   isDepositAssetEnabled,
   getDepositInterestRates,
@@ -43,12 +43,18 @@ export class TokenStore {
   @action.bound
   async loadToken(tokenSymbol: string) {
     const address = await getTokenAddress(tokenSymbol);
+    const erc20 = await getERC20Token(address);
+
+    // TODO: Register test tokens for MetaMask.
+    // const res = await registerToken(tokenSymbol);
+
     return this.updateToken(tokenSymbol, {
       symbol: tokenSymbol,
       defaultLoanPair:
         tokenSymbol === 'ETH' ? `${tokenSymbol}_DAI` : `${tokenSymbol}_ETH`,
       address,
       depositEnabled: false,
+      erc20,
     });
   }
 
