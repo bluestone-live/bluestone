@@ -6,6 +6,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 contract ERC20Mock is ERC20 {
     string public name;
     string public symbol;
+    uint8 public decimals;
 
     constructor (
         string memory tokenName, 
@@ -17,6 +18,7 @@ contract ERC20Mock is ERC20 {
     {
         name = tokenName;
         symbol = tokenSymbol;
+        decimals = 18;
         _mint(owner, initialSupply);
     }
 
