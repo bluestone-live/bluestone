@@ -73,10 +73,15 @@ export class AccountStore {
 
   @action.bound
   async initAllowance() {
-    await Promise.all(tokenStore.validTokens.map(this.fetchAllowance));
+    await Promise.all(tokenStore.validTokens.map(this.fetchAndUpdateAllowance));
   }
 
   @action.bound
+  async fetchAndUpdateAllowance(token: IToken) {
+    const allowance = await this.fetchAllowance(token);
+    this.updateAllowance(token.symbol, allowance);
+  }
+
   async fetchAllowance(token: IToken) {
     const owner = this.defaultAccount;
     const spender = tokenManagerStore.address;
@@ -84,7 +89,7 @@ export class AccountStore {
       .allowance(owner, spender)
       .call();
 
-    this.allowance.set(`${owner}_${token.symbol}`, allowance);
+    return allowance;
   }
 
   hasAllowance(tokenSymbol: string) {
@@ -93,17 +98,35 @@ export class AccountStore {
     return allowance ? !allowance.isZero() : false;
   }
 
+  @action.bound
   async approveFullAllowance(token: IToken) {
     const { erc20 } = token;
-    const spender = tokenManagerStore.address;
-    const amount = await erc20.methods.totalSupply.call();
     const owner = this.defaultAccount;
+    const spender = tokenManagerStore.address;
 
-    await token.erc20.methods
+    // Subscribe to Approval event and update allowance if succeed
+    erc20.events
+      .Approval({
+        filter: {
+          owner,
+          spender,
+        },
+      })
+      .on('data', (event: any) => {
+        const newAllowance = event.returnValues.value;
+        this.updateAllowance(token.symbol, newAllowance);
+      });
+
+    const amount = await erc20.methods.totalSupply.call();
+
+    await erc20.methods
       .approve(spender, amount.toString())
       .send({ from: owner });
+  }
 
-    // TODO: subscribe to approval event and update allowance once succeed.
-    // Not sure if this is a good place to subscribe.
+  @action.bound
+  updateAllowance(tokenSymbol: string, value: BigNumber) {
+    const owner = this.defaultAccount;
+    this.allowance.set(`${owner}_${tokenSymbol}`, value);
   }
 }
