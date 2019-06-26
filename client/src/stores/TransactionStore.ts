@@ -2,6 +2,8 @@ import { observable, action, computed } from 'mobx';
 import {
   deposit,
   getDepositTransactions,
+  toggleRenewal,
+  withdraw,
 } from './services/DepositManagerService';
 import { BigNumber } from '../utils/BigNumber';
 import {
@@ -14,6 +16,11 @@ import {
 import { IToken } from '../constants/Token';
 import { tokenStore } from '.';
 import { terms } from '../constants/Term';
+import {
+  withdrawCollateral,
+  addCollateral,
+  repay,
+} from './services/LoanManagerService';
 
 /**
  * For display, merge deposit and loan into one store
@@ -21,6 +28,7 @@ import { terms } from '../constants/Term';
 export class TransactionStore {
   @observable transactionMap: Map<number, ITransaction> = new Map();
 
+  // deposit
   @action.bound
   saveOrUpdateDepositTransactions(transactions: IDepositTransaction[]) {
     return transactions.forEach(tx => {
@@ -85,5 +93,31 @@ export class TransactionStore {
         };
       }),
     );
+  }
+
+  @action.bound
+  toggleRenewal(autoRenewal: boolean) {
+    return toggleRenewal(autoRenewal);
+  }
+
+  @action.bound
+  withdraw(transactionId: string, amount: number) {
+    return withdraw(transactionId, amount);
+  }
+
+  // loan
+  @action.bound
+  withdrawCollateral(transactionId: string, amount: number) {
+    return withdrawCollateral(transactionId, amount);
+  }
+
+  @action.bound
+  addCollateral(transactionId: string, amount: number) {
+    return addCollateral(transactionId, amount);
+  }
+
+  @action.bound
+  repay(transactionId: string, amount: number) {
+    return repay(transactionId, amount);
   }
 }

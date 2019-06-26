@@ -63,3 +63,27 @@ export const getLoanTransactions = async (): Promise<
     },
   ];
 };
+
+export const withdrawCollateral = async (
+  transactionId: string,
+  amount: number,
+): Promise<string> => {
+  // TODO send to contract and get txid back
+  return `Ox${Math.random()
+    .toString()
+    .replace(/\.*/g, '')}`;
+};
+
+export const addCollateral = async (transactionId: string, amount: number) => {
+  // TODO send to contract and get txid back
+  return `Ox${Math.random()
+    .toString()
+    .replace(/\.*/g, '')}`;
+};
+
+export const repay = async (transactionId: string, amount: number) => {
+  // TODO send to contract and get txid back
+  return `Ox${Math.random()
+    .toString()
+    .replace(/\.*/g, '')}`;
+};

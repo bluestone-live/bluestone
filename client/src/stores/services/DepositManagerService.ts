@@ -68,3 +68,20 @@ export const getDepositTransactions = async (): Promise<
     },
   ];
 };
+
+export const toggleRenewal = async (autoRenewal: boolean): Promise<string> => {
+  // TODO call contract method
+  return `Ox${Math.random()
+    .toString()
+    .replace(/\.*/g, '')}`;
+};
+
+export const withdraw = async (
+  transactionId: string,
+  amount: number,
+): Promise<string> => {
+  // TODO send to contract and get txid back
+  return `Ox${Math.random()
+    .toString()
+    .replace(/\.*/g, '')}`;
+};
