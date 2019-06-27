@@ -15,8 +15,8 @@ export const isLoanAssetPairEnabled = async (
 
 export const loan = async (
   term: number,
-  loanAssetAddress: string,
-  collateralAssetAddress: string,
+  loanTokenAddress: string,
+  collateralTokenAddress: string,
   loanAmount: BigNumber,
   collateralAmount: BigNumber,
   requestedFreedCollateral: BigNumber = new BigNumber(0),
@@ -25,8 +25,8 @@ export const loan = async (
   return contracts.LoanManager.methods
     .loan(
       term,
-      loanAssetAddress,
-      collateralAssetAddress,
+      loanTokenAddress,
+      collateralTokenAddress,
       loanAmount,
       collateralAmount,
       requestedFreedCollateral,
@@ -34,9 +34,10 @@ export const loan = async (
     .send({ from: accountStore.defaultAccount });
 };
 
-export const getLoanTransactions = async (): Promise<
-  IGetLoanTransactionResponse[]
-> => {
+export const getLoanTransactions = async (
+  loanTokenAddress: string,
+  collateralTokenAddress: string,
+): Promise<IGetLoanTransactionResponse[]> => {
   // TODO: use real data instead
   return [
     {
@@ -49,6 +50,7 @@ export const getLoanTransactions = async (): Promise<
       createdAt: 0,
       isClosed: true,
       accruedInterest: 5e16,
+      collateralAmount: 1e19,
     },
     {
       transactionId: '1',
@@ -60,8 +62,28 @@ export const getLoanTransactions = async (): Promise<
       createdAt: 0,
       isClosed: false,
       accruedInterest: 5e16,
+      collateralAmount: 1e19,
     },
   ];
+};
+
+export const getLoanTransactionById = async (
+  transactionId: string,
+): Promise<IGetLoanTransactionResponse> => {
+  return {
+    transactionId,
+    owner: '0x111',
+    term: 30,
+    loanAmount: 1e18,
+    minCollateralRatio: 5e17,
+    interestRate: 3e15,
+    createdAt: 0,
+    isClosed: false,
+    accruedInterest: 5e16,
+    collateralAmount: 1e19,
+    loanToken: 'ETH',
+    collateralToken: 'DAI',
+  };
 };
 
 export const withdrawCollateral = async (

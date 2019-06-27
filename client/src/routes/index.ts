@@ -43,6 +43,14 @@ const routes = [
       loading: Loading,
     }),
   },
+  {
+    name: 'loan-add-collateral',
+    path: '/loan/collateral/add/:transactionId',
+    component: Loadable({
+      loader: () => import('../pages/AddCollateralPage'),
+      loading: Loading,
+    }),
+  },
 ];
 
 export default routes;

@@ -6,6 +6,7 @@ import {
 } from './services/DepositManagerService';
 import { getLoanInterestRate } from './services/ConfigurationService';
 import { IToken, SupportToken } from '../constants/Token';
+import { getPrice } from './services/PriceOracleService';
 
 export class TokenStore {
   @observable tokens = new Map<string, IToken | null>(
@@ -38,6 +39,7 @@ export class TokenStore {
     await Promise.all(tokens.map(this.isDepositAssetEnabled));
     await Promise.all(tokens.map(this.getDepositInterestRates));
     await Promise.all(tokens.map(this.getLoanInterestRates));
+    await Promise.all(tokens.map(this.getTokenPrice));
   }
 
   @action.bound
@@ -102,6 +104,19 @@ export class TokenStore {
         7: rates[1],
         30: rates[2],
       },
+    });
+  }
+
+  @action.bound
+  async getTokenPrice(tokenSymbol: string) {
+    const token = this.tokens.get(tokenSymbol);
+    if (!token) {
+      throw new Error(`no such token: ${tokenSymbol}`);
+    }
+    const tokenPriceOracle = await getPrice(token.address);
+    this.updateToken(tokenSymbol, {
+      ...token,
+      price: tokenPriceOracle,
     });
   }
 

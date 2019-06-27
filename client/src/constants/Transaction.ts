@@ -104,7 +104,7 @@ export interface ILoanTransaction {
   loanAmount: number;
   withdrewAmount?: number;
   alreadyPaidAmount?: number;
-  collateralAmount?: number;
+  collateralAmount: number;
   liquidatedAmount?: number;
   soldCollateralAmount?: number;
   minCollateralRatio: number;
@@ -122,10 +122,12 @@ export interface IGetLoanTransactionResponse {
   transactionId: string; // TODO need to store this in contract
   owner: string; // address
   term: number;
+  loanToken?: string;
+  collateralToken?: string;
   loanAmount: number;
   withdrewAmount?: number;
   alreadyPaidAmount?: number;
-  collateralAmount?: number;
+  collateralAmount: number;
   liquidatedAmount?: number;
   soldCollateralAmount?: number;
   minCollateralRatio: number;

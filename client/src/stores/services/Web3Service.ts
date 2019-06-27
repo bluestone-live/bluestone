@@ -12,6 +12,7 @@ const deployedContractJsonInterface = {
   DepositManager: requireContract('DepositManager'),
   LoanManager: requireContract('LoanManager'),
   TokenManager: requireContract('TokenManager'),
+  PriceOracle: requireContract('PriceOracle'),
 };
 
 // May have multiple-instances

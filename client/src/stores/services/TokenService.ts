@@ -7,10 +7,12 @@ import {
 // TODO: get token address based on network. Currently only for testing.
 export const getTokenAddress = async (tokenSymbol: string) => {
   const contracts = await getContracts();
-  const tokenAddress = contracts.TokenFactory.methods
-    .getToken(tokenSymbol)
-    .call();
-  return tokenAddress;
+  return contracts.TokenFactory.methods.getToken(tokenSymbol).call();
+};
+
+export const getPrice = async (tokenAddress: string): Promise<number> => {
+  const contracts = await getContracts();
+  return contracts.PriceOracle.methods.getPrice(tokenAddress).call();
 };
 
 export const getERC20Token = async (tokenAddress: string) => {

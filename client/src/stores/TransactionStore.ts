@@ -13,6 +13,7 @@ import {
   ILoanTransaction,
   getDepositTransactionStatus,
   TransactionType,
+  getLoanTransactionStatus,
 } from '../constants/Transaction';
 import { IToken } from '../constants/Token';
 import { tokenStore } from '.';
@@ -21,6 +22,8 @@ import {
   withdrawCollateral,
   addCollateral,
   repay,
+  getLoanTransactions,
+  getLoanTransactionById,
 } from './services/LoanManagerService';
 
 /**
@@ -38,13 +41,6 @@ export class TransactionStore {
         // TODO maybe we can ignore this record
         throw new Error('invalid token');
       }
-      this.transactionMap.set(tx.transactionId, tx);
-    });
-  }
-
-  @action.bound
-  saveOrUpdateLoanTransactions(transactions: ILoanTransaction[]) {
-    return transactions.forEach(tx => {
       this.transactionMap.set(tx.transactionId, tx);
     });
   }
@@ -81,9 +77,9 @@ export class TransactionStore {
     return this.saveOrUpdateDepositTransactions(
       depositTransactions.map(tx => {
         const token = tokenStore.getToken(tx.token);
-        const term = terms[tx.term];
-        if (!token) {
-          throw new Error('invalid token');
+        const term = terms.find(t => t.value === tx.term);
+        if (!token || !term) {
+          throw new Error('invalid token or term');
         }
         return {
           ...tx,
@@ -100,7 +96,7 @@ export class TransactionStore {
   async getDepositTransactionById(transactionId: string) {
     const depositTransaction = await getDepositTransactionById(transactionId);
     const token = tokenStore.getToken(depositTransaction.token);
-    const term = terms[depositTransaction.term];
+    const term = terms.find(t => t.value === depositTransaction.term)!;
     if (!token) {
       throw new Error('invalid token');
     }
@@ -110,6 +106,66 @@ export class TransactionStore {
         type: TransactionType.Deposit,
         status: getDepositTransactionStatus(depositTransaction),
         token,
+        term,
+      },
+    ]);
+  }
+
+  @action.bound
+  saveOrUpdateLoanTransactions(transactions: ILoanTransaction[]) {
+    return transactions.forEach(tx => {
+      const loanToken = tokenStore.getToken(tx.loanToken.symbol);
+      const collateralToken = tokenStore.getToken(tx.loanToken.symbol);
+      if (!loanToken || !collateralToken) {
+        // TODO maybe we can ignore this record
+        throw new Error('invalid token');
+      }
+      this.transactionMap.set(tx.transactionId, tx);
+    });
+  }
+
+  @action.bound
+  async getLoanTransactions(loanToken: IToken, collateralToken: IToken) {
+    const loanTransactions = await getLoanTransactions(
+      loanToken.address,
+      collateralToken.address,
+    );
+    return this.saveOrUpdateLoanTransactions(
+      loanTransactions.map(tx => {
+        const term = terms.find(t => tx.term === t.value)!;
+        if (!loanToken || !collateralToken) {
+          throw new Error('invalid token');
+        }
+        return {
+          ...tx,
+          type: TransactionType.Loan,
+          status: getLoanTransactionStatus(tx),
+          loanToken,
+          collateralToken,
+          term,
+        };
+      }),
+    );
+  }
+
+  @action.bound
+  async getLoanTransactionById(transactionId: string) {
+    const loanTransaction = await getLoanTransactionById(transactionId);
+    const loanToken = tokenStore.getToken(loanTransaction.loanToken!);
+    const collateralToken = tokenStore.getToken(
+      loanTransaction.collateralToken!,
+    );
+    if (!loanToken || !collateralToken) {
+      throw new Error('invalid token');
+    }
+    const term = terms.find(t => t.value === loanTransaction.term)!;
+    return this.saveOrUpdateLoanTransactions([
+      {
+        ...loanTransaction,
+        type: TransactionType.Loan,
+        status: getLoanTransactionStatus(loanTransaction),
+        loanToken,
+        collateralToken,
         term,
       },
     ]);

@@ -10,4 +10,5 @@ export interface IToken {
   loanAnnualPercentageRates?: IAnnualPercentageRateValues;
   logo?: string;
   depositEnabled: boolean;
+  price?: number;
 }
