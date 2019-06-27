@@ -1,11 +1,14 @@
 import { observable, action } from 'mobx';
 import { tokenStore } from './index';
 import { isLoanAssetPairEnabled } from './services/LoanManagerService';
+import { getCollateralRatio } from './services/ConfigurationService';
+import { BigNumber } from '../utils/BigNumber';
 
 interface ILoanAssetPair {
   loanTokenSymbol: string;
   collateralTokenSymbol: string;
   isEnabled: boolean;
+  collateralRatio: BigNumber;
 }
 
 export class LoanManagerStore {
@@ -24,8 +27,9 @@ export class LoanManagerStore {
     await Promise.all(tokenPairSymbolList.map(this.initLoanAssetPair));
   }
 
-  getLoanAssetPair(tokenPairSymbol: string) {
-    return this.loanAssetPairs.get(tokenPairSymbol.toUpperCase());
+  getLoanAssetPair(loanTokenSymbol: string, collateralTokenSymbol: string) {
+    const tokenPairSymbol = `${loanTokenSymbol}_${collateralTokenSymbol}`.toUpperCase();
+    return this.loanAssetPairs.get(tokenPairSymbol);
   }
 
   @action.bound
@@ -43,10 +47,16 @@ export class LoanManagerStore {
       collateralToken.address,
     );
 
+    const collateralRatio = await getCollateralRatio(
+      loanToken.address,
+      collateralToken.address,
+    );
+
     this.updateLoanAssetPair(tokenPairSymbol, {
       loanTokenSymbol,
       collateralTokenSymbol,
       isEnabled,
+      collateralRatio,
     });
   }
 

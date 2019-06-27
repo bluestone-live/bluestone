@@ -2,13 +2,16 @@ import * as React from 'react';
 import Form from '../components/html/Form';
 import Button from '../components/html/Button';
 import Input from '../components/html/Input';
+import { Row, Cell } from '../components/common/Layout';
 import styled from 'styled-components';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { observer, inject } from 'mobx-react';
-import { TokenStore, IToken } from '../stores';
+import { TokenStore, IToken, LoanManagerStore } from '../stores';
+import { convertWeiToDecimal } from '../utils/BigNumber';
 
 interface IProps extends WithTranslation {
   tokenStore: TokenStore;
+  loanManagerStore: LoanManagerStore;
   term?: number;
   loanTokenSymbol?: string;
   collateralTokenSymbol?: string;
@@ -28,12 +31,8 @@ const updateState = <T extends string>(key: string, value: T) => (
   [key]: value,
 });
 
-const StyledColumns = styled.div`
-  display: flex;
-`;
-
 @observer
-@inject('tokenStore')
+@inject('tokenStore', 'loanManagerStore')
 class LoanForm extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
@@ -70,7 +69,7 @@ class LoanForm extends React.Component<IProps, IState> {
   }
 
   render() {
-    const { tokenStore, t } = this.props;
+    const { tokenStore, loanManagerStore, t } = this.props;
     const { term, loanTokenSymbol, collateralTokenSymbol } = this.state;
 
     const tokenSymbolList = tokenStore.validTokens.map(
@@ -89,67 +88,104 @@ class LoanForm extends React.Component<IProps, IState> {
       this.renderOption(thisTerm.toString(), thisTerm),
     );
 
+    const loanAssetPair = loanManagerStore.getLoanAssetPair(
+      loanTokenSymbol,
+      collateralTokenSymbol,
+    );
+
+    const minCollateralRatio = `${convertWeiToDecimal(
+      loanAssetPair.collateralRatio,
+    ) * 100}%`;
+
     return (
       <Form onSubmit={this.handleSubmit}>
-        <StyledColumns>
-          <Form.Item>
-            <label htmlFor="loanTokenSymbol">{t('borrow')}:</label>
-            <select
-              id="loanTokenSymbol"
-              name="loanTokenSymbol"
-              value={loanTokenSymbol}
-              onChange={this.handleSelectChange}
-            >
-              {loanTokenOptions}
-            </select>
-          </Form.Item>
-          <Form.Item>
-            <label htmlFor="loanAmount">{t('amount')}:</label>
-            <Input id="loanAmount" type="number" min="0" />
-          </Form.Item>
-          <Form.Item>
-            <label htmlFor="term">{t('term')}:</label>
-            <select
-              id="term"
-              name="term"
-              value={term}
-              onChange={this.handleSelectChange}
-            >
-              {termOptions}
-            </select>
-          </Form.Item>
-          <Form.Item>DPR: TODO</Form.Item>
-        </StyledColumns>
-
-        <StyledColumns>
-          <Form.Item>
-            <label>
-              {t('collateral')}:
+        <Row>
+          <Cell>
+            <Form.Item>
+              <label htmlFor="loanTokenSymbol">{t('borrow')}:</label>
               <select
+                id="loanTokenSymbol"
+                name="loanTokenSymbol"
+                value={loanTokenSymbol}
+                onChange={this.handleSelectChange}
+              >
+                {loanTokenOptions}
+              </select>
+            </Form.Item>
+          </Cell>
+          <Cell>
+            <Form.Item>
+              <label htmlFor="loanAmount">{t('amount')}:</label>
+              <Input id="loanAmount" type="number" min="0" />
+            </Form.Item>
+          </Cell>
+          <Cell>
+            <Form.Item>
+              <label htmlFor="term">{t('term')}:</label>
+              <select
+                id="term"
+                name="term"
+                value={term}
+                onChange={this.handleSelectChange}
+              >
+                {termOptions}
+              </select>
+            </Form.Item>
+          </Cell>
+          <Cell>
+            <Form.Item>
+              <label htmlFor="dpr">{t('dpr')}:</label>{' '}
+              <span id="dpr">TODO</span>
+            </Form.Item>
+          </Cell>
+        </Row>
+
+        <Row>
+          <Cell>
+            <Form.Item>
+              <label htmlFor="collateralTokenSymbol">{t('collateral')}:</label>
+              <select
+                id="collateralTokenSymbol"
                 name="collateralTokenSymbol"
                 value={collateralTokenSymbol}
                 onChange={this.handleSelectChange}
               >
                 {collateralTokenOptions}
               </select>
-            </label>
-          </Form.Item>
-          <Form.Item>
-            <label htmlFor="collateralAmount">{t('amount')}:</label>
-            <Input id="collateralAmount" type="number" min="0" />
-          </Form.Item>
-          <Form.Item>Collateral Ratio: TODO</Form.Item>
-        </StyledColumns>
+            </Form.Item>
+          </Cell>
+          <Cell>
+            <Form.Item>
+              <label htmlFor="collateralAmount">{t('amount')}:</label>
+              <Input id="collateralAmount" type="number" min="0" />
+            </Form.Item>
+          </Cell>
+          <Cell>
+            <Form.Item>
+              <label htmlFor="collateralRatio">{t('collateral_ratio')}:</label>
+              <span id="collateralRatio">TODO / {minCollateralRatio}</span>
+            </Form.Item>
+          </Cell>
+        </Row>
 
-        <Form.Item>
-          <span>
-            You need to pay back TODO-amount {loanTokenSymbol} before TODO-date.
-          </span>
-        </Form.Item>
+        <Row>
+          <Cell>
+            <Form.Item>
+              <span>
+                You need to pay back TODO-amount {loanTokenSymbol} before
+                TODO-date.
+              </span>
+            </Form.Item>
+          </Cell>
+        </Row>
 
-        <Form.Item>
-          <Button primary>{t('loan')}</Button>
-        </Form.Item>
+        <Row>
+          <Cell>
+            <Form.Item>
+              <Button primary>{t('loan')}</Button>
+            </Form.Item>
+          </Cell>
+        </Row>
       </Form>
     );
   }
