@@ -8,6 +8,10 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { observer, inject } from 'mobx-react';
 import { TokenStore, IToken, LoanManagerStore } from '../stores';
 import { convertWeiToDecimal } from '../utils/BigNumber';
+import {
+  calculateRate,
+  RatePeriod,
+} from '../utils/interestRateCalculateHelper';
 
 interface IProps extends WithTranslation {
   tokenStore: TokenStore;
@@ -87,6 +91,15 @@ class LoanForm extends React.Component<IProps, IState> {
     const termOptions = [1, 7, 30].map(thisTerm =>
       this.renderOption(thisTerm.toString(), thisTerm),
     );
+
+    const loanToken = tokenStore.getToken(loanTokenSymbol);
+
+    const dailyPercentageRate = loanToken.loanAnnualPercentageRates
+      ? `${calculateRate(
+          loanToken.loanAnnualPercentageRates[term],
+          RatePeriod.Daily,
+        )}%`
+      : '0%';
 
     const loanAssetPair = loanManagerStore.getLoanAssetPair(
       loanTokenSymbol,
