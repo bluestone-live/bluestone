@@ -4,6 +4,7 @@ import {
   getDepositTransactions,
   toggleRenewal,
   withdraw,
+  getDepositTransactionById,
 } from './services/DepositManagerService';
 import { BigNumber } from '../utils/BigNumber';
 import {
@@ -26,7 +27,7 @@ import {
  * For display, merge deposit and loan into one store
  */
 export class TransactionStore {
-  @observable transactionMap: Map<number, ITransaction> = new Map();
+  @observable transactionMap: Map<string, ITransaction> = new Map();
 
   // deposit
   @action.bound
@@ -93,6 +94,25 @@ export class TransactionStore {
         };
       }),
     );
+  }
+
+  @action.bound
+  async getDepositTransactionById(transactionId: string) {
+    const depositTransaction = await getDepositTransactionById(transactionId);
+    const token = tokenStore.getToken(depositTransaction.token);
+    const term = terms[depositTransaction.term];
+    if (!token) {
+      throw new Error('invalid token');
+    }
+    return this.saveOrUpdateDepositTransactions([
+      {
+        ...depositTransaction,
+        type: TransactionType.Deposit,
+        status: getDepositTransactionStatus(depositTransaction),
+        token,
+        term,
+      },
+    ]);
   }
 
   @action.bound

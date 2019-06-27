@@ -21,17 +21,9 @@ const routes = [
   },
   {
     name: 'deposit',
-    path: '/deposit',
+    path: ['/deposit', '/deposit/:tokenSymbol'],
     component: Loadable({
-      loader: () => import('../pages/DepositForm'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'deposit',
-    path: '/deposit/:tokenSymbol',
-    component: Loadable({
-      loader: () => import('../pages/DepositForm'),
+      loader: () => import('../pages/DepositPage'),
       loading: Loading,
     }),
   },
@@ -39,7 +31,15 @@ const routes = [
     name: 'transaction-list',
     path: '/transactions',
     component: Loadable({
-      loader: () => import('../pages/TransactionList'),
+      loader: () => import('../pages/TransactionListPage'),
+      loading: Loading,
+    }),
+  },
+  {
+    name: 'deposit-withdraw',
+    path: '/deposit/withdraw/:transactionId',
+    component: Loadable({
+      loader: () => import('../pages/WithdrawDepositPage'),
       loading: Loading,
     }),
   },

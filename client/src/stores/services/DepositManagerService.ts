@@ -46,7 +46,7 @@ export const getDepositTransactions = async (): Promise<
   return [
     {
       owner: 'xxx',
-      transactionId: 1,
+      transactionId: '1',
       token: 'ETH',
       term: 7,
       depositAmount: 1e18,
@@ -57,7 +57,7 @@ export const getDepositTransactions = async (): Promise<
     },
     {
       owner: 'xxx',
-      transactionId: 2,
+      transactionId: '2',
       token: 'DAI',
       term: 30,
       depositAmount: 1e20,
@@ -68,6 +68,20 @@ export const getDepositTransactions = async (): Promise<
     },
   ];
 };
+
+export const getDepositTransactionById = async (
+  transactionId: string,
+): Promise<IGetDepositTransactionResponse> => ({
+  owner: 'xxx',
+  transactionId,
+  token: 'DAI',
+  term: 30,
+  depositAmount: 1e20,
+  isRecurring: false,
+  interestRate: 0.3,
+  createdAt: 0,
+  maturedAt: 100,
+});
 
 export const toggleRenewal = async (autoRenewal: boolean): Promise<string> => {
   // TODO call contract method

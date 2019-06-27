@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { ThemedProps } from '../../styles/themes';
 
 interface IProps {
-  children: React.ReactChild | React.ReactChild[];
+  children: React.ReactChild | React.ReactChild[] | undefined | null | object;
   className?: string;
 }
 

@@ -9,7 +9,7 @@ export enum TransactionType {
 
 // deposit
 export interface IGetDepositTransactionResponse {
-  transactionId: number; // TODO need to store this in contract
+  transactionId: string; // TODO need to store this in contract
   owner: string; // address
   token: string;
   term: number; // address
@@ -23,7 +23,7 @@ export interface IGetDepositTransactionResponse {
 }
 
 export interface IDepositTransaction {
-  transactionId: number; // TODO need to store this in contract
+  transactionId: string; // TODO need to store this in contract
   owner: string; // address
   type: TransactionType;
   status: DepositTransactionStatus;
@@ -94,7 +94,7 @@ export const getLoanTransactionStatus = (
 };
 
 export interface ILoanTransaction {
-  transactionId: number; // TODO need to store this in contract
+  transactionId: string; // TODO need to store this in contract
   owner: string; // address
   type: TransactionType;
   status: LoanTransactionStatus;
@@ -119,7 +119,7 @@ export interface ILoanTransaction {
 }
 
 export interface IGetLoanTransactionResponse {
-  transactionId: number; // TODO need to store this in contract
+  transactionId: string; // TODO need to store this in contract
   owner: string; // address
   term: number;
   loanAmount: number;

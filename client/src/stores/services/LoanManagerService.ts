@@ -40,7 +40,7 @@ export const getLoanTransactions = async (): Promise<
   // TODO: use real data instead
   return [
     {
-      transactionId: 1,
+      transactionId: '1',
       owner: '0x111',
       term: 7,
       loanAmount: 1e18,
@@ -51,7 +51,7 @@ export const getLoanTransactions = async (): Promise<
       accruedInterest: 5e16,
     },
     {
-      transactionId: 1,
+      transactionId: '1',
       owner: '0x111',
       term: 30,
       loanAmount: 1e18,

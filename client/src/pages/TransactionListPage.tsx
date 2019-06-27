@@ -21,7 +21,7 @@ const StyledHeaderCell = styled(Cell)`
 
 @inject('tokenStore', 'transactionStore')
 @observer
-class TransactionList extends React.Component<IProps> {
+class TransactionListPage extends React.Component<IProps> {
   async componentDidMount() {
     await this.props.transactionStore.getDepositTransactions();
   }
@@ -76,4 +76,4 @@ class TransactionList extends React.Component<IProps> {
   }
 }
 
-export default withTranslation()(TransactionList);
+export default withTranslation()(TransactionListPage);
