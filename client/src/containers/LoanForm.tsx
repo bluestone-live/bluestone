@@ -25,6 +25,8 @@ interface IState {
   term: number;
   loanTokenSymbol: string;
   collateralTokenSymbol: string;
+  loanAmount: number;
+  collateralAmount: number;
 }
 
 // Modified from: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/26635#issuecomment-400260278
@@ -51,10 +53,12 @@ class LoanForm extends React.Component<IProps, IState> {
       term,
       loanTokenSymbol,
       collateralTokenSymbol,
+      loanAmount: 0,
+      collateralAmount: 0,
     };
   }
 
-  handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.currentTarget;
 
     this.setState(updateState(name, value));
@@ -74,7 +78,13 @@ class LoanForm extends React.Component<IProps, IState> {
 
   render() {
     const { tokenStore, loanManagerStore, t } = this.props;
-    const { term, loanTokenSymbol, collateralTokenSymbol } = this.state;
+    const {
+      term,
+      loanTokenSymbol,
+      collateralTokenSymbol,
+      loanAmount,
+      collateralAmount,
+    } = this.state;
 
     const tokenSymbolList = tokenStore.validTokens.map(
       (token: IToken) => token.symbol,
@@ -95,11 +105,11 @@ class LoanForm extends React.Component<IProps, IState> {
     const loanToken = tokenStore.getToken(loanTokenSymbol);
 
     const dailyPercentageRate = loanToken.loanAnnualPercentageRates
-      ? `${calculateRate(
+      ? calculateRate(
           loanToken.loanAnnualPercentageRates[term],
           RatePeriod.Daily,
-        )}%`
-      : '0%';
+        )
+      : 0;
 
     const loanAssetPair = loanManagerStore.getLoanAssetPair(
       loanTokenSymbol,
@@ -109,6 +119,9 @@ class LoanForm extends React.Component<IProps, IState> {
     const minCollateralRatio = `${convertWeiToDecimal(
       loanAssetPair.collateralRatio,
     ) * 100}%`;
+
+    const estimatedRepayAmount =
+      loanAmount * Math.pow(1 + dailyPercentageRate / 100, term);
 
     return (
       <Form onSubmit={this.handleSubmit}>
