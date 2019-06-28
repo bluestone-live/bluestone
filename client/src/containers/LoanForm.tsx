@@ -12,6 +12,7 @@ import {
   calculateRate,
   RatePeriod,
 } from '../utils/interestRateCalculateHelper';
+import dayjs from 'dayjs';
 
 interface IProps extends WithTranslation {
   tokenStore: TokenStore;
@@ -122,6 +123,11 @@ class LoanForm extends React.Component<IProps, IState> {
 
     const estimatedRepayAmount =
       loanAmount * Math.pow(1 + dailyPercentageRate / 100, term);
+
+    const estimatedRepayDate = dayjs()
+      .endOf('day')
+      .add(term, 'day')
+      .format('DD/MM/YYYY');
 
     return (
       <Form onSubmit={this.handleSubmit}>

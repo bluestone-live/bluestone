@@ -13,6 +13,7 @@
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "bn.js": "^4.11.8",
+    "dayjs": "^1.8.14",
     "i18next": "^17.0.3",
     "i18next-browser-languagedetector": "^3.0.1",
     "i18next-localforage-cache": "^1.0.3",
@@ -20,7 +21,6 @@
     "lodash": "^4.17.11",
     "mobx": "^5.9.4",
     "mobx-react": "^6.0.0",
-    "moment": "^2.24.0",
     "normalize.css": "^8.0.1",
     "offline-plugin": "^5.0.7",
     "react": "^16.8.6",
