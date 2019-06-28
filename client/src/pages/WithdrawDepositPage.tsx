@@ -36,11 +36,13 @@ class WithdrawDepositPage extends React.Component<IProps, IState> {
       amount: Number.parseFloat(e.currentTarget.value),
     });
 
-  onSubmit = () => {
+  onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     const { transactionStore, match } = this.props;
     const { amount } = this.state;
 
-    transactionStore.withdraw(match.params.transactionId, amount);
+    transactionStore.withdrawDeposit(match.params.transactionId, amount);
   };
 
   render() {

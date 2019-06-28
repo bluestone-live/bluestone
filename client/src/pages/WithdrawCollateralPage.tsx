@@ -8,8 +8,6 @@ import { RouteComponentProps } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
 import { TransactionType, ILoanTransaction } from '../constants/Transaction';
-import moment from 'moment';
-import { toJS } from 'mobx';
 
 interface IProps
   extends WithTranslation,
@@ -23,7 +21,7 @@ interface IState {
 
 @inject('transactionStore')
 @observer
-class AddCollateralPage extends React.Component<IProps, IState> {
+class WithdrawCollateralPage extends React.Component<IProps, IState> {
   state = {
     amount: 0,
   };
@@ -38,64 +36,46 @@ class AddCollateralPage extends React.Component<IProps, IState> {
       amount: Number.parseFloat(e.currentTarget.value),
     });
 
-  onSubmit = () => {
+  onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     const { transactionStore, match } = this.props;
     const { amount } = this.state;
 
-    transactionStore.addCollateral(match.params.transactionId, amount);
-  };
-
-  getCollateralizationRatio = (transaction: ILoanTransaction) => {
-    if (!transaction.loanToken.price || !transaction.collateralToken.price) {
-      return 'calculate error';
-    }
-    return (
-      (transaction.collateralAmount *
-        (transaction.collateralToken.price || 0)) /
-      (transaction.loanToken.price || 1) /
-      transaction.loanAmount
-    );
+    transactionStore.withdrawCollateral(match.params.transactionId, amount);
   };
 
   render() {
     const { t, transactionStore, match } = this.props;
-    const transaction = toJS(
-      transactionStore.transactions.find(
-        tx => tx.transactionId === match.params.transactionId,
-      ),
+    const { amount } = this.state;
+    const transaction = transactionStore.transactions.find(
+      tx => tx.transactionId === match.params.transactionId,
     ) as ILoanTransaction;
 
     return transaction && transaction.type === TransactionType.Loan ? (
       <Card>
         <Form onSubmit={this.onSubmit}>
           <Form.Item>
-            <label>{t('current_collateral')}</label>
-            <Input
-              type="text"
-              disabled
-              value={`${transaction.collateralAmount} ${transaction.collateralToken.symbol}`}
-            />
-          </Form.Item>
-          <Form.Item>
-            <label htmlFor="amount">{t('add_collateral_amount')}</label>
+            <label htmlFor="amount">{t('collateral_amount')}</label>
             <Input id="amount" type="number" onChange={this.onAmountChange} />
           </Form.Item>
           <Form.Item>
-            <label>{t('collateralization_ratio')}</label>
+            <label>{t('available_amount')}</label>
             <Input
               type="text"
               disabled
-              value={this.getCollateralizationRatio(transaction)}
+              value={`${transaction.collateralAmount -
+                (transaction.soldCollateralAmount || 0)} ${
+                transaction.collateralToken.symbol
+              }`}
             />
           </Form.Item>
           <Form.Item>
-            <label>{t('expired_at')}</label>
+            <label>{t('you_will_get')}</label>
             <Input
               type="text"
               disabled
-              value={moment(transaction.createdAt)
-                .add('day', transaction.term.value)
-                .format('YYYY-MM-DD')}
+              value={`${amount || 0} ${transaction.collateralToken.symbol}`}
             />
           </Form.Item>
           <Form.Item>
@@ -110,4 +90,4 @@ class AddCollateralPage extends React.Component<IProps, IState> {
   }
 }
 
-export default withTranslation()(AddCollateralPage);
+export default withTranslation()(WithdrawCollateralPage);

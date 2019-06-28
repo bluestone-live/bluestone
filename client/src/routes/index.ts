@@ -51,6 +51,22 @@ const routes = [
       loading: Loading,
     }),
   },
+  {
+    name: 'loan-withdraw-collateral',
+    path: '/loan/collateral/withdraw/:transactionId',
+    component: Loadable({
+      loader: () => import('../pages/WithdrawCollateralPage'),
+      loading: Loading,
+    }),
+  },
+  {
+    name: 'loan-repay',
+    path: '/loan/repay/:transactionId',
+    component: Loadable({
+      loader: () => import('../pages/RepayPage'),
+      loading: Loading,
+    }),
+  },
 ];
 
 export default routes;

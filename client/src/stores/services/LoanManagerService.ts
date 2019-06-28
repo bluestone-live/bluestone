@@ -41,7 +41,7 @@ export const getLoanTransactions = async (
   // TODO: use real data instead
   return [
     {
-      transactionId: '1',
+      transactionId: '11',
       owner: '0x111',
       term: 7,
       loanAmount: 1e18,
@@ -53,7 +53,7 @@ export const getLoanTransactions = async (
       collateralAmount: 1e19,
     },
     {
-      transactionId: '1',
+      transactionId: '12',
       owner: '0x111',
       term: 30,
       loanAmount: 1e18,

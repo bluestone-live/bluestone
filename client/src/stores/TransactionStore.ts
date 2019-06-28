@@ -177,7 +177,7 @@ export class TransactionStore {
   }
 
   @action.bound
-  withdraw(transactionId: string, amount: number) {
+  withdrawDeposit(transactionId: string, amount: number) {
     return withdraw(transactionId, amount);
   }
 

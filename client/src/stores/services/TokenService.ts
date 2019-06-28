@@ -10,11 +10,6 @@ export const getTokenAddress = async (tokenSymbol: string) => {
   return contracts.TokenFactory.methods.getToken(tokenSymbol).call();
 };
 
-export const getPrice = async (tokenAddress: string): Promise<number> => {
-  const contracts = await getContracts();
-  return contracts.PriceOracle.methods.getPrice(tokenAddress).call();
-};
-
 export const getERC20Token = async (tokenAddress: string) => {
   return new web3.eth.Contract(
     nonDeployedContractJsonInterface.ERC20.abi,
