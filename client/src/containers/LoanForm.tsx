@@ -6,8 +6,13 @@ import { Row, Cell } from '../components/common/Layout';
 import styled from 'styled-components';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { observer, inject } from 'mobx-react';
-import { TokenStore, IToken, LoanManagerStore } from '../stores';
-import { convertWeiToDecimal } from '../utils/BigNumber';
+import {
+  TokenStore,
+  IToken,
+  LoanManagerStore,
+  TransactionStore,
+} from '../stores';
+import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
 import {
   calculateRate,
   RatePeriod,
@@ -17,6 +22,7 @@ import dayjs from 'dayjs';
 interface IProps extends WithTranslation {
   tokenStore: TokenStore;
   loanManagerStore: LoanManagerStore;
+  transactionStore: TransactionStore;
   term?: number;
   loanTokenSymbol?: string;
   collateralTokenSymbol?: string;
@@ -39,7 +45,7 @@ const updateState = <T extends string>(key: string, value: T) => (
 });
 
 @observer
-@inject('tokenStore', 'loanManagerStore')
+@inject('tokenStore', 'loanManagerStore', 'transactionStore')
 class LoanForm extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
@@ -65,9 +71,31 @@ class LoanForm extends React.Component<IProps, IState> {
     this.setState(updateState(name, value));
   };
 
-  handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  }
+    const { tokenStore, transactionStore } = this.props;
+    const {
+      term,
+      loanTokenSymbol,
+      collateralTokenSymbol,
+      loanAmount,
+      collateralAmount,
+    } = this.state;
+    const loanToken = tokenStore.getToken(loanTokenSymbol);
+    const collateralToken = tokenStore.getToken(collateralTokenSymbol);
+
+    // TODO: add input/checkbox field to use freed collateral
+    const requestedFreedCollateral = 0;
+
+    await transactionStore.loan(
+      term,
+      loanToken,
+      collateralToken,
+      convertDecimalToWei(loanAmount),
+      convertDecimalToWei(collateralAmount),
+      convertDecimalToWei(requestedFreedCollateral),
+    );
+  };
 
   renderOption(key: string, value: any, text?: string) {
     return (
@@ -116,6 +144,9 @@ class LoanForm extends React.Component<IProps, IState> {
       loanTokenSymbol,
       collateralTokenSymbol,
     );
+
+    // TODO: compute current collateral ratio given token amount and prices
+    const currCollateralRatio = 'TODO';
 
     const minCollateralRatio = `${convertWeiToDecimal(
       loanAssetPair.collateralRatio,

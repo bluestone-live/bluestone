@@ -25,11 +25,11 @@ export const loan = async (
   return contracts.LoanManager.methods
     .loan(
       term,
-      loanTokenAddress,
-      collateralTokenAddress,
-      loanAmount,
-      collateralAmount,
-      requestedFreedCollateral,
+      loanAssetAddress,
+      collateralAssetAddress,
+      loanAmount.toString(),
+      collateralAmount.toString(),
+      requestedFreedCollateral.toString(),
     )
     .send({ from: accountStore.defaultAccount });
 };

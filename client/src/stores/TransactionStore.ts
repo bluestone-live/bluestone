@@ -18,13 +18,7 @@ import {
 import { IToken } from '../constants/Token';
 import { tokenStore } from '.';
 import { terms } from '../constants/Term';
-import {
-  withdrawCollateral,
-  addCollateral,
-  repay,
-  getLoanTransactions,
-  getLoanTransactionById,
-} from './services/LoanManagerService';
+import * as LoanManagerService from './services/LoanManagerService';
 
 /**
  * For display, merge deposit and loan into one store
@@ -183,17 +177,38 @@ export class TransactionStore {
 
   // loan
   @action.bound
+  async loan(
+    term: number,
+    loanToken: IToken,
+    collateralToken: IToken,
+    loanAmount: BigNumber,
+    collateralAmount: BigNumber,
+    requestedFreedCollateral: BigNumber,
+  ) {
+    await LoanManagerService.loan(
+      term,
+      loanToken.address,
+      collateralToken.address,
+      loanAmount,
+      collateralAmount,
+      requestedFreedCollateral,
+    );
+
+    // TODO: add transaction
+  }
+
+  @action.bound
   withdrawCollateral(transactionId: string, amount: number) {
-    return withdrawCollateral(transactionId, amount);
+    return LoanManagerService.withdrawCollateral(transactionId, amount);
   }
 
   @action.bound
   addCollateral(transactionId: string, amount: number) {
-    return addCollateral(transactionId, amount);
+    return LoanManagerService.addCollateral(transactionId, amount);
   }
 
   @action.bound
   repay(transactionId: string, amount: number) {
-    return repay(transactionId, amount);
+    return LoanManagerService.repay(transactionId, amount);
   }
 }
