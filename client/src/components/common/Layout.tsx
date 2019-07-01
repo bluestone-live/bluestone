@@ -2,7 +2,14 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 interface ILayoutProps {
-  children: React.ReactChild | React.ReactChild[] | Element[];
+  children:
+    | React.ReactChild
+    | React.ReactChild[]
+    | Element[]
+    | string
+    | object
+    | null
+    | undefined;
   className?: string;
 }
 
