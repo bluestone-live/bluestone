@@ -17,6 +17,7 @@ src
 ## Prerequisites
 
 - nodejs >= 8
+- Setup root project properly.
 - Copy and rename .env.example to .env.dev (for development) or .env.prod (for production)
 - Install MetaMask[https://metamask.io/] browser extension.
 
@@ -37,6 +38,30 @@ To import a Ganache account:
 3. Open MetaMask, click the account icon on top-right corner.
 4. Click `Import Account`.
 5. Paste the private key and click `Import`.
+
+To add a test token:
+
+First, we need to get the token address:
+
+```
+npx truffle console
+truffle(development)> (await TokenFactory.deployed()).getToken('ETH')
+```
+
+Copy the token address.
+
+Next, add this token to MetaMask:
+
+1. Click on MetaMask extension icon.
+2. Click the hamburger menu on top-left coner.
+3. Click `Add Token` at the bottom.
+4. Select `Custom Token` tab.
+5. Paste the token address. You should see other fields automatically being filled out.
+6. Click `Next` and finally `Add Tokens`.
+
+You should be able to see the test token being added with some balance.
+
+This is a rather curbersome process, so we need to automate it later on.
 
 ## Development
 

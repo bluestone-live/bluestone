@@ -28,6 +28,12 @@ yarn
 npx truffle migrate
 ```
 
+Prepare test environment for local development:
+
+```
+./scripts/bash/setupEnvironment
+```
+
 ## Structure
 
 - `arcanist-extensions/`: Custom PHP extensions written for arcanist.
