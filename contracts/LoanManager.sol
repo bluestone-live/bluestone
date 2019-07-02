@@ -36,6 +36,9 @@ contract LoanManager is Ownable, Pausable, Term {
     // loan ID -> Loan
     mapping(bytes32 => Loan) private _loans;
 
+    // User address -> A list of loan IDs
+    mapping(address => bytes32[]) private _loanIdsByUser;
+
     uint private _numLoans;
 
     /// user -> asset -> freed collateral
@@ -136,6 +139,8 @@ contract LoanManager is Ownable, Pausable, Term {
             localVars.liquidationDiscount
         );
 
+        _loanIdsByUser[loaner].push(loanId);
+
         _loanFromPoolGroups(loanAsset, term, loanAmount, loanId);        
 
         _tokenManager.receiveFrom(loaner, collateralAsset, collateralAmount);
@@ -212,6 +217,10 @@ contract LoanManager is Ownable, Pausable, Term {
 
     function isLoanAssetPairEnabled(address loanAsset, address collateralAsset) external whenNotPaused view returns (bool) {
         return _isLoanAssetPairEnabled[loanAsset][collateralAsset];
+    }
+
+    function getLoanIdsByUser(address user) external whenNotPaused view returns (bytes32[] memory) {
+        return _loanIdsByUser[user];
     }
 
     // ADMIN --------------------------------------------------------------
