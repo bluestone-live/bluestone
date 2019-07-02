@@ -1,14 +1,18 @@
+const TokenManager = artifacts.require('TokenManager')
 const { shouldFail, time } = require("openzeppelin-test-helpers");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
 const { DepositManagerMock } = require("../../utils/mocks.js");
 const { expect } = require("chai");
 
-contract("DepositManager", ([owner, anotherAccount]) => {
-  let depositManager, asset;
+contract("DepositManager", ([owner, depositor]) => {
+  const initialSupply = toFixedBN(1000)
+  let depositManager, tokenManager, asset;
 
   before(async () => {
     depositManager = await DepositManagerMock();
-    asset = await createERC20Token(owner);
+    tokenManager = await TokenManager.deployed()
+    asset = await createERC20Token(depositor, initialSupply);
+    await asset.approve(tokenManager.address, initialSupply, { from: depositor })
     await depositManager.enableDepositAsset(asset.address);
   });
 
@@ -23,6 +27,25 @@ contract("DepositManager", ([owner, anotherAccount]) => {
       expect(res[2]).to.be.bignumber.equal('0')
     });
   });
+
+  describe("#getDepositIdsByUser", () => {
+    const term = 1
+    const amount = toFixedBN(50)
+    const isRecurring = false
+
+    before(async () => {
+      await depositManager.deposit(asset.address, term, amount, isRecurring, { from: depositor })
+      await depositManager.deposit(asset.address, term, amount, isRecurring, { from: depositor })
+    })
+
+    it("succeeds", async () => {
+      const depositIds = await depositManager.getDepositIdsByUser(depositor)
+
+      expect(depositIds.length).to.equal(2)
+      expect(depositIds[0]).to.equal((await depositManager.depositIds.call(0)))
+      expect(depositIds[1]).to.equal((await depositManager.depositIds.call(1)))
+    })
+  })
 
   describe("#updateInterestIndexHistory", () => {
     const initialInterestIndex = toFixedBN(1);

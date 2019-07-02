@@ -56,6 +56,9 @@ contract DepositManager is Ownable, Pausable, Term {
     // Deposit ID -> Deposit
     mapping(bytes32 => Deposit) private _deposits;
 
+    // User address -> List of deposit IDs
+    mapping(address => bytes32[]) private _depositIdsByUser;
+
     uint private _numDeposit;
 
     uint constant private ONE = 10 ** 18;
@@ -110,6 +113,8 @@ contract DepositManager is Ownable, Pausable, Term {
             profitRatio,
             isRecurring
         );
+
+        _depositIdsByUser[user].push(depositId);
 
         _tokenManager.receiveFrom(user, asset, amount);
 
@@ -188,6 +193,10 @@ contract DepositManager is Ownable, Pausable, Term {
             _depositAssets[asset].lastInterestRatePerTerm[7],
             _depositAssets[asset].lastInterestRatePerTerm[30]
         );
+    }
+
+    function getDepositIdsByUser(address user) external view whenNotPaused returns (bytes32[] memory) {
+        return _depositIdsByUser[user];
     }
 
     // Calculate new interest rate and interest index, and update them in DepositAsset
