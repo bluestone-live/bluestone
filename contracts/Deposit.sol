@@ -9,6 +9,7 @@ contract Deposit {
     using SafeMath for uint;
     using FixedMath for uint;
 
+    address private _asset;
     address private _owner;
     uint8 private _term;
     uint private _amount;
@@ -23,6 +24,7 @@ contract Deposit {
     uint private constant DAY_IN_SECONDS = 86400;
 
     constructor(
+        address asset,
         address owner, 
         uint8 term, 
         uint amount, 
@@ -32,6 +34,7 @@ contract Deposit {
     ) public {
         require(amount > 0);
 
+        _asset = asset;
         _owner = owner;
         _term = term;
         _amount = amount;
@@ -58,6 +61,10 @@ contract Deposit {
 
     function isOverDue() public view returns (bool) {
         return now >= _maturedAt + 30 * DAY_IN_SECONDS;
+    }
+
+    function asset() external view returns (address) {
+        return _asset;
     }
 
     function owner() external view returns (address) {

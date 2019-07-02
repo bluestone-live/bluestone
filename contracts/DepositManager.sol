@@ -102,6 +102,7 @@ contract DepositManager is Ownable, Pausable, Term {
         uint profitRatio = _config.getProfitRatio();
 
         _deposits[depositId] = new Deposit(
+            asset,
             user, 
             term, 
             amount, 

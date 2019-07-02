@@ -1,13 +1,18 @@
 const Deposit = artifacts.require('Deposit')
 const DateTime = artifacts.require('DateTime')
-const { BN, shouldFail, time } = require('openzeppelin-test-helpers')
-const { toFixedBN } = require('../../utils/index.js')
+const { BN, time } = require('openzeppelin-test-helpers')
+const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
-contract('Deposit', ([owner, anotherAccount]) => {
+contract('Deposit', ([owner]) => {
   const amount = toFixedBN(100)
   const interestIndex = toFixedBN(1)
   const profitRatio = toFixedBN(0.15)
+  let asset
+
+  before(async () => {
+    asset = await createERC20Token(owner)
+  })
 
   describe('#constructor', async () => {
     const term = new BN(7)
@@ -15,7 +20,7 @@ contract('Deposit', ([owner, anotherAccount]) => {
     let deposit, datetime, now, createdAt
 
     before(async () => {
-      deposit = await Deposit.new(owner, term, amount, interestIndex, profitRatio, isRecurring)
+      deposit = await Deposit.new(asset.address, owner, term, amount, interestIndex, profitRatio, isRecurring)
       now = await time.latest()
       datetime = await DateTime.new()
     })
@@ -39,7 +44,7 @@ contract('Deposit', ([owner, anotherAccount]) => {
     let deposit
 
     beforeEach(async () => {
-      deposit = await Deposit.new(owner, term, amount, interestIndex, profitRatio, isRecurring)
+      deposit = await Deposit.new(asset.address, owner, term, amount, interestIndex, profitRatio, isRecurring)
     })
 
     it('succeeds', async () => {
@@ -62,7 +67,7 @@ contract('Deposit', ([owner, anotherAccount]) => {
     let deposit
 
     beforeEach(async () => {
-      deposit = await Deposit.new(owner, term, amount, interestIndex, profitRatio, isRecurring)
+      deposit = await Deposit.new(asset.address, owner, term, amount, interestIndex, profitRatio, isRecurring)
     })
 
     it('succeeds', async () => {
@@ -72,4 +77,3 @@ contract('Deposit', ([owner, anotherAccount]) => {
     })       
   })       
 })
-
