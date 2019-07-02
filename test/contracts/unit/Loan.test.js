@@ -1,18 +1,26 @@
 const Loan = artifacts.require('Loan')
 const { shouldFail, time, BN } = require('openzeppelin-test-helpers')
-const { toFixedBN } = require('../../utils/index.js')
+const { toFixedBN, createERC20Token } = require('../../utils/index.js')
 const { expect } = require('chai')
 
-contract('Loan', ([owner, anotherAccount]) => {
+contract('Loan', ([owner]) => {
   const term = 7
   const loanAmount = toFixedBN(100)
   const collateralAmount = toFixedBN(300)
   const interestRate = toFixedBN(5, 10)
   const minCollateralRatio = toFixedBN(1.5)
   const liquidationDiscount = toFixedBN(0.05)
+  let loanAsset, collateralAsset
+
+  before(async () => {
+    loanAsset = await createERC20Token(owner)
+    collateralAsset = await createERC20Token(owner)
+  })
 
   const createLoan = async () => {
-      return await Loan.new(
+      return Loan.new(
+        loanAsset.address,
+        collateralAsset.address,
         owner, 
         term, 
         loanAmount, 

@@ -8,6 +8,8 @@ contract Loan {
     using SafeMath for uint;
     using FixedMath for uint;
 
+    address private _loanAsset;
+    address private _collateralAsset;
     address private _owner;
     uint8 private _term;
     uint private _loanAmount;
@@ -34,6 +36,8 @@ contract Loan {
     uint constant private ONE = 10 ** 18;
 
     constructor(
+        address loanAsset,
+        address collateralAsset,
         address owner, 
         uint8 term, 
         uint loanAmount, 
@@ -44,6 +48,8 @@ contract Loan {
     ) 
         public 
     {
+        _loanAsset = loanAsset;
+        _collateralAsset = collateralAsset;
         _owner = owner;
         _term = term;
         _loanAmount = loanAmount;
@@ -149,6 +155,14 @@ contract Loan {
             // Still has remaining debt, do not release the collateral
             return (liquidatingAmount, soldCollateralAmount, 0);
         }
+    }
+
+    function loanAsset() external view returns (address) {
+        return _loanAsset;
+    }
+
+    function collateralAsset() external view returns (address) {
+        return _collateralAsset;
     }
 
     function owner() external view returns (address) {

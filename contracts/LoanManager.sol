@@ -43,6 +43,18 @@ contract LoanManager is Ownable, Pausable, Term {
     /// becomes "free" and can be withdrawn or be used for new loan
     mapping(address => mapping(address => uint)) private _freedCollaterals;
 
+    /// This struct is used internally in the `loan` function to avoid
+    /// "CompilerError: Stack too deep, try removing local variables"
+    struct LoanLocalVars {
+        uint totalCollateralAmount;
+        uint loanAssetPrice;
+        uint collateralAssetPrice;
+        uint currCollateralRatio;
+        uint minCollateralRatio;
+        uint interestRate;
+        uint liquidationDiscount;
+    }
+
     modifier enabledLoanAssetPair(address loanAsset, address collateralAsset) {
         require (_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
         _;
@@ -72,17 +84,56 @@ contract LoanManager is Ownable, Pausable, Term {
         enabledLoanAssetPair(loanAsset, collateralAsset)
         returns (bytes32)
     {
+
+        require(loanAmount > 0, "Invalid loan amount.");
+        require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
+
         address loaner = msg.sender;
 
-        // Group logics into a function to avoid stack too deep
-        bytes32 loanId = _validateAndLoan(
-            loaner,
-            term,
+        LoanLocalVars memory localVars;
+
+        localVars.totalCollateralAmount = collateralAmount;
+
+        // Combine freed collateral if needed
+        if (requestedFreedCollateral > 0) {
+            uint availableFreedCollateral = _freedCollaterals[loaner][collateralAsset];
+
+            require(requestedFreedCollateral <= availableFreedCollateral, "Not enough freed collateral.");
+
+            _freedCollaterals[loaner][collateralAsset] = availableFreedCollateral.sub(requestedFreedCollateral);
+            localVars.totalCollateralAmount = localVars.totalCollateralAmount.add(requestedFreedCollateral);
+        } 
+        
+
+        localVars.collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
+        localVars.loanAssetPrice = _priceOracle.getPrice(loanAsset);
+
+        localVars.currCollateralRatio = localVars.totalCollateralAmount
+            .mulFixed(localVars.collateralAssetPrice)
+            .divFixed(loanAmount)
+            .divFixed(localVars.loanAssetPrice);
+
+        localVars.minCollateralRatio = _config.getCollateralRatio(loanAsset, collateralAsset);
+
+        require(localVars.currCollateralRatio >= localVars.minCollateralRatio, "Collateral ratio is below requirement.");
+
+        localVars.interestRate = _config.getLoanInterestRate(loanAsset, term);
+        localVars.liquidationDiscount = _config.getLiquidationDiscount(loanAsset, collateralAsset);
+
+        _numLoans++;
+
+        bytes32 loanId = keccak256(abi.encode(_numLoans));
+
+        _loans[loanId] = new Loan(
             loanAsset,
             collateralAsset,
-            loanAmount,
-            collateralAmount,
-            requestedFreedCollateral
+            loaner, 
+            term, 
+            loanAmount, 
+            localVars.totalCollateralAmount, 
+            localVars.interestRate,
+            localVars.minCollateralRatio, 
+            localVars.liquidationDiscount
         );
 
         _loanFromPoolGroups(loanAsset, term, loanAmount, loanId);        
@@ -191,65 +242,6 @@ contract LoanManager is Ownable, Pausable, Term {
     }
 
     // PRIVATE --------------------------------------------------------------
-
-    function _validateAndLoan(
-        address loaner,
-        uint8 term,
-        address loanAsset,
-        address collateralAsset,
-        uint loanAmount,
-        uint collateralAmount,
-        uint requestedFreedCollateral
-    )
-        private 
-        returns (bytes32)
-    {
-        require(loanAmount > 0, "Invalid loan amount.");
-        require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
-
-        uint totalCollateralAmount = collateralAmount;
-
-        // Combine freed collateral if needed
-        if (requestedFreedCollateral > 0) {
-            uint availableFreedCollateral = _freedCollaterals[loaner][collateralAsset];
-
-            require(requestedFreedCollateral <= availableFreedCollateral, "Not enough freed collateral.");
-
-            _freedCollaterals[loaner][collateralAsset] = availableFreedCollateral.sub(requestedFreedCollateral);
-            totalCollateralAmount = totalCollateralAmount.add(requestedFreedCollateral);
-        } 
-        
-        uint collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
-        uint loanAssetPrice = _priceOracle.getPrice(loanAsset);
-
-        uint currCollateralRatio = totalCollateralAmount
-            .mulFixed(collateralAssetPrice)
-            .divFixed(loanAmount)
-            .divFixed(loanAssetPrice);
-
-        uint minCollateralRatio = _config.getCollateralRatio(loanAsset, collateralAsset);
-
-        require(currCollateralRatio >= minCollateralRatio, "Collateral ratio is below requirement.");
-
-        uint interestRate = _config.getLoanInterestRate(loanAsset, term);
-        uint liquidationDiscount = _config.getLiquidationDiscount(loanAsset, collateralAsset);
-
-        _numLoans++;
-
-        bytes32 loanId = keccak256(abi.encode(_numLoans));
-
-        _loans[loanId] = new Loan(
-            loaner, 
-            term, 
-            loanAmount, 
-            totalCollateralAmount, 
-            interestRate,
-            minCollateralRatio, 
-            liquidationDiscount
-        );
-
-        return loanId;
-    }
 
     function _validateAndLiquidateLoan(
         address liquidator, 
