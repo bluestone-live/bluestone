@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { TokenStore, AccountStore, IToken } from '../stores';
+import { TokenStore, AccountStore } from '../stores';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Anchor from '../components/html/Anchor';
@@ -13,6 +13,7 @@ import Radio from '../components/common/Radio';
 import Card from '../components/common/Card';
 import Button from '../components/html/Button';
 import { ITerm, terms } from '../constants/Term';
+import { IToken } from '../constants/Token';
 
 const StyledTokenList = styled.table`
   width: 100%;
@@ -164,8 +165,12 @@ class HomePage extends React.Component<IProps, IState> {
               {validTokens.map(token => (
                 <StyledTokenListRow key={token.symbol}>
                   <td>
-                    {token.logo}
-                    {token.symbol}
+                    <Anchor
+                      to={`/transactions?tokenSymbol=${token.symbol}&term=&status=`}
+                    >
+                      {token.logo}
+                      {token.symbol}
+                    </Anchor>
                   </td>
                   <td>
                     {token.depositAnnualPercentageRates

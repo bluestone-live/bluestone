@@ -6,6 +6,7 @@ import {
 } from '../../constants/Transaction';
 import { Row, Cell } from '../../components/common/Layout';
 import Button from '../../components/html/Button';
+import Anchor from '../../components/html/Anchor';
 
 interface IProps extends WithTranslation {
   loanTransaction: ILoanTransaction;
@@ -39,8 +40,10 @@ class LoanTransactionItem extends React.Component<IProps> {
       <div className="deposit-item">
         <Row>
           <Cell>
-            collateral: {loanTransaction.collateralToken.symbol}; loan:
-            {loanTransaction.loanToken.symbol}
+            <Anchor to="/action-logs">
+              collateral: {loanTransaction.collateralToken.symbol}; loan:
+              {loanTransaction.loanToken.symbol}
+            </Anchor>
           </Cell>
           <Cell>{t('loan')!}</Cell>
           <Cell>{loanTransaction.loanAmount}</Cell>

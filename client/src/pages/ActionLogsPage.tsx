@@ -8,6 +8,7 @@ import Form from '../components/html/Form';
 import Select from '../components/html/Select';
 import styled from 'styled-components';
 import { Cell, Row } from '../components/common/Layout';
+import { getEnumValidKeys } from '../utils/getEnumValidKeys';
 
 interface IProps extends WithTranslation {
   actionLogStore: ActionLogStore;
@@ -32,8 +33,7 @@ class ActionLogsPage extends React.Component<IProps> {
           <Form.Item>
             <label htmlFor="action-type-filter">{t('action_type')}</label>
             <Select id="action-type-filter">
-              {Object.keys(ActionType)
-                .filter(k => /\d+/.test(k))
+              {getEnumValidKeys(ActionType)
                 .map(k => ({
                   value: k,
                   text: t(ActionType[Number.parseInt(k, 10)]),
@@ -51,14 +51,16 @@ class ActionLogsPage extends React.Component<IProps> {
             <StyledHeaderCell>{t('action_type')!}</StyledHeaderCell>
             <StyledHeaderCell>{t('token')!}</StyledHeaderCell>
             <StyledHeaderCell>{t('txid')!}</StyledHeaderCell>
-            <StyledHeaderCell>{t('link')!}</StyledHeaderCell>
           </Row>
           {actionLogStore.actionLogs.map(log => (
             <Row key={`${log.txid}-row`}>
               <Cell>{t(log.actionType.toString())}</Cell>
               <Cell>{log.token.symbol}</Cell>
-              <Cell>{log.txid}</Cell>
-              <Cell>{log.link}</Cell>
+              <Cell>
+                <a href={log.link} target="eth_scanner">
+                  {log.txid}
+                </a>
+              </Cell>
             </Row>
           ))}
         </div>
