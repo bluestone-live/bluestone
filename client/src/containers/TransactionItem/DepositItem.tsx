@@ -2,7 +2,7 @@ import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import {
   IDepositTransaction,
-  DepositTransactionStatus,
+  TransactionStatus,
 } from '../../constants/Transaction';
 import { Row, Cell } from '../../components/common/Layout';
 import Button from '../../components/html/Button';
@@ -14,10 +14,10 @@ interface IProps extends WithTranslation {
 class DepositTransactionItem extends React.Component<IProps> {
   getActions = () => {
     const { depositTransaction, t } = this.props;
-    if (depositTransaction.status === DepositTransactionStatus.Matured) {
+    if (depositTransaction.status === TransactionStatus.DepositMatured) {
       return <Button>{t('withdraw')}</Button>;
     }
-    if (depositTransaction.status === DepositTransactionStatus.AutoRenewal) {
+    if (depositTransaction.status === TransactionStatus.DepositAutoRenewal) {
       return <Button>{t('disable_auto_renewal')}</Button>;
     }
     return <Button>{t('enable_auto_renewal')}</Button>;

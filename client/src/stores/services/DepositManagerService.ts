@@ -43,6 +43,7 @@ export const getDepositTransactions = async (): Promise<
   IGetDepositTransactionResponse[]
 > => {
   // TODO: use real data instead
+  // TODO: call DepositContractInstance.isOverDue().call() to get if deposit over due.
   return [
     {
       owner: 'xxx',
@@ -54,6 +55,7 @@ export const getDepositTransactions = async (): Promise<
       interestRate: 0.3,
       createdAt: 0,
       maturedAt: 100,
+      isOverDue: false,
     },
     {
       owner: 'xxx',
@@ -65,6 +67,7 @@ export const getDepositTransactions = async (): Promise<
       interestRate: 0.3,
       createdAt: 0,
       maturedAt: 100,
+      isOverDue: true,
     },
   ];
 };

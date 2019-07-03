@@ -1,4 +1,4 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { ITerm } from './Term';
 import { IToken } from './Token';
 
@@ -20,13 +20,14 @@ export interface IGetDepositTransactionResponse {
   maturedAt: number;
   withdrewAt?: number; // can a deposit order withdrew multiple times
   isRecurring: boolean;
+  isOverDue: boolean;
 }
 
 export interface IDepositTransaction {
   transactionId: string; // TODO need to store this in contract
   owner: string; // address
   type: TransactionType;
-  status: DepositTransactionStatus;
+  status: TransactionStatus;
   token: IToken;
   term: ITerm; // address
   depositAmount: number;
@@ -38,66 +39,69 @@ export interface IDepositTransaction {
   isRecurring: boolean;
 }
 
-export enum DepositTransactionStatus {
-  Normal,
-  AutoRenewal,
-  Matured,
+export enum TransactionStatus {
+  Lock = 0,
+  DepositNormal = 10,
+  DepositAutoRenewal = 11,
+  DepositMatured = 12,
+  DepositOverDue = 13,
+  LoanNormal = 20,
+  LoanPartialRepaid = 21,
+  LoanLiquidating = 22,
+  LoanClosed = 23,
 }
 
 export const getDepositTransactionStatus = (
   transaction: IGetDepositTransactionResponse,
 ) => {
-  const now = moment().valueOf();
-  if (now >= transaction.maturedAt) {
-    return DepositTransactionStatus.Matured;
+  // TODO: find out when will get lock status
+  const now = dayjs().valueOf();
+  if (transaction.isOverDue) {
+    return TransactionStatus.DepositOverDue;
+  } else if (now >= transaction.maturedAt) {
+    return TransactionStatus.DepositMatured;
   } else if (transaction.isRecurring) {
-    return DepositTransactionStatus.AutoRenewal;
+    return TransactionStatus.DepositAutoRenewal;
   }
-  return DepositTransactionStatus.Normal;
+  return TransactionStatus.DepositNormal;
 };
-
-export enum LoanTransactionStatus {
-  Safety,
-  Risky,
-  PartialRepaid,
-  Liquidated,
-  Closed,
-  Unknown,
-}
 
 export const getLoanTransactionStatus = (
   transaction: IGetLoanTransactionResponse,
 ) => {
+  // TODO: find out when will get lock status
+  const now = dayjs().valueOf();
   if (transaction.isClosed) {
-    return LoanTransactionStatus.Closed;
+    return TransactionStatus.LoanClosed;
+  }
+  if (
+    dayjs(transaction.createdAt)
+      .add(transaction.term, 'day')
+      .valueOf() >= now
+  ) {
+    return TransactionStatus.LoanLiquidating;
+  }
+  if (transaction.isClosed) {
+    return TransactionStatus.LoanClosed;
   }
   if (transaction.liquidatedAmount) {
-    return LoanTransactionStatus.Liquidated;
-  }
-  if (transaction.createdAt) {
-    return LoanTransactionStatus.Safety;
-  }
-  if (transaction.isClosed) {
-    return LoanTransactionStatus.Closed;
-  }
-  if (transaction.liquidatedAmount) {
-    return LoanTransactionStatus.Liquidated;
+    return TransactionStatus.LoanLiquidating;
   }
   if (
     transaction.alreadyPaidAmount &&
     transaction.alreadyPaidAmount !== 0 &&
     transaction.alreadyPaidAmount < transaction.loanAmount
   ) {
-    return LoanTransactionStatus.PartialRepaid;
+    return TransactionStatus.LoanPartialRepaid;
   }
-  return LoanTransactionStatus.Unknown;
+  return TransactionStatus.LoanNormal;
 };
 
 export interface ILoanTransaction {
   transactionId: string; // TODO need to store this in contract
   owner: string; // address
   type: TransactionType;
-  status: LoanTransactionStatus;
+  status: TransactionStatus;
   collateralToken: IToken;
   loanToken: IToken;
   term: ITerm;

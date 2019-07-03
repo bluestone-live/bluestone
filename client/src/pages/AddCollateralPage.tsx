@@ -8,8 +8,8 @@ import { RouteComponentProps } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
 import { TransactionType, ILoanTransaction } from '../constants/Transaction';
-import moment from 'moment';
 import { toJS } from 'mobx';
+import dayjs from 'dayjs';
 
 interface IProps
   extends WithTranslation,
@@ -93,8 +93,8 @@ class AddCollateralPage extends React.Component<IProps, IState> {
             <Input
               type="text"
               disabled
-              value={moment(transaction.createdAt)
-                .add('day', transaction.term.value)
+              value={dayjs(transaction.createdAt)
+                .add(transaction.term.value, 'day')
                 .format('YYYY-MM-DD')}
             />
           </Form.Item>

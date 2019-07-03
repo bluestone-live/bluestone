@@ -17,6 +17,7 @@ const deployedContractJsonInterface = {
 
 // May have multiple-instances
 export const nonDeployedContractJsonInterface = {
+  Deposit: requireContract('Deposit'),
   PoolGroup: requireContract('PoolGroup'),
   ERC20: requireContract('ERC20'),
 };

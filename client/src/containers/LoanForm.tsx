@@ -6,18 +6,15 @@ import { Row, Cell } from '../components/common/Layout';
 import styled from 'styled-components';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { observer, inject } from 'mobx-react';
-import {
-  TokenStore,
-  IToken,
-  LoanManagerStore,
-  TransactionStore,
-} from '../stores';
+import { TokenStore, LoanManagerStore, TransactionStore } from '../stores';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
 import {
   calculateRate,
   RatePeriod,
 } from '../utils/interestRateCalculateHelper';
 import dayjs from 'dayjs';
+import { updateState } from '../utils/updateState';
+import { IToken } from '../constants/Token';
 
 interface IProps extends WithTranslation {
   tokenStore: TokenStore;
@@ -37,12 +34,9 @@ interface IState {
 }
 
 // Modified from: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/26635#issuecomment-400260278
-const updateState = <T extends string>(key: string, value: T) => (
-  prevState: IState,
-): IState => ({
-  ...prevState,
-  [key]: value,
-});
+const StyledColumns = styled.div`
+  display: flex;
+`;
 
 @observer
 @inject('tokenStore', 'loanManagerStore', 'transactionStore')
@@ -68,7 +62,7 @@ class LoanForm extends React.Component<IProps, IState> {
   handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.currentTarget;
 
-    this.setState(updateState(name, value));
+    this.setState(updateState<string, IState>(name, value));
   };
 
   handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -115,7 +109,7 @@ class LoanForm extends React.Component<IProps, IState> {
       collateralAmount,
     } = this.state;
 
-    const tokenSymbolList = tokenStore.validTokens.map(
+    const tokenSymbolList = tokenStore!.validTokens.map(
       (token: IToken) => token.symbol,
     );
 
