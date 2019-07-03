@@ -1,5 +1,5 @@
 {
-  "phabricator.uri": "http://47.244.8.26",
+  "phabricator.uri": "https://phabricator.bluestone.live",
   "unit.engine": "CustomTestEngine",
   "load": [
     "arcanist-extensions"
