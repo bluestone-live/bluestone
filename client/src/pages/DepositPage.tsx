@@ -10,6 +10,7 @@ import { terms, ITerm } from '../constants/Term';
 import Button from '../components/html/Button';
 import { convertDecimalToWei } from '../utils/BigNumber';
 import Form from '../components/html/Form';
+import { Row, Cell } from '../components/common/Layout';
 
 interface IProps
   extends WithTranslation,
@@ -112,26 +113,45 @@ class DepositForm extends React.Component<IProps, IState> {
         <Form onSubmit={this.onSubmit}>
           <h3>{currentToken ? currentToken.symbol : null}</h3>
           <Form.Item>
-            <label htmlFor="amount">{t('deposit_amount')}</label>
-            <Input id="amount" type="number" onChange={this.onAmountChange} />
+            <Row>
+              <Cell>
+                <label htmlFor="amount">{t('deposit_amount')}</label>
+              </Cell>
+              <Cell scale={4}>
+                <Input
+                  fullWidth
+                  id="amount"
+                  type="number"
+                  onChange={this.onAmountChange}
+                />
+              </Cell>
+            </Row>
           </Form.Item>
           <Form.Item>
-            <label>{t('select_term')}</label>
-            <Radio<number>
-              name="term"
-              options={this.terms}
-              onChange={this.onTermSelect}
-              selectedOption={selectedTerm}
-            />
+            <Cell>
+              <label>{t('select_term')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <Radio<number>
+                name="term"
+                options={this.terms}
+                onChange={this.onTermSelect}
+                selectedOption={selectedTerm}
+              />
+            </Cell>
           </Form.Item>
           <Form.Item>
-            <label>{t('is_auto_renewal')}</label>
-            <Radio<boolean>
-              name="is-auto-renewal"
-              options={this.isAutoRenewal}
-              onChange={this.onAutoRenewChange}
-              selectedOption={selectedAutoRenewal}
-            />
+            <Cell>
+              <label>{t('is_auto_renewal')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <Radio<boolean>
+                name="is-auto-renewal"
+                options={this.isAutoRenewal}
+                onChange={this.onAutoRenewChange}
+                selectedOption={selectedAutoRenewal}
+              />
+            </Cell>
           </Form.Item>
           <Form.Item>
             <label />

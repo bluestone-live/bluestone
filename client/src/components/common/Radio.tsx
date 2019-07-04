@@ -32,7 +32,9 @@ const StyledRadioInput = styled(Input)`
   margin-right: 5px;
 `;
 
-const StyledLabel = styled.label``;
+const StyledLabel = styled.label`
+  flex: 1 !important;
+`;
 
 // use class component because functional component does not support generic
 export default class Radio<T> extends React.PureComponent<IProps<T>> {

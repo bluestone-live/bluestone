@@ -39,10 +39,12 @@ const StyledFormItem = styled.div`
     flex: 1;
   }
 
-  & > label {
+  & label {
+    display: block;
+    width: 100%;
+    height: 100%;
     flex: 0;
     font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
-    min-width: 200px;
     text-align: right;
     padding: 0 ${(props: ThemedProps) => props.theme.gap.small};
     line-height: 35px;
