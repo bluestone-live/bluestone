@@ -1,17 +1,23 @@
 pragma solidity ^0.5.0;
 
+import "../Configuration.sol";
+import "../PriceOracle.sol";
+import "../TokenManager.sol";
+import "../LiquidityPools.sol";
+import "../DepositManager.sol";
 import "../LoanManager.sol";
+import "../Loan.sol";
 
 
 contract LoanManagerMock is LoanManager {
-    bytes32[] public loanIds;
+    Loan[] public loans;
 
     constructor(
-        address config,
-        address priceOracle,
-        address tokenManager,
-        address liquidityPools,
-        address depositManager
+        Configuration config,
+        PriceOracle priceOracle,
+        TokenManager tokenManager,
+        LiquidityPools liquidityPools,
+        DepositManager depositManager
     ) 
         LoanManager(config, priceOracle, tokenManager, liquidityPools, depositManager)
         public 
@@ -25,9 +31,9 @@ contract LoanManagerMock is LoanManager {
         uint collateralAmount,
         uint requestedFreedCollateral
     ) 
-        public returns (bytes32) 
+        public returns (Loan) 
     {
-        bytes32 loanId = super.loan(
+        Loan currLoan = super.loan(
             term,
             loanAsset,
             collateralAsset,
@@ -36,8 +42,8 @@ contract LoanManagerMock is LoanManager {
             requestedFreedCollateral
         );
 
-        loanIds.push(loanId);
+        loans.push(currLoan);
 
-        return loanId;
+        return currLoan;
     }
 }

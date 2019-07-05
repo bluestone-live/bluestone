@@ -48,17 +48,17 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     )
   }
 
-  describe("#getLoanIdsByUser", () => {
+  describe("#getLoansByUser", () => {
     before(async () => {
       await createLoan()
       await createLoan()
     }) 
 
     it('succeeds', async () => {
-      const loanIds = await loanManager.getLoanIdsByUser(loaner)
-      expect(loanIds.length).to.equal(2)
-      expect(loanIds[0]).to.equal((await loanManager.loanIds.call(0)))
-      expect(loanIds[1]).to.equal((await loanManager.loanIds.call(1)))
+      const loanAddresses = await loanManager.getLoansByUser(loaner)
+      expect(loanAddresses.length).to.equal(2)
+      expect(loanAddresses[0]).to.equal((await loanManager.loans.call(0)))
+      expect(loanAddresses[1]).to.equal((await loanManager.loans.call(1)))
     })
   })
 
@@ -71,10 +71,10 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     })
 
     it('succeeds', async () => {
-      const loanId = await loanManager.loanIds.call(0)
+      const loanAddress = await loanManager.loans.call(0)
       const collateralAmount = toFixedBN(10)
       const requestedFreedCollateral = 0
-      await loanManager.addCollateral(loanId, collateralAmount, requestedFreedCollateral, { from: loaner })
+      await loanManager.addCollateral(loanAddress, collateralAmount, requestedFreedCollateral, { from: loaner })
 
       expect(await collateralAsset.balanceOf(loaner)).to.be.bignumber
         .equal(prevCollateralAssetBalance.sub(collateralAmount))

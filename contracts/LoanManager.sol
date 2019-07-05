@@ -33,11 +33,8 @@ contract LoanManager is Ownable, Pausable, Term {
     /// Loan-related transactions can happen only if "B -> A" is enabled. 
     mapping(address => mapping(address => bool)) private _isLoanAssetPairEnabled;
 
-    // loan ID -> Loan
-    mapping(bytes32 => Loan) private _loans;
-
-    // User address -> A list of loan IDs
-    mapping(address => bytes32[]) private _loanIdsByUser;
+    // User address -> A list of Loans
+    mapping(address => Loan[]) private _loansByUser;
 
     uint private _numLoans;
 
@@ -58,12 +55,20 @@ contract LoanManager is Ownable, Pausable, Term {
         uint liquidationDiscount;
     }
 
-    constructor(address config, address priceOracle, address tokenManager, address liquidityPools, address depositManager) public {
-        _config = Configuration(config);
-        _priceOracle = PriceOracle(priceOracle);
-        _tokenManager = TokenManager(tokenManager);
-        _liquidityPools = LiquidityPools(liquidityPools);
-        _depositManager = DepositManager(depositManager);
+    constructor(
+        Configuration config, 
+        PriceOracle priceOracle, 
+        TokenManager tokenManager, 
+        LiquidityPools liquidityPools, 
+        DepositManager depositManager
+    ) 
+        public 
+    {
+        _config = config;
+        _priceOracle = priceOracle;
+        _tokenManager = tokenManager;
+        _liquidityPools = liquidityPools;
+        _depositManager = depositManager;
     }
 
     // PUBLIC  -----------------------------------------------------------------
@@ -79,7 +84,7 @@ contract LoanManager is Ownable, Pausable, Term {
         public 
         whenNotPaused
         validLoanTerm(term)
-        returns (bytes32)
+        returns (Loan)
     {
         require(_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
         require(loanAmount > 0, "Invalid loan amount.");
@@ -110,11 +115,7 @@ contract LoanManager is Ownable, Pausable, Term {
         localVars.interestRate = _config.getLoanInterestRate(loanAsset, term);
         localVars.liquidationDiscount = _config.getLiquidationDiscount(loanAsset, collateralAsset);
 
-        _numLoans++;
-
-        bytes32 loanId = keccak256(abi.encode(_numLoans));
-
-        _loans[loanId] = new Loan(
+        Loan currLoan = new Loan(
             loanAsset,
             collateralAsset,
             loaner, 
@@ -126,18 +127,19 @@ contract LoanManager is Ownable, Pausable, Term {
             localVars.liquidationDiscount
         );
 
-        _loanIdsByUser[loaner].push(loanId);
+        _numLoans++;
 
-        _loanFromPoolGroups(loanAsset, term, loanAmount, loanId);        
+        _loansByUser[loaner].push(currLoan);
+
+        _loanFromPoolGroups(loanAsset, term, loanAmount, currLoan);        
 
         _tokenManager.receiveFrom(loaner, collateralAsset, collateralAmount);
         _tokenManager.sendTo(loaner, loanAsset, loanAmount);
 
-        return loanId;
+        return currLoan;
     }
 
-    function repayLoan(bytes32 loanId, uint amount) external whenNotPaused returns (uint) {
-        Loan currLoan = _loans[loanId];
+    function repayLoan(Loan currLoan, uint amount) external whenNotPaused returns (uint) {
         address loanAsset = currLoan.loanAsset();
         address collateralAsset = currLoan.collateralAsset();
 
@@ -149,7 +151,7 @@ contract LoanManager is Ownable, Pausable, Term {
 
         (uint totalRepayAmount, uint freedCollateralAmount) = currLoan.repay(amount);
 
-        _repayLoanToPoolGroups(loanAsset, totalRepayAmount, loanId);
+        _repayLoanToPoolGroups(loanAsset, totalRepayAmount, currLoan);
 
         _depositFreedCollateral(loaner, collateralAsset, freedCollateralAmount);
 
@@ -159,8 +161,7 @@ contract LoanManager is Ownable, Pausable, Term {
     }
 
     // A loan can be liquidated when it is defaulted or the collaterization ratio is below requirement
-    function liquidateLoan(bytes32 loanId, uint amount) external whenNotPaused returns (uint, uint) {
-        Loan currLoan = _loans[loanId];
+    function liquidateLoan(Loan currLoan, uint amount) external whenNotPaused returns (uint, uint) {
         address loanAsset = currLoan.loanAsset();
         address collateralAsset = currLoan.collateralAsset();
 
@@ -184,7 +185,7 @@ contract LoanManager is Ownable, Pausable, Term {
             collateralAssetPrice
         );
 
-        _repayLoanToPoolGroups(loanAsset, liquidatedAmount, loanId);
+        _repayLoanToPoolGroups(loanAsset, liquidatedAmount, currLoan);
 
         _depositFreedCollateral(liquidator, collateralAsset, freedCollateralAmount);
 
@@ -193,14 +194,13 @@ contract LoanManager is Ownable, Pausable, Term {
         return (liquidatedAmount, soldCollateralAmount);
     }
 
-    function addCollateral(bytes32 loanId, uint collateralAmount, uint requestedFreedCollateral) 
+    function addCollateral(Loan currLoan, uint collateralAmount, uint requestedFreedCollateral) 
         external 
         whenNotPaused 
         returns (uint) 
     {
         require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
 
-        Loan currLoan = _loans[loanId];
         address loanAsset = currLoan.loanAsset();
         address collateralAsset = currLoan.collateralAsset();
 
@@ -239,8 +239,8 @@ contract LoanManager is Ownable, Pausable, Term {
         return _isLoanAssetPairEnabled[loanAsset][collateralAsset];
     }
 
-    function getLoanIdsByUser(address user) external whenNotPaused view returns (bytes32[] memory) {
-        return _loanIdsByUser[user];
+    function getLoansByUser(address user) external whenNotPaused view returns (Loan[] memory) {
+        return _loansByUser[user];
     }
 
     // ADMIN --------------------------------------------------------------
@@ -282,20 +282,28 @@ contract LoanManager is Ownable, Pausable, Term {
 
     // PRIVATE --------------------------------------------------------------
 
-    function _loanFromPoolGroups(address loanAsset, uint8 loanTerm, uint loanAmount, bytes32 loanId) private {
+    function _loanFromPoolGroups(address loanAsset, uint8 loanTerm, uint loanAmount, Loan currLoan) private {
         if (loanTerm == 1) {
-            _loanFromPoolGroup(loanAsset, 1, loanTerm, loanAmount, loanId);
-            _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, loanId);
-            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, loanId);
+            _loanFromPoolGroup(loanAsset, 1, loanTerm, loanAmount, currLoan);
+            _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, currLoan);
+            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
         } else if (loanTerm == 3 || loanTerm == 7) {
-            _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, loanId);
-            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, loanId);
+            _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, currLoan);
+            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
         } else if (loanTerm == 30) {
-            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, loanId);
+            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
         }
     }
 
-    function _loanFromPoolGroup(address asset, uint8 depositTerm, uint8 loanTerm, uint loanAmount, bytes32 loanId) private {
+    function _loanFromPoolGroup(
+        address asset,
+        uint8 depositTerm,
+        uint8 loanTerm,
+        uint loanAmount,
+        Loan currLoan
+    ) 
+        private 
+    {
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
         uint coefficient = _config.getCoefficient(asset, depositTerm, loanTerm);
             
@@ -316,7 +324,7 @@ contract LoanManager is Ownable, Pausable, Term {
                 uint loanedAmount = Math.min(remainingLoanAmount, loanableAmount);
 
                 poolGroup.loanFromPool(poolIndex, loanedAmount, loanTerm);
-                _loans[loanId].setRecord(depositTerm, poolIndex, loanedAmount);
+                currLoan.setRecord(depositTerm, poolIndex, loanedAmount);
                 remainingLoanAmount = remainingLoanAmount.sub(loanedAmount);
             }
 
@@ -328,17 +336,16 @@ contract LoanManager is Ownable, Pausable, Term {
         _depositManager.updateDepositAssetInterestInfo(asset, depositTerm);
     }
 
-    function _repayLoanToPoolGroups(address asset, uint totalRepayAmount, bytes32 loanId) private {
-        _repayLoanToPoolGroup(asset, 30, totalRepayAmount, loanId);
-        _repayLoanToPoolGroup(asset, 7, totalRepayAmount, loanId);
-        _repayLoanToPoolGroup(asset, 1, totalRepayAmount, loanId);
+    function _repayLoanToPoolGroups(address asset, uint totalRepayAmount, Loan currLoan) private {
+        _repayLoanToPoolGroup(asset, 30, totalRepayAmount, currLoan);
+        _repayLoanToPoolGroup(asset, 7, totalRepayAmount, currLoan);
+        _repayLoanToPoolGroup(asset, 1, totalRepayAmount, currLoan);
     }
 
-    function _repayLoanToPoolGroup(address asset, uint8 depositTerm, uint totalRepayAmount, bytes32 loanId) 
+    function _repayLoanToPoolGroup(address asset, uint8 depositTerm, uint totalRepayAmount, Loan currLoan) 
         private returns (uint) 
     {
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
-        Loan currLoan = _loans[loanId];
 
         uint totalLoanAmount = currLoan.loanAmount();
 

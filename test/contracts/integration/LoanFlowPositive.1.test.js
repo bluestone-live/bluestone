@@ -87,16 +87,16 @@ contract('LoanManager', ([owner, depositor, loaner]) => {
       })
 
       it('repays in full', async () => {
-        const loanId = await loanManager.loanIds.call(0);
+        const loanAddress = await loanManager.loans.call(0);
 
         repayAmount = await loanManager.repayLoan.call(
-          loanId, 
+          loanAddress, 
           '-1', 
           { from: loaner }
         )
 
         await loanManager.repayLoan(
-          loanId, 
+          loanAddress, 
           '-1', 
           { from: loaner }
         )
