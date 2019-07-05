@@ -58,11 +58,6 @@ contract LoanManager is Ownable, Pausable, Term {
         uint liquidationDiscount;
     }
 
-    modifier enabledLoanAssetPair(address loanAsset, address collateralAsset) {
-        require (_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
-        _;
-    }
-
     constructor(address config, address priceOracle, address tokenManager, address liquidityPools, address depositManager) public {
         _config = Configuration(config);
         _priceOracle = PriceOracle(priceOracle);
@@ -84,17 +79,14 @@ contract LoanManager is Ownable, Pausable, Term {
         public 
         whenNotPaused
         validLoanTerm(term)
-        enabledLoanAssetPair(loanAsset, collateralAsset)
         returns (bytes32)
     {
-
+        require(_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
         require(loanAmount > 0, "Invalid loan amount.");
         require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
 
         address loaner = msg.sender;
-
         LoanLocalVars memory localVars;
-
         localVars.totalCollateralAmount = collateralAmount;
 
         // Combine freed collateral if needed
@@ -149,14 +141,14 @@ contract LoanManager is Ownable, Pausable, Term {
         return loanId;
     }
 
-    function repayLoan(address loanAsset, address collateralAsset, bytes32 loanId, uint amount) 
-        external 
-        whenNotPaused
-        enabledLoanAssetPair(loanAsset, collateralAsset)
-        returns (uint)
-    {
-        address loaner = msg.sender;
+    function repayLoan(bytes32 loanId, uint amount) external whenNotPaused returns (uint) {
         Loan currLoan = _loans[loanId];
+        address loanAsset = currLoan.loanAsset();
+        address collateralAsset = currLoan.collateralAsset();
+
+        require(_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
+
+        address loaner = msg.sender;
 
         require(loaner == currLoan.owner());
 
@@ -172,21 +164,29 @@ contract LoanManager is Ownable, Pausable, Term {
     }
 
     // A loan can be liquidated when it is defaulted or the collaterization ratio is below requirement
-    function liquidateLoan(address loanAsset, address collateralAsset, bytes32 loanId, uint amount) 
-        external 
-        whenNotPaused
-        enabledLoanAssetPair(loanAsset, collateralAsset)
-        returns (uint, uint)
-    {
+    function liquidateLoan(bytes32 loanId, uint amount) external whenNotPaused returns (uint, uint) {
+        Loan currLoan = _loans[loanId];
+        address loanAsset = currLoan.loanAsset();
+        address collateralAsset = currLoan.collateralAsset();
+
+        require(_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
+
         address liquidator = msg.sender;
 
-        // Group logics into a function to avoid stack too deep
-        (uint liquidatedAmount, uint soldCollateralAmount, uint freedCollateralAmount) = _validateAndLiquidateLoan(
-            liquidator, 
-            loanId,
-            loanAsset, 
-            collateralAsset, 
-            amount
+        require(liquidator != currLoan.owner(), "Loan cannot be liquidated by the owner.");
+
+        uint loanAssetPrice = _priceOracle.getPrice(loanAsset);
+        uint collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
+
+        require(
+            currLoan.isLiquidatable(loanAssetPrice, collateralAssetPrice), 
+            "Loan is not liquidatable."
+        );
+
+        (uint liquidatedAmount, uint soldCollateralAmount, uint freedCollateralAmount) = currLoan.liquidate(
+            amount, 
+            loanAssetPrice, 
+            collateralAssetPrice
         );
 
         _repayLoanToPoolGroups(loanAsset, liquidatedAmount, loanId);
@@ -239,8 +239,8 @@ contract LoanManager is Ownable, Pausable, Term {
         external 
         whenNotPaused
         onlyOwner 
-        enabledLoanAssetPair(loanAsset, collateralAsset)
     {
+        require(_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair is already disabled.");
         _isLoanAssetPairEnabled[loanAsset][collateralAsset] = false;
     }
 
@@ -251,35 +251,6 @@ contract LoanManager is Ownable, Pausable, Term {
     }
 
     // PRIVATE --------------------------------------------------------------
-
-    function _validateAndLiquidateLoan(
-        address liquidator, 
-        bytes32 loanId,
-        address loanAsset,
-        address collateralAsset,
-        uint amount
-    ) 
-        private
-        returns (uint liquidatedAmount, uint soldCollateralAmount, uint freedCollateralAmount)
-    {
-        Loan currLoan = _loans[loanId];
-
-        require(liquidator != currLoan.owner(), "Loan cannot be liquidated by the owner.");
-
-        uint loanAssetPrice = _priceOracle.getPrice(loanAsset);
-        uint collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
-
-        require(
-            currLoan.isLiquidatable(loanAssetPrice, collateralAssetPrice), 
-            "Loan is not liquidatable."
-        );
-
-        return currLoan.liquidate(
-            amount, 
-            loanAssetPrice, 
-            collateralAssetPrice
-        );
-    }
 
     function _loanFromPoolGroups(address loanAsset, uint8 loanTerm, uint loanAmount, bytes32 loanId) private {
         if (loanTerm == 1) {

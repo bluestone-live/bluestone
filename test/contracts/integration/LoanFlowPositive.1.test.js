@@ -90,16 +90,12 @@ contract('LoanManager', ([owner, depositor, loaner]) => {
         const loanId = await loanManager.loanIds.call(0);
 
         repayAmount = await loanManager.repayLoan.call(
-          loanAsset.address, 
-          collateralAsset.address, 
           loanId, 
           '-1', 
           { from: loaner }
         )
 
         await loanManager.repayLoan(
-          loanAsset.address, 
-          collateralAsset.address, 
           loanId, 
           '-1', 
           { from: loaner }
