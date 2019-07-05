@@ -91,14 +91,9 @@ contract LoanManager is Ownable, Pausable, Term {
 
         // Combine freed collateral if needed
         if (requestedFreedCollateral > 0) {
-            uint availableFreedCollateral = _freedCollaterals[loaner][collateralAsset];
-
-            require(requestedFreedCollateral <= availableFreedCollateral, "Not enough freed collateral.");
-
-            _freedCollaterals[loaner][collateralAsset] = availableFreedCollateral.sub(requestedFreedCollateral);
+            _withdrawFreedCollateral(loaner, collateralAsset, requestedFreedCollateral);
             localVars.totalCollateralAmount = localVars.totalCollateralAmount.add(requestedFreedCollateral);
         } 
-        
 
         localVars.collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
         localVars.loanAssetPrice = _priceOracle.getPrice(loanAsset);
@@ -198,16 +193,41 @@ contract LoanManager is Ownable, Pausable, Term {
         return (liquidatedAmount, soldCollateralAmount);
     }
 
+    function addCollateral(bytes32 loanId, uint collateralAmount, uint requestedFreedCollateral) 
+        external 
+        whenNotPaused 
+        returns (uint) 
+    {
+        require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
+
+        Loan currLoan = _loans[loanId];
+        address loanAsset = currLoan.loanAsset();
+        address collateralAsset = currLoan.collateralAsset();
+
+        require(_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
+
+        address loaner = msg.sender;
+
+        require(loaner == currLoan.owner(), "Collateral can only be added by owner.");
+
+        uint totalCollateralAmount = collateralAmount;
+
+        // Combine freed collateral if needed
+        if (requestedFreedCollateral > 0) {
+            _withdrawFreedCollateral(loaner, collateralAsset, requestedFreedCollateral);
+            totalCollateralAmount = totalCollateralAmount.add(requestedFreedCollateral);
+        } 
+
+        currLoan.addCollateral(totalCollateralAmount); 
+
+        _tokenManager.receiveFrom(loaner, collateralAsset, totalCollateralAmount);
+
+        return totalCollateralAmount;
+    }
+
     function withdrawFreedCollateral(address asset, uint amount) external whenNotPaused {
-        require(amount > 0, "Withdraw amount must be greater than 0.");
-
         address user = msg.sender;
-        uint availableToWithdraw = _freedCollaterals[user][asset];
-
-        require(amount <= availableToWithdraw, "Not enough freed collateral to withdraw.");
-
-        _freedCollaterals[user][asset] = availableToWithdraw.sub(amount);
-
+        _withdrawFreedCollateral(user, asset, amount);
         _tokenManager.sendTo(user, asset, amount);
     }
 
@@ -248,6 +268,16 @@ contract LoanManager is Ownable, Pausable, Term {
 
     function _depositFreedCollateral(address user, address asset, uint amount) internal {
         _freedCollaterals[user][asset] = _freedCollaterals[user][asset].add(amount);
+    }
+
+    function _withdrawFreedCollateral(address user, address asset, uint amount) internal {
+        require(amount > 0, "Freed collateral amount must be greater than 0.");
+
+        uint availableFreedCollateral = _freedCollaterals[user][asset];
+
+        require(amount <= availableFreedCollateral, "Not enough freed collateral.");
+
+        _freedCollaterals[user][asset] = availableFreedCollateral.sub(amount);
     }
 
     // PRIVATE --------------------------------------------------------------

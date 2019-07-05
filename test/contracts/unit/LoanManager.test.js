@@ -1,5 +1,6 @@
 const PriceOracle = artifacts.require('PriceOracle')
 const TokenManager = artifacts.require('TokenManager')
+const Loan = artifacts.require('Loan')
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
 const { DepositManagerMock, LoanManagerMock } = require("../../utils/mocks.js");
 const { expect } = require("chai");
@@ -30,24 +31,24 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     await loanManager.enableLoanAssetPair(loanAsset.address, collateralAsset.address, { from: owner })
   });
 
+  const createLoan = async (
+    term = 1,
+    loanAmount = toFixedBN(10),
+    collateralAmount = toFixedBN(30),
+    requestedFreedCollateral = 0
+  ) => {
+    await loanManager.loan(
+      term, 
+      loanAsset.address, 
+      collateralAsset.address, 
+      loanAmount,
+      collateralAmount,
+      requestedFreedCollateral,
+      { from: loaner }
+    )
+  }
+
   describe("#getLoanIdsByUser", () => {
-    const term = 1
-    const loanAmount = toFixedBN(10)
-    const collateralAmount = toFixedBN(30)
-    const requestedFreedCollateral = 0
-
-    const createLoan = async () => {
-      await loanManager.loan(
-        term, 
-        loanAsset.address, 
-        collateralAsset.address, 
-        loanAmount,
-        collateralAmount,
-        requestedFreedCollateral,
-        { from: loaner }
-      )
-    }
-
     before(async () => {
       await createLoan()
       await createLoan()
@@ -58,6 +59,25 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       expect(loanIds.length).to.equal(2)
       expect(loanIds[0]).to.equal((await loanManager.loanIds.call(0)))
       expect(loanIds[1]).to.equal((await loanManager.loanIds.call(1)))
+    })
+  })
+
+  describe('#addCollateral', () => {
+    let prevCollateralAssetBalance
+
+    before(async () => {
+      await createLoan()
+      prevCollateralAssetBalance = await collateralAsset.balanceOf(loaner)
+    })
+
+    it('succeeds', async () => {
+      const loanId = await loanManager.loanIds.call(0)
+      const collateralAmount = toFixedBN(10)
+      const requestedFreedCollateral = 0
+      await loanManager.addCollateral(loanId, collateralAmount, requestedFreedCollateral, { from: loaner })
+
+      expect(await collateralAsset.balanceOf(loaner)).to.be.bignumber
+        .equal(prevCollateralAssetBalance.sub(collateralAmount))
     })
   })
 });
