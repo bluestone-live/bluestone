@@ -1,7 +1,6 @@
-import { getContracts } from './Web3Service';
+import { getContracts, getContractEventFlow } from './Web3Service';
 import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
-import { IAnnualPercentageRateValues } from '../../constants/Rate';
 import { IGetDepositTransactionResponse } from '../../constants/Transaction';
 
 export const isDepositAssetEnabled = async (
@@ -13,12 +12,13 @@ export const isDepositAssetEnabled = async (
     .call();
 };
 
-export const getDepositInterestRates = async (
+export const getDepositInterestRate = async (
   tokenAddress: string,
-): Promise<IAnnualPercentageRateValues> => {
+  term: number,
+): Promise<BigNumber> => {
   const contract = await getContracts();
   return contract.DepositManager.methods
-    .getDepositInterestRates(tokenAddress)
+    .getDepositInterestRate(tokenAddress, term)
     .call();
 };
 
@@ -32,11 +32,18 @@ export const deposit = async (
   term: number,
   amount: BigNumber,
   isRecurring: boolean,
-): Promise<object> => {
-  const contract = await getContracts();
-  return contract.DepositManager.methods
-    .deposit(assetAddress, term, amount.toString(), isRecurring)
-    .send({ from: accountStore.defaultAccount });
+) => {
+  const caller = await getContractEventFlow(
+    'DepositManager',
+    'DepositSuccessful',
+    { filter: { user: accountStore.defaultAccount } },
+  );
+
+  return caller(DepositManager => {
+    DepositManager.methods
+      .deposit(assetAddress, term, amount.toString(), isRecurring)
+      .send({ from: accountStore.defaultAccount });
+  });
 };
 
 export const getDepositTransactions = async (): Promise<
@@ -84,6 +91,7 @@ export const getDepositTransactionById = async (
   interestRate: 0.3,
   createdAt: 0,
   maturedAt: 100,
+  isOverDue: true,
 });
 
 export const toggleRenewal = async (autoRenewal: boolean): Promise<string> => {

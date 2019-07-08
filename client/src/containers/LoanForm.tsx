@@ -14,12 +14,13 @@ import {
 } from '../utils/interestRateCalculateHelper';
 import dayjs from 'dayjs';
 import { updateState } from '../utils/updateState';
+import { terms } from '../constants/Term';
 import { IToken } from '../constants/Token';
 
 interface IProps extends WithTranslation {
-  tokenStore: TokenStore;
-  loanManagerStore: LoanManagerStore;
-  transactionStore: TransactionStore;
+  tokenStore?: TokenStore;
+  loanManagerStore?: LoanManagerStore;
+  transactionStore?: TransactionStore;
   term?: number;
   loanTokenSymbol?: string;
   collateralTokenSymbol?: string;
@@ -75,13 +76,18 @@ class LoanForm extends React.Component<IProps, IState> {
       loanAmount,
       collateralAmount,
     } = this.state;
-    const loanToken = tokenStore.getToken(loanTokenSymbol);
-    const collateralToken = tokenStore.getToken(collateralTokenSymbol);
+    const loanToken = tokenStore!.getToken(loanTokenSymbol);
+    const collateralToken = tokenStore!.getToken(collateralTokenSymbol);
+
+    if (!loanToken || !collateralToken) {
+      // TODO: show error messages
+      return;
+    }
 
     // TODO: add input/checkbox field to use freed collateral
     const requestedFreedCollateral = 0;
 
-    await transactionStore.loan(
+    await transactionStore!.loan(
       term,
       loanToken,
       collateralToken,
@@ -121,20 +127,20 @@ class LoanForm extends React.Component<IProps, IState> {
       .filter(tokenSymbol => tokenSymbol !== loanTokenSymbol)
       .map(tokenSymbol => this.renderOption(tokenSymbol, tokenSymbol));
 
-    const termOptions = [1, 7, 30].map(thisTerm =>
-      this.renderOption(thisTerm.toString(), thisTerm),
-    );
+    const termOptions = terms
+      .map(iteratorTerm => iteratorTerm.value)
+      .map(thisTerm => this.renderOption(thisTerm.toString(), thisTerm));
 
-    const loanToken = tokenStore.getToken(loanTokenSymbol);
+    const loanToken = tokenStore!.getToken(loanTokenSymbol);
 
-    const dailyPercentageRate = loanToken.loanAnnualPercentageRates
+    const dailyPercentageRate = loanToken!.loanAnnualPercentageRates
       ? calculateRate(
-          loanToken.loanAnnualPercentageRates[term],
+          loanToken!.loanAnnualPercentageRates[term],
           RatePeriod.Daily,
         )
       : 0;
 
-    const loanAssetPair = loanManagerStore.getLoanAssetPair(
+    const loanAssetPair = loanManagerStore!.getLoanAssetPair(
       loanTokenSymbol,
       collateralTokenSymbol,
     );
@@ -143,7 +149,7 @@ class LoanForm extends React.Component<IProps, IState> {
     const currCollateralRatio = 'TODO';
 
     const minCollateralRatio = `${convertWeiToDecimal(
-      loanAssetPair.collateralRatio,
+      loanAssetPair!.collateralRatio,
     ) * 100}%`;
 
     const estimatedRepayAmount =

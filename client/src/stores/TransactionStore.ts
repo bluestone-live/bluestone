@@ -21,7 +21,7 @@ import { terms } from '../constants/Term';
 import * as LoanManagerService from './services/LoanManagerService';
 
 /**
- * For display, merge deposit and loan into one store
+ * repayLoandisplay, merge deposit and loan into one store
  */
 export class TransactionStore {
   @observable transactionMap: Map<string, ITransaction> = new Map();
@@ -51,8 +51,14 @@ export class TransactionStore {
     isRecurring: boolean,
   ) {
     // TODO throw an error: invalid number value
-    const depositId = await deposit(token.address, term, amount, isRecurring);
-    // TODO need to declare the return type
+    const depositEvent = await deposit(
+      token.address,
+      term,
+      amount,
+      isRecurring,
+    );
+    // console.log(depositEvent.returnValues.deposit);
+    // TODO: I got the deposit address, but how to get raw values in contract?
     // return this.saveOrUpdateTransaction({
     //   transactionId: depositId,
     //   type: TransactionType.Deposit,
@@ -119,50 +125,19 @@ export class TransactionStore {
   }
 
   @action.bound
-  async getLoanTransactions(loanToken: IToken, collateralToken: IToken) {
-    const loanTransactions = await getLoanTransactions(
-      loanToken.address,
-      collateralToken.address,
-    );
-    return this.saveOrUpdateLoanTransactions(
-      loanTransactions.map(tx => {
-        const term = terms.find(t => tx.term === t.value)!;
-        if (!loanToken || !collateralToken) {
-          throw new Error('invalid token');
-        }
-        return {
-          ...tx,
-          type: TransactionType.Loan,
-          status: getLoanTransactionStatus(tx),
-          loanToken,
-          collateralToken,
-          term,
-        };
-      }),
-    );
-  }
-
-  @action.bound
-  async getLoanTransactionById(transactionId: string) {
-    const loanTransaction = await getLoanTransactionById(transactionId);
-    const loanToken = tokenStore.getToken(loanTransaction.loanToken!);
-    const collateralToken = tokenStore.getToken(
-      loanTransaction.collateralToken!,
-    );
-    if (!loanToken || !collateralToken) {
-      throw new Error('invalid token');
-    }
-    const term = terms.find(t => t.value === loanTransaction.term)!;
-    return this.saveOrUpdateLoanTransactions([
-      {
-        ...loanTransaction,
-        type: TransactionType.Loan,
-        status: getLoanTransactionStatus(loanTransaction),
-        loanToken,
-        collateralToken,
-        term,
-      },
-    ]);
+  async getLoans() {
+    const loanTransactions = await LoanManagerService.getLoans();
+    // return this.saveOrUpdateLoanTransactions(
+    //   loanTransactions.map(tx => {
+    //     const term = terms.find(t => tx.term === t.value)!;
+    //     return {
+    //       ...tx,
+    //       type: TransactionType.Loan,
+    //       status: getLoanTransactionStatus(tx),
+    //       term,
+    //     };
+    //   }),
+    // );
   }
 
   @action.bound
@@ -194,21 +169,33 @@ export class TransactionStore {
       requestedFreedCollateral,
     );
 
-    // TODO: add transaction
+    // TODOrepayLoan transaction
   }
 
   @action.bound
-  withdrawCollateral(transactionId: string, amount: number) {
-    return LoanManagerService.withdrawCollateral(transactionId, amount);
+  withdrawCollateral(transactionId: string, amount: BigNumber) {
+    return LoanManagerService.withdrawFreedCollateral(transactionId, amount);
   }
 
   @action.bound
-  addCollateral(transactionId: string, amount: number) {
+  addCollateral(transactionId: string, amount: BigNumber) {
     return LoanManagerService.addCollateral(transactionId, amount);
   }
 
   @action.bound
-  repay(transactionId: string, amount: number) {
-    return LoanManagerService.repay(transactionId, amount);
+  repay(transactionAddress: string, amount: BigNumber) {
+    const transaction = this.transactionMap.get(
+      transactionAddress,
+    ) as ILoanTransaction;
+    if (!transaction) {
+      // TODO alert error message to user
+      return;
+    }
+    return LoanManagerService.repayLoan(
+      transaction.loanToken.address,
+      transaction.collateralToken.address,
+      transactionAddress,
+      amount,
+    );
   }
 }

@@ -1,4 +1,5 @@
 import { IAnnualPercentageRateValues } from './Rate';
+import { Contract } from 'web3-eth-contract';
 
 export const SupportToken = ['ETH', 'DAI', 'USDC'];
 
@@ -11,4 +12,5 @@ export interface IToken {
   logo?: string;
   depositEnabled: boolean;
   price?: number;
+  erc20: Contract;
 }

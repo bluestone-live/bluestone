@@ -11,6 +11,18 @@ Install the following tools:
 
 Make sure you have read through [Truffle Documentation](https://truffleframework.com/docs/truffle/overview).
 
+## Start Ganache server
+
+download and install Ganache GUI or use cli command below:
+
+~~~
+# create a directory to save the chain database 
+$ mkdir ~/<your_db_path>
+
+# start up ganache server
+$ npx ganache-cli -p 7545 --db ~/<your_db_path> -i="5777" -e 1000
+~~~
+
 ## Setup
 
 Create a config file for development purpose:

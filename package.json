@@ -7,6 +7,7 @@
   },
   "devDependencies": {
     "ethlint": "^1.2.4",
+    "ganache-cli": "^6.4.4",
     "nodemon": "^1.19.1",
     "openzeppelin-test-helpers": "^0.1.2",
     "request": "^2.88.0",

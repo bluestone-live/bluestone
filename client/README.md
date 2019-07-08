@@ -27,17 +27,26 @@ Connect MetaMask to local Ganache RPC server:
 
 1. Click on MetaMask extension icon.
 2. Click the account icon on top-right corner.
-3. Select `Settings` -> `Advacnced`.
+3. Select `Settings` -> `Advanced`.
 4. Find `New Network` and fill in: `http://127.0.0.1:7545`.
 5. Click `Save`.
 
 To import a Ganache account:
 
-1. In Ganache Accounts panel, locate the account you want to import.
+##### for ganache gui
+
+1. In Ganache Accounts panel, locate the account you want to import (the first three accounts have test token balance).
 2. Click on the right-most key icon and copy the private key.
 3. Open MetaMask, click the account icon on top-right corner.
 4. Click `Import Account`.
 5. Paste the private key and click `Import`.
+
+##### for ganache cli
+
+1. check stdout in terminal, find `Private Keys`, locate the private key you want to import. (the first three accounts have test token balance)
+2. Open MetaMask, click the account icon on top-right corner.
+3. Click `Import Account`.
+4. Paste the private key and click `Import`.
 
 To add a test token:
 

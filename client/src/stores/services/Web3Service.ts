@@ -1,5 +1,6 @@
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
+import { EventData, Contract, EventOptions } from 'web3-eth-contract';
 
 const requireContract = (contractName: string) =>
   require(`../../../../build/contracts/${contractName}.json`);
@@ -83,4 +84,47 @@ export const getContracts = async (): Promise<DeployedContractInstances> => {
   );
 
   return deployedContractInstances;
+};
+
+/**
+ * Create a flow that could converts contract.method.send() to promise by pass a callback function
+ *
+ * usage:
+ * ```
+ * const flow = await getContractEventFlow('DepositManager', 'DepositSuccessful');
+ *
+ * return flow(DepositManager => {
+ *   DepositManager.methods
+ *     .deposit(assetAddress, term, amount.toString(), isRecurring)
+ *     .send({ from: accountStore.defaultAccount });
+ * });
+ * ```
+ */
+export const getContractEventFlow = async (
+  ContractName: keyof DeployedContractInstances,
+  eventName: string,
+  options?: EventOptions,
+): Promise<(callback: (contract: Contract) => void) => Promise<EventData>> => {
+  const contracts = await getContracts();
+  const contract = contracts[ContractName];
+
+  const eventFlow = (callback: (contract: Contract) => void) => {
+    const p = new Promise<EventData>((resolve, reject) => {
+      const eventSubscription = contract.events[eventName](
+        options || {},
+        (err: Error, data: EventData) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(data);
+          // 'once' method didn't unsubscribe after the event handler called. so we have to unsubscribe ourselves.
+          eventSubscription.unsubscribe();
+        },
+      );
+    });
+    callback(contract);
+    return p;
+  };
+
+  return eventFlow;
 };

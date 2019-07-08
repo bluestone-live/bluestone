@@ -2,11 +2,13 @@ import { observable, action, computed } from 'mobx';
 import { getTokenAddress, getERC20Token } from './services/TokenService';
 import {
   isDepositAssetEnabled,
-  getDepositInterestRates,
+  getDepositInterestRate,
 } from './services/DepositManagerService';
 import { getLoanInterestRate } from './services/ConfigurationService';
 import { IToken, SupportToken } from '../constants/Token';
 import { getPrice } from './services/PriceOracleService';
+import { terms } from '../constants/Term';
+import { IAnnualPercentageRateValues } from '../constants/Rate';
 
 export class TokenStore {
   @observable tokens = new Map<string, IToken | null>(
@@ -76,14 +78,14 @@ export class TokenStore {
     if (!token) {
       throw new Error(`no such token: ${tokenSymbol}`);
     }
-    const rates = await getDepositInterestRates(token.address);
+    const depositAnnualPercentageRates: IAnnualPercentageRateValues = {};
+    for (const term of terms) {
+      const interest = await getDepositInterestRate(token.address, term.value);
+      depositAnnualPercentageRates[term.value] = interest;
+    }
     return this.updateToken(tokenSymbol, {
       ...token,
-      depositAnnualPercentageRates: {
-        1: rates[0],
-        7: rates[1],
-        30: rates[2],
-      },
+      depositAnnualPercentageRates,
     });
   }
 
@@ -93,17 +95,15 @@ export class TokenStore {
     if (!token) {
       throw new Error(`no such token: ${tokenSymbol}`);
     }
-    const terms = [1, 7, 30];
-    const rates = await Promise.all(
-      terms.map(term => getLoanInterestRate(token.address, term)),
-    );
+    const loanAnnualPercentageRates: IAnnualPercentageRateValues = {};
+    for (const term of terms) {
+      const interest = await getLoanInterestRate(token.address, term.value);
+      loanAnnualPercentageRates[term.value] = interest;
+    }
+
     this.updateToken(tokenSymbol, {
       ...token,
-      loanAnnualPercentageRates: {
-        1: rates[0],
-        7: rates[1],
-        30: rates[2],
-      },
+      loanAnnualPercentageRates,
     });
   }
 

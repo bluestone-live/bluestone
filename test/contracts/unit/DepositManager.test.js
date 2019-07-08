@@ -1,50 +1,77 @@
-const TokenManager = artifacts.require('TokenManager')
+const TokenManager = artifacts.require("TokenManager");
+const { shouldFail, time } = require("openzeppelin-test-helpers");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
 const { DepositManagerMock } = require("../../utils/mocks.js");
 const { expect } = require("chai");
 
 contract("DepositManager", ([owner, depositor]) => {
-  const initialSupply = toFixedBN(1000)
+  const initialSupply = toFixedBN(1000);
   let depositManager, tokenManager, asset;
 
   before(async () => {
     depositManager = await DepositManagerMock();
-    tokenManager = await TokenManager.deployed()
+    tokenManager = await TokenManager.deployed();
     asset = await createERC20Token(depositor, initialSupply);
-    await asset.approve(tokenManager.address, initialSupply, { from: depositor })
+    await asset.approve(tokenManager.address, initialSupply, {
+      from: depositor
+    });
     await depositManager.enableDepositAsset(asset.address);
   });
 
-  describe("#getDepositInterestRates", () => {
+  describe("#getDepositInterestRate", () => {
     it("succeeds", async () => {
-      const res = await depositManager.getDepositInterestRates(
-        asset.address
+      const term = 1;
+      const res = await depositManager.getDepositInterestRate(
+        asset.address,
+        term
       );
-
-      expect(res[0]).to.be.bignumber.equal('0')
-      expect(res[1]).to.be.bignumber.equal('0')
-      expect(res[2]).to.be.bignumber.equal('0')
+      expect(res).to.be.bignumber.equal(toFixedBN(0));
     });
   });
 
   describe("#getDepositsByUser", () => {
-    const term = 1
-    const amount = toFixedBN(50)
-    const isRecurring = false
+    const term = 1;
+    const amount = toFixedBN(50);
+    const isRecurring = false;
 
     before(async () => {
-      await depositManager.deposit(asset.address, term, amount, isRecurring, { from: depositor })
-      await depositManager.deposit(asset.address, term, amount, isRecurring, { from: depositor })
-    })
+      await depositManager.deposit(asset.address, term, amount, isRecurring, {
+        from: depositor
+      });
+      await depositManager.deposit(asset.address, term, amount, isRecurring, {
+        from: depositor
+      });
+    });
 
     it("succeeds", async () => {
-      const deposits = await depositManager.getDepositsByUser(depositor)
+      const deposits = await depositManager.getDepositsByUser(depositor);
 
-      expect(deposits.length).to.equal(2)
-      expect(deposits[0]).to.equal((await depositManager.deposits.call(0)))
-      expect(deposits[1]).to.equal((await depositManager.deposits.call(1)))
-    })
-  })
+      expect(deposits.length).to.equal(2);
+      expect(deposits[0]).to.equal(await depositManager.deposits.call(0));
+      expect(deposits[1]).to.equal(await depositManager.deposits.call(1));
+    });
+  });
+
+  describe("#deposit", () => {
+    let term, amount, isRecurring;
+    before(async () => {
+      term = 1;
+      amount = toFixedBN(10);
+      isRecurring = true;
+    });
+
+    it("succeeds and emit DepositSuccessful event", async () => {
+      const { logs } = await depositManager.deposit(
+        asset.address,
+        term,
+        amount,
+        isRecurring,
+        { from: depositor }
+      );
+      const events = logs.filter(({ event }) => event === "DepositSuccessful");
+      expect(events.length).to.be.equals(1);
+    });
+  });
 
   describe("#updateInterestIndexHistory", () => {
     const initialInterestIndex = toFixedBN(1);

@@ -2,8 +2,12 @@ import BigNumber from 'bn.js';
 
 export { BigNumber };
 
-export const convertWeiToDecimal = (bn: BigNumber) =>
-  Number.parseFloat(bn.toString()) / 1e18;
+export const convertWeiToDecimal = (bn: BigNumber) => {
+  if (!bn) {
+    return 0;
+  }
+  return Number.parseFloat(bn.toString()) / 1e18;
+};
 
 /**
  * Convert number to BigNumber with specified significant.
@@ -13,6 +17,9 @@ export const convertWeiToDecimal = (bn: BigNumber) =>
  * toFixed(5, 16) -> 5e16
  */
 export const convertDecimalToWei = (num: number, significant: number = 18) => {
+  if (!num) {
+    return new BigNumber(0);
+  }
   const decimalPlaces = (num.toString().split('.')[1] || []).length;
 
   if (decimalPlaces === 0) {

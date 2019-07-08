@@ -23,6 +23,11 @@ contract DepositManager is Ownable, Pausable, Term {
     TokenManager private _tokenManager;
     LiquidityPools private _liquidityPools;
 
+    // Notice that event filter only can filter indexed property
+    event DepositSuccessful(address indexed user, Deposit deposit);
+    event WithdrawDepositSuccessful(address user, Deposit deposit);
+    event SetRecurringDepositSuccessful(address user, Deposit deposit);
+
     // Hold relavent information about a deposit asset
     struct DepositAsset {
         // Only enabled asset can perform deposit-related transactions
@@ -123,6 +128,8 @@ contract DepositManager is Ownable, Pausable, Term {
 
         _tokenManager.receiveFrom(user, asset, amount);
 
+        emit DepositSuccessful(user, currDeposit);
+
         return currDeposit;
     }
     
@@ -146,6 +153,7 @@ contract DepositManager is Ownable, Pausable, Term {
         } else {
             revert("Invalid operation.");
         }
+        emit SetRecurringDepositSuccessful(msg.sender, currDeposit);
     }
     
     function withdraw(Deposit currDeposit) external whenNotPaused returns (uint) {
@@ -167,6 +175,7 @@ contract DepositManager is Ownable, Pausable, Term {
             _tokenManager.sendTo(user, asset, withdrewAmount);
 
             // Note: interests profit will remain in tokenManager account
+            emit WithdrawDepositSuccessful(user, currDeposit);
             return withdrewAmount;
         } else {
             // Otherwise, depositor receives principle plus accrued interests
@@ -178,6 +187,7 @@ contract DepositManager is Ownable, Pausable, Term {
             _tokenManager.sendTo(user, asset, withdrewAmount);
             _tokenManager.sendTo(shareholder, asset, interestsForShareholders);
 
+            emit WithdrawDepositSuccessful(user, currDeposit);
             return withdrewAmount;
         }
     }
@@ -186,12 +196,8 @@ contract DepositManager is Ownable, Pausable, Term {
         return _depositAssets[asset].isEnabled;
     }
 
-    function getDepositInterestRates(address asset) external enabledDepositAsset(asset) view returns (uint, uint, uint) {
-        return (
-            _depositAssets[asset].lastInterestRatePerTerm[1],
-            _depositAssets[asset].lastInterestRatePerTerm[7],
-            _depositAssets[asset].lastInterestRatePerTerm[30]
-        );
+    function getDepositInterestRate(address asset, uint8 term) external view enabledDepositAsset(asset) returns (uint) {
+        return _depositAssets[asset].lastInterestRatePerTerm[term];
     }
 
     function getDepositsByUser(address user) external whenNotPaused view returns (Deposit[] memory) {

@@ -9,6 +9,7 @@ import Button from '../components/html/Button';
 import Form from '../components/html/Form';
 import { TransactionType, ILoanTransaction } from '../constants/Transaction';
 import dayjs from 'dayjs';
+import { convertDecimalToWei } from '../utils/BigNumber';
 
 interface IProps
   extends WithTranslation,
@@ -43,7 +44,10 @@ class RepayPage extends React.Component<IProps, IState> {
     const { transactionStore, match } = this.props;
     const { amount } = this.state;
 
-    transactionStore.repay(match.params.transactionId, amount);
+    transactionStore.repay(
+      match.params.transactionId,
+      convertDecimalToWei(amount),
+    );
   };
 
   render() {

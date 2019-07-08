@@ -25,8 +25,8 @@ export const loan = async (
   return contracts.LoanManager.methods
     .loan(
       term,
-      loanAssetAddress,
-      collateralAssetAddress,
+      loanTokenAddress,
+      collateralTokenAddress,
       loanAmount.toString(),
       collateralAmount.toString(),
       requestedFreedCollateral.toString(),
@@ -34,78 +34,55 @@ export const loan = async (
     .send({ from: accountStore.defaultAccount });
 };
 
-export const getLoanTransactions = async (
-  loanTokenAddress: string,
-  collateralTokenAddress: string,
-): Promise<IGetLoanTransactionResponse[]> => {
-  // TODO: use real data instead
-  return [
-    {
-      transactionId: '11',
-      owner: '0x111',
-      term: 7,
-      loanAmount: 1e18,
-      minCollateralRatio: 5e17,
-      interestRate: 3e15,
-      createdAt: 0,
-      isClosed: true,
-      accruedInterest: 5e16,
-      collateralAmount: 1e19,
-    },
-    {
-      transactionId: '12',
-      owner: '0x111',
-      term: 30,
-      loanAmount: 1e18,
-      minCollateralRatio: 5e17,
-      interestRate: 3e15,
-      createdAt: 0,
-      isClosed: false,
-      accruedInterest: 5e16,
-      collateralAmount: 1e19,
-    },
-  ];
+export const getLoans = async (): Promise<IGetLoanTransactionResponse[]> => {
+  const contracts = await getContracts();
+  return contracts.LoanManager.methods
+    .getLoansByUser(accountStore.defaultAccount)
+    .call();
 };
 
-export const getLoanTransactionById = async (
-  transactionId: string,
-): Promise<IGetLoanTransactionResponse> => {
-  return {
-    transactionId,
-    owner: '0x111',
-    term: 30,
-    loanAmount: 1e18,
-    minCollateralRatio: 5e17,
-    interestRate: 3e15,
-    createdAt: 0,
-    isClosed: false,
-    accruedInterest: 5e16,
-    collateralAmount: 1e19,
-    loanToken: 'ETH',
-    collateralToken: 'DAI',
-  };
+export const getFreedCollateral = async (
+  tokenAddress: string,
+): Promise<BigNumber> => {
+  const contracts = await getContracts();
+  return contracts.LoanManager.methods
+    .getFreedCollateral(tokenAddress)
+    .send({ from: accountStore.defaultAccount });
 };
 
-export const withdrawCollateral = async (
-  transactionId: string,
-  amount: number,
+export const withdrawFreedCollateral = async (
+  tokenAddress: string,
+  amount: BigNumber,
 ): Promise<string> => {
+  const contracts = await getContracts();
+  return contracts.LoanManager.methods
+    .withdrawFreedCollateral(tokenAddress, amount)
+    .send({ from: accountStore.defaultAccount });
+};
+
+export const addCollateral = async (
+  transactionAddress: string,
+  amount: BigNumber,
+) => {
   // TODO send to contract and get txid back
   return `Ox${Math.random()
     .toString()
     .replace(/\.*/g, '')}`;
 };
 
-export const addCollateral = async (transactionId: string, amount: number) => {
-  // TODO send to contract and get txid back
-  return `Ox${Math.random()
-    .toString()
-    .replace(/\.*/g, '')}`;
-};
-
-export const repay = async (transactionId: string, amount: number) => {
-  // TODO send to contract and get txid back
-  return `Ox${Math.random()
-    .toString()
-    .replace(/\.*/g, '')}`;
+export const repayLoan = async (
+  loanTokenAddress: string,
+  collateralAssetAddress: string,
+  transactionAddress: string,
+  amount: BigNumber,
+) => {
+  const contracts = await getContracts();
+  return contracts.LoanManager.methods
+    .repayLoan(
+      loanTokenAddress,
+      collateralAssetAddress,
+      transactionAddress,
+      amount,
+    )
+    .send({ from: accountStore.defaultAccount });
 };

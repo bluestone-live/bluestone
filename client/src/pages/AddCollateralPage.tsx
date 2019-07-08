@@ -10,6 +10,7 @@ import Form from '../components/html/Form';
 import { TransactionType, ILoanTransaction } from '../constants/Transaction';
 import { toJS } from 'mobx';
 import dayjs from 'dayjs';
+import { convertDecimalToWei } from '../utils/BigNumber';
 
 interface IProps
   extends WithTranslation,
@@ -42,7 +43,10 @@ class AddCollateralPage extends React.Component<IProps, IState> {
     const { transactionStore, match } = this.props;
     const { amount } = this.state;
 
-    transactionStore.addCollateral(match.params.transactionId, amount);
+    transactionStore.addCollateral(
+      match.params.transactionId,
+      convertDecimalToWei(amount),
+    );
   };
 
   getCollateralizationRatio = (transaction: ILoanTransaction) => {

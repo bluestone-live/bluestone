@@ -1,3 +1,4 @@
+import { enableLogging } from 'mobx-logger';
 import { AccountStore } from './AccountStore';
 import { ConfigurationStore } from './ConfigurationStore';
 import { TokenStore } from './TokenStore';
@@ -21,6 +22,13 @@ export const initStore = async () => {
   await loanManagerStore.init();
   await tokenManagerStore.init();
 };
+
+// enableLogging({
+//   action: true,
+//   reaction: true,
+//   transaction: true,
+//   compute: true,
+// });
 
 export * from './AccountStore';
 export * from './ConfigurationStore';
