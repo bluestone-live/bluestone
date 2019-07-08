@@ -5,8 +5,8 @@ const TokenManager = artifacts.require('TokenManager')
 const LiquidityPools = artifacts.require('LiquidityPools')
 const LoanManager = artifacts.require('LoanManager')
 const DateTime = artifacts.require('DateTime')
-const { shouldFail, time } = require('openzeppelin-test-helpers')
-const { createERC20Token, toFixedBN, printLogs } = require('../../utils/index.js')
+const { time } = require('openzeppelin-test-helpers')
+const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('DepositManager', ([owner, depositor, loaner]) => {
@@ -197,8 +197,8 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
       })
 
       it('withdraws deposit and interest', async () => {
-        const depositId = await depositManager.depositIds.call(0)
-        const amount = await depositManager.withdraw.call(loanAsset.address, depositId, { from: depositor })
+        const deposit = await depositManager.deposits.call(0)
+        const amount = await depositManager.withdraw.call(deposit, { from: depositor })
         expect(amount).to.be.bignumber.above(depositAmount)
       })
     })
@@ -209,8 +209,8 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
       }) 
 
       it('withdraws deposit only', async () => {
-        const depositId = await depositManager.depositIds.call(1)
-        const amount = await depositManager.withdraw.call(loanAsset.address, depositId, { from: depositor })
+        const deposit = await depositManager.deposits.call(1)
+        const amount = await depositManager.withdraw.call(deposit, { from: depositor })
         expect(amount).to.be.bignumber.equal(depositAmount)
       })
     })

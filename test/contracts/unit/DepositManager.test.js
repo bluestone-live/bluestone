@@ -1,5 +1,4 @@
 const TokenManager = artifacts.require('TokenManager')
-const { shouldFail, time } = require("openzeppelin-test-helpers");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
 const { DepositManagerMock } = require("../../utils/mocks.js");
 const { expect } = require("chai");
@@ -28,7 +27,7 @@ contract("DepositManager", ([owner, depositor]) => {
     });
   });
 
-  describe("#getDepositIdsByUser", () => {
+  describe("#getDepositsByUser", () => {
     const term = 1
     const amount = toFixedBN(50)
     const isRecurring = false
@@ -39,11 +38,11 @@ contract("DepositManager", ([owner, depositor]) => {
     })
 
     it("succeeds", async () => {
-      const depositIds = await depositManager.getDepositIdsByUser(depositor)
+      const deposits = await depositManager.getDepositsByUser(depositor)
 
-      expect(depositIds.length).to.equal(2)
-      expect(depositIds[0]).to.equal((await depositManager.depositIds.call(0)))
-      expect(depositIds[1]).to.equal((await depositManager.depositIds.call(1)))
+      expect(deposits.length).to.equal(2)
+      expect(deposits[0]).to.equal((await depositManager.deposits.call(0)))
+      expect(deposits[1]).to.equal((await depositManager.deposits.call(1)))
     })
   })
 

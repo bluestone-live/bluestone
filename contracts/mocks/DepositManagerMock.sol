@@ -1,20 +1,29 @@
 pragma solidity ^0.5.0;
 
 import "../DepositManager.sol";
+import "../Configuration.sol";
+import "../PriceOracle.sol";
+import "../TokenManager.sol";
+import "../LiquidityPools.sol";
 
 
 contract DepositManagerMock is DepositManager {
-    bytes32[] public depositIds;
+    Deposit[] public deposits;
 
-    constructor(address config, address priceOracle, address tokenManager, address liquidityPools) 
+    constructor(
+        Configuration config,
+        PriceOracle priceOracle,
+        TokenManager tokenManager,
+        LiquidityPools liquidityPools
+    ) 
         DepositManager(config, priceOracle, tokenManager, liquidityPools)
         public 
     {}
 
-    function deposit(address asset, uint8 term, uint amount, bool isRecurring) public returns (bytes32) {
-        bytes32 depositId = super.deposit(asset, term, amount, isRecurring);
-        depositIds.push(depositId);
-        return depositId;
+    function deposit(address asset, uint8 term, uint amount, bool isRecurring) public returns (Deposit) {
+        Deposit currDeposit = super.deposit(asset, term, amount, isRecurring);
+        deposits.push(currDeposit);
+        return currDeposit;
     }
 
     function calculateInterestRate(address asset, uint8 depositTerm) public view returns (uint) {

@@ -1,7 +1,7 @@
 const TokenManager = artifacts.require('TokenManager')
 const Configuration = artifacts.require('Configuration')
 const DateTime = artifacts.require('DateTime')
-const { shouldFail, time } = require('openzeppelin-test-helpers')
+const { time } = require('openzeppelin-test-helpers')
 const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { DepositManagerMock } = require('../../utils/mocks.js')
 
@@ -27,19 +27,19 @@ contract('DepositManager', ([owner, depositor]) => {
       await depositManager.enableDepositAsset(asset.address, { from: owner })
     })
 
-    let depositId
+    let deposit
 
     it('deposits without recurring', async () => {
       await depositManager.deposit(asset.address, term, toFixedBN(50), false, { from: depositor })
-      depositId = await depositManager.depositIds.call(0)
+      deposit = await depositManager.deposits.call(0)
     })
 
     it('enables deposit recurring', async () => {
-      await depositManager.setRecurringDeposit(asset.address, depositId, true, { from: depositor })
+      await depositManager.setRecurringDeposit(deposit, true, { from: depositor })
     })
 
     it('disables deposit recurring', async () => {
-      await depositManager.setRecurringDeposit(asset.address, depositId, false, { from: depositor })
+      await depositManager.setRecurringDeposit(deposit, false, { from: depositor })
     })
 
     context('when deposit term is matured', () => {
@@ -60,7 +60,7 @@ contract('DepositManager', ([owner, depositor]) => {
       })
 
       it('withdraws deposit', async () => {
-        await depositManager.withdraw(asset.address, depositId, { from: depositor })
+        await depositManager.withdraw(deposit, { from: depositor })
       })
     })
   })

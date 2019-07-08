@@ -53,11 +53,11 @@ contract DepositManager is Ownable, Pausable, Term {
     // Token address -> DepositAsset
     mapping(address => DepositAsset) private _depositAssets;
 
-    // Deposit ID -> Deposit
-    mapping(bytes32 => Deposit) private _deposits;
+    // Deposit address -> Deposit
+    mapping(address => Deposit) private _deposits;
 
-    // User address -> List of deposit IDs
-    mapping(address => bytes32[]) private _depositIdsByUser;
+    // User address -> List of Deposit 
+    mapping(address => Deposit[]) private _depositsByUser;
 
     uint private _numDeposit;
 
@@ -67,15 +67,22 @@ contract DepositManager is Ownable, Pausable, Term {
     uint constant private DAYS_OF_INTEREST_INDEX_TO_KEEP = 30;
 
     modifier enabledDepositAsset(address asset) {
-        require(_depositAssets[asset].isEnabled == true, "Deposit Asset must be enabled.");
+        require(_isEnabledDepositAsset(asset), "Deposit asset must be enabled.");
         _;
     }
 
-    constructor(address config, address priceOracle, address tokenManager, address liquidityPools) public {
-        _config = Configuration(config);
-        _priceOracle = PriceOracle(priceOracle);
-        _tokenManager = TokenManager(tokenManager);
-        _liquidityPools = LiquidityPools(liquidityPools);
+    constructor(
+        Configuration config,
+        PriceOracle priceOracle,
+        TokenManager tokenManager,
+        LiquidityPools liquidityPools
+    ) 
+        public 
+    {
+        _config = config;
+        _priceOracle = priceOracle;
+        _tokenManager = tokenManager;
+        _liquidityPools = liquidityPools;
     }
 
     // PUBLIC  -----------------------------------------------------------------
@@ -83,9 +90,9 @@ contract DepositManager is Ownable, Pausable, Term {
     function deposit(address asset, uint8 term, uint amount, bool isRecurring) 
         public 
         whenNotPaused
-        enabledDepositAsset(asset) 
+        enabledDepositAsset(asset)
         validDepositTerm(term) 
-        returns (bytes32)
+        returns (Deposit)
     {
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
         uint8 lastPoolIndex = term - 1;
@@ -96,15 +103,11 @@ contract DepositManager is Ownable, Pausable, Term {
             poolGroup.addOneTimeDepositToPool(lastPoolIndex, amount);
         }
 
-        _numDeposit++;
-
-        // Generate a unique hash as deposit ID
-        bytes32 depositId = keccak256(abi.encode(_numDeposit));
         address user = msg.sender;
         uint currInterestIndex = updateDepositAssetInterestInfo(asset, term);
         uint profitRatio = _config.getProfitRatio();
 
-        _deposits[depositId] = new Deposit(
+        Deposit currDeposit = new Deposit(
             asset,
             user, 
             term, 
@@ -114,20 +117,20 @@ contract DepositManager is Ownable, Pausable, Term {
             isRecurring
         );
 
-        _depositIdsByUser[user].push(depositId);
+        _numDeposit++;
+
+        _depositsByUser[user].push(currDeposit);
 
         _tokenManager.receiveFrom(user, asset, amount);
 
-        return depositId;
+        return currDeposit;
     }
     
-    function setRecurringDeposit(address asset, bytes32 depositId, bool enableRecurring) 
-        external 
-        whenNotPaused
-        enabledDepositAsset(asset) 
-    {
-        Deposit currDeposit = _deposits[depositId];
-        require(msg.sender == currDeposit.owner());
+    function setRecurringDeposit(Deposit currDeposit, bool enableRecurring) external whenNotPaused {
+        address asset = currDeposit.asset();
+
+        require(_isEnabledDepositAsset(asset), "Deposit Asset must be enabled.");
+        require(msg.sender == currDeposit.owner(), "Must be owner.");
 
         uint8 term = currDeposit.term();
         uint amount = currDeposit.amount();
@@ -145,15 +148,11 @@ contract DepositManager is Ownable, Pausable, Term {
         }
     }
     
-    function withdraw(address asset, bytes32 depositId) 
-        external 
-        whenNotPaused
-        enabledDepositAsset(asset) 
-        returns (uint) 
-    {
-        Deposit currDeposit = _deposits[depositId];
+    function withdraw(Deposit currDeposit) external whenNotPaused returns (uint) {
+        address asset = currDeposit.asset();
         address user = msg.sender;
- 
+
+        require(_isEnabledDepositAsset(asset), "Deposit Asset must be enabled.");
         require(user == currDeposit.owner(), "Must be owner.");
         require(!currDeposit.isRecurring(), "Deposit must not be recurring.");
         require(!currDeposit.isWithdrawn(), "Deposit must not be withdrawn already.");
@@ -187,7 +186,7 @@ contract DepositManager is Ownable, Pausable, Term {
         return _depositAssets[asset].isEnabled;
     }
 
-    function getDepositInterestRates(address asset) external view enabledDepositAsset(asset) returns (uint, uint, uint) {
+    function getDepositInterestRates(address asset) external enabledDepositAsset(asset) view returns (uint, uint, uint) {
         return (
             _depositAssets[asset].lastInterestRatePerTerm[1],
             _depositAssets[asset].lastInterestRatePerTerm[7],
@@ -195,8 +194,8 @@ contract DepositManager is Ownable, Pausable, Term {
         );
     }
 
-    function getDepositIdsByUser(address user) external view whenNotPaused returns (bytes32[] memory) {
-        return _depositIdsByUser[user];
+    function getDepositsByUser(address user) external whenNotPaused view returns (Deposit[] memory) {
+        return _depositsByUser[user];
     }
 
     // Calculate new interest rate and interest index, and update them in DepositAsset
@@ -357,6 +356,10 @@ contract DepositManager is Ownable, Pausable, Term {
     }
 
     // PRIVATE --------------------------------------------------------------
+
+    function _isEnabledDepositAsset(address asset) private view returns (bool) {
+        return _depositAssets[asset].isEnabled;
+    }
 
     // Update deposit maturity for a specific PoolGroup.
     function _updatePoolGroupDepositMaturity(address asset, uint8 term) private {
