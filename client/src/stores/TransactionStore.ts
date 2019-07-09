@@ -4,20 +4,15 @@ import {
   getDepositTransactions,
   toggleRenewal,
   withdraw,
-  getDepositTransactionById,
 } from './services/DepositManagerService';
 import { BigNumber } from '../utils/BigNumber';
 import {
   ITransaction,
   IDepositTransaction,
   ILoanTransaction,
-  getDepositTransactionStatus,
-  TransactionType,
-  getLoanTransactionStatus,
 } from '../constants/Transaction';
 import { IToken } from '../constants/Token';
 import { tokenStore } from '.';
-import { terms } from '../constants/Term';
 import * as LoanManagerService from './services/LoanManagerService';
 import { getDeposit } from './services/DepositService';
 
@@ -29,8 +24,13 @@ export class TransactionStore {
 
   // deposit
   @action.bound
-  saveOrUpdateDepositTransactions(transactions: IDepositTransaction[]) {
+  saveOrUpdateDepositTransactions(
+    transactions: Array<IDepositTransaction | null>,
+  ) {
     return transactions.forEach(tx => {
+      if (!tx) {
+        return;
+      }
       const token = tokenStore.getToken(tx.token.symbol);
       if (!token) {
         // TODO maybe we can ignore this record
@@ -65,42 +65,16 @@ export class TransactionStore {
 
   @action.bound
   async getDepositTransactions() {
-    const depositTransactions = await getDepositTransactions();
+    const depositAddresses = await getDepositTransactions();
     return this.saveOrUpdateDepositTransactions(
-      depositTransactions.map(tx => {
-        const token = tokenStore.getToken(tx.token);
-        const term = terms.find(t => t.value === tx.term);
-        if (!token || !term) {
-          throw new Error('invalid token or term');
-        }
-        return {
-          ...tx,
-          type: TransactionType.Deposit,
-          status: getDepositTransactionStatus(tx),
-          token,
-          term,
-        };
-      }),
+      await Promise.all(depositAddresses.map(getDeposit)),
     );
   }
 
   @action.bound
-  async getDepositTransactionById(transactionId: string) {
-    const depositTransaction = await getDepositTransactionById(transactionId);
-    const token = tokenStore.getToken(depositTransaction.token);
-    const term = terms.find(t => t.value === depositTransaction.term)!;
-    if (!token) {
-      throw new Error('invalid token');
-    }
-    return this.saveOrUpdateDepositTransactions([
-      {
-        ...depositTransaction,
-        type: TransactionType.Deposit,
-        status: getDepositTransactionStatus(depositTransaction),
-        token,
-        term,
-      },
-    ]);
+  async getDepositTransactionByAddress(transactionAddress: string) {
+    const depositTransaction = await getDeposit(transactionAddress);
+    return this.saveOrUpdateDepositTransactions([depositTransaction]);
   }
 
   @action.bound

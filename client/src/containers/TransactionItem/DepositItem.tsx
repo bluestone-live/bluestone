@@ -18,11 +18,13 @@ class DepositTransactionItem extends React.Component<IProps> {
     if (depositTransaction.status === TransactionStatus.DepositMatured) {
       return <Button>{t('withdraw')}</Button>;
     }
-    if (depositTransaction.status === TransactionStatus.DepositAutoRenewal) {
+    if (depositTransaction.status === TransactionStatus.DepositRecurring) {
       return <Button>{t('disable_auto_renewal')}</Button>;
     }
     return <Button>{t('enable_auto_renewal')}</Button>;
   };
+
+  getStatus = (status: TransactionStatus) => TransactionStatus[status];
 
   render() {
     const { t, depositTransaction } = this.props;
@@ -35,7 +37,7 @@ class DepositTransactionItem extends React.Component<IProps> {
           </Cell>
           <Cell>{t('deposit')!}</Cell>
           <Cell>{depositTransaction.depositAmount}</Cell>
-          <Cell>{depositTransaction.status}</Cell>
+          <Cell>{t(TransactionStatus[depositTransaction.status])}</Cell>
           <Cell>{this.getActions()}</Cell>
         </Row>
       </div>

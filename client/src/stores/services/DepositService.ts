@@ -11,7 +11,7 @@ import { formatSolidityTime } from '../../utils/formatSolidityTime';
 
 export const getDeposit = async (
   depositAddress: string,
-): Promise<IDepositTransaction> => {
+): Promise<IDepositTransaction | null> => {
   const depositContractInstance = new web3.eth.Contract(
     nonDeployedContractJsonInterface.Deposit.abi,
     depositAddress,
@@ -21,7 +21,8 @@ export const getDeposit = async (
   const token = tokenStore.getTokenByAddress(tokenAddress);
   const term = terms.find(t => t.value === termValue);
   if (!token || !term) {
-    throw new Error(`invalid data: ${depositAddress}`);
+    // throw new Error(`invalid data: ${depositAddress}`);
+    return null;
   }
   return {
     transactionAddress: depositAddress,

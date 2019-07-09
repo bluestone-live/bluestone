@@ -43,9 +43,10 @@ export interface IDepositTransaction {
 export enum TransactionStatus {
   Lock = 0,
   DepositNormal = 10,
-  DepositAutoRenewal = 11,
+  DepositRecurring = 11,
   DepositMatured = 12,
   DepositOverDue = 13,
+  DepositClose = 14,
   LoanNormal = 20,
   LoanPartialRepaid = 21,
   LoanLiquidating = 22,
@@ -59,12 +60,15 @@ export const getDepositTransactionStatus = async (
   const isOverDue = await depositInstance.methods.isOverDue().call();
   const isWithdrawn = await depositInstance.methods.isWithdrawn().call();
   const isMatured = await depositInstance.methods.isMatured().call();
-  if (isOverDue) {
+  const isRecurring = await depositInstance.methods.isRecurring().call();
+  if (isWithdrawn) {
+    return TransactionStatus.DepositClose;
+  } else if (isOverDue) {
     return TransactionStatus.DepositOverDue;
-  } else if (isWithdrawn) {
-    return TransactionStatus.DepositMatured;
   } else if (isMatured) {
-    return TransactionStatus.DepositAutoRenewal;
+    return TransactionStatus.DepositMatured;
+  } else if (isRecurring) {
+    return TransactionStatus.DepositRecurring;
   }
   return TransactionStatus.DepositNormal;
 };
@@ -101,7 +105,7 @@ export const getLoanTransactionStatus = (
 };
 
 export interface ILoanTransaction {
-  transactionId: string; // TODO need to store this in contract
+  transactionAddress: string; // TODO need to store this in contract
   owner: string; // address
   type: TransactionType;
   status: TransactionStatus;
@@ -126,7 +130,7 @@ export interface ILoanTransaction {
 }
 
 export interface IGetLoanTransactionResponse {
-  transactionId: string; // TODO need to store this in contract
+  transactionAddress: string; // TODO need to store this in contract
   owner: string; // address
   term: number;
   loanToken?: string;

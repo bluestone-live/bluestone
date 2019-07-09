@@ -183,7 +183,7 @@ class TransactionListPage extends React.Component<IProps, IState> {
             <StyledHeaderCell>{t('actions')!}</StyledHeaderCell>
           </Row>
           {transactionStore.transactions.map(tx => (
-            <TransactionItem key={tx.transactionId} transaction={tx} />
+            <TransactionItem key={tx.transactionAddress} transaction={tx} />
           ))}
         </div>
       </Card>

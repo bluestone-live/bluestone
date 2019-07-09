@@ -46,37 +46,11 @@ export const deposit = async (
   });
 };
 
-export const getDepositTransactions = async (): Promise<
-  IGetDepositTransactionResponse[]
-> => {
-  // TODO: use real data instead
-  // TODO: call DepositContractInstance.isOverDue().call() to get if deposit over due.
-  return [
-    {
-      owner: 'xxx',
-      transactionId: '1',
-      token: 'ETH',
-      term: 7,
-      depositAmount: 1e18,
-      isRecurring: true,
-      interestRate: 0.3,
-      createdAt: 0,
-      maturedAt: 100,
-      isOverDue: false,
-    },
-    {
-      owner: 'xxx',
-      transactionId: '2',
-      token: 'DAI',
-      term: 30,
-      depositAmount: 1e20,
-      isRecurring: false,
-      interestRate: 0.3,
-      createdAt: 0,
-      maturedAt: 100,
-      isOverDue: true,
-    },
-  ];
+export const getDepositTransactions = async (): Promise<string[]> => {
+  const contracts = await getContracts();
+  return contracts.DepositManager.methods
+    .getDepositsByUser(accountStore.defaultAccount)
+    .call();
 };
 
 export const getDepositTransactionById = async (
