@@ -25,6 +25,12 @@ export class TokenStore {
     return this.tokens.get(tokenSymbol);
   }
 
+  getTokenByAddress(tokenAddress: string) {
+    return Array.from(this.tokens.values()).find(
+      token => token && token.address === tokenAddress,
+    );
+  }
+
   @action.bound
   async loadTokenIfNeeded(tokenSymbol: string) {
     const token = this.tokens.get(tokenSymbol);

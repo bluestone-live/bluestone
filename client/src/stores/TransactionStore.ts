@@ -19,6 +19,7 @@ import { IToken } from '../constants/Token';
 import { tokenStore } from '.';
 import { terms } from '../constants/Term';
 import * as LoanManagerService from './services/LoanManagerService';
+import { getDeposit } from './services/DepositService';
 
 /**
  * repayLoandisplay, merge deposit and loan into one store
@@ -35,7 +36,7 @@ export class TransactionStore {
         // TODO maybe we can ignore this record
         throw new Error('invalid token');
       }
-      this.transactionMap.set(tx.transactionId, tx);
+      this.transactionMap.set(tx.transactionAddress, tx);
     });
   }
 
@@ -57,18 +58,9 @@ export class TransactionStore {
       amount,
       isRecurring,
     );
-    // console.log(depositEvent.returnValues.deposit);
-    // TODO: I got the deposit address, but how to get raw values in contract?
-    // return this.saveOrUpdateTransaction({
-    //   transactionId: depositId,
-    //   type: TransactionType.Deposit,
-    //   token,
-    //   term,
-    //   amount,
-    //   extra: {
-    //     isRecurring,
-    //   },
-    // });
+    const depositAddress = depositEvent.returnValues.deposit;
+    const depositRecord = await getDeposit(depositAddress);
+    return this.saveOrUpdateDepositTransactions([depositRecord]);
   }
 
   @action.bound

@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { ITerm } from './Term';
 import { IToken } from './Token';
+import { Contract } from 'web3-eth-contract';
 
 export enum TransactionType {
   Deposit,
@@ -24,19 +25,19 @@ export interface IGetDepositTransactionResponse {
 }
 
 export interface IDepositTransaction {
-  transactionId: string; // TODO need to store this in contract
+  transactionAddress: string; // TODO need to store this in contract
   owner: string; // address
   type: TransactionType;
   status: TransactionStatus;
   token: IToken;
   term: ITerm; // address
   depositAmount: number;
-  interestRate: number;
   withdrewAmount?: number;
   createdAt: number;
   maturedAt: number;
   withdrewAt?: number; // can a deposit order withdrew multiple times
   isRecurring: boolean;
+  contract: Contract;
 }
 
 export enum TransactionStatus {
@@ -51,16 +52,18 @@ export enum TransactionStatus {
   LoanClosed = 23,
 }
 
-export const getDepositTransactionStatus = (
-  transaction: IGetDepositTransactionResponse,
+export const getDepositTransactionStatus = async (
+  depositInstance: Contract,
 ) => {
   // TODO: find out when will get lock status
-  const now = dayjs().valueOf();
-  if (transaction.isOverDue) {
+  const isOverDue = await depositInstance.methods.isOverDue().call();
+  const isWithdrawn = await depositInstance.methods.isWithdrawn().call();
+  const isMatured = await depositInstance.methods.isMatured().call();
+  if (isOverDue) {
     return TransactionStatus.DepositOverDue;
-  } else if (now >= transaction.maturedAt) {
+  } else if (isWithdrawn) {
     return TransactionStatus.DepositMatured;
-  } else if (transaction.isRecurring) {
+  } else if (isMatured) {
     return TransactionStatus.DepositAutoRenewal;
   }
   return TransactionStatus.DepositNormal;
