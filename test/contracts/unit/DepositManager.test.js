@@ -73,6 +73,25 @@ contract("DepositManager", ([owner, depositor]) => {
     });
   });
 
+  describe("#setRecurringDeposit", () => {
+    let deposits;
+    before(async () => {
+      deposits = await depositManager.getDepositsByUser(depositor);
+    });
+
+    it("succeeds and emit SetRecurringDepositSuccessful event", async () => {
+      const { logs } = await depositManager.setRecurringDeposit(
+        deposits[0],
+        true,
+        { from: depositor }
+      );
+      const events = logs.filter(
+        ({ event }) => event === "SetRecurringDepositSuccessful"
+      );
+      expect(events.length).to.be.equals(1);
+    });
+  });
+
   describe("#updateInterestIndexHistory", () => {
     const initialInterestIndex = toFixedBN(1);
     const updatedInterestIndex = toFixedBN(2);

@@ -72,9 +72,25 @@ export class TransactionStore {
   }
 
   @action.bound
+  async updateDeposit(depositAddress: string) {
+    const depositRecord = await getDeposit(depositAddress);
+    return this.saveOrUpdateDepositTransactions([depositRecord]);
+  }
+
+  @action.bound
   async getDepositTransactionByAddress(transactionAddress: string) {
     const depositTransaction = await getDeposit(transactionAddress);
     return this.saveOrUpdateDepositTransactions([depositTransaction]);
+  }
+
+  @action.bound
+  toggleRenewal(depositAddress: string, enableRecurring: boolean) {
+    return toggleRenewal(depositAddress, enableRecurring);
+  }
+
+  @action.bound
+  withdrawDeposit(transactionAddress: string) {
+    return withdraw(transactionAddress);
   }
 
   @action.bound
@@ -88,32 +104,6 @@ export class TransactionStore {
       }
       this.transactionMap.set(tx.transactionId, tx);
     });
-  }
-
-  @action.bound
-  async getLoans() {
-    const loanTransactions = await LoanManagerService.getLoans();
-    // return this.saveOrUpdateLoanTransactions(
-    //   loanTransactions.map(tx => {
-    //     const term = terms.find(t => tx.term === t.value)!;
-    //     return {
-    //       ...tx,
-    //       type: TransactionType.Loan,
-    //       status: getLoanTransactionStatus(tx),
-    //       term,
-    //     };
-    //   }),
-    // );
-  }
-
-  @action.bound
-  toggleRenewal(autoRenewal: boolean) {
-    return toggleRenewal(autoRenewal);
-  }
-
-  @action.bound
-  withdrawDeposit(transactionId: string, amount: number) {
-    return withdraw(transactionId, amount);
   }
 
   // loan
@@ -136,6 +126,22 @@ export class TransactionStore {
     );
 
     // TODOrepayLoan transaction
+  }
+
+  @action.bound
+  async getLoans() {
+    const loanTransactions = await LoanManagerService.getLoans();
+    // return this.saveOrUpdateLoanTransactions(
+    //   loanTransactions.map(tx => {
+    //     const term = terms.find(t => tx.term === t.value)!;
+    //     return {
+    //       ...tx,
+    //       type: TransactionType.Loan,
+    //       status: getLoanTransactionStatus(tx),
+    //       term,
+    //     };
+    //   }),
+    // );
   }
 
   @action.bound

@@ -101,16 +101,21 @@ export const getContracts = async (): Promise<DeployedContractInstances> => {
  * ```
  */
 export const getContractEventFlow = async (
-  ContractName: keyof DeployedContractInstances,
+  contract: keyof DeployedContractInstances | Contract,
   eventName: string,
   options?: EventOptions,
 ): Promise<(callback: (contract: Contract) => void) => Promise<EventData>> => {
-  const contracts = await getContracts();
-  const contract = contracts[ContractName];
+  let contractInstance: Contract;
+  if (typeof contract === 'string') {
+    const contracts = await getContracts();
+    contractInstance = contracts[contract];
+  } else {
+    contractInstance = contract;
+  }
 
   const eventFlow = (callback: (contract: Contract) => void) => {
     const p = new Promise<EventData>((resolve, reject) => {
-      const eventSubscription = contract.events[eventName](
+      const eventSubscription = contractInstance.events[eventName](
         options || {},
         (err: Error, data: EventData) => {
           if (err) {
@@ -122,7 +127,7 @@ export const getContractEventFlow = async (
         },
       );
     });
-    callback(contract);
+    callback(contractInstance);
     return p;
   };
 

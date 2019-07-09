@@ -1,7 +1,6 @@
 import { getContracts, getContractEventFlow } from './Web3Service';
 import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
-import { IGetDepositTransactionResponse } from '../../constants/Transaction';
 
 export const isDepositAssetEnabled = async (
   tokenAddress: string,
@@ -33,17 +32,17 @@ export const deposit = async (
   amount: BigNumber,
   isRecurring: boolean,
 ) => {
-  const caller = await getContractEventFlow(
+  const flow = await getContractEventFlow(
     'DepositManager',
     'DepositSuccessful',
     { filter: { user: accountStore.defaultAccount } },
   );
 
-  return caller(DepositManager => {
+  return flow(DepositManager =>
     DepositManager.methods
       .deposit(assetAddress, term, amount.toString(), isRecurring)
-      .send({ from: accountStore.defaultAccount });
-  });
+      .send({ from: accountStore.defaultAccount }),
+  );
 };
 
 export const getDepositTransactions = async (): Promise<string[]> => {
@@ -53,34 +52,33 @@ export const getDepositTransactions = async (): Promise<string[]> => {
     .call();
 };
 
-export const getDepositTransactionById = async (
-  transactionId: string,
-): Promise<IGetDepositTransactionResponse> => ({
-  owner: 'xxx',
-  transactionId,
-  token: 'DAI',
-  term: 30,
-  depositAmount: 1e20,
-  isRecurring: false,
-  interestRate: 0.3,
-  createdAt: 0,
-  maturedAt: 100,
-  isOverDue: true,
-});
+export const toggleRenewal = async (
+  depositAddress: string,
+  enableRecurring: boolean,
+) => {
+  const flow = await getContractEventFlow(
+    'DepositManager',
+    'SetRecurringDepositSuccessful',
+    { filter: { user: accountStore.defaultAccount } },
+  );
 
-export const toggleRenewal = async (autoRenewal: boolean): Promise<string> => {
-  // TODO call contract method
-  return `Ox${Math.random()
-    .toString()
-    .replace(/\.*/g, '')}`;
+  return flow(DepositManager =>
+    DepositManager.methods
+      .setRecurringDeposit(depositAddress, enableRecurring)
+      .send({ from: accountStore.defaultAccount }),
+  );
 };
 
-export const withdraw = async (
-  transactionId: string,
-  amount: number,
-): Promise<string> => {
-  // TODO send to contract and get txid back
-  return `Ox${Math.random()
-    .toString()
-    .replace(/\.*/g, '')}`;
+export const withdraw = async (depositAddress: string) => {
+  const flow = await getContractEventFlow(
+    'DepositManager',
+    'WithdrawDepositSuccessful',
+    { filter: { user: accountStore.defaultAccount } },
+  );
+
+  return flow(DepositManager =>
+    DepositManager.methods
+      .withdraw(depositAddress)
+      .send({ from: accountStore.defaultAccount }),
+  );
 };

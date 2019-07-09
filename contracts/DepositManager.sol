@@ -25,8 +25,8 @@ contract DepositManager is Ownable, Pausable, Term {
 
     // Notice that event filter only can filter indexed property
     event DepositSuccessful(address indexed user, Deposit deposit);
-    event WithdrawDepositSuccessful(address user, Deposit deposit);
-    event SetRecurringDepositSuccessful(address user, Deposit deposit);
+    event WithdrawDepositSuccessful(address indexed user, Deposit deposit);
+    event SetRecurringDepositSuccessful(address indexed user, Deposit deposit);
 
     // Hold relavent information about a deposit asset
     struct DepositAsset {
