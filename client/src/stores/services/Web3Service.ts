@@ -9,12 +9,16 @@ const requireContract = (contractName: string) =>
 const deployedContractJsonInterface = {
   Configuration: requireContract('Configuration'),
   LiquidityPools: requireContract('LiquidityPools'),
-  TokenFactory: requireContract('TokenFactory'),
   DepositManager: requireContract('DepositManager'),
   LoanManager: requireContract('LoanManager'),
   TokenManager: requireContract('TokenManager'),
   PriceOracle: requireContract('PriceOracle'),
 };
+
+if (process.env.NODE_ENV !== 'production') {
+  // TokenFactory is only needed in testnet to create and retrieve token contract
+  deployedContractJsonInterface.TokenFactory = requireContract('TokenFactory');
+}
 
 // May have multiple-instances
 export const nonDeployedContractJsonInterface = {
