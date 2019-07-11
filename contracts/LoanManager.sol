@@ -287,7 +287,7 @@ contract LoanManager is Ownable, Pausable, Term {
             _loanFromPoolGroup(loanAsset, 1, loanTerm, loanAmount, currLoan);
             _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, currLoan);
             _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
-        } else if (loanTerm == 3 || loanTerm == 7) {
+        } else if (loanTerm == 7) {
             _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, currLoan);
             _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
         } else if (loanTerm == 30) {
@@ -304,32 +304,7 @@ contract LoanManager is Ownable, Pausable, Term {
     ) 
         private 
     {
-        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
-        uint coefficient = _config.getCoefficient(asset, depositTerm, loanTerm);
-            
-        // Calculate the total amount to be loaned from this pool group 
-        uint remainingLoanAmount = coefficient.mulFixed(loanAmount);
-
-        /// Assuming the calculated loan amount is always not more than the amount the 
-        /// pool group can provide. TODO: add a check here just in case.
-
-        uint8 poolIndex = loanTerm - 1;
-        uint8 poolGroupLength = depositTerm;
-
-        // Incrementing the pool group index and loaning from each pool until loan amount is fulfilled.
-        while (remainingLoanAmount > 0 && poolIndex < poolGroupLength) {
-            uint loanableAmount = poolGroup.getLoanableAmountFromPool(poolIndex);
-
-            if (loanableAmount > 0) {
-                uint loanedAmount = Math.min(remainingLoanAmount, loanableAmount);
-
-                poolGroup.loanFromPool(poolIndex, loanedAmount, loanTerm);
-                currLoan.setRecord(depositTerm, poolIndex, loanedAmount);
-                remainingLoanAmount = remainingLoanAmount.sub(loanedAmount);
-            }
-
-            poolIndex++;
-        }
+        _liquidityPools.loanFromPoolGroup(asset, depositTerm, loanTerm, loanAmount, currLoan);
 
         /// Loan amount affects deposit interest rate, so we need to update 
         /// deposit interest index and interest rate 
@@ -342,28 +317,8 @@ contract LoanManager is Ownable, Pausable, Term {
         _repayLoanToPoolGroup(asset, 1, totalRepayAmount, currLoan);
     }
 
-    function _repayLoanToPoolGroup(address asset, uint8 depositTerm, uint totalRepayAmount, Loan currLoan) 
-        private returns (uint) 
-    {
-        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
-
-        uint totalLoanAmount = currLoan.loanAmount();
-
-        // Repay loan back to each pool, proportional to the total loan from all pools
-        for (uint8 poolIndex = 0; poolIndex < depositTerm; poolIndex++) {
-            uint loanAmount = currLoan.getRecord(depositTerm, poolIndex);
-
-            if (loanAmount == 0) {
-                // Skip this pool since it has no loan
-                continue;
-            }
-
-            /// Calculate the amount to repay to this pool, e.g., if I loaned total of 100
-            /// from all pools, where 10 is from this pool, and I want to repay 50 now.
-            /// Then the amount pay back to this pool will be: 50 * 10 / 100 = 5
-            uint repayAmount = totalRepayAmount.mulFixed(loanAmount).divFixed(totalLoanAmount);
-            poolGroup.repayLoanToPool(poolIndex, repayAmount, currLoan.term());
-        }
+    function _repayLoanToPoolGroup(address asset, uint8 depositTerm, uint totalRepayAmount, Loan currLoan) private {
+        _liquidityPools.repayLoanToPoolGroup(asset, depositTerm, totalRepayAmount, currLoan);
 
         /// Loan amount affects deposit interest rate, so we need to update 
         /// deposit interest index and interest rate 
