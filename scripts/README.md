@@ -6,10 +6,10 @@ There are following types of script in this directory:
 
 ### bash
 
-Use `help` to find out about usage info for each script, for example:
+To find out about usage info for each script, simply run the script without no arguments:
 
 ```
-./scripts/bash/deployTokens help
+./scripts/bash/deployTokens
 ```
 
 ### javascript

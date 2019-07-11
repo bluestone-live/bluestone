@@ -1,0 +1,40 @@
+#!/bin/bash
+
+function show_help_message {
+  description=$1
+  required_args=$2
+  example_args=$3
+
+  echo "Description: $description"
+  
+  formatted_args=""
+
+  for arg in "${required_args[@]}"
+  do
+    formatted_args="$formatted_args<$arg> " 
+  done
+
+  curr_bash_file=`basename "$0"`
+
+  echo "Usage: ./scripts/bash/$curr_bash_file $formatted_args"
+
+  if [ -n "$example_args" ]; then
+    echo "Example: ./scripts/bash/$curr_bash_file $example_args"
+  fi
+}
+
+# This function is called by bash script that wants to execute truffle script
+# written in JS. It runs `truffle compile` and then `truffle exec` on a
+# given network.
+function run_truffle_script {
+  set -eo pipefail
+
+  DIR=`dirname $0`
+  curr_bash_file=`basename "$0"`
+  args=("$@")
+  network=${args[0]}
+
+  npx truffle compile
+
+  env DEBUG='script:*' npx truffle exec --network="$network" "$DIR/../javascript/$curr_bash_file.js" ${args[@]:1}
+}

@@ -1,16 +1,15 @@
 #!/bin/bash
 
-set -eo pipefail
+DIR=`dirname $0`
+source $DIR/utils
 
-if [[ "$1" == "help" || "$#" -ne 2 ]]; then
-  echo "Enable an asset pair for loan. The target asset pair must not be already enabled."
-  echo "Usage: ./scripts/bash/enableLoanAssetPair <loan_token_symbol> <collateral_token_symbol>"
-  echo "Where <loan_token_symbol> and <collateral_token_symbol> can be ETH/DAI/USDC, but both can't be the same."
+required_args=( network loan_token_symbol collateral_token_symbol )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Enable an asset pair for loan. The target asset pair must not be already enabled."
+  example_args="development ETH DAI"
+  show_help_message "$description" $required_args "$example_args"
   exit 1
 fi
 
-DIR=`dirname $0`
-loan_token_symbol="$1"
-collateral_token_symbol="$2"
-
-env DEBUG='script:*' npx truffle exec "$DIR/../javascript/enableLoanAssetPair.js" $loan_token_symbol $collateral_token_symbol
+run_truffle_script "$@"

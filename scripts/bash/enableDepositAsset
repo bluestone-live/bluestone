@@ -1,15 +1,15 @@
 #!/bin/bash
 
-set -eo pipefail
+DIR=`dirname $0`
+source $DIR/utils
 
-if [[ "$1" == "help" || "$#" -ne 1 ]]; then
-  echo "Enables an asset for deposit. The target asset must not be already enabled."
-  echo "Usage: ./scripts/bash/enableDepositAsset <token_symbol>"
-  echo "Where <token_symbol> can be ETH/DAI/USDC"
+required_args=( network token_symbol )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Enables an asset for deposit. The target asset must not be already enabled."
+  example_args="development DAI"
+  show_help_message "$description" $required_args "$example_args"
   exit 1
 fi
 
-DIR=`dirname $0`
-token_symbol="$1"
-
-env DEBUG='script:*' npx truffle exec "$DIR/../javascript/enableDepositAsset.js" $token_symbol
+run_truffle_script "$@"

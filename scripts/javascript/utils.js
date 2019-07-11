@@ -52,11 +52,11 @@ const makeTruffleScript = (fn) => {
 
     if (isInvokedFromCmd) {
       // Get script name from full path
-      const scriptName = process.argv[3].replace(/^.*[\\\/]/, '')
+      const scriptName = process.argv[4].replace(/^.*[\\\/]/, '')
       debug('Script name: %s', scriptName)
 
       // Get arguments from command line
-      args = process.argv.slice(4)
+      args = process.argv.slice(5)
     } else {
       // Get arguments from test suite
       args = testArgs

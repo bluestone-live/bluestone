@@ -1,17 +1,14 @@
 #!/bin/bash
 
-set -eo pipefail
+DIR=`dirname $0`
+source $DIR/utils
 
-if [[ "$1" == "help" || "$#" -ne 3 ]]; then
-  echo "Set liquidation discount for a given pair of loan and collateral token."
-  echo "Usage: ./scripts/bash/setLiquidationDiscount <loan_token_symbol> <collateral_token_symbol> <decimal_value>"
-  echo "Where <loan_token_symbol> and <collateral_token_symbol> can be ETH/DAI/USDC, but both can't be the same."
+required_args=( network loan_token_symbol collateral_token_symbol decimal_value )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Set liquidation discount for a given pair of loan and collateral token."
+  show_help_message "$description" $required_args
   exit 1
 fi
 
-DIR=`dirname $0`
-loan_token_symbol="$1"
-collateral_token_symbol="$2"
-decimal_value="$3"
-
-env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setLiquidationDiscount.js" $loan_token_symbol $collateral_token_symbol $decimal_value
+run_truffle_script "$@"

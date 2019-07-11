@@ -1,14 +1,14 @@
 #!/bin/bash
 
-set -eo pipefail
+DIR=`dirname $0`
+source $DIR/utils
 
-if [[ "$1" == "help" || "$#" -ne 1 ]]; then
-  echo "Set profit ratio."
-  echo "Usage: ./scripts/bash/setProfitRatio <decimal_value>"
+required_args=( network decimal_value )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Set profit ratio."
+  show_help_message "$description" $required_args
   exit 1
 fi
 
-DIR=`dirname $0`
-decimal_value="$1"
-
-env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setProfitRatio.js" $decimal_value
+run_truffle_script "$@"

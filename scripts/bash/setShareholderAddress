@@ -1,14 +1,14 @@
 #!/bin/bash
 
-set -eo pipefail
+DIR=`dirname $0`
+source $DIR/utils
 
-if [[ "$1" == "help" || "$#" -ne 1 ]]; then
-  echo "Set shareholder address."
-  echo "Usage: ./scripts/bash/setShareholderAddress <address>"
+required_args=( network address )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Set shareholder address."
+  show_help_message "$description" $required_args
   exit 1
 fi
 
-DIR=`dirname $0`
-address="$1"
-
-env DEBUG='script:*' npx truffle exec "$DIR/../javascript/setShareholderAddress.js" $address
+run_truffle_script "$@"

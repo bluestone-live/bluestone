@@ -1,15 +1,14 @@
 #!/bin/bash
 
-set -eo pipefail
+DIR=`dirname $0`
+source $DIR/utils
 
-if [ "$1" == "help" ]; then
-  echo "Deploy tokens to test network."
-  echo "Usage: ./scripts/bash/deployTokens"
+required_args=( network )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Deploy tokens to test network."
+  show_help_message "$description" $required_args
   exit 1
 fi
 
-DIR=`dirname $0`
-
-npx truffle compile
-
-env DEBUG='script:*' npx truffle exec "$DIR/../javascript/deployTokens.js"
+run_truffle_script "$@"

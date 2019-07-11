@@ -1,13 +1,14 @@
 #!/bin/bash
 
-set -eo pipefail
+DIR=`dirname $0`
+source $DIR/utils
 
-if [ "$1" == "help" ]; then
-  echo "Update deposit maturity for all enabled deposit assets."
-  echo "Usage: ./scripts/bash/updateDepositMaturity"
+required_args=( network )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Update deposit maturity for all enabled deposit assets."
+  show_help_message "$description" $required_args
   exit 1
 fi
 
-DIR=`dirname $0`
-
-env DEBUG='script:*' npx truffle exec "$DIR/../javascript/updateDepositMaturity.js"
+run_truffle_script "$@"
