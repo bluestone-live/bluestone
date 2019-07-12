@@ -12,9 +12,15 @@ import {
   ILoanTransaction,
 } from '../constants/Transaction';
 import { IToken } from '../constants/Token';
-import { tokenStore } from '.';
-import * as LoanManagerService from './services/LoanManagerService';
+import {
+  loan,
+  getLoanTransactions,
+  repayLoan,
+  addCollateral,
+  withdrawFreedCollateral,
+} from './services/LoanManagerService';
 import { getDeposit } from './services/DepositService';
+import { getLoan } from './services/LoanService';
 
 /**
  * repayLoandisplay, merge deposit and loan into one store
@@ -31,11 +37,6 @@ export class TransactionStore {
       if (!tx) {
         return;
       }
-      const token = tokenStore.getToken(tx.token.symbol);
-      if (!token) {
-        // TODO maybe we can ignore this record
-        throw new Error('invalid token');
-      }
       this.transactionMap.set(tx.transactionAddress, tx);
     });
   }
@@ -51,7 +52,6 @@ export class TransactionStore {
     amount: BigNumber,
     isRecurring: boolean,
   ) {
-    // TODO throw an error: invalid number value
     const depositEvent = await deposit(
       token.address,
       term,
@@ -94,15 +94,12 @@ export class TransactionStore {
   }
 
   @action.bound
-  saveOrUpdateLoanTransactions(transactions: ILoanTransaction[]) {
+  saveOrUpdateLoanTransactions(transactions: Array<ILoanTransaction | null>) {
     return transactions.forEach(tx => {
-      const loanToken = tokenStore.getToken(tx.loanToken.symbol);
-      const collateralToken = tokenStore.getToken(tx.loanToken.symbol);
-      if (!loanToken || !collateralToken) {
-        // TODO maybe we can ignore this record
-        throw new Error('invalid token');
+      if (!tx) {
+        return;
       }
-      this.transactionMap.set(tx.transactionId, tx);
+      this.transactionMap.set(tx.transactionAddress, tx);
     });
   }
 
@@ -116,7 +113,7 @@ export class TransactionStore {
     collateralAmount: BigNumber,
     requestedFreedCollateral: BigNumber,
   ) {
-    await LoanManagerService.loan(
+    const loanEvent = await loan(
       term,
       loanToken.address,
       collateralToken.address,
@@ -124,48 +121,47 @@ export class TransactionStore {
       collateralAmount,
       requestedFreedCollateral,
     );
-
-    // TODOrepayLoan transaction
+    const loanTransaction = await getLoan(loanEvent.returnValues.loan);
+    this.saveOrUpdateLoanTransactions([loanTransaction]);
   }
 
   @action.bound
-  async getLoans() {
-    const loanTransactions = await LoanManagerService.getLoans();
-    // return this.saveOrUpdateLoanTransactions(
-    //   loanTransactions.map(tx => {
-    //     const term = terms.find(t => tx.term === t.value)!;
-    //     return {
-    //       ...tx,
-    //       type: TransactionType.Loan,
-    //       status: getLoanTransactionStatus(tx),
-    //       term,
-    //     };
-    //   }),
-    // );
+  async getLoanTransactions() {
+    const loanTransactions = await getLoanTransactions();
+    return this.saveOrUpdateLoanTransactions(
+      await Promise.all(loanTransactions.map(getLoan)),
+    );
+  }
+
+  @action.bound
+  updateLoanTransaction(loanAddress: string) {
+    return getLoan(loanAddress);
   }
 
   @action.bound
   withdrawCollateral(transactionId: string, amount: BigNumber) {
-    return LoanManagerService.withdrawFreedCollateral(transactionId, amount);
+    return withdrawFreedCollateral(transactionId, amount);
   }
 
   @action.bound
-  addCollateral(transactionId: string, amount: BigNumber) {
-    return LoanManagerService.addCollateral(transactionId, amount);
+  addCollateral(
+    transactionId: string,
+    amount: BigNumber,
+    requestedFreedCollateral: BigNumber,
+  ) {
+    return addCollateral(transactionId, amount, requestedFreedCollateral);
   }
 
   @action.bound
-  repay(transactionAddress: string, amount: BigNumber) {
-    const transaction = this.transactionMap.get(
-      transactionAddress,
-    ) as ILoanTransaction;
-    if (!transaction) {
-      // TODO alert error message to user
-      return;
-    }
-    return LoanManagerService.repayLoan(
-      transaction.loanToken.address,
-      transaction.collateralToken.address,
+  repay(
+    loanTokenAddress: string,
+    collateralAssetAddress: string,
+    transactionAddress: string,
+    amount: BigNumber,
+  ) {
+    return repayLoan(
+      loanTokenAddress,
+      collateralAssetAddress,
       transactionAddress,
       amount,
     );
