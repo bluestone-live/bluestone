@@ -6,8 +6,9 @@ import {
   isMetaMaskConnected,
 } from './services/AccountService';
 import { onAccountsChanged } from './services/EthereumService';
-import { tokenStore, tokenManagerStore, IToken } from './index';
+import { tokenStore, tokenManagerStore } from './index';
 import { BigNumber } from '../utils/BigNumber';
+import { IToken } from '../constants/Token';
 
 export class AccountStore {
   @observable accounts: string[] = [];
