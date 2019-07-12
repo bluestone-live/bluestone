@@ -28,6 +28,11 @@ contract LoanManager is Ownable, Pausable, Term {
     LiquidityPools private _liquidityPools;
     DepositManager private _depositManager;
 
+    event LoanSuccessful(address indexed user, Loan loan);
+    event RepayLoanSuccessful(address indexed user, Loan loan);
+    event AddCollateralSuccessful(address indexed user, Loan loan);
+    event WithdrawFreeCollateralSuccessful(address indexed user);
+
     /// loan asset -> collateral asset -> enabled
     /// An loan asset pair refers to loan token A using collateral B, i.e., "B -> A",
     /// Loan-related transactions can happen only if "B -> A" is enabled. 
@@ -136,6 +141,8 @@ contract LoanManager is Ownable, Pausable, Term {
         _tokenManager.receiveFrom(loaner, collateralAsset, collateralAmount);
         _tokenManager.sendTo(loaner, loanAsset, loanAmount);
 
+        emit LoanSuccessful(loaner, currLoan);
+
         return currLoan;
     }
 
@@ -156,6 +163,8 @@ contract LoanManager is Ownable, Pausable, Term {
         _depositFreedCollateral(loaner, collateralAsset, freedCollateralAmount);
 
         _tokenManager.receiveFrom(loaner, loanAsset, totalRepayAmount);
+
+        emit RepayLoanSuccessful(loaner, currLoan);
 
         return totalRepayAmount;
     }
@@ -222,6 +231,8 @@ contract LoanManager is Ownable, Pausable, Term {
 
         _tokenManager.receiveFrom(loaner, collateralAsset, totalCollateralAmount);
 
+        emit AddCollateralSuccessful(loaner, currLoan);
+
         return totalCollateralAmount;
     }
 
@@ -229,6 +240,7 @@ contract LoanManager is Ownable, Pausable, Term {
         address user = msg.sender;
         _withdrawFreedCollateral(user, asset, amount);
         _tokenManager.sendTo(user, asset, amount);
+        emit WithdrawFreeCollateralSuccessful(user);
     }
 
     function getFreedCollateral(address asset) external whenNotPaused view returns (uint) {
