@@ -1,4 +1,3 @@
-import dayjs from 'dayjs';
 import { ITerm } from './Term';
 import { IToken } from './Token';
 import { Contract } from 'web3-eth-contract';
@@ -48,9 +47,8 @@ export enum TransactionStatus {
   DepositOverDue = 13,
   DepositClose = 14,
   LoanNormal = 20,
-  LoanPartialRepaid = 21,
-  LoanLiquidating = 22,
-  LoanClosed = 23,
+  LoanLiquidating = 21,
+  LoanClosed = 22,
 }
 
 export const getDepositTransactionStatus = async (
@@ -73,33 +71,20 @@ export const getDepositTransactionStatus = async (
   return TransactionStatus.DepositNormal;
 };
 
-export const getLoanTransactionStatus = (
-  transaction: IGetLoanTransactionResponse,
+export const getLoanTransactionStatus = async (
+  loanContractInstance: Contract,
+  loanToken: IToken,
+  collateralToken: IToken,
 ) => {
   // TODO: find out when will get lock status
-  const now = dayjs().valueOf();
-  if (transaction.isClosed) {
+  const isClosed = await loanContractInstance.methods.isClosed().call();
+  const isLiquidatable = await loanContractInstance.methods
+    .isLiquidatable(loanToken.price, collateralToken.price)
+    .call();
+  if (isClosed) {
     return TransactionStatus.LoanClosed;
-  }
-  if (
-    dayjs(transaction.createdAt)
-      .add(transaction.term, 'day')
-      .valueOf() >= now
-  ) {
+  } else if (isLiquidatable) {
     return TransactionStatus.LoanLiquidating;
-  }
-  if (transaction.isClosed) {
-    return TransactionStatus.LoanClosed;
-  }
-  if (transaction.liquidatedAmount) {
-    return TransactionStatus.LoanLiquidating;
-  }
-  if (
-    transaction.alreadyPaidAmount &&
-    transaction.alreadyPaidAmount !== 0 &&
-    transaction.alreadyPaidAmount < transaction.loanAmount
-  ) {
-    return TransactionStatus.LoanPartialRepaid;
   }
   return TransactionStatus.LoanNormal;
 };
@@ -118,15 +103,8 @@ export interface ILoanTransaction {
   collateralAmount: number;
   liquidatedAmount?: number;
   soldCollateralAmount?: number;
-  minCollateralRatio: number;
-  interestRate: number;
-  liquidationDiscount?: number;
   createdAt: number;
-  isClosed: boolean;
   accruedInterest: number;
-  lastInterestUpdatedAt?: number;
-  lastRepaidAt?: number;
-  lastLiquidatedAt?: number;
 }
 
 export interface IGetLoanTransactionResponse {

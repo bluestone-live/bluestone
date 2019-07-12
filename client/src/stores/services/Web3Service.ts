@@ -24,6 +24,7 @@ if (process.env.NODE_ENV !== 'production') {
 // May have multiple-instances
 export const nonDeployedContractJsonInterface = {
   Deposit: requireContract('Deposit'),
+  Loan: requireContract('Loan'),
   PoolGroup: requireContract('PoolGroup'),
   ERC20: requireContract('ERC20'),
 };
