@@ -7,6 +7,7 @@ import { TransactionStore } from './TransactionStore';
 import { LoanManagerStore } from './LoanManagerStore';
 import { TokenManagerStore } from './TokenManagerStore';
 import { ActionLogStore } from './ActionLogStore';
+import { WethStore } from './WethStore';
 
 export const accountStore = new AccountStore();
 export const configurationStore = new ConfigurationStore();
@@ -16,6 +17,7 @@ export const transactionStore = new TransactionStore();
 export const loanManagerStore = new LoanManagerStore();
 export const tokenManagerStore = new TokenManagerStore();
 export const actionLogStore = new ActionLogStore();
+export const wethStore = new WethStore();
 
 export const initStore = async () => {
   await tokenStore.initTokens();
@@ -38,3 +40,4 @@ export * from './TransactionStore';
 export * from './LoanManagerStore';
 export * from './TokenManagerStore';
 export * from './ActionLogStore';
+export * from './WethStore';

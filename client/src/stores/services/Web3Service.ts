@@ -13,6 +13,7 @@ const deployedContractJsonInterface = {
   LoanManager: requireContract('LoanManager'),
   TokenManager: requireContract('TokenManager'),
   PriceOracle: requireContract('PriceOracle'),
+  WETH: requireContract('WETH9'),
 };
 
 if (process.env.NODE_ENV !== 'production') {
