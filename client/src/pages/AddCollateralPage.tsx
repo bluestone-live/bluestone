@@ -14,7 +14,7 @@ import { convertDecimalToWei } from '../utils/BigNumber';
 
 interface IProps
   extends WithTranslation,
-    RouteComponentProps<{ transactionId: string }> {
+    RouteComponentProps<{ transactionAddress: string }> {
   transactionStore: TransactionStore;
 }
 
@@ -31,7 +31,7 @@ class AddCollateralPage extends React.Component<IProps, IState> {
 
   componentDidMount() {
     const { transactionStore, match } = this.props;
-    transactionStore.getLoanTransactionById(match.params.transactionId);
+    transactionStore.updateLoanTransaction(match.params.transactionAddress);
   }
 
   onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -39,17 +39,22 @@ class AddCollateralPage extends React.Component<IProps, IState> {
       amount: Number.parseFloat(e.currentTarget.value),
     });
 
-  onSubmit = () => {
+  onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     const { transactionStore, match } = this.props;
     const { amount } = this.state;
 
-    transactionStore.addCollateral(
-      match.params.transactionId,
+    await transactionStore.addCollateral(
+      match.params.transactionAddress,
       convertDecimalToWei(amount),
+      convertDecimalToWei(0), // TODO request free collateral will add later
+    );
+    await transactionStore.updateLoanTransaction(
+      match.params.transactionAddress,
     );
   };
 
-  getCollateralizationRatio = (transaction: ILoanTransaction) => {
+  getCollateralRatio = (transaction: ILoanTransaction) => {
     if (!transaction.loanToken.price || !transaction.collateralToken.price) {
       return 'calculate error';
     }
@@ -65,7 +70,7 @@ class AddCollateralPage extends React.Component<IProps, IState> {
     const { t, transactionStore, match } = this.props;
     const transaction = toJS(
       transactionStore.transactions.find(
-        tx => tx.transactionId === match.params.transactionId,
+        tx => tx.transactionAddress === match.params.transactionAddress,
       ),
     ) as ILoanTransaction;
 
@@ -82,14 +87,19 @@ class AddCollateralPage extends React.Component<IProps, IState> {
           </Form.Item>
           <Form.Item>
             <label htmlFor="amount">{t('add_collateral_amount')}</label>
-            <Input id="amount" type="number" onChange={this.onAmountChange} />
+            <Input
+              id="amount"
+              type="number"
+              step={1e-8}
+              onChange={this.onAmountChange}
+            />
           </Form.Item>
           <Form.Item>
-            <label>{t('collateralization_ratio')}</label>
+            <label>{t('collateral_ratio')}</label>
             <Input
               type="text"
               disabled
-              value={this.getCollateralizationRatio(transaction)}
+              value={this.getCollateralRatio(transaction)}
             />
           </Form.Item>
           <Form.Item>

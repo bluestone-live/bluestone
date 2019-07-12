@@ -134,8 +134,8 @@ export class TransactionStore {
   }
 
   @action.bound
-  updateLoanTransaction(loanAddress: string) {
-    return getLoan(loanAddress);
+  async updateLoanTransaction(loanAddress: string) {
+    return this.saveOrUpdateLoanTransactions([await getLoan(loanAddress)]);
   }
 
   @action.bound
