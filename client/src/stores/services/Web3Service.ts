@@ -109,7 +109,9 @@ export const getContractEventFlow = async (
   contract: keyof DeployedContractInstances | Contract,
   eventName: string,
   options?: EventOptions,
-): Promise<(callback: (contract: Contract) => void) => Promise<EventData>> => {
+): Promise<
+  (callback: (contract: Contract) => Promise<any>) => Promise<EventData>
+> => {
   let contractInstance: Contract;
   if (typeof contract === 'string') {
     const contracts = await getContracts();
@@ -118,21 +120,25 @@ export const getContractEventFlow = async (
     contractInstance = contract;
   }
 
-  const eventFlow = (callback: (contract: Contract) => void) => {
+  let eventSubscription: any;
+  const eventFlow = (callback: (contract: Contract) => Promise<any>) => {
     const p = new Promise<EventData>((resolve, reject) => {
-      const eventSubscription = contractInstance.events[eventName](
+      eventSubscription = contractInstance.events[eventName](
         options || {},
         (err: Error, data: EventData) => {
           if (err) {
-            return reject(err);
+            reject(err);
+          } else {
+            resolve(data);
           }
-          resolve(data);
           // 'once' method didn't unsubscribe after the event handler called. so we have to unsubscribe ourselves.
           eventSubscription.unsubscribe();
         },
       );
     });
-    callback(contractInstance);
+    callback(contractInstance).catch(() => {
+      eventSubscription.unsubscribe();
+    });
     return p;
   };
 
