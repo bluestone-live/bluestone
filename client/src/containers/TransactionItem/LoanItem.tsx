@@ -7,12 +7,15 @@ import {
 import { Row, Cell } from '../../components/common/Layout';
 import Button from '../../components/html/Button';
 import Anchor from '../../components/html/Anchor';
+import { RouteComponentProps, withRouter } from 'react-router';
 
-interface IProps extends WithTranslation {
+interface IProps extends WithTranslation, RouteComponentProps {
   loanTransaction: ILoanTransaction;
 }
 
 class LoanTransactionItem extends React.Component<IProps> {
+  goTo = (path: string) => () => this.props.history.push(path);
+
   getActions = () => {
     const { loanTransaction, t } = this.props;
     if (loanTransaction.status === TransactionStatus.LoanLiquidating) {
@@ -21,14 +24,32 @@ class LoanTransactionItem extends React.Component<IProps> {
     if (loanTransaction.status === TransactionStatus.LoanClosed) {
       return (
         <div className="btn-group">
-          <Button>{t('withdraw_collateral')}</Button>
+          <Button
+            onClick={this.goTo(
+              `loan/collateral/withdraw/${loanTransaction.transactionAddress}`,
+            )}
+          >
+            {t('withdraw_collateral')}
+          </Button>
         </div>
       );
     }
     return (
       <div className="btn-group">
-        <Button>{t('add_collateral')}</Button>
-        <Button>{t('repay')}</Button>
+        <Button
+          onClick={this.goTo(
+            `/loan/collateral/add/${loanTransaction.transactionAddress}`,
+          )}
+        >
+          {t('add_collateral')}
+        </Button>
+        <Button
+          onClick={this.goTo(
+            `/loan/repay/${loanTransaction.transactionAddress}`,
+          )}
+        >
+          {t('repay')}
+        </Button>
       </div>
     );
   };
@@ -45,9 +66,9 @@ class LoanTransactionItem extends React.Component<IProps> {
               {loanTransaction.loanToken.symbol}
             </Anchor>
           </Cell>
-          <Cell>{t('loan')!}</Cell>
+          <Cell>{t('loan')}</Cell>
           <Cell>{loanTransaction.loanAmount}</Cell>
-          <Cell>{loanTransaction.status}</Cell>
+          <Cell>{t(TransactionStatus[loanTransaction.status])}</Cell>
           <Cell>{this.getActions()}</Cell>
         </Row>
       </div>
@@ -55,4 +76,4 @@ class LoanTransactionItem extends React.Component<IProps> {
   }
 }
 
-export default withTranslation()(LoanTransactionItem);
+export default withTranslation()(withRouter(LoanTransactionItem));

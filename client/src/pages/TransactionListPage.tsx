@@ -70,6 +70,7 @@ class TransactionListPage extends React.Component<IProps, IState> {
       });
     }
     await transactionStore.getDepositTransactions();
+    await transactionStore.getLoanTransactions();
   }
 
   onSelectChange = (key: keyof IState) => (
