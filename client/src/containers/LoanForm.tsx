@@ -3,19 +3,19 @@ import Form from '../components/html/Form';
 import Button from '../components/html/Button';
 import Input from '../components/html/Input';
 import { Row, Cell } from '../components/common/Layout';
-import styled from 'styled-components';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { observer, inject } from 'mobx-react';
 import { TokenStore, LoanManagerStore, TransactionStore } from '../stores';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
-import {
-  calculateRate,
-  RatePeriod,
-} from '../utils/interestRateCalculateHelper';
-import dayjs from 'dayjs';
+// import {
+//   calculateRate,
+//   RatePeriod,
+// } from '../utils/interestRateCalculateHelper';
+// import dayjs from 'dayjs';
 import { updateState } from '../utils/updateState';
 import { terms } from '../constants/Term';
 import { IToken } from '../constants/Token';
+import Select from '../components/html/Select';
 
 interface IProps extends WithTranslation {
   tokenStore?: TokenStore;
@@ -34,13 +34,8 @@ interface IState {
   collateralAmount: number;
 }
 
-// Modified from: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/26635#issuecomment-400260278
-const StyledColumns = styled.div`
-  display: flex;
-`;
-
-@observer
 @inject('tokenStore', 'loanManagerStore', 'transactionStore')
+@observer
 class LoanForm extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
@@ -131,34 +126,34 @@ class LoanForm extends React.Component<IProps, IState> {
       .map(iteratorTerm => iteratorTerm.value)
       .map(thisTerm => this.renderOption(thisTerm.toString(), thisTerm));
 
-    const loanToken = tokenStore!.getToken(loanTokenSymbol);
+    // const loanToken = tokenStore!.getToken(loanTokenSymbol);
 
-    const dailyPercentageRate = loanToken!.loanAnnualPercentageRates
-      ? calculateRate(
-          loanToken!.loanAnnualPercentageRates[term],
-          RatePeriod.Daily,
-        )
-      : 0;
+    // const dailyPercentageRate = loanToken!.loanAnnualPercentageRates
+    //   ? calculateRate(
+    //       loanToken!.loanAnnualPercentageRates[term],
+    //       RatePeriod.Daily,
+    //     )
+    //   : 0;
 
-    const loanAssetPair = loanManagerStore!.getLoanAssetPair(
-      loanTokenSymbol,
-      collateralTokenSymbol,
-    );
+    // const loanAssetPair = loanManagerStore!.getLoanAssetPair(
+    //   loanTokenSymbol,
+    //   collateralTokenSymbol,
+    // );
 
     // TODO: compute current collateral ratio given token amount and prices
-    const currCollateralRatio = 'TODO';
+    // const currCollateralRatio = 'TODO';
 
-    const minCollateralRatio = `${convertWeiToDecimal(
-      loanAssetPair!.collateralRatio,
-    ) * 100}%`;
+    // const minCollateralRatio = `${convertWeiToDecimal(
+    //   loanAssetPair!.collateralRatio,
+    // ) * 100}%`;
 
-    const estimatedRepayAmount =
-      loanAmount * Math.pow(1 + dailyPercentageRate / 100, term);
+    // const estimatedRepayAmount =
+    //   loanAmount * Math.pow(1 + dailyPercentageRate / 100, term);
 
-    const estimatedRepayDate = dayjs()
-      .endOf('day')
-      .add(term, 'day')
-      .format('DD/MM/YYYY');
+    // const estimatedRepayDate = dayjs()
+    //   .endOf('day')
+    //   .add(term, 'day')
+    //   .format('DD/MM/YYYY');
 
     return (
       <Form onSubmit={this.handleSubmit}>
@@ -166,72 +161,86 @@ class LoanForm extends React.Component<IProps, IState> {
           <Cell>
             <Form.Item>
               <label htmlFor="loanTokenSymbol">{t('borrow')}:</label>
-              <select
+              <Select
                 id="loanTokenSymbol"
                 name="loanTokenSymbol"
                 value={loanTokenSymbol}
-                onChange={this.handleSelectChange}
+                onChange={this.handleChange}
               >
                 {loanTokenOptions}
-              </select>
+              </Select>
             </Form.Item>
           </Cell>
           <Cell>
             <Form.Item>
               <label htmlFor="loanAmount">{t('amount')}:</label>
-              <Input id="loanAmount" type="number" min="0" />
+              <Input
+                id="loanAmount"
+                name="loanAmount"
+                type="number"
+                onChange={this.handleChange}
+                value={loanAmount}
+                min="0"
+              />
             </Form.Item>
           </Cell>
           <Cell>
             <Form.Item>
               <label htmlFor="term">{t('term')}:</label>
-              <select
+              <Select
                 id="term"
                 name="term"
                 value={term}
-                onChange={this.handleSelectChange}
+                onChange={this.handleChange}
               >
                 {termOptions}
-              </select>
+              </Select>
             </Form.Item>
           </Cell>
-          <Cell>
+          {/* <Cell>
             <Form.Item>
               <label htmlFor="dpr">{t('dpr')}:</label>{' '}
               <span id="dpr">TODO</span>
             </Form.Item>
-          </Cell>
+          </Cell> */}
         </Row>
 
         <Row>
           <Cell>
             <Form.Item>
               <label htmlFor="collateralTokenSymbol">{t('collateral')}:</label>
-              <select
+              <Select
                 id="collateralTokenSymbol"
                 name="collateralTokenSymbol"
                 value={collateralTokenSymbol}
-                onChange={this.handleSelectChange}
+                onChange={this.handleChange}
               >
                 {collateralTokenOptions}
-              </select>
+              </Select>
             </Form.Item>
           </Cell>
           <Cell>
             <Form.Item>
               <label htmlFor="collateralAmount">{t('amount')}:</label>
-              <Input id="collateralAmount" type="number" min="0" />
+              <Input
+                id="collateralAmount"
+                type="number"
+                name="collateralAmount"
+                min="0"
+                value={collateralAmount}
+                onChange={this.handleChange}
+              />
             </Form.Item>
           </Cell>
-          <Cell>
+          {/* <Cell>
             <Form.Item>
               <label htmlFor="collateralRatio">{t('collateral_ratio')}:</label>
               <span id="collateralRatio">TODO / {minCollateralRatio}</span>
             </Form.Item>
-          </Cell>
+          </Cell> */}
         </Row>
 
-        <Row>
+        {/* <Row>
           <Cell>
             <Form.Item>
               <span>
@@ -240,8 +249,7 @@ class LoanForm extends React.Component<IProps, IState> {
               </span>
             </Form.Item>
           </Cell>
-        </Row>
-
+        </Row> */}
         <Row>
           <Cell>
             <Form.Item>
