@@ -13,12 +13,14 @@ const deployedContractJsonInterface = {
   LoanManager: requireContract('LoanManager'),
   TokenManager: requireContract('TokenManager'),
   PriceOracle: requireContract('PriceOracle'),
-  WETH: requireContract('WETH9'),
 };
 
 if (process.env.NODE_ENV !== 'production') {
   // TokenFactory is only needed in testnet to create and retrieve token contract
   deployedContractJsonInterface.TokenFactory = requireContract('TokenFactory');
+
+  // TODO: do not require WETH separately, replace ETH with WETH when we create token using TokenFactory
+  deployedContractJsonInterface.WETH = requireContract('WETH9');
 }
 
 // May have multiple-instances
