@@ -185,6 +185,10 @@ contract Loan {
         return _liquidatedAmount;
     }
 
+    function collateralAmount() external view returns (uint) {
+        return _collateralAmount;
+    }
+
     function soldCollateralAmount() external view returns (uint) {
         return _soldCollateralAmount;
     }
@@ -195,6 +199,10 @@ contract Loan {
 
     function isClosed() external view returns (bool) {
         return _isClosed;
+    }
+
+    function createdAt() external view returns (uint) {
+        return _createdAt;
     }
 
     // Check whether the loan is defaulted or under the required collaterization ratio
