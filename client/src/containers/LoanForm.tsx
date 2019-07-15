@@ -196,9 +196,10 @@ class LoanForm extends React.Component<IProps, IState> {
                 id="loanAmount"
                 name="loanAmount"
                 type="number"
+                step="any"
+                min="0"
                 onChange={this.handleChange}
                 value={loanAmount}
-                min="0"
               />
             </Form.Item>
           </Cell>
@@ -244,6 +245,7 @@ class LoanForm extends React.Component<IProps, IState> {
                 id="collateralAmount"
                 type="number"
                 name="collateralAmount"
+                step="any"
                 min="0"
                 value={collateralAmount}
                 onChange={this.handleChange}

@@ -122,6 +122,8 @@ class DepositForm extends React.Component<IProps, IState> {
                   fullWidth
                   id="amount"
                   type="number"
+                  step="any"
+                  min="0"
                   onChange={this.onAmountChange}
                 />
               </Cell>
