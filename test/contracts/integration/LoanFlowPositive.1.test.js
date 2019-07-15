@@ -57,9 +57,6 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       await depositManager.deposit(loanAsset.address, 1, depositAmount, false, {
         from: depositor
       });
-      await depositManager.deposit(loanAsset.address, 7, depositAmount, false, {
-        from: depositor
-      });
       await depositManager.deposit(
         loanAsset.address,
         30,
@@ -80,8 +77,8 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
 
     let loanSuccessfulLogs;
 
-    it("makes a 7-day loan", async () => {
-      const term = 7;
+    it("makes a 30-day loan", async () => {
+      const term = 30;
       const requestedFreedCollateral = 0;
       prevLoanAssetBalance = await loanAsset.balanceOf(loaner);
       prevCollateralAssetBalance = await collateralAsset.balanceOf(loaner);

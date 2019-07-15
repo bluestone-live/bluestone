@@ -15,13 +15,9 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
   const initialSupply = toFixedBN(3000)
   const depositAmount = toFixedBN(1000)
   const loanInterestRate1 = toFixedBN(1, 10)
-  const loanInterestRate7 = toFixedBN(2, 10)
   const loanInterestRate30 = toFixedBN(3, 10)
-  const a11 = toFixedBN(0.3)
-  const a71 = toFixedBN(0.3)
-  const a301 = toFixedBN(0.4)
-  const a77 = toFixedBN(0.5)
-  const a307 = toFixedBN(0.5)
+  const a11 = toFixedBN(0.4)
+  const a301 = toFixedBN(0.6)
   const a3030 = toFixedBN(1)
 
   before(async () => {
@@ -55,7 +51,6 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     await priceOracle.setPrice(collateralAsset.address, toFixedBN(10))
 
     await config.setLoanInterestRate(loanAsset.address, 1, loanInterestRate1)
-    await config.setLoanInterestRate(loanAsset.address, 7, loanInterestRate7)
     await config.setLoanInterestRate(loanAsset.address, 30, loanInterestRate30)
 
     const assetList = [loanAsset, collateralAsset]
@@ -63,10 +58,7 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     for (let i = 0; i < assetList.length; i++) {
       const asset = assetList[i]
       await config.setCoefficient(asset.address, 1, 1, a11)
-      await config.setCoefficient(asset.address, 7, 1, a71)
       await config.setCoefficient(asset.address, 30, 1, a301)
-      await config.setCoefficient(asset.address, 7, 7, a77)
-      await config.setCoefficient(asset.address, 30, 7, a307)
       await config.setCoefficient(asset.address, 30, 30, a3030)
     }
 
@@ -79,14 +71,12 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
 
     before(async () => {
       await depositManager.deposit(loanAsset.address, 1, depositAmount, false, { from: depositor })
-      await depositManager.deposit(loanAsset.address, 7, depositAmount, false, { from: depositor })
       await depositManager.deposit(loanAsset.address, 30, depositAmount, false, { from: depositor })
     })
 
     context('before any loan is made', () => {
       it('calculates interest rate to be 0', async () => {
         expect(await depositManager.calculateInterestRate(loanAsset.address, 1)).to.be.bignumber.equal('0')
-        expect(await depositManager.calculateInterestRate(loanAsset.address, 7)).to.be.bignumber.equal('0')
         expect(await depositManager.calculateInterestRate(loanAsset.address, 30)).to.be.bignumber.equal('0')
       })
     })
@@ -116,36 +106,6 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
       })
     })
 
-    context('after 7-day loan is made', () => {
-      const term = 7
-
-      before(async () => {
-        await loanManager.loan(
-          term, 
-          loanAsset.address,
-          collateralAsset.address,
-          loanAmount,
-          collateralAmount,
-          0,
-          { from: loaner }
-        )
-      })
-
-      it('calculates using: rs7 = (mb1 * rb1 * a71 + mb7 * rb7 * a77) / s7', async () => {
-        const mb1 = loanAmount.mul(a11).div(toFixedBN(1))
-        const rb1 = loanInterestRate1 
-        const mb7 = loanAmount.mul(a71).add(loanAmount.mul(a77)).div(toFixedBN(1))
-        const rb7 = loanInterestRate7
-        const s7 = depositAmount.sub(mb7)
-        const expectedInterestRate = mb1.mul(rb1).mul(a71)
-          .add(mb7.mul(rb7).mul(a77))
-          .div(s7)
-          .div(toFixedBN(1))
-        const actualInterestRate = await depositManager.calculateInterestRate(loanAsset.address, term)
-        expect(actualInterestRate).to.be.bignumber.equal(expectedInterestRate)
-      })
-    })
-
     context('after 30-day loan is made', () => {
       const term = 30
 
@@ -161,16 +121,13 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
         )
       })
 
-      it('calculates using: rs30 = (mb1 * rb1 * a301 + mb7 * rb7 * a307 + mb30 * rb30 * a3030) / s30', async () => {
+      it('calculates using: rs30 = (mb1 * rb1 * a301 + mb30 * rb30 * a3030) / s30', async () => {
         const mb1 = loanAmount.mul(a11).div(toFixedBN(1))
         const rb1 = loanInterestRate1 
-        const mb7 = loanAmount.mul(a71).add(loanAmount.mul(a77)).div(toFixedBN(1))
-        const rb7 = loanInterestRate7
-        const mb30 = loanAmount.mul(a301).add(loanAmount.mul(a307)).add(loanAmount.mul(a3030)).div(toFixedBN(1))
+        const mb30 = loanAmount.mul(a301).add(loanAmount.mul(a3030)).div(toFixedBN(1))
         const rb30 = loanInterestRate30
         const s30 = depositAmount.sub(mb30)
         const expectedInterestRate = mb1.mul(rb1).mul(a301)
-          .add(mb7.mul(rb7).mul(a307))
           .add(mb30.mul(rb30).mul(a3030))
           .div(s30)
           .div(toFixedBN(1))
@@ -203,9 +160,9 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
       })
     })
 
-    context('when 7-day deposit is overdue', () => {
+    context('when 30-day deposit is overdue', () => {
       before(async () => {
-        await time.increase(time.duration.days(40))
+        await time.increase(time.duration.days(70))
       }) 
 
       it('withdraws deposit only', async () => {

@@ -26,7 +26,6 @@ contract LiquidityPools {
     function initPoolGroupsIfNeeded(address asset) external {
         if (!isPoolGroupsInitialized[asset]) {
             poolGroups[asset][1] = new PoolGroup(1);
-            poolGroups[asset][7] = new PoolGroup(7);
             poolGroups[asset][30] = new PoolGroup(30);
             
             isPoolGroupsInitialized[asset] = true;

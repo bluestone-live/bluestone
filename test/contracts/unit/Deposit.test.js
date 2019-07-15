@@ -15,7 +15,7 @@ contract('Deposit', ([owner]) => {
   })
 
   describe('#constructor', async () => {
-    const term = new BN(7)
+    const term = new BN(1)
     const isRecurring = false
     let deposit, datetime, now, createdAt
 

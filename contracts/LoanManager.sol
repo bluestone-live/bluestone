@@ -297,12 +297,8 @@ contract LoanManager is Ownable, Pausable, Term {
     function _loanFromPoolGroups(address loanAsset, uint8 loanTerm, uint loanAmount, Loan currLoan) private {
         if (loanTerm == 1) {
             _loanFromPoolGroup(loanAsset, 1, loanTerm, loanAmount, currLoan);
-            _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, currLoan);
             _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
-        } else if (loanTerm == 7) {
-            _loanFromPoolGroup(loanAsset, 7, loanTerm, loanAmount, currLoan);
-            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
-        } else if (loanTerm == 30) {
+        }  else if (loanTerm == 30) {
             _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
         }
     }
@@ -325,7 +321,6 @@ contract LoanManager is Ownable, Pausable, Term {
 
     function _repayLoanToPoolGroups(address asset, uint totalRepayAmount, Loan currLoan) private {
         _repayLoanToPoolGroup(asset, 30, totalRepayAmount, currLoan);
-        _repayLoanToPoolGroup(asset, 7, totalRepayAmount, currLoan);
         _repayLoanToPoolGroup(asset, 1, totalRepayAmount, currLoan);
     }
 

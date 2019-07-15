@@ -4,7 +4,7 @@ const { toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('PoolGroup', () => {
-  const term = 7
+  const term = 30
   const poolIndex = 0
   const amount = toFixedBN(100)
   let poolGroup, pool
@@ -125,7 +125,7 @@ contract('PoolGroup', () => {
   })
 
   describe('#updatePoolIds', () => {
-    const loanTerm = 1
+    const initialPoolIndexes = [...Array(term).keys()]
 
     before(async () => {
       poolGroup = await PoolGroup.new(term)
@@ -134,19 +134,21 @@ contract('PoolGroup', () => {
     it('updates pool ids correctly after one time', async () => {
       await poolGroup.updatePoolIds()
 
-      const updatedPoolIndexes = [1, 2, 3, 4, 5, 6, 0].map(n => new BN(n))
+      const updatedPoolIndexes = initialPoolIndexes
+        .map(n => n + 1 < term ? n + 1 : 0)
+        .map(n => new BN(n))
 
       for (let i = 0; i < term; i++) {
         expect(await poolGroup.poolIds(i)).to.be.bignumber.equal(updatedPoolIndexes[i])
       }
     })
 
-    it('updates pool ids correctly after seven times', async () => {
-      for (let i = 0; i < 6; i++) {
+    it('updates pool ids correctly after 30 times', async () => {
+      for (let i = 0; i < term - 1; i++) {
         await poolGroup.updatePoolIds()
       }
 
-      const updatedPoolIndexes = [0, 1, 2, 3, 4, 5, 6].map(n => new BN(n))
+      const updatedPoolIndexes = initialPoolIndexes.map(n => new BN(n))
 
       for (let i = 0; i < term; i++) {
         expect(await poolGroup.poolIds(i)).to.be.bignumber.equal(updatedPoolIndexes[i])
@@ -155,7 +157,6 @@ contract('PoolGroup', () => {
   })
 
   describe('#withdrawOneTimeDepositFromPool', () => {
-    const loanTerm = 1
     const withdrawAmount = toFixedBN(50)
 
     before(async () => {

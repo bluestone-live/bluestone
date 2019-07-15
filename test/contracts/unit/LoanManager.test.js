@@ -1,6 +1,5 @@
 const PriceOracle = artifacts.require("PriceOracle");
 const TokenManager = artifacts.require("TokenManager");
-const Loan = artifacts.require("Loan");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
 const { DepositManagerMock, LoanManagerMock } = require("../../utils/mocks.js");
 const { expect } = require("chai");
@@ -32,9 +31,6 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     });
     await depositManager.enableDepositAsset(loanAsset.address, { from: owner });
     await depositManager.deposit(loanAsset.address, 1, depositAmount, false, {
-      from: depositor
-    });
-    await depositManager.deposit(loanAsset.address, 7, depositAmount, false, {
       from: depositor
     });
     await depositManager.deposit(loanAsset.address, 30, depositAmount, false, {

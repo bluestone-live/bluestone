@@ -236,11 +236,9 @@ contract DepositManager is Ownable, Pausable, Term {
 
         if (!depositAsset.isInitialized) {
             depositAsset.interestIndexPerTerm[1] = ONE;
-            depositAsset.interestIndexPerTerm[7] = ONE;
             depositAsset.interestIndexPerTerm[30] = ONE;
 
             depositAsset.interestIndexHistoryPerTerm[1].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
-            depositAsset.interestIndexHistoryPerTerm[7].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
             depositAsset.interestIndexHistoryPerTerm[30].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
 
             depositAsset.isInitialized = true;
@@ -266,7 +264,6 @@ contract DepositManager is Ownable, Pausable, Term {
     // Update deposit maturity for each PoolGroup of an asset
     function updateDepositMaturity(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
         _updatePoolGroupDepositMaturity(asset, 1);
-        _updatePoolGroupDepositMaturity(asset, 7);
         _updatePoolGroupDepositMaturity(asset, 30);
     }
 
@@ -280,7 +277,7 @@ contract DepositManager is Ownable, Pausable, Term {
     // Update interest index hisotires for different deposit terms of an asset
     function updateInterestIndexHistories(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
         DepositAsset storage depositAsset = _depositAssets[asset];
-        uint8[3] memory terms = [1, 7, 30];
+        uint8[2] memory terms = [1, 30];
 
         for (uint i = 0; i < terms.length; i++) {
             uint8 term = terms[i];
@@ -302,16 +299,15 @@ contract DepositManager is Ownable, Pausable, Term {
     ///
     /// rs<term> = interestEarned / totalLoanableAmount
     /// rs1 = (mb1 * rb1 * a11) / s1
-    /// rs7 = (mb1 * rb1 * a71 + mb7 * rb7 * a77) / s7
-    /// rs30 = (mb1 * rb1 * a301 + mb7 * rb7 * a307 + mb30 * rb30 * a3030) / s30
+    /// rs30 = (mb1 * rb1 * a301 + mb30 * rb30 * a3030) / s30
     ///
     /// where rs1 = The deposit interest rate of 1-day term
     ///       mb1 = The amount has loaned on 1-day term
     ///       rb1 = The loan interest rate of 1-day term
-    ///       a71 = The coefficient of 1-day loan borrowed from 7-day deposit pool group
-    ///       s7  = The loanable amount of 7-day pool group
+    ///       a301 = The coefficient of 1-day loan borrowed from 30-day deposit pool group
+    ///       s30  = The loanable amount of 30-day pool group
     function _calculateInterestRate(address asset, uint8 depositTerm) internal view returns (uint) {
-        uint8[3] memory loanTerms = [1, 7, 30];
+        uint8[2] memory loanTerms = [1, 30];
         uint interestEarned = 0;
 
         for (uint i = 0; i < loanTerms.length; i++) {

@@ -7,7 +7,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 /// 
 /// - Pool ID: an internal identifier used to lookup a Pool struct. 
 /// - Pool Index: used to mark the pool position, starting from 0. For example, 
-///     a pool group of size 7 includes pool indices from 0 to 6, respectively.
+///     a pool group of size 30 includes pool indices from 0 to 29, respectively.
 contract PoolGroup {
     using SafeMath for uint;
 
@@ -47,13 +47,13 @@ contract PoolGroup {
 
     /// Given a pool index, it resolves to a pool ID. Basically it stores all pool IDs 
     /// which get updated after one day to reflect the maturity change. For example, 
-    /// for a pool group of size 7, this is how pool IDs changing overtime:
+    /// for a pool group of size 30, this is how pool IDs changing overtime:
     ///
-    /// 1st day: [0, 1, 2, 3, 4, 5, 6]
-    /// 2nd day: [1, 2, 3, 4, 5, 6, 0]
-    /// 3rd day: [2, 3, 4, 5, 6, 0, 1]
+    /// 1st day: [0, 1, 2, ..., 27, 28, 29]
+    /// 2nd day: [1, 2, 3, ..., 28, 29, 0]
+    /// 3rd day: [2, 3, 4, ..., 29, 0, 1]
     /// …
-    /// 7th day: [6, 0, 1, 2, 3, 4, 5]
+    /// 30th day: [29, 0, 1, ..., 26, 27, 28]
     uint8[] public poolIds;
 
     constructor(uint8 term) public {

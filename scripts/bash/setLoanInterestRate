@@ -1,11 +1,10 @@
-#!/bin/bash
+!/bin/bash
 
 set -eo pipefail
 
 if [[ "$1" == "help" || "$#" -ne 3 ]]; then
   echo "Set loan interest rate for an asset with a specific term."
   echo "Usage: ./scripts/bash/setLoanInterestRate <token_symbol> <loan_term> <decimal_value>"
-  echo "Where <token_symbol> can be ETH/DAI/USDC, <loan_term> can be 1/7/30"
   exit 1
 fi
 

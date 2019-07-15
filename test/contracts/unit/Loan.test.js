@@ -4,7 +4,7 @@ const { toFixedBN, createERC20Token } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('Loan', ([owner]) => {
-  const term = 7
+  const term = 30
   const loanAmount = toFixedBN(100)
   const collateralAmount = toFixedBN(300)
   const interestRate = toFixedBN(5, 10)
@@ -38,8 +38,8 @@ contract('Loan', ([owner]) => {
 
     it('succeeds', async () => {
       const amount = toFixedBN(70)
-      await loan.setRecord(7, 1, amount) 
-      expect(await loan.getRecord(7, 1)).to.be.bignumber.equal(amount)
+      await loan.setRecord(30, 1, amount) 
+      expect(await loan.getRecord(30, 1)).to.be.bignumber.equal(amount)
     })
   })
 

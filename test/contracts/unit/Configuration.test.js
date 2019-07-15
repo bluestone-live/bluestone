@@ -12,7 +12,7 @@ contract('Configuration', function([owner, anotherAccount]) {
   })
 
   describe('#setCoefficient', () => {
-    const depositTerm = 7
+    const depositTerm = 1
     const loanTerm = 1
     const value = toFixedBN(0.5)
 

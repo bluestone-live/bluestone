@@ -44,7 +44,7 @@ module.exports = makeTruffleScript(async () => {
     divider();
 
     const loanAsset = tokenAddressMap[loanTokenSymbol];
-    const loanTerms = [1, 7, 30];
+    const loanTerms = [1, 30];
 
     await depositManager.enableDepositAsset(loanAsset);
     debug(`enableDepositAsset: ${loanTokenSymbol}`);
@@ -128,7 +128,7 @@ module.exports = makeTruffleScript(async () => {
   const loanAmount = 100;
   const collateralAmount = 200;
   const freedCollateralAmount = 0;
-  const terms = [1, 7, 30];
+  const terms = [1, 30];
 
   for (let loanTokenSymbol of tokenSymbolList) {
     divider();
@@ -186,11 +186,8 @@ module.exports = makeTruffleScript(async () => {
     }
 
     // Now we have initial deposits and loans distributed evenly, we shall set initial coefficients
-    setCoefficient(loanTokenSymbol, loanAsset.address, 1, 1, 0.33);
-    setCoefficient(loanTokenSymbol, loanAsset.address, 7, 1, 0.33);
-    setCoefficient(loanTokenSymbol, loanAsset.address, 30, 1, 0.34);
-    setCoefficient(loanTokenSymbol, loanAsset.address, 7, 7, 0.5);
-    setCoefficient(loanTokenSymbol, loanAsset.address, 30, 7, 0.5);
+    setCoefficient(loanTokenSymbol, loanAsset.address, 1, 1, 0.5);
+    setCoefficient(loanTokenSymbol, loanAsset.address, 30, 1, 0.5);
     setCoefficient(loanTokenSymbol, loanAsset.address, 30, 30, 1);
   }
 });

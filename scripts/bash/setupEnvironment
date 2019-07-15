@@ -11,4 +11,6 @@ if [ $# -ne ${#required_args[@]} ]; then
   exit 1
 fi
 
+npx truffle migrate --reset
+
 run_truffle_script "$@"

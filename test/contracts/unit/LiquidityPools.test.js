@@ -11,7 +11,7 @@ contract('LiquidityPools', ([owner, account]) => {
   })
 
   describe('#initPoolGroupsIfNeeded', () => {
-    let pool1Address, pool7Address, pool30Address
+    let pool1Address, pool30Address
 
     context('when pool groups are not initialized', () => {
       before(async () => {
@@ -24,11 +24,9 @@ contract('LiquidityPools', ([owner, account]) => {
 
       it('initializes pool groups', async () => {
         pool1Address = await liquidityPools.poolGroups(asset.address, 1)
-        pool7Address = await liquidityPools.poolGroups(asset.address, 7)
         pool30Address = await liquidityPools.poolGroups(asset.address, 30)
 
         expect(pool1Address).to.not.equal(constants.ZERO_ADDRESS)
-        expect(pool7Address).to.not.equal(constants.ZERO_ADDRESS)
         expect(pool30Address).to.not.equal(constants.ZERO_ADDRESS)
       })
 
@@ -42,11 +40,9 @@ contract('LiquidityPools', ([owner, account]) => {
         await liquidityPools.initPoolGroupsIfNeeded(asset.address)
 
         const updatedPool1Address = await liquidityPools.poolGroups(asset.address, 1)
-        const updatedPool7Address = await liquidityPools.poolGroups(asset.address, 7)
         const updatedPool30Address = await liquidityPools.poolGroups(asset.address, 30)
 
         expect(updatedPool1Address).to.equal(pool1Address)
-        expect(updatedPool7Address).to.equal(pool7Address)
         expect(updatedPool30Address).to.equal(pool30Address)
       })
     })
