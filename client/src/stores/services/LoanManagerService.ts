@@ -46,18 +46,9 @@ export const getLoanTransactions = async (): Promise<string[]> => {
 };
 
 export const getFreedCollateral = async (tokenAddress: string) => {
-  const flow = await getContractEventFlow(
-    'LoanManager',
-    'GetFreeCollateralSuccessful',
-    {
-      filter: { user: accountStore.defaultAccount },
-    },
-  );
-  return flow(LoanManager =>
-    LoanManager.methods
-      .getFreedCollateral(tokenAddress)
-      .send({ from: accountStore.defaultAccount }),
-  );
+  const { LoanManager } = await getContracts();
+
+  return LoanManager.methods.getFreedCollateral(tokenAddress).call();
 };
 
 export const withdrawFreedCollateral = async (

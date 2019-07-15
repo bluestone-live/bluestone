@@ -20,9 +20,12 @@ export const actionLogStore = new ActionLogStore();
 export const wethStore = new WethStore();
 
 export const initStore = async () => {
-  await tokenStore.initTokens();
+  const tokens = await tokenStore.initTokens();
   await loanManagerStore.init();
   await tokenManagerStore.init();
+  await Promise.all(
+    tokens.map(token => accountStore.getFreedCollateral(token)),
+  );
 };
 
 // enableLogging({

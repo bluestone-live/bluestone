@@ -42,12 +42,13 @@ export class TokenStore {
 
   @action.bound
   async initTokens() {
-    const tokens = Array.from(this.tokens.keys());
-    await Promise.all(tokens.map(this.loadTokenIfNeeded));
-    await Promise.all(tokens.map(this.isDepositAssetEnabled));
-    await Promise.all(tokens.map(this.getDepositInterestRates));
-    await Promise.all(tokens.map(this.getLoanInterestRates));
-    await Promise.all(tokens.map(this.getTokenPrice));
+    const tokenSymbols = Array.from(this.tokens.keys());
+    const tokens = await Promise.all(tokenSymbols.map(this.loadTokenIfNeeded));
+    await Promise.all(tokenSymbols.map(this.isDepositAssetEnabled));
+    await Promise.all(tokenSymbols.map(this.getDepositInterestRates));
+    await Promise.all(tokenSymbols.map(this.getLoanInterestRates));
+    await Promise.all(tokenSymbols.map(this.getTokenPrice));
+    return tokens;
   }
 
   @action.bound
@@ -58,14 +59,17 @@ export class TokenStore {
     // TODO: Register test tokens for MetaMask.
     // const res = await registerToken(tokenSymbol);
 
-    return this.updateToken(tokenSymbol, {
+    const token: IToken = {
       symbol: tokenSymbol,
       defaultLoanPair:
         tokenSymbol === 'ETH' ? `${tokenSymbol}_DAI` : `${tokenSymbol}_ETH`,
       address,
       depositEnabled: false,
       erc20,
-    });
+    };
+
+    this.updateToken(tokenSymbol, token);
+    return token;
   }
 
   @action.bound

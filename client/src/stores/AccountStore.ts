@@ -9,10 +9,12 @@ import { onAccountsChanged } from './services/EthereumService';
 import { tokenStore, tokenManagerStore } from './index';
 import { BigNumber } from '../utils/BigNumber';
 import { IToken } from '../constants/Token';
+import { getFreedCollateral } from './services/LoanManagerService';
 
 export class AccountStore {
   @observable accounts: string[] = [];
   @observable allowance = new Map<string, BigNumber>();
+  @observable freedCollateralsMap = new Map<string, BigNumber>();
 
   @observable defaultAccountChanged: boolean = false;
 
@@ -129,5 +131,20 @@ export class AccountStore {
   updateAllowance(tokenSymbol: string, value: BigNumber) {
     const owner = this.defaultAccount;
     this.allowance.set(`${owner}_${tokenSymbol}`, value);
+  }
+
+  @action.bound
+  async getFreedCollateral(token: IToken) {
+    const freedCollateral = await getFreedCollateral(token.address);
+    this.setFreedCollateral(token.address, freedCollateral);
+  }
+
+  @action.bound
+  setFreedCollateral(tokenAddress: string, freedCollateral: BigNumber) {
+    this.freedCollateralsMap.set(tokenAddress, freedCollateral);
+  }
+
+  getFreedCollateralByAddress(tokenAddress: string) {
+    return this.freedCollateralsMap.get(tokenAddress);
   }
 }

@@ -14,6 +14,7 @@ import Card from '../components/common/Card';
 import Button from '../components/html/Button';
 import { ITerm, terms } from '../constants/Term';
 import { IToken } from '../constants/Token';
+import { BigNumber, convertWeiToDecimal } from '../utils/BigNumber';
 
 const StyledTokenList = styled.table`
   width: 100%;
@@ -135,6 +136,7 @@ class HomePage extends React.Component<IProps, IState> {
     const {
       t,
       tokenStore: { validTokens },
+      accountStore,
     } = this.props;
     const { selectedTerm } = this.state;
 
@@ -155,44 +157,55 @@ class HomePage extends React.Component<IProps, IState> {
           <StyledTokenList>
             <thead>
               <tr>
-                <th style={{ minWidth: '220px' }}>{t('token')}</th>
-                <th style={{ minWidth: '250px' }}>{t('deposit_apr')}</th>
-                <th style={{ minWidth: '250px' }}>{t('loan_apr')}</th>
+                <th style={{ minWidth: '200px' }}>{t('token')}</th>
+                <th style={{ minWidth: '180px' }}>{t('deposit_apr')}</th>
+                <th style={{ minWidth: '180px' }}>{t('loan_apr')}</th>
+                <th style={{ minWidth: '160px' }}>{t('freed_collateral')}</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {validTokens.map(token => (
-                <StyledTokenListRow key={token.symbol}>
-                  <td>
-                    <Anchor
-                      to={`/transactions?tokenSymbol=${token.symbol}&term=&status=`}
-                    >
-                      {token.logo}
-                      {token.symbol}
-                    </Anchor>
-                  </td>
-                  <td>
-                    {token.depositAnnualPercentageRates
-                      ? `${calculateRate(
-                          token.depositAnnualPercentageRates[
-                            selectedTerm.value
-                          ],
-                          RatePeriod.Annual,
-                        )}%`
-                      : '0%'}
-                  </td>
-                  <td>
-                    {token.loanAnnualPercentageRates
-                      ? `${calculateRate(
-                          token.loanAnnualPercentageRates[selectedTerm.value],
-                          RatePeriod.Annual,
-                        )}%`
-                      : '0%'}
-                  </td>
-                  <td>{this.renderActions(token)}</td>
-                </StyledTokenListRow>
-              ))}
+              {validTokens
+                .map((token): [IToken, BigNumber | undefined] => [
+                  token,
+                  accountStore.getFreedCollateralByAddress(token.address),
+                ])
+                .map(([token, freedCollateral]) => (
+                  <StyledTokenListRow key={token.symbol}>
+                    <td>
+                      <Anchor
+                        to={`/transactions?tokenSymbol=${token.symbol}&term=&status=`}
+                      >
+                        {token.logo}
+                        {token.symbol}
+                      </Anchor>
+                    </td>
+                    <td>
+                      {token.depositAnnualPercentageRates
+                        ? `${calculateRate(
+                            token.depositAnnualPercentageRates[
+                              selectedTerm.value
+                            ],
+                            RatePeriod.Annual,
+                          )}%`
+                        : '0%'}
+                    </td>
+                    <td>
+                      {token.loanAnnualPercentageRates
+                        ? `${calculateRate(
+                            token.loanAnnualPercentageRates[selectedTerm.value],
+                            RatePeriod.Annual,
+                          )}%`
+                        : '0%'}
+                    </td>
+                    <td>
+                      {freedCollateral
+                        ? convertWeiToDecimal(freedCollateral)
+                        : 0}
+                    </td>
+                    <td>{this.renderActions(token)}</td>
+                  </StyledTokenListRow>
+                ))}
               <tr />
             </tbody>
           </StyledTokenList>
