@@ -7,15 +7,16 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { observer, inject } from 'mobx-react';
 import { TokenStore, LoanManagerStore, TransactionStore } from '../stores';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
-// import {
-//   calculateRate,
-//   RatePeriod,
-// } from '../utils/interestRateCalculateHelper';
-// import dayjs from 'dayjs';
 import { updateState } from '../utils/updateState';
 import { terms } from '../constants/Term';
 import { IToken } from '../constants/Token';
 import Select from '../components/html/Select';
+import {
+  calculateRate,
+  RatePeriod,
+} from '../utils/interestRateCalculateHelper';
+import styled from 'styled-components';
+import dayjs from 'dayjs';
 
 interface IProps extends WithTranslation {
   tokenStore?: TokenStore;
@@ -33,6 +34,16 @@ interface IState {
   loanAmount: number;
   collateralAmount: number;
 }
+
+const StyledTextBox = styled.span`
+  display: block;
+  width: 100%;
+  flex: 1;
+  font-size: 14px;
+  padding: 0 7px;
+  line-height: 35px;
+  height: 35px;
+`;
 
 @inject('tokenStore', 'loanManagerStore', 'transactionStore')
 @observer
@@ -126,34 +137,41 @@ class LoanForm extends React.Component<IProps, IState> {
       .map(iteratorTerm => iteratorTerm.value)
       .map(thisTerm => this.renderOption(thisTerm.toString(), thisTerm));
 
-    // const loanToken = tokenStore!.getToken(loanTokenSymbol);
+    const loanToken = tokenStore!.getToken(loanTokenSymbol);
+    const collateralToken = tokenStore!.getToken(collateralTokenSymbol);
 
-    // const dailyPercentageRate = loanToken!.loanAnnualPercentageRates
-    //   ? calculateRate(
-    //       loanToken!.loanAnnualPercentageRates[term],
-    //       RatePeriod.Daily,
-    //     )
-    //   : 0;
+    const dailyPercentageRate = loanToken
+      ? loanToken.loanAnnualPercentageRates
+        ? calculateRate(
+            loanToken!.loanAnnualPercentageRates[term],
+            RatePeriod.Daily,
+          )
+        : 0
+      : 0;
 
-    // const loanAssetPair = loanManagerStore!.getLoanAssetPair(
-    //   loanTokenSymbol,
-    //   collateralTokenSymbol,
-    // );
+    const loanAssetPair = loanManagerStore!.getLoanAssetPair(
+      loanTokenSymbol,
+      collateralTokenSymbol,
+    );
 
-    // TODO: compute current collateral ratio given token amount and prices
-    // const currCollateralRatio = 'TODO';
+    const currCollateralRatio = (loanAmount === 0
+      ? 0
+      : (collateralAmount * collateralToken!.price!) /
+        loanAmount /
+        loanToken!.price!
+    ).toFixed(2);
 
-    // const minCollateralRatio = `${convertWeiToDecimal(
-    //   loanAssetPair!.collateralRatio,
-    // ) * 100}%`;
+    const minCollateralRatio = `${convertWeiToDecimal(
+      loanAssetPair!.collateralRatio,
+    ) * 100}%`;
 
-    // const estimatedRepayAmount =
-    //   loanAmount * Math.pow(1 + dailyPercentageRate / 100, term);
+    const estimatedRepayAmount =
+      loanAmount * Math.pow(1 + dailyPercentageRate / 100, term);
 
-    // const estimatedRepayDate = dayjs()
-    //   .endOf('day')
-    //   .add(term, 'day')
-    //   .format('DD/MM/YYYY');
+    const estimatedRepayDate = dayjs()
+      .endOf('day')
+      .add(term, 'day')
+      .format('DD/MM/YYYY');
 
     return (
       <Form onSubmit={this.handleSubmit}>
@@ -197,12 +215,12 @@ class LoanForm extends React.Component<IProps, IState> {
               </Select>
             </Form.Item>
           </Cell>
-          {/* <Cell>
+          <Cell>
             <Form.Item>
               <label htmlFor="dpr">{t('dpr')}:</label>{' '}
-              <span id="dpr">TODO</span>
+              <StyledTextBox id="dpr">{dailyPercentageRate} %</StyledTextBox>
             </Form.Item>
-          </Cell> */}
+          </Cell>
         </Row>
 
         <Row>
@@ -232,24 +250,27 @@ class LoanForm extends React.Component<IProps, IState> {
               />
             </Form.Item>
           </Cell>
-          {/* <Cell>
-            <Form.Item>
-              <label htmlFor="collateralRatio">{t('collateral_ratio')}:</label>
-              <span id="collateralRatio">TODO / {minCollateralRatio}</span>
-            </Form.Item>
-          </Cell> */}
-        </Row>
-
-        {/* <Row>
           <Cell>
             <Form.Item>
-              <span>
-                You need to pay back TODO-amount {loanTokenSymbol} before
-                TODO-date.
-              </span>
+              <label htmlFor="collateralRatio">{t('collateral_ratio')}:</label>
+              <StyledTextBox id="collateralRatio">
+                {currCollateralRatio} % / {minCollateralRatio}
+              </StyledTextBox>
             </Form.Item>
           </Cell>
-        </Row> */}
+        </Row>
+
+        <Row>
+          <Cell>
+            <Form.Item>
+              <StyledTextBox>
+                You need to pay back {estimatedRepayAmount} {loanTokenSymbol}{' '}
+                before
+                {estimatedRepayDate}.
+              </StyledTextBox>
+            </Form.Item>
+          </Cell>
+        </Row>
         <Row>
           <Cell>
             <Form.Item>
