@@ -105,6 +105,7 @@ export interface ILoanTransaction {
   soldCollateralAmount?: number;
   createdAt: number;
   accruedInterest: number;
+  remainingDebt: number;
 }
 
 export interface IGetLoanTransactionResponse {
