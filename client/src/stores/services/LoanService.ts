@@ -63,5 +63,8 @@ export const getLoan = async (
     createdAt: formatSolidityTime(
       await loanContractInstance.methods.createdAt().call(),
     ),
+    remainingDebt: convertWeiToDecimal(
+      await loanContractInstance.methods.remainingDebt().call(),
+    ),
   };
 };

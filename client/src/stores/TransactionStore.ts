@@ -46,6 +46,11 @@ export class TransactionStore {
   }
 
   @action.bound
+  getTransactionByAddress(transactionAddress: string) {
+    return this.transactionMap.get(transactionAddress);
+  }
+
+  @action.bound
   async deposit(
     token: IToken,
     term: number,
@@ -153,17 +158,7 @@ export class TransactionStore {
   }
 
   @action.bound
-  repay(
-    loanTokenAddress: string,
-    collateralAssetAddress: string,
-    transactionAddress: string,
-    amount: BigNumber,
-  ) {
-    return repayLoan(
-      loanTokenAddress,
-      collateralAssetAddress,
-      transactionAddress,
-      amount,
-    );
+  repay(transactionAddress: string, amount: BigNumber) {
+    return repayLoan(transactionAddress, amount);
   }
 }

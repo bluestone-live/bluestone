@@ -13,12 +13,13 @@ import { convertDecimalToWei } from '../utils/BigNumber';
 
 interface IProps
   extends WithTranslation,
-    RouteComponentProps<{ transactionId: string }> {
+    RouteComponentProps<{ transactionAddress: string }> {
   transactionStore: TransactionStore;
 }
 
 interface IState {
   amount: number;
+  loading: boolean;
 }
 
 @inject('transactionStore')
@@ -26,11 +27,17 @@ interface IState {
 class RepayPage extends React.Component<IProps, IState> {
   state = {
     amount: 0,
+    loading: false,
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     const { transactionStore, match } = this.props;
-    transactionStore.getLoanTransactionById(match.params.transactionId);
+    await transactionStore.updateLoanTransaction(
+      match.params.transactionAddress,
+    );
+    this.setState({
+      loading: true,
+    });
   }
 
   onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -45,15 +52,15 @@ class RepayPage extends React.Component<IProps, IState> {
     const { amount } = this.state;
 
     transactionStore.repay(
-      match.params.transactionId,
+      match.params.transactionAddress,
       convertDecimalToWei(amount),
     );
   };
 
   render() {
     const { t, transactionStore, match } = this.props;
-    const transaction = transactionStore.transactions.find(
-      tx => tx.transactionId === match.params.transactionId,
+    const transaction = transactionStore.getTransactionByAddress(
+      match.params.transactionAddress,
     ) as ILoanTransaction;
 
     return transaction && transaction.type === TransactionType.Loan ? (
@@ -61,19 +68,19 @@ class RepayPage extends React.Component<IProps, IState> {
         <Form onSubmit={this.onSubmit}>
           <Form.Item>
             <label htmlFor="amount">{t('repay')}</label>
-            <Input id="amount" type="number" onChange={this.onAmountChange} />
+            <Input
+              id="amount"
+              type="number"
+              step={1e-8}
+              onChange={this.onAmountChange}
+            />
           </Form.Item>
           <Form.Item>
             <label>{t('remaining')}</label>
             <Input
               type="text"
               disabled
-              value={`${transaction.loanAmount +
-                transaction.accruedInterest -
-                (transaction.alreadyPaidAmount || 0) -
-                (transaction.liquidatedAmount || 0)} ${
-                transaction.loanToken.symbol
-              }`}
+              value={`${transaction.remainingDebt}`}
             />
           </Form.Item>
           <Form.Item>

@@ -104,8 +104,6 @@ export const addCollateral = async (
 };
 
 export const repayLoan = async (
-  loanTokenAddress: string,
-  collateralAssetAddress: string,
   transactionAddress: string,
   amount: BigNumber,
 ) => {
@@ -116,14 +114,10 @@ export const repayLoan = async (
       filter: { user: accountStore.defaultAccount },
     },
   );
+
   return flow(LoanManager =>
     LoanManager.methods
-      .repayLoan(
-        loanTokenAddress,
-        collateralAssetAddress,
-        transactionAddress,
-        amount.toString(),
-      )
+      .repayLoan(transactionAddress, amount.toString())
       .send({ from: accountStore.defaultAccount }),
   );
 };
