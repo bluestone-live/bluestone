@@ -187,7 +187,7 @@ class HomePage extends React.Component<IProps, IState> {
                               selectedTerm.value
                             ],
                             RatePeriod.Annual,
-                          )}%`
+                          ).toFixed(2)}%`
                         : '0%'}
                     </td>
                     <td>
@@ -195,7 +195,7 @@ class HomePage extends React.Component<IProps, IState> {
                         ? `${calculateRate(
                             token.loanAnnualPercentageRates[selectedTerm.value],
                             RatePeriod.Annual,
-                          )}%`
+                          ).toFixed(2)}%`
                         : '0%'}
                     </td>
                     <td>

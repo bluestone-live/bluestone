@@ -140,12 +140,12 @@ class LoanForm extends React.Component<IProps, IState> {
     const loanToken = tokenStore!.getToken(loanTokenSymbol);
     const collateralToken = tokenStore!.getToken(collateralTokenSymbol);
 
-    const dailyPercentageRate = loanToken
+    const annualPercentageRate = loanToken
       ? loanToken.loanAnnualPercentageRates
         ? calculateRate(
             loanToken!.loanAnnualPercentageRates[term],
-            RatePeriod.Daily,
-          )
+            RatePeriod.Annual,
+          ).toFixed(2)
         : 0
       : 0;
 
@@ -166,7 +166,7 @@ class LoanForm extends React.Component<IProps, IState> {
     ) * 100}%`;
 
     const estimatedRepayAmount =
-      loanAmount * Math.pow(1 + dailyPercentageRate / 100, term);
+      loanAmount * Math.pow(1 + annualPercentageRate / 100, term);
 
     const estimatedRepayDate = dayjs()
       .endOf('day')
@@ -217,8 +217,8 @@ class LoanForm extends React.Component<IProps, IState> {
           </Cell>
           <Cell>
             <Form.Item>
-              <label htmlFor="dpr">{t('dpr')}:</label>{' '}
-              <StyledTextBox id="dpr">{dailyPercentageRate} %</StyledTextBox>
+              <label htmlFor="apr">{t('apr')}:</label>{' '}
+              <StyledTextBox id="apr">{annualPercentageRate}%</StyledTextBox>
             </Form.Item>
           </Cell>
         </Row>

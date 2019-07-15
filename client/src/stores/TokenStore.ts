@@ -91,6 +91,8 @@ export class TokenStore {
     const depositAnnualPercentageRates: IAnnualPercentageRateValues = {};
     for (const term of terms) {
       const interest = await getDepositInterestRate(token.address, term.value);
+
+      // TODO: the interest we get is per second, not per year. Rename it.
       depositAnnualPercentageRates[term.value] = interest;
     }
     return this.updateToken(tokenSymbol, {
@@ -108,6 +110,8 @@ export class TokenStore {
     const loanAnnualPercentageRates: IAnnualPercentageRateValues = {};
     for (const term of terms) {
       const interest = await getLoanInterestRate(token.address, term.value);
+
+      // TODO: the interest we get is per second, not per year. Rename it.
       loanAnnualPercentageRates[term.value] = interest;
     }
 

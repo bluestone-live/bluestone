@@ -2,24 +2,17 @@ import { convertWeiToDecimal } from './BigNumber';
 
 export enum RatePeriod {
   Annual,
-  Monthly,
-  Weekly,
-  Daily,
 }
 
-export const calculateRate = (rate: any, period: RatePeriod) => {
-  // TODO: Not sure it is correct
-  const bn1 = convertWeiToDecimal(rate);
+// Estimate interest rate for a given period and return percentage
+export const calculateRate = (ratePerSecond: any, period: RatePeriod) => {
+  const decimalRate = convertWeiToDecimal(ratePerSecond);
+
   switch (period) {
     case RatePeriod.Annual:
-      return bn1 * 21000000;
-    case RatePeriod.Monthly:
-      return bn1 * 180000;
-    case RatePeriod.Weekly:
-      return bn1 * 42000;
-    case RatePeriod.Daily:
-      return bn1 * 6000;
+      const yearInSeconds = 31536000;
+      return decimalRate * yearInSeconds * 100;
     default:
-      return bn1;
+      return decimalRate * 100;
   }
 };
