@@ -5,6 +5,19 @@ import { EventData, Contract, EventOptions } from 'web3-eth-contract';
 const requireContract = (contractName: string) =>
   require(`../../../../build/contracts/${contractName}.json`);
 
+let ContractJsonInterfaceForTestnet: {
+  TokenFactory?: any;
+  WETH?: any;
+} = {};
+if (process.env.NODE_ENV !== 'production') {
+  // TokenFactory is only needed in testnet to create and retrieve token contract
+  // TODO: do not require WETH separately, replace ETH with WETH when we create token using TokenFactory
+  ContractJsonInterfaceForTestnet = {
+    TokenFactory: requireContract('TokenFactory'),
+    WETH: requireContract('WETH9'),
+  };
+}
+
 // Single instance
 const deployedContractJsonInterface = {
   Configuration: requireContract('Configuration'),
@@ -13,15 +26,8 @@ const deployedContractJsonInterface = {
   LoanManager: requireContract('LoanManager'),
   TokenManager: requireContract('TokenManager'),
   PriceOracle: requireContract('PriceOracle'),
+  ...ContractJsonInterfaceForTestnet,
 };
-
-if (process.env.NODE_ENV !== 'production') {
-  // TokenFactory is only needed in testnet to create and retrieve token contract
-  deployedContractJsonInterface.TokenFactory = requireContract('TokenFactory');
-
-  // TODO: do not require WETH separately, replace ETH with WETH when we create token using TokenFactory
-  deployedContractJsonInterface.WETH = requireContract('WETH9');
-}
 
 // May have multiple-instances
 export const nonDeployedContractJsonInterface = {
@@ -49,19 +55,18 @@ if ((global as any).ethereum) {
  */
 const deployedContractInstanceFactory = async (contract: any) => {
   const netId = await web3.eth.net.getId();
-  return new web3.eth.Contract(
+  const instance = new web3.eth.Contract(
     contract.abi as AbiItem[],
     contract.networks[netId].address,
   );
+  return instance;
 };
 
 let deployedContractInstances: DeployedContractInstances;
 
-/**
- * get all declared contract instances
- * @returns Promise<ContractInstance>
- */
-export const getContracts = async (): Promise<DeployedContractInstances> => {
+const generateContractInstances = async (): Promise<
+  DeployedContractInstances
+> => {
   if (deployedContractInstances) {
     return deployedContractInstances;
   }
@@ -92,6 +97,18 @@ export const getContracts = async (): Promise<DeployedContractInstances> => {
   );
 
   return deployedContractInstances;
+};
+
+let getContractsPromise: Promise<DeployedContractInstances>;
+/**
+ * get all declared contract instances
+ * @returns Promise<ContractInstance>
+ */
+export const getContracts = () => {
+  if (!getContractsPromise) {
+    getContractsPromise = generateContractInstances();
+  }
+  return getContractsPromise;
 };
 
 /**
