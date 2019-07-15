@@ -8,25 +8,37 @@ import { Row, Cell } from '../../components/common/Layout';
 import Button from '../../components/html/Button';
 import Anchor from '../../components/html/Anchor';
 import { TransactionStore } from '../../stores';
+import styled from 'styled-components';
+import { ThemedProps } from '../../styles/themes';
 
 interface IProps extends WithTranslation {
   depositTransaction: IDepositTransaction;
   transactionStore: TransactionStore;
 }
 
+const StyledItemCell = styled(Cell)`
+  height: 50px;
+  text-align: center;
+  font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
+  padding: ${(props: ThemedProps) => props.theme.gap.small};
+`;
+
 class DepositTransactionItem extends React.Component<IProps> {
   getActions = () => {
     const { depositTransaction, t } = this.props;
     if (depositTransaction.status === TransactionStatus.DepositMatured) {
       return (
-        <Button onClick={this.withdrawDeposit(depositTransaction)}>
+        <Button fullWidth onClick={this.withdrawDeposit(depositTransaction)}>
           {t('withdraw')}
         </Button>
       );
     }
     if (depositTransaction.status === TransactionStatus.DepositRecurring) {
       return (
-        <Button onClick={this.toggleRenewal(depositTransaction, false)}>
+        <Button
+          fullWidth
+          onClick={this.toggleRenewal(depositTransaction, false)}
+        >
           {t('disable_auto_renewal')}
         </Button>
       );
@@ -63,13 +75,15 @@ class DepositTransactionItem extends React.Component<IProps> {
     return (
       <div className="deposit-item">
         <Row>
-          <Cell>
+          <StyledItemCell>
             <Anchor to="/action-logs">{depositTransaction.token.symbol}</Anchor>
-          </Cell>
-          <Cell>{t('deposit')!}</Cell>
-          <Cell>{depositTransaction.depositAmount}</Cell>
-          <Cell>{t(TransactionStatus[depositTransaction.status])}</Cell>
-          <Cell>{this.getActions()}</Cell>
+          </StyledItemCell>
+          <StyledItemCell>{t('deposit')!}</StyledItemCell>
+          <StyledItemCell>{depositTransaction.depositAmount}</StyledItemCell>
+          <StyledItemCell>
+            {t(TransactionStatus[depositTransaction.status])}
+          </StyledItemCell>
+          <StyledItemCell>{this.getActions()}</StyledItemCell>
         </Row>
       </div>
     );

@@ -8,10 +8,19 @@ import { Row, Cell } from '../../components/common/Layout';
 import Button from '../../components/html/Button';
 import Anchor from '../../components/html/Anchor';
 import { RouteComponentProps, withRouter } from 'react-router';
+import styled from 'styled-components';
+import { ThemedProps } from '../../styles/themes';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   loanTransaction: ILoanTransaction;
 }
+
+const StyledItemCell = styled(Cell)`
+  height: 50px;
+  text-align: center;
+  font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
+  padding: ${(props: ThemedProps) => props.theme.gap.small};
+`;
 
 class LoanTransactionItem extends React.Component<IProps> {
   goTo = (path: string) => () => this.props.history.push(path);
@@ -19,11 +28,15 @@ class LoanTransactionItem extends React.Component<IProps> {
   getActions = () => {
     const { loanTransaction, t } = this.props;
     if (loanTransaction.status === TransactionStatus.LoanLiquidating) {
-      return <div className="btn-group">{t('transaction_liquidating')}</div>;
+      return (
+        <Button disabled fullWidth>
+          {t('transaction_liquidating')}
+        </Button>
+      );
     }
     if (loanTransaction.status === TransactionStatus.LoanClosed) {
       return (
-        <div className="btn-group">
+        <Button.Group>
           <Button
             onClick={this.goTo(
               `loan/collateral/withdraw/${loanTransaction.transactionAddress}`,
@@ -31,11 +44,11 @@ class LoanTransactionItem extends React.Component<IProps> {
           >
             {t('withdraw_collateral')}
           </Button>
-        </div>
+        </Button.Group>
       );
     }
     return (
-      <div className="btn-group">
+      <Button.Group>
         <Button
           onClick={this.goTo(
             `/loan/collateral/add/${loanTransaction.transactionAddress}`,
@@ -44,13 +57,14 @@ class LoanTransactionItem extends React.Component<IProps> {
           {t('add_collateral')}
         </Button>
         <Button
+          primary
           onClick={this.goTo(
             `/loan/repay/${loanTransaction.transactionAddress}`,
           )}
         >
           {t('repay')}
         </Button>
-      </div>
+      </Button.Group>
     );
   };
 
@@ -60,16 +74,18 @@ class LoanTransactionItem extends React.Component<IProps> {
     return (
       <div className="deposit-item">
         <Row>
-          <Cell>
+          <StyledItemCell>
             <Anchor to="/action-logs">
               collateral: {loanTransaction.collateralToken.symbol}; loan:
               {loanTransaction.loanToken.symbol}
             </Anchor>
-          </Cell>
-          <Cell>{t('loan')}</Cell>
-          <Cell>{loanTransaction.loanAmount}</Cell>
-          <Cell>{t(TransactionStatus[loanTransaction.status])}</Cell>
-          <Cell>{this.getActions()}</Cell>
+          </StyledItemCell>
+          <StyledItemCell>{t('loan')}</StyledItemCell>
+          <StyledItemCell>{loanTransaction.loanAmount}</StyledItemCell>
+          <StyledItemCell>
+            {t(TransactionStatus[loanTransaction.status])}
+          </StyledItemCell>
+          <StyledItemCell>{this.getActions()}</StyledItemCell>
         </Row>
       </div>
     );

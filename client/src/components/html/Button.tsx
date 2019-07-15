@@ -60,10 +60,48 @@ const StyledButton = styled.button`
     `};
 `;
 
+const StyledButtonGroup = styled.div`
+  display: flex;
+  width: 100%;
+
+  > button {
+    flex: 1;
+    width: 50%;
+
+    border-right: 0;
+    border-radius: 0;
+
+    &:first-child {
+      border-radius: ${(props: ThemedProps) =>
+        `${props.theme.borderRadius.medium} 0 0 ${props.theme.borderRadius.medium}`};
+    }
+
+    &:last-child {
+      border-right: 1px solid
+        ${(props: ThemedProps) => props.theme.borderColor.secondary};
+      border-radius: ${(props: ThemedProps) =>
+        `0 ${props.theme.borderRadius.medium} ${props.theme.borderRadius.medium} 0`};
+    }
+  }
+`;
+
 const Button = (props: IProps) => {
   const { children } = props;
 
   return <StyledButton {...props}>{children}</StyledButton>;
+};
+
+Button.Group = (props: {
+  children:
+    | React.ReactChild
+    | React.ReactChild[]
+    | string
+    | object
+    | undefined
+    | null;
+}) => {
+  const { children } = props;
+  return <StyledButtonGroup>{children}</StyledButtonGroup>;
 };
 
 export default Button;
