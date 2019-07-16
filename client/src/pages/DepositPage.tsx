@@ -11,6 +11,11 @@ import Button from '../components/html/Button';
 import { convertDecimalToWei } from '../utils/BigNumber';
 import Form from '../components/html/Form';
 import { Row, Cell } from '../components/common/Layout';
+import StyledTextBox from '../components/common/TextBox';
+import {
+  calculateRate,
+  RatePeriod,
+} from '../utils/interestRateCalculateHelper';
 
 interface IProps
   extends WithTranslation,
@@ -140,6 +145,21 @@ class DepositForm extends React.Component<IProps, IState> {
                 onChange={this.onTermSelect}
                 selectedOption={selectedTerm}
               />
+            </Cell>
+          </Form.Item>
+          <Form.Item>
+            <Cell>
+              <label>{t('deposit_apr')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <StyledTextBox>
+                {calculateRate(
+                  currentToken!.depositAnnualPercentageRates![
+                    selectedTerm.value
+                  ],
+                  RatePeriod.Annual,
+                )}
+              </StyledTextBox>
             </Cell>
           </Form.Item>
           <Form.Item>

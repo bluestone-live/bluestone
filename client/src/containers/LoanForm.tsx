@@ -17,6 +17,7 @@ import {
 } from '../utils/interestRateCalculateHelper';
 import styled from 'styled-components';
 import dayjs from 'dayjs';
+import StyledTextBox from '../components/common/TextBox';
 
 interface IProps extends WithTranslation {
   tokenStore?: TokenStore;
@@ -34,16 +35,6 @@ interface IState {
   loanAmount: number;
   collateralAmount: number;
 }
-
-const StyledTextBox = styled.span`
-  display: block;
-  width: 100%;
-  flex: 1;
-  font-size: 14px;
-  padding: 0 7px;
-  line-height: 35px;
-  height: 35px;
-`;
 
 @inject('tokenStore', 'loanManagerStore', 'transactionStore')
 @observer
