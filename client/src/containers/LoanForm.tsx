@@ -147,9 +147,10 @@ class LoanForm extends React.Component<IProps, IState> {
 
     const currCollateralRatio = (loanAmount === 0
       ? 0
-      : (collateralAmount * collateralToken!.price!) /
-        loanAmount /
-        loanToken!.price!
+      : ((collateralAmount * collateralToken!.price!) /
+          loanAmount /
+          loanToken!.price!) *
+        100
     ).toFixed(2);
 
     const minCollateralRatio = `${convertWeiToDecimal(
