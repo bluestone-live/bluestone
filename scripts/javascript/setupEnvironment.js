@@ -6,7 +6,7 @@ const Configuration = artifacts.require("./Configuration.sol");
 const PriceOracle = artifacts.require("./PriceOracle.sol");
 const ERC20Mock = artifacts.require("./ERC20Mock.sol");
 const TokenManager = artifacts.require("./TokenManager.sol");
-const { makeTruffleScript } = require("./utils.js");
+const { makeTruffleScript, fetchTokenPrices } = require("./utils.js");
 const { configuration } = require("../../config.js");
 const { BN } = web3.utils;
 
@@ -106,8 +106,7 @@ module.exports = makeTruffleScript(async () => {
 
   divider();
 
-  // Use fake price here so we know the exact price for later calculation
-  const priceList = [10, 10, 10];
+  const priceList = await fetchTokenPrices(tokenSymbolList)
   const scaledPriceList = priceList.map(price => toFixedBN(price));
   const priceOracle = await PriceOracle.deployed();
   const tokenAddressList = tokenSymbolList.map(
@@ -122,11 +121,10 @@ module.exports = makeTruffleScript(async () => {
   debug(`Initialize deposits for each asset and loans for each asset pair`);
   const tokenManager = await TokenManager.deployed();
   const [owner, depositor, loaner] = await web3.eth.getAccounts();
-  const initialSupply = toFixedBN(6000);
-  const initialAllowance = toFixedBN(3000);
-  const depositAmount = 1000;
+  const initialSupply = 1000000;
+  const initialAllowance = 1000000;
+  const depositAmount = 50000;
   const loanAmount = 100;
-  const collateralAmount = 200;
   const freedCollateralAmount = 0;
   const terms = [1, 30];
 
@@ -134,12 +132,14 @@ module.exports = makeTruffleScript(async () => {
     divider();
 
     const loanAsset = await ERC20Mock.at(tokenAddressMap[loanTokenSymbol]);
-    await loanAsset.mint(depositor, initialSupply);
 
-    await loanAsset.approve(tokenManager.address, initialAllowance, {
+    await loanAsset.mint(depositor, toFixedBN(initialSupply));
+    debug(`Mints ${initialSupply} ${loanTokenSymbol} to ${depositor}`)
+
+    await loanAsset.approve(tokenManager.address, toFixedBN(initialAllowance), {
       from: depositor
     });
-    debug(`Depositor approves sending ${loanTokenSymbol} to protocol`);
+    debug(`Depositor approves sending ${initialAllowance} ${loanTokenSymbol} as deposit to protocol`);
 
     for (let term of terms) {
       await depositManager.deposit(
@@ -159,16 +159,23 @@ module.exports = makeTruffleScript(async () => {
         const collateralAsset = await ERC20Mock.at(
           tokenAddressMap[collateralTokenSymbol]
         );
-        await collateralAsset.mint(loaner, initialSupply);
+        await collateralAsset.mint(loaner, toFixedBN(initialSupply));
+        debug(`Mints ${initialSupply} ${collateralTokenSymbol} to ${loaner}`)
 
-        await collateralAsset.approve(tokenManager.address, initialAllowance, {
+        await collateralAsset.approve(tokenManager.address, toFixedBN(initialAllowance), {
           from: loaner
         });
         debug(
-          `Loaner approves sending collateral ${collateralTokenSymbol} to protocol`
+          `Loaner approves sending ${initialAllowance} ${collateralTokenSymbol} as collateral to protocol`
         );
 
         for (let term of terms) {
+          const loanAssetPrice = priceList[tokenSymbolList.indexOf(loanTokenSymbol)]
+          const collateralAssetPrice = priceList[tokenSymbolList.indexOf(collateralTokenSymbol)]
+
+          // 300% collateral ratio
+          const collateralAmount = Math.round(loanAmount * loanAssetPrice / collateralAssetPrice * 3)
+
           const { logs } = await loanManager.loan(
             term,
             loanAsset.address,

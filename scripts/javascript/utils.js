@@ -30,7 +30,11 @@ const fetchTokenPrices = async (tokenList, currencyCode = 'USD') => {
     convert: currencyCode
   })
 
-  const priceList = tokenList.map(token => data[token].quote[currencyCode].price)   
+  const priceList = tokenList
+    .map(token => data[token].quote[currencyCode].price)   
+    .map(price => price.toFixed(2))
+    .map(price => Number(price))
+
   debug('Got token prices in %s: %o', currencyCode, priceList)
   return priceList
 }
