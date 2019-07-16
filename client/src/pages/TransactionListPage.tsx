@@ -10,7 +10,13 @@ import { terms, ITerm } from '../constants/Term';
 import { Row, Cell } from '../components/common/Layout';
 import styled from 'styled-components';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { TransactionStatus } from '../constants/Transaction';
+import {
+  TransactionStatus,
+  TransactionType,
+  IDepositTransaction,
+  ILoanTransaction,
+  ITransaction,
+} from '../constants/Transaction';
 import { IToken } from '../constants/Token';
 import { updateState } from '../utils/updateState';
 import { stringify, parse } from 'querystring';
@@ -95,11 +101,11 @@ class TransactionListPage extends React.Component<IProps, IState> {
     } else if (key === 'status') {
       value = Number.parseInt(e.currentTarget.value, 10);
     }
-    if (!value) {
-      return;
-    }
     this.setState(
-      updateState<IToken | ITerm | TransactionStatus, IState>(key, value),
+      updateState<IToken | ITerm | TransactionStatus | undefined, IState>(
+        key,
+        value,
+      ),
       () => {
         // tslint:disable-next-line:prefer-object-spread
         const { token, term, status } = Object.assign({}, this.state, {
@@ -117,12 +123,62 @@ class TransactionListPage extends React.Component<IProps, IState> {
     );
   };
 
+  tokenFilter = (transaction: ITransaction) => {
+    const { token } = this.state;
+    if (token && transaction.type === TransactionType.Deposit) {
+      return (
+        (transaction as IDepositTransaction).token.address ===
+        (token! as IToken).address
+      );
+    } else if (token && transaction.type === TransactionType.Loan) {
+      return (
+        (transaction as ILoanTransaction).loanToken.address ===
+        (token! as IToken).address
+      );
+    }
+    return true;
+  };
+
+  termFilter = (transaction: ITransaction) => {
+    const { term } = this.state;
+    if (term) {
+      return transaction.term.value === (term! as ITerm).value;
+    }
+    return true;
+  };
+
+  statusFilter = (transaction: ITransaction) => {
+    const { status } = this.state;
+
+    if (status) {
+      return transaction.status === status;
+    }
+    return true;
+  };
+
+  filterTransactions = (
+    transactionArray: ITransaction[],
+    ...filters: Array<(value: ITransaction) => boolean>
+  ) => {
+    return filters.reduce(
+      (filteredTransactions, filter) => filteredTransactions.filter(filter),
+      transactionArray,
+    );
+  };
+
   render() {
     const { tokenStore, transactionStore, t } = this.props;
 
     const token = this.state.token || { address: undefined };
     const term = this.state.term || { value: undefined };
     const status = this.state.status;
+
+    const filteredTransactions = this.filterTransactions(
+      toJS(transactionStore.transactions),
+      this.tokenFilter,
+      this.termFilter,
+      this.statusFilter,
+    );
 
     return (
       <Card>
@@ -194,7 +250,7 @@ class TransactionListPage extends React.Component<IProps, IState> {
             <StyledHeaderCell>{t('matured_at')!}</StyledHeaderCell>
             <StyledHeaderCell>{t('actions')!}</StyledHeaderCell>
           </Row>
-          {transactionStore.transactions.map(tx => (
+          {filteredTransactions.map(tx => (
             <TransactionItem
               transactionStore={transactionStore}
               key={tx.transactionAddress}

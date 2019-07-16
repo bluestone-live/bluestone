@@ -40,7 +40,7 @@ export interface IDepositTransaction {
 }
 
 export enum TransactionStatus {
-  Lock = 0,
+  Lock = -1,
   DepositNormal = 10,
   DepositRecurring = 11,
   DepositMatured = 12,
