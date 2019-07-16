@@ -18,14 +18,15 @@ import {
 import dayjs from 'dayjs';
 import StyledTextBox from '../components/common/TextBox';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { stringify } from 'querystring';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   tokenStore?: TokenStore;
   loanManagerStore?: LoanManagerStore;
   transactionStore?: TransactionStore;
-  term?: number;
-  loanTokenSymbol?: string;
-  collateralTokenSymbol?: string;
+  term: number;
+  loanTokenSymbol: string;
+  collateralTokenSymbol: string;
 }
 
 interface IState {
@@ -42,14 +43,10 @@ class LoanForm extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
 
-    const {
-      term = 30,
-      loanTokenSymbol = 'ETH',
-      collateralTokenSymbol = 'DAI',
-    } = this.props;
+    const { term, loanTokenSymbol, collateralTokenSymbol } = this.props;
 
     this.state = {
-      term,
+      term: Number(term),
       loanTokenSymbol,
       collateralTokenSymbol,
       loanAmount: 0,
@@ -57,10 +54,25 @@ class LoanForm extends React.Component<IProps, IState> {
     };
   }
 
+  updateQueryParams = () => {
+    const { term, loanTokenSymbol, collateralTokenSymbol } = this.state;
+
+    this.props.history.replace({
+      pathname: window.location.pathname,
+      search: stringify({
+        term,
+        loanTokenSymbol,
+        collateralTokenSymbol,
+      }),
+    });
+  };
+
   handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.currentTarget;
-
-    this.setState(updateState<string, IState>(name, value));
+    this.setState(
+      updateState<string, IState>(name, value),
+      this.updateQueryParams,
+    );
   };
 
   handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

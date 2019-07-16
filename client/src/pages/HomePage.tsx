@@ -13,7 +13,7 @@ import Radio from '../components/common/Radio';
 import Card from '../components/common/Card';
 import Button from '../components/html/Button';
 import { ITerm, terms } from '../constants/Term';
-import { IToken } from '../constants/Token';
+import { IToken, defaultTokenPairs } from '../constants/Token';
 import { BigNumber, convertWeiToDecimal } from '../utils/BigNumber';
 
 const StyledTokenList = styled.table`
@@ -110,12 +110,16 @@ class HomePage extends React.Component<IProps, IState> {
     };
 
     if (accountStore.hasAllowance(token.symbol)) {
+      const collateralTokenSymbol = defaultTokenPairs[token.symbol];
+
       return (
         <React.Fragment>
           <StyledAnchor to={`/deposit/${token.symbol}`}>
             {t('deposit')}
           </StyledAnchor>
-          <StyledPrimaryAnchor to={`/loan?loanTokenSymbol=${token.symbol}`}>
+          <StyledPrimaryAnchor
+            to={`/loan?loanTokenSymbol=${token.symbol}&collateralTokenSymbol=${collateralTokenSymbol}&term=30`}
+          >
             {t('loan')}
           </StyledPrimaryAnchor>
         </React.Fragment>
