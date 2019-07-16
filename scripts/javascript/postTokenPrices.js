@@ -12,7 +12,7 @@ const { constants } = require('./utils.js')
  * 3. Post the price to PriceOracle contract
  */
 module.exports = makeTruffleScript(async () => {
-  const tokenSymbolList = ['ETH', 'DAI', 'USDC']
+  const tokenSymbolList = ['ETH', 'DAI', 'USDT']
   const tokenFactory = await TokenFactory.deployed()
   let tokenAddressList = []
 

@@ -6,7 +6,7 @@ const { createERC20Token, toFixedBN } = require('../utils/index.js')
 const { expect } = require('chai')
 
 contract('PriceOracle', function([owner, account]) {
-  let priceOracle, tokenFactory, ETH, DAI, USDC
+  let priceOracle, tokenFactory
 
   before(async () => {
     priceOracle = await PriceOracle.deployed()
@@ -18,12 +18,12 @@ contract('PriceOracle', function([owner, account]) {
     it('updates prices for each token', async () => {
       const ETH = await tokenFactory.getToken('ETH')
       const DAI = await tokenFactory.getToken('DAI')
-      const USDC = await tokenFactory.getToken('USDC')
-      const [priceETH, priceDAI, priceUSDC] = await postTokenPrices()
+      const USDT = await tokenFactory.getToken('USDT')
+      const [priceETH, priceDAI, priceUSDT] = await postTokenPrices()
 
       expect(await priceOracle.getPrice(ETH)).to.be.bignumber.equal(priceETH)
       expect(await priceOracle.getPrice(DAI)).to.be.bignumber.equal(priceDAI)
-      expect(await priceOracle.getPrice(USDC)).to.be.bignumber.equal(priceUSDC)
+      expect(await priceOracle.getPrice(USDT)).to.be.bignumber.equal(priceUSDT)
     })
   })
 })

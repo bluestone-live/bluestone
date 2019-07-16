@@ -11,12 +11,12 @@ contract('TokenFactory', ([owner]) => {
       tokenFactory = await TokenFactory.deployed()
     })
 
-    it('deploys ETH, DAI and USDC', async () => {
-      const [addrETH, addrDAI, addrUSDC] = await deployTokens()
+    it('deploys ETH, DAI and USDT', async () => {
+      const [addrETH, addrDAI, addrUSDT] = await deployTokens()
 
       expect(await tokenFactory.getToken('ETH')).to.equal(addrETH)
       expect(await tokenFactory.getToken('DAI')).to.equal(addrDAI)
-      expect(await tokenFactory.getToken('USDC')).to.equal(addrUSDC)
+      expect(await tokenFactory.getToken('USDT')).to.equal(addrUSDT)
     })
   })
 })

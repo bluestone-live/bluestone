@@ -14,11 +14,11 @@ interface ILoanAssetPair {
 export class LoanManagerStore {
   @observable loanAssetPairs = new Map<string, ILoanAssetPair | null>([
     ['ETH_DAI', null],
-    ['ETH_USDC', null],
+    ['ETH_USDT', null],
     ['DAI_ETH', null],
-    ['DAI_USDC', null],
-    ['USDC_ETH', null],
-    ['USDC_DAI', null],
+    ['DAI_USDT', null],
+    ['USDT_ETH', null],
+    ['USDT_DAI', null],
   ]);
 
   @action.bound

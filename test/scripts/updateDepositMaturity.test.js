@@ -25,7 +25,7 @@ contract('DepositManager', function([owner, account]) {
       before(async () => {
         await enableDepositAsset(cb, 'ETH') 
         await enableDepositAsset(cb, 'DAI') 
-        await enableDepositAsset(cb, 'USDC') 
+        await enableDepositAsset(cb, 'USDT') 
       })
 
       it('succeeds', async () => {

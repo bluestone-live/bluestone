@@ -19,18 +19,18 @@ module.exports = {
     tokenList: [
       { name: 'Ether', symbol: 'ETH' },
       { name: 'Dai', symbol: 'DAI' },
-      { name: 'USD Coin', symbol: 'USDC' },
+      { name: 'Tether', symbol: 'USDT' },
     ],
     collateralRatio: {
       ETH: {
         DAI: 1.50,
-        USDC: 1.50
+        USDT: 1.50
       },
       DAI: {
         ETH: 1.50,
-        USDC: 1.20
+        USDT: 1.20
       },
-      USDC: {
+      USDT: {
         ETH: 1.50,
         DAI: 1.20
       }
@@ -38,13 +38,13 @@ module.exports = {
     liquidationDiscount: {
       ETH: {
         DAI: 0.05,
-        USDC: 0.05
+        USDT: 0.05
       },
       DAI: {
         ETH: 0.05,
-        USDC: 0.05
+        USDT: 0.05
       },
-      USDC: {
+      USDT: {
         ETH: 0.05,
         DAI: 0.05
       }
@@ -58,7 +58,7 @@ module.exports = {
         1: 0.000000003805175,
         30: 0.0000000047564688
       },
-      USDC: {
+      USDT: {
         1: 0.0000000019025875,
         30: 0.0000000025367834
       }

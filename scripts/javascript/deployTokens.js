@@ -1,14 +1,10 @@
 const debug = require('debug')('script:deployTokens')
 const TokenFactory = artifacts.require('./TokenFactory.sol') 
 const { makeTruffleScript } = require('./utils.js')
+const { configuration } = require('../../config')
 
 module.exports = makeTruffleScript(async () => {
-  const tokenList = [
-    { name: 'Ether', symbol: 'ETH' },
-    { name: 'Dai', symbol: 'DAI' },
-    { name: 'USD Coin', symbol: 'USDC' },
-  ]
-
+  const { tokenList } = configuration
   const tokenFactory = await TokenFactory.deployed()
   let tokenAddressList = []
 

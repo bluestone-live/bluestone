@@ -3,13 +3,13 @@ const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('PriceOracle', function([owner, account]) {
-  let priceOracle, ETH, DAI, USDC
+  let priceOracle, ETH, DAI, USDT
 
   before(async () => {
     priceOracle = await PriceOracle.deployed()
     ETH = await createERC20Token(account)
     DAI = await createERC20Token(account)
-    USDC = await createERC20Token(account)
+    USDT = await createERC20Token(account)
   })
 
   describe('#setPrice', () => {
@@ -26,7 +26,7 @@ contract('PriceOracle', function([owner, account]) {
 
   describe('#setPrices', () => {
     it('succeeds', async () => {
-      const assetList = [ETH.address, DAI.address, USDC.address]
+      const assetList = [ETH.address, DAI.address, USDT.address]
       const priceList = [1, 2, 3]
       await priceOracle.setPrices(assetList, priceList, { from: owner })
     })
@@ -34,7 +34,7 @@ contract('PriceOracle', function([owner, account]) {
     it('updates price for each token', async () => {
       expect(await priceOracle.getPrice(ETH.address)).to.be.bignumber.equal('1')
       expect(await priceOracle.getPrice(DAI.address)).to.be.bignumber.equal('2')
-      expect(await priceOracle.getPrice(USDC.address)).to.be.bignumber.equal('3')
+      expect(await priceOracle.getPrice(USDT.address)).to.be.bignumber.equal('3')
     })
   })
 })

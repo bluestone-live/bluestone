@@ -9,16 +9,16 @@ describe('lib: CoinMarketCap', function() {
   const coinMarketCap = new CoinMarketCap(apiKey, sandbox)
 
   describe('#getCryptocurrencyQuotesLatest', () => {
-    it('gets prices for ETH, DAI and USDC', async () => {
+    it('gets prices for ETH, DAI and USDT', async () => {
       const res = await coinMarketCap.getCryptocurrencyQuotesLatest({
-        symbol: 'ETH,DAI,USDC',
+        symbol: 'ETH,DAI,USDT',
         convert: 'USD'
       })
 
       expect(res).to.have.property('status')
       expect(res).to.have.nested.property('data.ETH')
       expect(res).to.have.nested.property('data.DAI')
-      expect(res).to.have.nested.property('data.USDC')
+      expect(res).to.have.nested.property('data.USDT')
     })
   })
 })

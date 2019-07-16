@@ -5,8 +5,8 @@ describe('scripts utils', function() {
   this.retries(2)
 
   describe('#fetchTokenPrices', () => {
-    it('fetches prices for ETH, DAI and USDC', async () => {
-      const tokenList = ['ETH', 'DAI', 'USDC']
+    it('fetches prices for ETH, DAI and USDT', async () => {
+      const tokenList = ['ETH', 'DAI', 'USDT']
       const priceList = await fetchTokenPrices(tokenList, 'USD')
 
       expect(priceList.length).to.equal(tokenList.length)

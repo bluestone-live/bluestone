@@ -6,7 +6,7 @@ const { makeTruffleScript, getTokenAddress } = require('./utils.js')
 module.exports = makeTruffleScript(async () => {
   const tokenFactory = await TokenFactory.deployed()
   const depositManager = await DepositManager.deployed()
-  const tokenSymbolList = ['ETH', 'DAI', 'USDC']
+  const tokenSymbolList = ['ETH', 'DAI', 'USDT']
   const enabledDepositAssetList = []
 
   for (let i = 0; i < tokenSymbolList.length; i++) {
