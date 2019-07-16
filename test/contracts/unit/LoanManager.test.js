@@ -99,18 +99,18 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
         { from: loaner }
       );
 
-      const repayLoanSuccessfulLogs = logs.filter(
+      const AddCollateralSuccessfulLogs = logs.filter(
         ({ event }) => event === "AddCollateralSuccessful"
       );
 
       expect(await collateralAsset.balanceOf(loaner)).to.be.bignumber.equal(
         prevCollateralAssetBalance.sub(collateralAmount)
       );
-      expect(repayLoanSuccessfulLogs.length).to.be.equal(1);
+      expect(AddCollateralSuccessfulLogs.length).to.be.equal(1);
     });
   });
 
-  describe("getFreeCollateral", () => {
+  describe("#getFreeCollateral", () => {
     before(async () => {
       await createLoan();
       await createLoan();
@@ -133,6 +133,40 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       expect(freeCollateralAssetBalance).to.be.bignumber.equal(
         prevFreeCollateralAssetBalance.add(basicCollateralAmount)
       );
+    });
+  });
+
+  describe("#repayLoan", () => {
+    before(async () => {
+      await createLoan();
+      await createLoan();
+      await createLoan();
+    });
+
+    it("repays partially", async () => {
+      const loanAddress = await loanManager.loans.call(2);
+      const loanInstance = await Loan.at(loanAddress);
+      const loanAmount = await loanInstance.loanAmount();
+      const wantToPayAmount = loanAmount.sub(toFixedBN(1));
+      await loanManager.repayLoan(loanAddress, wantToPayAmount, {
+        from: loaner
+      });
+      const alreadyPaidAmount = await loanInstance.alreadyPaidAmount();
+      const isClosed = await loanInstance.isClosed();
+      expect(alreadyPaidAmount).to.be.bignumber.equal(wantToPayAmount);
+      expect(isClosed).to.be.equal(false);
+    });
+    it("repays fully", async () => {
+      const loanAddress = await loanManager.loans.call(2);
+      const loanInstance = await Loan.at(loanAddress);
+      const oldRemainingDebt = await loanInstance.remainingDebt();
+      await loanManager.repayLoan(loanAddress, oldRemainingDebt, {
+        from: loaner
+      });
+      const remainingDebtAfterRepay = await loanInstance.remainingDebt();
+      const isClosed = await loanInstance.isClosed();
+      expect(remainingDebtAfterRepay).to.be.bignumber.equal(toFixedBN(0));
+      expect(isClosed).to.be.equal(true);
     });
   });
 });
