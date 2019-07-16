@@ -4,7 +4,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { TransactionStore } from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
-import { RouteComponentProps } from 'react-router-dom';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
 import { TransactionType, ILoanTransaction } from '../constants/Transaction';
@@ -45,15 +45,22 @@ class RepayPage extends React.Component<IProps, IState> {
       amount: Number.parseFloat(e.currentTarget.value),
     });
 
-  onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { transactionStore, match } = this.props;
+    const { transactionStore, match, history } = this.props;
     const { amount } = this.state;
 
-    transactionStore.repay(
+    await transactionStore.repay(
       match.params.transactionAddress,
       convertDecimalToWei(amount),
+    );
+    const transaction = transactionStore.getTransactionByAddress(
+      match.params.transactionAddress,
+    ) as ILoanTransaction;
+
+    history.push(
+      `/transactions?tokenSymbol=${transaction.loanToken.symbol}&term=&status=`,
     );
   };
 
@@ -115,4 +122,4 @@ class RepayPage extends React.Component<IProps, IState> {
   }
 }
 
-export default withTranslation()(RepayPage);
+export default withTranslation()(withRouter(RepayPage));

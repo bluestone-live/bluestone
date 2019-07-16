@@ -4,7 +4,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { TransactionStore, TokenStore } from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
-import { RouteComponentProps } from 'react-router-dom';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Radio, { IRadioOption } from '../components/common/Radio';
 import { terms, ITerm } from '../constants/Term';
 import Button from '../components/html/Button';
@@ -96,7 +96,7 @@ class DepositForm extends React.Component<IProps, IState> {
   onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { transactionStore, tokenStore, match } = this.props;
+    const { transactionStore, tokenStore, match, history } = this.props;
     const currentToken = tokenStore.getToken(match.params.tokenSymbol);
     const { selectedAutoRenewal, selectedTerm, amount } = this.state;
 
@@ -106,6 +106,8 @@ class DepositForm extends React.Component<IProps, IState> {
       convertDecimalToWei(amount),
       selectedAutoRenewal.value,
     );
+
+    history.push(`/transactions?tokenSymbol=${match.params.tokenSymbol}`);
   };
 
   render() {
@@ -185,4 +187,4 @@ class DepositForm extends React.Component<IProps, IState> {
   }
 }
 
-export default withTranslation()(DepositForm);
+export default withTranslation()(withRouter(DepositForm));

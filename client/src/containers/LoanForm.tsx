@@ -15,11 +15,11 @@ import {
   calculateRate,
   RatePeriod,
 } from '../utils/interestRateCalculateHelper';
-import styled from 'styled-components';
 import dayjs from 'dayjs';
 import StyledTextBox from '../components/common/TextBox';
+import { RouteComponentProps, withRouter } from 'react-router';
 
-interface IProps extends WithTranslation {
+interface IProps extends WithTranslation, RouteComponentProps {
   tokenStore?: TokenStore;
   loanManagerStore?: LoanManagerStore;
   transactionStore?: TransactionStore;
@@ -65,7 +65,7 @@ class LoanForm extends React.Component<IProps, IState> {
 
   handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { tokenStore, transactionStore } = this.props;
+    const { tokenStore, transactionStore, history } = this.props;
     const {
       term,
       loanTokenSymbol,
@@ -92,6 +92,8 @@ class LoanForm extends React.Component<IProps, IState> {
       convertDecimalToWei(collateralAmount),
       convertDecimalToWei(requestedFreedCollateral),
     );
+
+    history.push(`/transactions?tokenSymbol=${loanToken.symbol}`);
   };
 
   renderOption(key: string, value: any, text?: string) {
@@ -278,4 +280,4 @@ class LoanForm extends React.Component<IProps, IState> {
   }
 }
 
-export default withTranslation()(LoanForm);
+export default withTranslation()(withRouter(LoanForm));

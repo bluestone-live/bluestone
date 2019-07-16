@@ -4,7 +4,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { TransactionStore } from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
-import { RouteComponentProps } from 'react-router-dom';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
 import { TransactionType, ILoanTransaction } from '../constants/Transaction';
@@ -41,7 +41,7 @@ class AddCollateralPage extends React.Component<IProps, IState> {
 
   onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { transactionStore, match } = this.props;
+    const { transactionStore, match, history } = this.props;
     const { amount } = this.state;
 
     await transactionStore.addCollateral(
@@ -52,6 +52,11 @@ class AddCollateralPage extends React.Component<IProps, IState> {
     await transactionStore.updateLoanTransaction(
       match.params.transactionAddress,
     );
+    const transaction = transactionStore.getTransactionByAddress(
+      match.params.transactionAddress,
+    ) as ILoanTransaction;
+
+    history.push(`/transactions?tokenSymbol=${transaction.loanToken.symbol}`);
   };
 
   getCollateralRatio = (transaction: ILoanTransaction) => {
@@ -124,4 +129,4 @@ class AddCollateralPage extends React.Component<IProps, IState> {
   }
 }
 
-export default withTranslation()(AddCollateralPage);
+export default withTranslation()(withRouter(AddCollateralPage));
