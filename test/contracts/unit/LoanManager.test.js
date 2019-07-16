@@ -1,5 +1,6 @@
 const PriceOracle = artifacts.require("PriceOracle");
 const TokenManager = artifacts.require("TokenManager");
+const Loan = artifacts.require("Loan");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
 const { DepositManagerMock, LoanManagerMock } = require("../../utils/mocks.js");
 const { expect } = require("chai");
