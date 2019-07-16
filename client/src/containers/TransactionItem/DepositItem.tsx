@@ -10,6 +10,7 @@ import Anchor from '../../components/html/Anchor';
 import { TransactionStore } from '../../stores';
 import styled from 'styled-components';
 import { ThemedProps } from '../../styles/themes';
+import dayjs from 'dayjs';
 
 interface IProps extends WithTranslation {
   depositTransaction: IDepositTransaction;
@@ -78,10 +79,10 @@ class DepositTransactionItem extends React.Component<IProps> {
           <StyledItemCell>
             <Anchor to="/action-logs">{depositTransaction.token.symbol}</Anchor>
           </StyledItemCell>
-          <StyledItemCell>{t('deposit')!}</StyledItemCell>
+          <StyledItemCell>{depositTransaction.term.text}</StyledItemCell>
           <StyledItemCell>{depositTransaction.depositAmount}</StyledItemCell>
           <StyledItemCell>
-            {t(TransactionStatus[depositTransaction.status])}
+            {dayjs(depositTransaction.maturedAt).format('YYYY-MM-DD')}
           </StyledItemCell>
           <StyledItemCell>{this.getActions()}</StyledItemCell>
         </Row>

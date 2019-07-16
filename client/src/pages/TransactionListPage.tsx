@@ -189,9 +189,9 @@ class TransactionListPage extends React.Component<IProps, IState> {
         <div className="tx-list">
           <Row>
             <StyledHeaderCell>{t('token')!}</StyledHeaderCell>
-            <StyledHeaderCell>{t('type')!}</StyledHeaderCell>
+            <StyledHeaderCell>{t('term')!}</StyledHeaderCell>
             <StyledHeaderCell>{t('amount')!}</StyledHeaderCell>
-            <StyledHeaderCell>{t('status')!}</StyledHeaderCell>
+            <StyledHeaderCell>{t('matured_at')!}</StyledHeaderCell>
             <StyledHeaderCell>{t('actions')!}</StyledHeaderCell>
           </Row>
           {transactionStore.transactions.map(tx => (

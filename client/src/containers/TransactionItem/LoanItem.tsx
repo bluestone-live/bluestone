@@ -10,6 +10,7 @@ import Anchor from '../../components/html/Anchor';
 import { RouteComponentProps, withRouter } from 'react-router';
 import styled from 'styled-components';
 import { ThemedProps } from '../../styles/themes';
+import dayjs from 'dayjs';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   loanTransaction: ILoanTransaction;
@@ -69,7 +70,7 @@ class LoanTransactionItem extends React.Component<IProps> {
   };
 
   render() {
-    const { t, loanTransaction } = this.props;
+    const { loanTransaction } = this.props;
 
     return (
       <div className="deposit-item">
@@ -80,10 +81,12 @@ class LoanTransactionItem extends React.Component<IProps> {
               {loanTransaction.loanToken.symbol}
             </Anchor>
           </StyledItemCell>
-          <StyledItemCell>{t('loan')}</StyledItemCell>
+          <StyledItemCell>{loanTransaction.term.text}</StyledItemCell>
           <StyledItemCell>{loanTransaction.loanAmount}</StyledItemCell>
           <StyledItemCell>
-            {t(TransactionStatus[loanTransaction.status])}
+            {dayjs(loanTransaction.createdAt)
+              .add(loanTransaction.term.value, 'day')
+              .format('YYYY-MM-DD')}
           </StyledItemCell>
           <StyledItemCell>{this.getActions()}</StyledItemCell>
         </Row>

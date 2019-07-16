@@ -137,8 +137,8 @@ class LoanForm extends React.Component<IProps, IState> {
             loanToken!.loanAnnualPercentageRates[term],
             RatePeriod.Annual,
           ).toFixed(2)
-        : 0
-      : 0;
+        : '0'
+      : '0';
 
     const loanAssetPair = loanManagerStore!.getLoanAssetPair(
       loanTokenSymbol,
@@ -158,7 +158,8 @@ class LoanForm extends React.Component<IProps, IState> {
     ) * 100}%`;
 
     const estimatedRepayAmount =
-      loanAmount * Math.pow(1 + annualPercentageRate / 100, term);
+      loanAmount *
+      Math.pow(1 + Number.parseFloat(annualPercentageRate) / 100, term);
 
     const estimatedRepayDate = dayjs()
       .endOf('day')
