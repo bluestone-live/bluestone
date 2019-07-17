@@ -116,6 +116,13 @@ class LoanForm extends React.Component<IProps, IState> {
     );
   }
 
+  estimateRepayAmount(annualPercentageRate: number) {
+    const { term, loanAmount } = this.state;
+    const termPercentageRate = (annualPercentageRate / 365) * term;
+
+    return loanAmount * (1 + termPercentageRate / 100);
+  }
+
   render() {
     const { tokenStore, loanManagerStore, t } = this.props;
     const {
@@ -170,10 +177,6 @@ class LoanForm extends React.Component<IProps, IState> {
     const minCollateralRatio = `${convertWeiToDecimal(
       loanAssetPair!.collateralRatio,
     ) * 100}%`;
-
-    const estimatedRepayAmount =
-      loanAmount *
-      Math.pow(1 + Number.parseFloat(annualPercentageRate) / 100, term);
 
     const estimatedRepayDate = dayjs()
       .endOf('day')
@@ -269,17 +272,21 @@ class LoanForm extends React.Component<IProps, IState> {
           </Cell>
         </Row>
 
-        <Row>
-          <Cell>
-            <Form.Item>
-              <StyledTextBox>
-                You need to pay back {estimatedRepayAmount} {loanTokenSymbol}{' '}
-                before
-                {estimatedRepayDate}.
-              </StyledTextBox>
-            </Form.Item>
-          </Cell>
-        </Row>
+        {this.state.loanAmount > 0 && (
+          <Row>
+            <Cell>
+              <Form.Item>
+                <StyledTextBox>
+                  You need to pay back{' '}
+                  {this.estimateRepayAmount(annualPercentageRate)}{' '}
+                  {loanTokenSymbol} in estimation before
+                  {estimatedRepayDate}.
+                </StyledTextBox>
+              </Form.Item>
+            </Cell>
+          </Row>
+        )}
+
         <Row>
           <Cell>
             <Form.Item>
