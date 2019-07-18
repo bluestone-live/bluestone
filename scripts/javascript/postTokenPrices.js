@@ -1,8 +1,6 @@
 const debug = require('debug')('script:postTokenPrices')
 const PriceOracle = artifacts.require('./PriceOracle.sol')
-const TokenFactory = artifacts.require('./TokenFactory.sol')
 const { fetchTokenPrices, getTokenAddress, makeTruffleScript } = require('./utils.js')
-const { constants } = require('./utils.js')
 
 /**
  * Given a list of tokens, each with name and deployed address, 
@@ -13,12 +11,11 @@ const { constants } = require('./utils.js')
  */
 module.exports = makeTruffleScript(async () => {
   const tokenSymbolList = ['ETH', 'DAI', 'USDT']
-  const tokenFactory = await TokenFactory.deployed()
   let tokenAddressList = []
 
   for (let i = 0; i < tokenSymbolList.length; i++) {
     const symbol = tokenSymbolList[i]
-    const address = await getTokenAddress(tokenFactory, symbol)
+    const address = await getTokenAddress(symbol)
     tokenAddressList.push(address)
   }
 

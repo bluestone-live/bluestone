@@ -1,5 +1,5 @@
 import { action } from 'mobx';
-import { wrap, unwrap } from './services/WethService';
+import { wrap, unwrap } from './services/TokenService';
 import { BigNumber } from '../utils/BigNumber';
 
 export class WethStore {

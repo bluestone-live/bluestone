@@ -50,14 +50,7 @@ To import a Ganache account:
 
 To add a test token:
 
-First, we need to get the token address:
-
-```
-npx truffle console
-truffle(development)> (await TokenFactory.deployed()).getToken('ETH')
-```
-
-Copy the token address.
+First, we copy the token address from `network.json` in project root.
 
 Next, add this token to MetaMask:
 

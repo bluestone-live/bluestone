@@ -3,18 +3,20 @@ const setShareholderAddress = require('../../scripts/javascript/setShareholderAd
 const { constants } = require('openzeppelin-test-helpers')
 const { expect } = require('chai')
 
-contract('Configuration', function([owner, shareholder]) {
+
+describe('script: setShareholderAddress', () => {
   let config
   const cb = () => {}
+  const network = 'development'
 
   before(async () => {
     config = await Configuration.deployed()
   })
 
-  describe('script: setShareholderAddress', () => {
+  contract('Configuration', function([owner, shareholder]) {
     context('when input is valid', () => {
       it('succeeds', async () => {
-        const asset = await setShareholderAddress(cb, shareholder)
+        const asset = await setShareholderAddress(cb, network, shareholder)
 
         expect(await config.getShareholderAddress()).to.equal(shareholder)
       })
@@ -22,7 +24,7 @@ contract('Configuration', function([owner, shareholder]) {
 
     context('when input is invalid', () => {
       it('fails', async () => {
-        const succeed = await setShareholderAddress(cb, constants.ZERO_ADDRESS)
+        const succeed = await setShareholderAddress(cb, network, constants.ZERO_ADDRESS)
 
         expect(succeed).to.be.false
       })

@@ -1,40 +1,38 @@
-const TokenFactory = artifacts.require('./TokenFactory.sol')
 const LoanManager = artifacts.require("./LoanManager.sol")
 const enableLoanAssetPair = require('../../scripts/javascript/enableLoanAssetPair.js')
 const deployTokens = require('../../scripts/javascript/deployTokens.js')
-const { constants } = require('openzeppelin-test-helpers')
 const { expect } = require('chai')
 
-contract('TokenFactory', ([owner]) => {
-  describe('script: enableLoanAssetPair', () => {
-    let tokenFactory, loanManager
-    const cb = () => {}
-    const loanTokenSymbol = 'ETH'
-    const collateralTokenSymbol = 'DAI'
+describe('script: enableLoanAssetPair', () => {
+  let loanManager
+  const cb = () => {}
+  const network = 'development'
+  const loanTokenSymbol = 'ETH'
+  const collateralTokenSymbol = 'DAI'
 
-    before(async () => {
-      tokenFactory = await TokenFactory.deployed()
-      loanManager = await LoanManager.deployed()
-      await deployTokens()
-    })
+  before(async () => {
+    loanManager = await LoanManager.deployed()
+    await deployTokens(cb, network)
+  })
 
+  contract('LoanManager', () => {
     context('when the asset pair is not enabled', () => {
       it('succeeds', async () => {
-        const [loanAsset, collateralAsset] = await enableLoanAssetPair(cb, loanTokenSymbol, collateralTokenSymbol)
+        const [loanAsset, collateralAsset] = await enableLoanAssetPair(cb, network, loanTokenSymbol, collateralTokenSymbol)
         expect(await loanManager.isLoanAssetPairEnabled(loanAsset, collateralAsset)).to.be.true
       })
     })
 
     context('when the asset pair is enabled', () => {
       it('fails', async () => {
-        const res = await enableLoanAssetPair(cb, loanTokenSymbol, collateralTokenSymbol)
+        const res = await enableLoanAssetPair(cb, network, loanTokenSymbol, collateralTokenSymbol)
         expect(res).to.be.false 
       })
     })
 
     context('when the assets are the same', () => {
       it('fails', async () => {
-        const res = await enableLoanAssetPair(cb, loanTokenSymbol, loanTokenSymbol)
+        const res = await enableLoanAssetPair(cb, network, loanTokenSymbol, loanTokenSymbol)
         expect(res).to.be.false 
       })
     })

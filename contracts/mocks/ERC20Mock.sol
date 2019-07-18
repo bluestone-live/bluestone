@@ -10,16 +10,13 @@ contract ERC20Mock is ERC20 {
 
     constructor (
         string memory tokenName, 
-        string memory tokenSymbol, 
-        address owner,
-        uint initialSupply
+        string memory tokenSymbol
     ) 
         public 
     {
         name = tokenName;
         symbol = tokenSymbol;
         decimals = 18;
-        _mint(owner, initialSupply);
     }
 
     function mint(address account, uint value) public {

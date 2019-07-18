@@ -1,17 +1,15 @@
 const debug = require('debug')('script:updateDepositMaturity')
 const DepositManager = artifacts.require("./DepositManager.sol")
-const TokenFactory = artifacts.require("./TokenFactory.sol")
 const { makeTruffleScript, getTokenAddress } = require('./utils.js')
 
 module.exports = makeTruffleScript(async () => {
-  const tokenFactory = await TokenFactory.deployed()
   const depositManager = await DepositManager.deployed()
   const tokenSymbolList = ['ETH', 'DAI', 'USDT']
   const enabledDepositAssetList = []
 
   for (let i = 0; i < tokenSymbolList.length; i++) {
     const tokenSymbol = tokenSymbolList[i]
-    const tokenAddress = await getTokenAddress(tokenFactory, tokenSymbol) 
+    const tokenAddress = await getTokenAddress(tokenSymbol) 
     const enabled = await depositManager.isDepositAssetEnabled(tokenAddress)
 
     if (enabled) {

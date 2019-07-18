@@ -29,15 +29,10 @@ function toFixedBN(num, significant = 18) {
 }
 
 const createERC20Token = async (owner, initialSupply = toFixedBN(1000), name = 'NewToken', symbol = 'NT') => {
-  const TokenFactory = artifacts.require('./TokenFactory.sol') 
   const ERC20Mock = artifacts.require('./ERC20Mock.sol') 
-
-  const tokenFactory = await TokenFactory.deployed()
-  const tx = await tokenFactory.createToken(name, symbol, owner, initialSupply)
-  const tokenAddress = tx.logs
-    .filter(log => log.event === 'TokenCreated')[0]
-    .args['token']
-  return ERC20Mock.at(tokenAddress)
+  const token = await ERC20Mock.new(name, symbol);
+  token.mint(owner, initialSupply);
+  return token;
 }
 
 module.exports = {

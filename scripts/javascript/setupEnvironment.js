@@ -1,49 +1,62 @@
 const debug = require("debug")("script:setupEnvironment");
-const TokenFactory = artifacts.require("./TokenFactory.sol");
 const DepositManager = artifacts.require("./DepositManager.sol");
 const LoanManager = artifacts.require("./LoanManager.sol");
 const Configuration = artifacts.require("./Configuration.sol");
 const PriceOracle = artifacts.require("./PriceOracle.sol");
 const ERC20Mock = artifacts.require("./ERC20Mock.sol");
+const WrappedEther = artifacts.require("./WrappedEther.sol");
 const TokenManager = artifacts.require("./TokenManager.sol");
-const { makeTruffleScript, fetchTokenPrices } = require("./utils.js");
+const { makeTruffleScript, fetchTokenPrices, mergeNetworkConfig } = require("./utils.js");
 const { configuration } = require("../../config.js");
 const { BN } = web3.utils;
 
-module.exports = makeTruffleScript(async () => {
+module.exports = makeTruffleScript(async (network) => {
+  if (network !== 'development' && network !== 'rinkeby') {
+    throw "setupEnvironment should only run against testnet."
+  }
+
   if (!isValidConfiguartion(configuration)) {
     throw "Invalid configuration. Check your ./config.js file.";
   }
 
-  const tokenFactory = await TokenFactory.deployed();
   const depositManager = await DepositManager.deployed();
   const loanManager = await LoanManager.deployed();
   const config = await Configuration.deployed();
   const {
-    tokenList,
+    tokens,
     collateralRatio,
     liquidationDiscount,
     loanInterestRate
   } = configuration;
 
-  let tokenAddressMap = {};
+  const tokenSymbolListWithWETH = Object.keys(tokens)
 
-  for (let token of tokenList) {
-    const { name, symbol } = token;
-    const { logs } = await tokenFactory.createToken(name, symbol);
-    const address = logs.filter(({ event }) => event === "TokenCreated")[0]
-      .args["token"];
+  for (let i = 0; i < tokenSymbolListWithWETH.length; i++) {
+    const symbol = tokenSymbolListWithWETH[i]
+    const { name } = tokens[symbol];
+    let deployedToken
 
-    debug(`Deployed ${symbol} at ${address}`);
-    tokenAddressMap[symbol] = address;
+    if (symbol === 'WETH') {
+      deployedToken = await WrappedEther.new()
+    } else {
+      deployedToken = await ERC20Mock.new(name, symbol)
+    }
+
+    debug(`Deployed ${symbol} at ${deployedToken.address}`)
+    tokens[symbol].address = deployedToken.address
   }
 
-  const tokenSymbolList = Object.keys(tokenAddressMap);
+  mergeNetworkConfig(network, {
+    tokens
+  })
+
+  // TODO: not sure if we need to setup WETH
+  const tokenSymbolList = tokenSymbolListWithWETH.filter(symbol => symbol !== 'WETH')
 
   for (let loanTokenSymbol of tokenSymbolList) {
     divider();
 
-    const loanAsset = tokenAddressMap[loanTokenSymbol];
+    const loanAsset = tokens[loanTokenSymbol].address;
     const loanTerms = [1, 30];
 
     await depositManager.enableDepositAsset(loanAsset);
@@ -63,7 +76,7 @@ module.exports = makeTruffleScript(async () => {
     }
 
     for (let collateralTokenSymbol of tokenSymbolList) {
-      const collateralAsset = tokenAddressMap[collateralTokenSymbol];
+      const collateralAsset = tokens[collateralTokenSymbol].address;
 
       if (loanAsset !== collateralAsset) {
         await loanManager.enableLoanAssetPair(loanAsset, collateralAsset);
@@ -110,7 +123,7 @@ module.exports = makeTruffleScript(async () => {
   const scaledPriceList = priceList.map(price => toFixedBN(price));
   const priceOracle = await PriceOracle.deployed();
   const tokenAddressList = tokenSymbolList.map(
-    tokenSymbol => tokenAddressMap[tokenSymbol]
+    tokenSymbol => tokens[tokenSymbol].address
   );
 
   debug(`setPrices: ${tokenSymbolList} ${priceList}`);
@@ -131,7 +144,8 @@ module.exports = makeTruffleScript(async () => {
   for (let loanTokenSymbol of tokenSymbolList) {
     divider();
 
-    const loanAsset = await ERC20Mock.at(tokenAddressMap[loanTokenSymbol]);
+    const loanAsset = await ERC20Mock.at(tokens[loanTokenSymbol].address);
+    await loanAsset.mint(depositor, initialSupply);
 
     await loanAsset.mint(depositor, toFixedBN(initialSupply));
     debug(`Mints ${initialSupply} ${loanTokenSymbol} to ${depositor}`)
@@ -157,7 +171,7 @@ module.exports = makeTruffleScript(async () => {
     for (let collateralTokenSymbol of tokenSymbolList) {
       if (collateralTokenSymbol !== loanTokenSymbol) {
         const collateralAsset = await ERC20Mock.at(
-          tokenAddressMap[collateralTokenSymbol]
+          tokens[collateralTokenSymbol].address
         );
         await collateralAsset.mint(loaner, toFixedBN(initialSupply));
         debug(`Mints ${initialSupply} ${collateralTokenSymbol} to ${loaner}`)
@@ -176,7 +190,7 @@ module.exports = makeTruffleScript(async () => {
           // 300% collateral ratio
           const collateralAmount = Math.round(loanAmount * loanAssetPrice / collateralAssetPrice * 3)
 
-          const { logs } = await loanManager.loan(
+          await loanManager.loan(
             term,
             loanAsset.address,
             collateralAsset.address,
@@ -223,13 +237,13 @@ function toFixedBN(num, significant = 18) {
 function isValidConfiguartion(configuration) {
   if (configuration) {
     const {
-      tokenList,
+      tokens,
       collateralRatio,
       liquidationDiscount,
       loanInterestRate
     } = configuration;
     return (
-      tokenList && collateralRatio && liquidationDiscount && loanInterestRate
+      tokens && collateralRatio && liquidationDiscount && loanInterestRate
     );
   } else {
     return false;

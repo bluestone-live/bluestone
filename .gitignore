@@ -13,3 +13,6 @@ config.js
 
 # vscode
 .vscode
+
+# ethereum network configs
+network.json

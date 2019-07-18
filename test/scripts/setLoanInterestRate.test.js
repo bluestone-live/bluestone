@@ -4,22 +4,23 @@ const deployTokens = require('../../scripts/javascript/deployTokens.js')
 const { toFixedBN } = require('../utils/index.js')
 const { expect } = require('chai')
 
-contract('Configuration', function([owner]) {
+describe('script: setLoanInterestRate', () => {
   let config
   const cb = () => {}
+  const network = 'development'
   const tokenSymbol = 'ETH'
 
   before(async () => {
     config = await Configuration.deployed()
-    await deployTokens()
+    await deployTokens(cb, network)
   })
 
-  describe('script: setLoanInterestRate', () => {
+  contract('Configuration', () => {
     context('when input is valid', () => {
       it('succeeds', async () => {
         const loanTerm = 1
         const value = 0.5
-        const asset = await setLoanInterestRate(cb, tokenSymbol, loanTerm, value)
+        const asset = await setLoanInterestRate(cb, network, tokenSymbol, loanTerm, value)
 
         expect(await config.getLoanInterestRate(asset, loanTerm)).to.be.bignumber.equal(toFixedBN(value))
       })
@@ -29,7 +30,7 @@ contract('Configuration', function([owner]) {
       it('fails', async () => {
         const loanTerm = 3
         const value = 0.5
-        const succeed = await setLoanInterestRate(cb, tokenSymbol, loanTerm, value)
+        const succeed = await setLoanInterestRate(cb, network, tokenSymbol, loanTerm, value)
 
         expect(succeed).to.be.false
       })

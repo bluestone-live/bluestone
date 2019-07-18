@@ -1,11 +1,9 @@
 const debug = require('debug')('script:setLoanInterestRate')
 const Configuration = artifacts.require('./Configuration.sol')
-const TokenFactory = artifacts.require("./TokenFactory.sol")
 const { makeTruffleScript, getTokenAddress } = require('./utils.js')
 
-module.exports = makeTruffleScript(async(tokenSymbol, loanTerm, decimalValue) => {
-  const tokenFactory = await TokenFactory.deployed()
-  const loanAsset = await getTokenAddress(tokenFactory, tokenSymbol)
+module.exports = makeTruffleScript(async (_, tokenSymbol, loanTerm, decimalValue) => {
+  const loanAsset = await getTokenAddress(tokenSymbol)
   const configuration = await Configuration.deployed()
   const scaledValue = web3.utils.toBN(decimalValue * Math.pow(10, 18))
 

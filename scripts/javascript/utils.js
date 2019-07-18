@@ -1,14 +1,50 @@
 const _debug = require('debug')('script:utils')
 const CoinMarketCap = require('../../libs/CoinMarketCap.js')
 const config = require('../../config.js')
+const fs = require('fs')
+const path = require('path')
 
 const constants = {
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000'
 }
 
-const getTokenAddress = async (tokenFactory, tokenSymbol) => {
+const getNetworkFile = () => path.join(__dirname, '..', '..', 'network.json')
+
+const loadNetworkConfig = () => {
+  const debug = _debug.extend('loadNetworkConfig')
+  const filePath = getNetworkFile()
+
+  debug('Loading network file...')
+
+  try {
+    const networks = fs.readFileSync(filePath)
+    debug('Existing network file found.')
+    return JSON.parse(networks)
+  } catch (err) {
+    debug('No network file found, return empty json object.')
+    return {} 
+  }
+}
+
+const mergeNetworkConfig = (network, data) => {
+  const debug = _debug.extend('mergeNetworkConfig')
+
+  const filePath = getNetworkFile()
+  const networks = loadNetworkConfig()
+
+  const updated = Object.assign({}, networks, {
+    [network]: data
+  })
+
+  debug('Merging network file...')
+  fs.writeFileSync(filePath, JSON.stringify(updated, null, 4))
+  debug('Merged network file.')
+}
+
+const getTokenAddress = async (tokenSymbol) => {
   const debug = _debug.extend('getTokenAddress')
-  const tokenAddress = await tokenFactory.getToken(tokenSymbol)
+  const network = loadNetworkConfig()
+  const tokenAddress = network['development']['tokens'][tokenSymbol].address
 
   if (tokenAddress === constants.ZERO_ADDRESS) {
     throw `Token ${tokenSymbol} must be deployed first.`
@@ -86,5 +122,7 @@ module.exports = {
   constants,
   getTokenAddress,
   fetchTokenPrices,
-  makeTruffleScript
+  makeTruffleScript,
+  loadNetworkConfig,
+  mergeNetworkConfig
 }

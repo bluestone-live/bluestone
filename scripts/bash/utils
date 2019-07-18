@@ -36,5 +36,5 @@ function run_truffle_script {
 
   npx truffle compile
 
-  env DEBUG='script:*' npx truffle exec --network="$network" "$DIR/../javascript/$curr_bash_file.js" ${args[@]:1}
+  env DEBUG='script:*' npx truffle exec --network="$network" "$DIR/../javascript/$curr_bash_file.js" ${args[@]}
 }

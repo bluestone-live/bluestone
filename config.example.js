@@ -16,11 +16,13 @@ module.exports = {
   // This is needed when we deploy contracts to testnet.
   mnemonic: '<ADD-YOUR-MNEMONIC>',
   configuration: {
-    tokenList: [
-      { name: 'Ether', symbol: 'ETH' },
-      { name: 'Dai', symbol: 'DAI' },
-      { name: 'Tether', symbol: 'USDT' },
-    ],
+    tokens: {
+      // TODO: remove ETH once we have ETH <=> WETH conversion ready
+      ETH: { name: 'Ether', symbol: 'ETH' },
+      DAI: { name: 'Dai', symbol: 'DAI' },
+      USDC: { name: 'Tether', symbol: 'USDC' },
+      WETH: { name: 'Wrapped Ether', symbol: 'WETH' }
+    },
     collateralRatio: {
       ETH: {
         DAI: 1.50,

@@ -5,19 +5,6 @@ import { EventData, Contract, EventOptions } from 'web3-eth-contract';
 const requireContract = (contractName: string) =>
   require(`../../../../build/contracts/${contractName}.json`);
 
-let ContractJsonInterfaceForTestnet: {
-  TokenFactory?: any;
-  WETH?: any;
-} = {};
-if (process.env.NODE_ENV !== 'production') {
-  // TokenFactory is only needed in testnet to create and retrieve token contract
-  // TODO: do not require WETH separately, replace ETH with WETH when we create token using TokenFactory
-  ContractJsonInterfaceForTestnet = {
-    TokenFactory: requireContract('TokenFactory'),
-    WETH: requireContract('WETH9'),
-  };
-}
-
 // Single instance
 const deployedContractJsonInterface = {
   Configuration: requireContract('Configuration'),
@@ -26,7 +13,6 @@ const deployedContractJsonInterface = {
   LoanManager: requireContract('LoanManager'),
   TokenManager: requireContract('TokenManager'),
   PriceOracle: requireContract('PriceOracle'),
-  ...ContractJsonInterfaceForTestnet,
 };
 
 // May have multiple-instances
@@ -35,6 +21,7 @@ export const nonDeployedContractJsonInterface = {
   Loan: requireContract('Loan'),
   PoolGroup: requireContract('PoolGroup'),
   ERC20: requireContract('ERC20'),
+  WrappedEther: requireContract('WrappedEther'),
 };
 
 type DeployedContractInstances = typeof deployedContractJsonInterface;

@@ -1,23 +1,32 @@
 const debug = require('debug')('script:deployTokens')
-const TokenFactory = artifacts.require('./TokenFactory.sol') 
-const { makeTruffleScript } = require('./utils.js')
-const { configuration } = require('../../config')
+const ERC20Mock = artifacts.require('./ERC20Mock.sol')
+const WrappedEther = artifacts.require('./WrappedEther.sol')
+const { makeTruffleScript, mergeNetworkConfig } = require('./utils.js')
+const { configuration } = require("../../config.js");
 
-module.exports = makeTruffleScript(async () => {
-  const { tokenList } = configuration
-  const tokenFactory = await TokenFactory.deployed()
-  let tokenAddressList = []
+module.exports = makeTruffleScript(async (network) => {
+  const { tokens } = configuration
 
-  for (let i = 0; i < tokenList.length; i++) {
-    const { name, symbol } = tokenList[i]
-    const { logs } = await tokenFactory.createToken(name, symbol)
-    const address = logs
-      .filter(({ event }) => event === 'TokenCreated')[0]
-      .args['token']
+  const tokenSymbolList = Object.keys(tokens)
 
-    debug(`Deployed ${symbol} at ${address}`)
-    tokenAddressList.push(address)
+  for (let i = 0; i < tokenSymbolList.length; i++) {
+    const symbol = tokenSymbolList[i]
+    const { name } = tokens[symbol]
+    let deployedToken
+
+    if (symbol === 'WETH') {
+      deployedToken = await WrappedEther.new()
+    } else {
+      deployedToken = await ERC20Mock.new(name, symbol)
+    }
+
+    debug(`Deployed ${symbol} at ${deployedToken.address}`)
+    tokens[symbol].address = deployedToken.address
   }
 
-  return tokenAddressList
+  mergeNetworkConfig(network, {
+    tokens
+  })
+
+  return tokens
 })

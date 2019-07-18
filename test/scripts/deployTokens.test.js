@@ -1,22 +1,16 @@
-const TokenFactory = artifacts.require('./TokenFactory.sol')
 const deployTokens = require('../../scripts/javascript/deployTokens.js')
-const { constants } = require('openzeppelin-test-helpers')
 const { expect } = require('chai')
+const { loadNetworkConfig } = require('../../scripts/javascript/utils.js')
 
-contract('TokenFactory', ([owner]) => {
-  describe('script: deployTokens', () => {
-    let tokenFactory
+describe('script: deployTokens', () => {
+  it('deploys ETH, DAI and USDT', async () => {
+    const cb = () => {}
+    const network = 'development'
+    const tokens = await deployTokens(cb, network)
+    const networkConfig = loadNetworkConfig()[network]
 
-    before(async () => {
-      tokenFactory = await TokenFactory.deployed()
-    })
-
-    it('deploys ETH, DAI and USDT', async () => {
-      const [addrETH, addrDAI, addrUSDT] = await deployTokens()
-
-      expect(await tokenFactory.getToken('ETH')).to.equal(addrETH)
-      expect(await tokenFactory.getToken('DAI')).to.equal(addrDAI)
-      expect(await tokenFactory.getToken('USDT')).to.equal(addrUSDT)
-    })
+    expect(networkConfig.tokens.ETH.address).to.equal(tokens.ETH.address)
+    expect(networkConfig.tokens.DAI.address).to.equal(tokens.DAI.address)
+    expect(networkConfig.tokens.USDT.address).to.equal(tokens.USDT.address)
   })
 })

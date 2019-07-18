@@ -1,13 +1,11 @@
 const debug = require('debug')('script:printAssetStatus')
 const Configuration = artifacts.require("./Configuration.sol")
-const TokenFactory = artifacts.require("./TokenFactory.sol")
 const LiquidityPools = artifacts.require("./LiquidityPools.sol")
 const PoolGroup = artifacts.require("./PoolGroup.sol")
 const { getTokenAddress, makeTruffleScript } = require('./utils.js')
 
-module.exports = makeTruffleScript(async tokenSymbol => {
-  const tokenFactory = await TokenFactory.deployed()
-  const tokenAddress = await getTokenAddress(tokenFactory, tokenSymbol)
+module.exports = makeTruffleScript(async (_, tokenSymbol) => {
+  const tokenAddress = await getTokenAddress(tokenSymbol)
   const config = await Configuration.deployed()
   const liquidityPools = await LiquidityPools.deployed()
   const terms = [1, 7, 30]

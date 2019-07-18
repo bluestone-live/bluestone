@@ -3,14 +3,12 @@
 DIR=`dirname $0`
 source $DIR/utils
 
-required_args=()
+required_args=(network)
 
 if [ $# -ne ${#required_args[@]} ]; then
   description="Reset and initialize contract state for local test environment."
   show_help_message "$description" $required_args
   exit 1
 fi
-
-npx truffle migrate --reset
 
 run_truffle_script "$@"

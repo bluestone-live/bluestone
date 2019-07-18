@@ -1,28 +1,27 @@
-const TokenFactory = artifacts.require('./TokenFactory.sol')
 const Configuration = artifacts.require("./Configuration.sol")
 const setCollateralRatio = require('../../scripts/javascript/setCollateralRatio.js')
 const deployTokens = require('../../scripts/javascript/deployTokens.js')
 const { toFixedBN } = require('../utils/index.js')
 const { expect } = require('chai')
 
-contract('Configuration', ([owner]) => {
-  describe('script: setCollateralRatio', () => {
-    let tokenFactory, config
-    const cb = () => {}
-    const loanTokenSymbol = 'ETH'
-    const collateralTokenSymbol = 'DAI'
+describe('script: setCollateralRatio', () => {
+  let config
+  const cb = () => {}
+  const network = 'development'
+  const loanTokenSymbol = 'ETH'
+  const collateralTokenSymbol = 'DAI'
 
-    before(async () => {
-      tokenFactory = await TokenFactory.deployed()
-      config = await Configuration.deployed()
-      await deployTokens()
-    })
+  before(async () => {
+    config = await Configuration.deployed()
+    await deployTokens(cb, network)
+  })
 
+  contract('Configuration', () => {
     context('when the collateral ratio is valid', () => {
       const collateralRatio = 1.3
 
       it('succeeds', async () => {
-        const [loanAsset, collateralAsset] = await setCollateralRatio(cb, loanTokenSymbol, collateralTokenSymbol, collateralRatio)
+        const [loanAsset, collateralAsset] = await setCollateralRatio(cb, network, loanTokenSymbol, collateralTokenSymbol, collateralRatio)
         expect(await config.getCollateralRatio(loanAsset, collateralAsset)).to.be.bignumber.equal(toFixedBN(collateralRatio))
       })
     })
@@ -31,7 +30,7 @@ contract('Configuration', ([owner]) => {
       const collateralRatio = 1.1
 
       it('fails', async () => {
-        const res = await setCollateralRatio(cb, loanTokenSymbol, collateralTokenSymbol, collateralRatio)
+        const res = await setCollateralRatio(cb, network, loanTokenSymbol, collateralTokenSymbol, collateralRatio)
         expect(res).to.be.false 
       })
     })

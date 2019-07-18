@@ -19,7 +19,7 @@
 
 pragma solidity ^0.5.0;
 
-contract WETH9 {
+contract WrappedEther {
     string public name     = "Wrapped Ether";
     string public symbol   = "WETH";
     uint8  public decimals = 18;

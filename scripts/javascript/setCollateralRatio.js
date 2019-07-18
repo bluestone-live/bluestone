@@ -1,12 +1,10 @@
 const Configuration = artifacts.require('./Configuration.sol')
-const TokenFactory = artifacts.require("./TokenFactory.sol")
 const { getTokenAddress, makeTruffleScript } = require('./utils.js')
 
-module.exports = makeTruffleScript(async (loanTokenSymbol, collateralTokenSymbol, decimalValue) => {
-  const tokenFactory = await TokenFactory.deployed()
+module.exports = makeTruffleScript(async (_, loanTokenSymbol, collateralTokenSymbol, decimalValue) => {
   const config = await Configuration.deployed()
-  const loanAsset = await getTokenAddress(tokenFactory, loanTokenSymbol)
-  const collateralAsset = await getTokenAddress(tokenFactory, collateralTokenSymbol)
+  const loanAsset = await getTokenAddress(loanTokenSymbol)
+  const collateralAsset = await getTokenAddress(collateralTokenSymbol)
   const scaledValue = web3.utils.toBN(decimalValue * Math.pow(10, 18))
 
   await config.setCollateralRatio(loanAsset, collateralAsset, scaledValue)
