@@ -42,7 +42,9 @@ export class TransactionStore {
   }
 
   @computed get transactions() {
-    return Array.from(this.transactionMap.values());
+    return Array.from(this.transactionMap.values()).sort(
+      (t1, t2) => t2.createdAt - t1.createdAt,
+    );
   }
 
   @action.bound
