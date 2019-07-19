@@ -9,7 +9,6 @@ import Button from '../components/html/Button';
 import Form from '../components/html/Form';
 import { TransactionType, ILoanTransaction } from '../constants/Transaction';
 import { toJS } from 'mobx';
-import dayjs from 'dayjs';
 import { convertDecimalToWei } from '../utils/BigNumber';
 
 interface IProps
@@ -105,16 +104,6 @@ class AddCollateralPage extends React.Component<IProps, IState> {
               type="text"
               disabled
               value={this.getCollateralRatio(transaction)}
-            />
-          </Form.Item>
-          <Form.Item>
-            <label>{t('expired_at')}</label>
-            <Input
-              type="text"
-              disabled
-              value={dayjs(transaction.createdAt)
-                .add(transaction.term.value, 'day')
-                .format('YYYY-MM-DD')}
             />
           </Form.Item>
           <Form.Item>
