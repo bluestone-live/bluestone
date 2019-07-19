@@ -9,7 +9,10 @@ import { onAccountsChanged } from './services/EthereumService';
 import { tokenStore, tokenManagerStore } from './index';
 import { BigNumber } from '../utils/BigNumber';
 import { IToken } from '../constants/Token';
-import { getFreedCollateral } from './services/LoanManagerService';
+import {
+  getFreedCollateral,
+  withdrawFreedCollateral,
+} from './services/LoanManagerService';
 
 export class AccountStore {
   @observable accounts: string[] = [];
@@ -146,5 +149,10 @@ export class AccountStore {
 
   getFreedCollateralByAddress(tokenAddress: string) {
     return this.freedCollateralsMap.get(tokenAddress);
+  }
+
+  @action.bound
+  withdrawFreedCollateral(tokenAddress: string, amount: BigNumber) {
+    return withdrawFreedCollateral(tokenAddress, amount);
   }
 }

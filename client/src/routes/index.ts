@@ -36,10 +36,10 @@ const routes = [
     }),
   },
   {
-    name: 'deposit-withdraw',
-    path: '/deposit/withdraw/:transactionAddress',
+    name: 'withdraw-freed-collateral',
+    path: '/withdraw/:tokenAddress',
     component: Loadable({
-      loader: () => import('../pages/WithdrawDepositPage'),
+      loader: () => import('../pages/WithdrawFreedCollateralPage'),
       loading: Loading,
     }),
   },
@@ -55,7 +55,7 @@ const routes = [
     name: 'loan-withdraw-collateral',
     path: '/loan/collateral/withdraw/:transactionAddress',
     component: Loadable({
-      loader: () => import('../pages/WithdrawCollateralPage'),
+      loader: () => import('../pages/WithdrawFreedCollateralPage'),
       loading: Loading,
     }),
   },
