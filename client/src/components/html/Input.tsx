@@ -15,6 +15,10 @@ const StyledInput = styled.input`
   border-radius: ${(props: ThemedProps) => props.theme.borderRadius.medium};
   outline: none;
 
+  &:invalid {
+    border-color: ${(props: ThemedProps) => props.theme.borderColor.warning};
+  }
+
   &:focus {
     border-color: ${(props: ThemedProps) => props.theme.colors.primary};
   }

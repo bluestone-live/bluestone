@@ -1,4 +1,4 @@
-import { observable, action } from 'mobx';
+import { observable, action, computed } from 'mobx';
 import { tokenStore } from './index';
 import { isLoanAssetPairEnabled } from './services/LoanManagerService';
 import { getCollateralRatio } from './services/ConfigurationService';
@@ -25,6 +25,31 @@ export class LoanManagerStore {
   async init() {
     const tokenPairSymbolList = Array.from(this.loanAssetPairs.keys());
     await Promise.all(tokenPairSymbolList.map(this.initLoanAssetPair));
+  }
+
+  @computed
+  get validTokenSymbolPairs() {
+    return Array.from(this.loanAssetPairs.keys())
+      .map(key => key.split('_'))
+      .reduce<{ [key: string]: string[] }>(
+        (tokenSymbolPairs, [loanSymbol, collateralSymbol]) => {
+          if (tokenSymbolPairs[loanSymbol]) {
+            return {
+              ...tokenSymbolPairs,
+              [loanSymbol]: [...tokenSymbolPairs[loanSymbol], collateralSymbol],
+            };
+          }
+          return {
+            ...tokenSymbolPairs,
+            [loanSymbol]: [collateralSymbol],
+          };
+        },
+        {},
+      );
+  }
+
+  getCollateralSymbolsByLoanSymbol(loanTokenSymbol: string) {
+    return this.validTokenSymbolPairs[loanTokenSymbol];
   }
 
   getLoanAssetPair(loanTokenSymbol: string, collateralTokenSymbol: string) {
