@@ -1,0 +1,15 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+source $DIR/utils
+
+required_args=( timeInSecond )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="increase the time to test net."
+  example_args="3600 # for 1 hour"
+  show_help_message "$description" $required_args "$example_args"
+  exit 1
+fi
+
+run_truffle_script development "$@"
