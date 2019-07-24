@@ -89,6 +89,7 @@ contract Loan {
         uint currRemainingDebt = remainingDebt();
         uint repaidAmount;
 
+        // uint -1 will be 2^53-1, It's can be used here but I'm afraid it's not a good practice.
         if (amount == uint(-1)) {
             repaidAmount = currRemainingDebt;
         } else {
@@ -207,6 +208,9 @@ contract Loan {
 
     // Check whether the loan is defaulted or under the required collaterization ratio
     function isLiquidatable(uint loanAssetPrice, uint collateralAssetPrice) external returns (bool) {
+        if (_isClosed) {
+            return false;
+        }
         updateAccruedInterest();
 
         uint currCollateralRatio = _collateralAmount.sub(_soldCollateralAmount)

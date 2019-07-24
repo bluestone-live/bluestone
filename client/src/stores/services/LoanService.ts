@@ -30,6 +30,7 @@ export const getLoan = async (
     // throw new Error(`invalid data: ${depositAddress}`);
     return null;
   }
+
   return {
     transactionAddress: loanAddress,
     owner: await loanContractInstance.methods.owner().call(),

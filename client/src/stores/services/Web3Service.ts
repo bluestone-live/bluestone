@@ -143,7 +143,10 @@ export const getContractEventFlow = async (
         },
       );
     });
-    callback(contractInstance).catch(() => {
+    callback(contractInstance).catch(e => {
+      // TODO format and show error message from contract here.
+      // tslint:disable-next-line:no-console
+      console.error(e);
       eventSubscription.unsubscribe();
     });
     return p;

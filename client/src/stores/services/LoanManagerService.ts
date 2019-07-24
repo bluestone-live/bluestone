@@ -112,3 +112,19 @@ export const repayLoan = async (
       .send({ from: accountStore.defaultAccount }),
   );
 };
+
+export const repayFully = async (transactionAddress: string) => {
+  const flow = await getContractEventFlow(
+    'LoanManager',
+    'RepayLoanSuccessful',
+    {
+      filter: { user: accountStore.defaultAccount },
+    },
+  );
+
+  return flow(LoanManager =>
+    LoanManager.methods
+      .repayLoanFully(transactionAddress)
+      .send({ from: accountStore.defaultAccount }),
+  );
+};

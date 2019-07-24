@@ -14,6 +14,7 @@ interface IProps {
   primary?: boolean;
   fullWidth?: boolean;
   disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 const StyledButton = styled.button`

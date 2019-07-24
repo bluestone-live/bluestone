@@ -18,13 +18,11 @@ import {
   repayLoan,
   addCollateral,
   withdrawFreedCollateral,
+  repayFully,
 } from './services/LoanManagerService';
 import { getDeposit } from './services/DepositService';
 import { getLoan } from './services/LoanService';
 
-/**
- * repayLoandisplay, merge deposit and loan into one store
- */
 export class TransactionStore {
   @observable transactionMap: Map<string, ITransaction> = new Map();
 
@@ -162,5 +160,10 @@ export class TransactionStore {
   @action.bound
   repay(transactionAddress: string, amount: BigNumber) {
     return repayLoan(transactionAddress, amount);
+  }
+
+  @action.bound
+  repayFully(transactionAddress: string) {
+    return repayFully(transactionAddress);
   }
 }

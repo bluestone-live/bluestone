@@ -64,6 +64,19 @@ class RepayForm extends React.Component<IProps, IState> {
     );
   };
 
+  repayFully = async () => {
+    const { transactionStore, match, history } = this.props;
+
+    await transactionStore!.repayFully(match.params.transactionAddress);
+    const transaction = transactionStore!.getTransactionByAddress(
+      match.params.transactionAddress,
+    ) as ILoanTransaction;
+
+    history.push(
+      `/transactions?tokenSymbol=${transaction.loanToken.symbol}&term=&status=`,
+    );
+  };
+
   render() {
     const { t, transactionStore, match } = this.props;
     const transaction = transactionStore!.getTransactionByAddress(
@@ -113,8 +126,12 @@ class RepayForm extends React.Component<IProps, IState> {
             />
           </Form.Item>
           <Form.Item>
-            <label />
-            <Button primary>{t('submit')}</Button>
+            <Button.Group>
+              <Button type="button" primary onClick={this.repayFully}>
+                {t('fully_repay')}
+              </Button>
+              <Button>{t('submit')}</Button>
+            </Button.Group>
           </Form.Item>
         </Form>
       </Card>

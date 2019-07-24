@@ -146,7 +146,7 @@ contract LoanManager is Ownable, Pausable, Term {
         return currLoan;
     }
 
-    function repayLoan(Loan currLoan, uint amount) external whenNotPaused returns (uint) {
+    function repayLoan(Loan currLoan, uint amount) public whenNotPaused returns (uint) {
         address loanAsset = currLoan.loanAsset();
         address collateralAsset = currLoan.collateralAsset();
 
@@ -166,6 +166,11 @@ contract LoanManager is Ownable, Pausable, Term {
 
         emit RepayLoanSuccessful(loaner, currLoan);
 
+        return totalRepayAmount;
+    }
+
+    function repayLoanFully(Loan currLoan) external whenNotPaused returns (uint) {
+        uint totalRepayAmount = repayLoan(currLoan, uint(-1));
         return totalRepayAmount;
     }
 
