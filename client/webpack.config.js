@@ -18,6 +18,11 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
 
 const express = require('express');
 
+const reduceABIFileSize = require('./scripts/reduce-abi-files-size');
+if (['analyzer', 'production'].indexOf(process.env.NODE_ENV) >= 0) {
+  reduceABIFileSize();
+}
+
 const getStyleLoader = () =>
   isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
 
@@ -94,8 +99,21 @@ module.exports = env => ({
   optimization: {
     splitChunks: {
       chunks: 'all',
-      maxInitialRequests: Infinity,
+      maxInitialRequests: 8,
       minSize: 100000,
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          filename: isProduction ? '[chunkhash].js' : '[name].bundle.js',
+          name(module) {
+            const packageName = module.context.match(
+              /[\\/]node_modules[\\/](.*?)([\\/]|$)/,
+            )[1];
+
+            return `${packageName.replace('@', '')}`;
+          },
+        },
+      },
     },
   },
   plugins: [
