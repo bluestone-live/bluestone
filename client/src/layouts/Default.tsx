@@ -8,6 +8,7 @@ import AuthorizationReminder from '../containers/AuthorizationReminder';
 import Card from '../components/common/Card';
 import Container from '../components/common/Container';
 import { ThemedProps } from '../styles/themes';
+import Message from '../components/common/Message';
 
 interface IProps extends WithTranslation {
   children: React.ReactChild;
@@ -59,6 +60,8 @@ class Default extends React.Component<IProps> {
     await accountStore.getAccounts();
   };
 
+  showMessage = () => Message.info('message');
+
   render() {
     const { children, accountStore } = this.props;
     return (
@@ -73,6 +76,7 @@ class Default extends React.Component<IProps> {
           <Container>
             {accountStore.defaultAccount ? children : <AuthorizationReminder />}
           </Container>
+          <button onClick={this.showMessage}>show message</button>
         </StyledMain>
       </StyledDefaultLayout>
     );
