@@ -169,11 +169,6 @@ contract LoanManager is Ownable, Pausable, Term {
         return totalRepayAmount;
     }
 
-    function repayLoanFully(Loan currLoan) external whenNotPaused returns (uint) {
-        uint totalRepayAmount = repayLoan(currLoan, uint(-1));
-        return totalRepayAmount;
-    }
-
     // A loan can be liquidated when it is defaulted or the collaterization ratio is below requirement
     function liquidateLoan(Loan currLoan, uint amount) external whenNotPaused returns (uint, uint) {
         address loanAsset = currLoan.loanAsset();

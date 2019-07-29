@@ -120,8 +120,8 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       );
 
       const loanAddress = await loanManager.loans.call(1);
-      const loan = await Loan.at(loanAddress)
-      const repayAmount = await loan.remainingDebt()
+      const loan = await Loan.at(loanAddress);
+      const repayAmount = await loan.remainingDebt();
 
       await loanManager.repayLoan(loanAddress, repayAmount, {
         from: loaner
@@ -162,7 +162,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       const loanAddress = await loanManager.loans.call(2);
       const loanInstance = await Loan.at(loanAddress);
       const oldRemainingDebt = await loanInstance.remainingDebt();
-      await loanManager.repayLoanFully(loanAddress, {
+      await loanManager.repayLoan(loanAddress, oldRemainingDebt, {
         from: loaner
       });
       const remainingDebtAfterRepay = await loanInstance.remainingDebt();

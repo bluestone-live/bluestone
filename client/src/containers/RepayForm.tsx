@@ -62,19 +62,6 @@ class RepayForm extends React.Component<IProps, IState> {
     );
   };
 
-  repayFully = async () => {
-    const { recordStore, match, history } = this.props;
-
-    await recordStore!.repayFully(match.params.recordAddress);
-    const record = recordStore!.getRecordByAddress(
-      match.params.recordAddress,
-    ) as ILoanRecord;
-
-    history.push(
-      `/records?tokenSymbol=${record.loanToken.symbol}&term=&status=`,
-    );
-  };
-
   render() {
     const { t, recordStore, match } = this.props;
     const record = recordStore!.getRecordByAddress(
@@ -120,12 +107,7 @@ class RepayForm extends React.Component<IProps, IState> {
             />
           </Form.Item>
           <Form.Item>
-            <Button.Group>
-              <Button type="button" primary onClick={this.repayFully}>
-                {t('fully_repay')}
-              </Button>
-              <Button>{t('submit')}</Button>
-            </Button.Group>
+            <Button>{t('submit')}</Button>
           </Form.Item>
         </Form>
       </Card>

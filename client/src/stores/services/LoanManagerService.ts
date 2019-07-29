@@ -114,19 +114,3 @@ export const repayLoan = async (recordAddress: string, amount: BigNumber) => {
       .send({ from: accountStore.defaultAccount }),
   );
 };
-
-export const repayFully = async (recordAddress: string) => {
-  const flow = await getContractEventFlow(
-    'LoanManager',
-    EventName.RepayLoanSuccessful,
-    {
-      filter: { user: accountStore.defaultAccount },
-    },
-  );
-
-  return flow(LoanManager =>
-    LoanManager.methods
-      .repayLoanFully(recordAddress)
-      .send({ from: accountStore.defaultAccount }),
-  );
-};
