@@ -1,20 +1,20 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { TransactionStore } from '../stores';
+import { RecordStore } from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
-import { TransactionType, ILoanTransaction } from '../constants/Transaction';
+import { RecordType, ILoanRecord } from '../constants/Record';
 import dayjs from 'dayjs';
 import { convertDecimalToWei } from '../utils/BigNumber';
 
 interface IProps
   extends WithTranslation,
-    RouteComponentProps<{ transactionAddress: string }> {
-  transactionStore?: TransactionStore;
+    RouteComponentProps<{ recordAddress: string }> {
+  recordStore?: RecordStore;
 }
 
 interface IState {
@@ -22,7 +22,7 @@ interface IState {
   loading: boolean;
 }
 
-@inject('transactionStore')
+@inject('recordStore')
 @observer
 class RepayForm extends React.Component<IProps, IState> {
   state = {
@@ -31,10 +31,8 @@ class RepayForm extends React.Component<IProps, IState> {
   };
 
   async componentDidMount() {
-    const { transactionStore, match } = this.props;
-    await transactionStore!.updateLoanTransaction(
-      match.params.transactionAddress,
-    );
+    const { recordStore, match } = this.props;
+    await recordStore!.updateLoanRecord(match.params.recordAddress);
     this.setState({
       loading: true,
     });
@@ -48,42 +46,42 @@ class RepayForm extends React.Component<IProps, IState> {
   onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { transactionStore, match, history } = this.props;
+    const { recordStore, match, history } = this.props;
     const { amount } = this.state;
 
-    await transactionStore!.repay(
-      match.params.transactionAddress,
+    await recordStore!.repay(
+      match.params.recordAddress,
       convertDecimalToWei(amount),
     );
-    const transaction = transactionStore!.getTransactionByAddress(
-      match.params.transactionAddress,
-    ) as ILoanTransaction;
+    const record = recordStore!.getRecordByAddress(
+      match.params.recordAddress,
+    ) as ILoanRecord;
 
     history.push(
-      `/transactions?tokenSymbol=${transaction.loanToken.symbol}&term=&status=`,
+      `/records?tokenSymbol=${record.loanToken.symbol}&term=&status=`,
     );
   };
 
   repayFully = async () => {
-    const { transactionStore, match, history } = this.props;
+    const { recordStore, match, history } = this.props;
 
-    await transactionStore!.repayFully(match.params.transactionAddress);
-    const transaction = transactionStore!.getTransactionByAddress(
-      match.params.transactionAddress,
-    ) as ILoanTransaction;
+    await recordStore!.repayFully(match.params.recordAddress);
+    const record = recordStore!.getRecordByAddress(
+      match.params.recordAddress,
+    ) as ILoanRecord;
 
     history.push(
-      `/transactions?tokenSymbol=${transaction.loanToken.symbol}&term=&status=`,
+      `/records?tokenSymbol=${record.loanToken.symbol}&term=&status=`,
     );
   };
 
   render() {
-    const { t, transactionStore, match } = this.props;
-    const transaction = transactionStore!.getTransactionByAddress(
-      match.params.transactionAddress,
-    ) as ILoanTransaction;
+    const { t, recordStore, match } = this.props;
+    const record = recordStore!.getRecordByAddress(
+      match.params.recordAddress,
+    ) as ILoanRecord;
 
-    return transaction && transaction.type === TransactionType.Loan ? (
+    return record && record.type === RecordType.Loan ? (
       <Card>
         <Form onSubmit={this.onSubmit}>
           <Form.Item>
@@ -93,25 +91,21 @@ class RepayForm extends React.Component<IProps, IState> {
               type="number"
               step={1e-18}
               min={1e-18}
-              max={transaction.remainingDebt}
+              max={record.remainingDebt}
               onChange={this.onAmountChange}
             />
           </Form.Item>
           <Form.Item>
             <label>{t('remaining')}</label>
-            <Input
-              type="text"
-              disabled
-              value={`${transaction.remainingDebt}`}
-            />
+            <Input type="text" disabled value={`${record.remainingDebt}`} />
           </Form.Item>
           <Form.Item>
             <label>{t('interest')}</label>
             <Input
               type="text"
               disabled
-              value={`${transaction.accruedInterest || 0} ${
-                transaction.loanToken.symbol
+              value={`${record.accruedInterest || 0} ${
+                record.loanToken.symbol
               }`}
             />
           </Form.Item>
@@ -120,8 +114,8 @@ class RepayForm extends React.Component<IProps, IState> {
             <Input
               type="text"
               disabled
-              value={dayjs(transaction.createdAt)
-                .add(transaction.term.value, 'day')
+              value={dayjs(record.createdAt)
+                .add(record.term.value, 'day')
                 .format('YYYY-MM-DD')}
             />
           </Form.Item>
@@ -136,7 +130,7 @@ class RepayForm extends React.Component<IProps, IState> {
         </Form>
       </Card>
     ) : (
-      <Card>{t('transactionId_is_invalid')}</Card>
+      <Card>{t('recordAddress_is_invalid')}</Card>
     );
   }
 }

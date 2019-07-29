@@ -2,16 +2,16 @@ import { nonDeployedContractJsonInterface, web3 } from './Web3Service';
 import { tokenStore } from '..';
 import { terms } from '../../constants/Term';
 import {
-  TransactionType,
-  ILoanTransaction,
-  getLoanTransactionStatus,
-} from '../../constants/Transaction';
+  RecordType,
+  ILoanRecord,
+  getLoanRecordStatus,
+} from '../../constants/Record';
 import { convertWeiToDecimal } from '../../utils/BigNumber';
 import { formatSolidityTime } from '../../utils/formatSolidityTime';
 
 export const getLoan = async (
   loanAddress: string,
-): Promise<ILoanTransaction | null> => {
+): Promise<ILoanRecord | null> => {
   const loanContractInstance = new web3.eth.Contract(
     nonDeployedContractJsonInterface.Loan.abi,
     loanAddress,
@@ -32,10 +32,10 @@ export const getLoan = async (
   }
 
   return {
-    transactionAddress: loanAddress,
+    recordAddress: loanAddress,
     owner: await loanContractInstance.methods.owner().call(),
-    type: TransactionType.Loan,
-    status: await getLoanTransactionStatus(
+    type: RecordType.Loan,
+    status: await getLoanRecordStatus(
       loanContractInstance,
       loanToken,
       collateralToken,

@@ -14,6 +14,7 @@ import Card from '../components/common/Card';
 import Button from '../components/html/Button';
 import { ITerm, terms } from '../constants/Term';
 import { IToken, defaultTokenPairs } from '../constants/Token';
+import { BigNumber, convertWeiToDecimal } from '../utils/BigNumber';
 
 const StyledTokenList = styled.table`
   width: 100%;
@@ -135,6 +136,25 @@ class HomePage extends React.Component<IProps, IState> {
     }
   }
 
+  renderFreedCollateralCell = (
+    token: IToken,
+    freedCollateral: BigNumber | undefined,
+  ) => {
+    const { t } = this.props;
+
+    if (freedCollateral && convertWeiToDecimal(freedCollateral) > 0) {
+      return (
+        <span>
+          {convertWeiToDecimal(freedCollateral)}
+          <StyledAnchor to={`/withdraw/${token.address}`}>
+            {t('withdraw')}
+          </StyledAnchor>
+        </span>
+      );
+    }
+    return <span>0</span>;
+  };
+
   render() {
     const {
       t,
@@ -170,7 +190,7 @@ class HomePage extends React.Component<IProps, IState> {
                 <StyledTokenListRow key={token.symbol}>
                   <td>
                     <Anchor
-                      to={`/transactions?tokenSymbol=${token.symbol}&term=&status=`}
+                      to={`/records?tokenSymbol=${token.symbol}&term=&status=`}
                     >
                       {token.logo}
                       {token.symbol}

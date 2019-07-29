@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { TransactionStore, TokenStore } from '../stores';
+import { RecordStore, TokenStore } from '../stores';
 import Card from '../components/common/Card';
-import TransactionItem from '../containers/TransactionItem';
+import RecordItem from '../containers/RecordItem';
 import Select from '../components/html/Select';
 import Form from '../components/html/Form';
 import { inject, observer } from 'mobx-react';
@@ -11,12 +11,12 @@ import { Row, Cell } from '../components/common/Layout';
 import styled from 'styled-components';
 import { RouteComponentProps, withRouter } from 'react-router';
 import {
-  TransactionStatus,
-  TransactionType,
-  IDepositTransaction,
-  ILoanTransaction,
-  ITransaction,
-} from '../constants/Transaction';
+  RecordStatus,
+  RecordType,
+  IDepositRecord,
+  ILoanRecord,
+  IRecord,
+} from '../constants/Record';
 import { IToken } from '../constants/Token';
 import { updateState } from '../utils/updateState';
 import { stringify, parse } from 'querystring';
@@ -26,13 +26,13 @@ import { ThemedProps } from '../styles/themes';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   tokenStore: TokenStore;
-  transactionStore: TransactionStore;
+  recordStore: RecordStore;
 }
 
 interface IState {
   token?: IToken;
   term?: ITerm;
-  status?: TransactionStatus;
+  status?: RecordStatus;
 }
 
 const StyledHeaderCell = styled(Cell)`
@@ -43,9 +43,9 @@ const StyledHeaderCell = styled(Cell)`
   color: ${(props: ThemedProps) => props.theme.fontColors.secondary};
 `;
 
-@inject('tokenStore', 'transactionStore')
+@inject('tokenStore', 'recordStore')
 @observer
-class TransactionListPage extends React.Component<IProps, IState> {
+class RecordListPage extends React.Component<IProps, IState> {
   state = {
     token: undefined,
     term: undefined,
@@ -53,7 +53,7 @@ class TransactionListPage extends React.Component<IProps, IState> {
   };
 
   async componentDidMount() {
-    const { location, tokenStore, transactionStore } = this.props;
+    const { location, tokenStore, recordStore } = this.props;
     const search = parse(location.search.replace(/\?/gi, ''));
     const token = search.tokenSymbol
       ? toJS(tokenStore.getToken(Array.from(search.tokenSymbol).join('')))
@@ -80,8 +80,8 @@ class TransactionListPage extends React.Component<IProps, IState> {
         status: Number.parseInt(Array.from(status).join(''), 10),
       });
     }
-    await transactionStore.getDepositTransactions();
-    await transactionStore.getLoanTransactions();
+    await recordStore.getDepositRecords();
+    await recordStore.getLoanRecords();
   }
 
   onSelectChange = (key: keyof IState) => (
@@ -102,7 +102,7 @@ class TransactionListPage extends React.Component<IProps, IState> {
       value = Number.parseInt(e.currentTarget.value, 10);
     }
     this.setState(
-      updateState<IToken | ITerm | TransactionStatus | undefined, IState>(
+      updateState<IToken | ITerm | RecordStatus | undefined, IState>(
         key,
         value,
       ),
@@ -123,58 +123,56 @@ class TransactionListPage extends React.Component<IProps, IState> {
     );
   };
 
-  tokenFilter = (transaction: ITransaction) => {
+  tokenFilter = (record: IRecord) => {
     const { token } = this.state;
-    if (token && transaction.type === TransactionType.Deposit) {
+    if (token && record.type === RecordType.Deposit) {
       return (
-        (transaction as IDepositTransaction).token.address ===
-        (token! as IToken).address
+        (record as IDepositRecord).token.address === (token! as IToken).address
       );
-    } else if (token && transaction.type === TransactionType.Loan) {
+    } else if (token && record.type === RecordType.Loan) {
       return (
-        (transaction as ILoanTransaction).loanToken.address ===
-        (token! as IToken).address
+        (record as ILoanRecord).loanToken.address === (token! as IToken).address
       );
     }
     return true;
   };
 
-  termFilter = (transaction: ITransaction) => {
+  termFilter = (record: IRecord) => {
     const { term } = this.state;
     if (term) {
-      return transaction.term.value === (term! as ITerm).value;
+      return record.term.value === (term! as ITerm).value;
     }
     return true;
   };
 
-  statusFilter = (transaction: ITransaction) => {
+  statusFilter = (record: IRecord) => {
     const { status } = this.state;
 
     if (status) {
-      return transaction.status === status;
+      return record.status === status;
     }
     return true;
   };
 
-  filterTransactions = (
-    transactionArray: ITransaction[],
-    ...filters: Array<(value: ITransaction) => boolean>
+  filterRecords = (
+    recordArray: IRecord[],
+    ...filters: Array<(value: IRecord) => boolean>
   ) => {
     return filters.reduce(
-      (filteredTransactions, filter) => filteredTransactions.filter(filter),
-      transactionArray,
+      (filteredRecords, filter) => filteredRecords.filter(filter),
+      recordArray,
     );
   };
 
   render() {
-    const { tokenStore, transactionStore, t } = this.props;
+    const { tokenStore, recordStore, t } = this.props;
 
     const token = this.state.token || { address: undefined };
     const term = this.state.term || { value: undefined };
     const status = this.state.status;
 
-    const filteredTransactions = this.filterTransactions(
-      toJS(transactionStore.transactions),
+    const filteredRecords = this.filterRecords(
+      toJS(recordStore.records),
       this.tokenFilter,
       this.termFilter,
       this.statusFilter,
@@ -225,16 +223,16 @@ class TransactionListPage extends React.Component<IProps, IState> {
           </Cell>
           <Cell>
             <Form.Item>
-              <label htmlFor="status-filter">{t('transaction_status')}</label>
+              <label htmlFor="status-filter">{t('record_status')}</label>
               <Select
                 id="status-filter"
                 value={status}
                 onChange={this.onSelectChange('status')}
               >
                 <option value={undefined}>{t('all')}</option>
-                {getEnumValidKeys(TransactionStatus).map(k => (
+                {getEnumValidKeys(RecordStatus).map(k => (
                   <option key={`status-filter-${k}`} value={k}>
-                    {TransactionStatus[Number.parseInt(k, 10)]}
+                    {RecordStatus[Number.parseInt(k, 10)]}
                   </option>
                 ))}
                 ))}
@@ -250,11 +248,11 @@ class TransactionListPage extends React.Component<IProps, IState> {
             <StyledHeaderCell>{t('matured_at')!}</StyledHeaderCell>
             <StyledHeaderCell>{t('actions')!}</StyledHeaderCell>
           </Row>
-          {filteredTransactions.map(tx => (
-            <TransactionItem
-              transactionStore={transactionStore}
-              key={tx.transactionAddress}
-              transaction={tx}
+          {filteredRecords.map(record => (
+            <RecordItem
+              recordStore={recordStore}
+              key={record.recordAddress}
+              record={record}
             />
           ))}
         </div>
@@ -263,4 +261,4 @@ class TransactionListPage extends React.Component<IProps, IState> {
   }
 }
 
-export default withTranslation()(withRouter(TransactionListPage));
+export default withTranslation()(withRouter(RecordListPage));

@@ -18,12 +18,12 @@ import Input from '../components/html/Input';
 import StyledTextBox from '../components/common/TextBox';
 import Button from '../components/html/Button';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { TokenStore, LoanManagerStore, TransactionStore } from '../stores';
+import { TokenStore, LoanManagerStore, RecordStore } from '../stores';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   tokenStore?: TokenStore;
   loanManagerStore?: LoanManagerStore;
-  transactionStore?: TransactionStore;
+  recordStore?: RecordStore;
   term: number;
   loanTokenSymbol: string;
   collateralTokenSymbol: string;
@@ -37,7 +37,7 @@ interface IState {
   collateralAmount: number;
 }
 
-@inject('tokenStore', 'loanManagerStore', 'transactionStore')
+@inject('tokenStore', 'loanManagerStore', 'recordStore')
 @observer
 class LoanForm extends React.Component<IProps, IState> {
   state = { loanAmount: 0, collateralAmount: 0 };
@@ -51,7 +51,7 @@ class LoanForm extends React.Component<IProps, IState> {
     e.preventDefault();
     const {
       tokenStore,
-      transactionStore,
+      recordStore,
       history,
       term,
       loanTokenSymbol,
@@ -69,7 +69,7 @@ class LoanForm extends React.Component<IProps, IState> {
     // TODO: add input/checkbox field to use freed collateral
     const requestedFreedCollateral = 0;
 
-    await transactionStore!.loan(
+    await recordStore!.loan(
       term,
       loanToken,
       collateralToken,
@@ -78,7 +78,7 @@ class LoanForm extends React.Component<IProps, IState> {
       convertDecimalToWei(requestedFreedCollateral),
     );
 
-    history.push(`/transactions?tokenSymbol=${loanToken.symbol}`);
+    history.push(`/records?tokenSymbol=${loanToken.symbol}`);
   };
 
   renderOption(key: string, value: any, text?: string) {

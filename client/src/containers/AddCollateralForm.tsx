@@ -1,28 +1,28 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { TransactionStore } from '../stores';
+import { RecordStore } from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
-import { TransactionType, ILoanTransaction } from '../constants/Transaction';
+import { RecordType, ILoanRecord } from '../constants/Record';
 import { toJS } from 'mobx';
 import dayjs from 'dayjs';
 import { convertDecimalToWei } from '../utils/BigNumber';
 
 interface IProps
   extends WithTranslation,
-    RouteComponentProps<{ transactionAddress: string }> {
-  transactionStore?: TransactionStore;
+    RouteComponentProps<{ recordAddress: string }> {
+  recordStore?: RecordStore;
 }
 
 interface IState {
   amount: number;
 }
 
-@inject('transactionStore')
+@inject('recordStore')
 @observer
 class AddCollateralForm extends React.Component<IProps, IState> {
   state = {
@@ -30,8 +30,8 @@ class AddCollateralForm extends React.Component<IProps, IState> {
   };
 
   componentDidMount() {
-    const { transactionStore, match } = this.props;
-    transactionStore!.updateLoanTransaction(match.params.transactionAddress);
+    const { recordStore, match } = this.props;
+    recordStore!.updateLoanRecord(match.params.recordAddress);
   }
 
   onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -41,45 +41,42 @@ class AddCollateralForm extends React.Component<IProps, IState> {
 
   onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { transactionStore, match, history } = this.props;
+    const { recordStore, match, history } = this.props;
     const { amount } = this.state;
 
-    await transactionStore!.addCollateral(
-      match.params.transactionAddress,
+    await recordStore!.addCollateral(
+      match.params.recordAddress,
       convertDecimalToWei(amount),
       convertDecimalToWei(0), // TODO request free collateral will add later
     );
-    await transactionStore!.updateLoanTransaction(
-      match.params.transactionAddress,
-    );
-    const transaction = transactionStore!.getTransactionByAddress(
-      match.params.transactionAddress,
-    ) as ILoanTransaction;
+    await recordStore!.updateLoanRecord(match.params.recordAddress);
+    const record = recordStore!.getRecordByAddress(
+      match.params.recordAddress,
+    ) as ILoanRecord;
 
-    history.push(`/transactions?tokenSymbol=${transaction.loanToken.symbol}`);
+    history.push(`/records?tokenSymbol=${record.loanToken.symbol}`);
   };
 
-  getCollateralRatio = (transaction: ILoanTransaction) => {
-    if (!transaction.loanToken.price || !transaction.collateralToken.price) {
+  getCollateralRatio = (record: ILoanRecord) => {
+    if (!record.loanToken.price || !record.collateralToken.price) {
       return 'calculate error';
     }
     return (
-      (transaction.collateralAmount *
-        (transaction.collateralToken.price || 0)) /
-      (transaction.loanToken.price || 1) /
-      transaction.loanAmount
+      (record.collateralAmount * (record.collateralToken.price || 0)) /
+      (record.loanToken.price || 1) /
+      record.loanAmount
     );
   };
 
   render() {
-    const { t, transactionStore, match } = this.props;
-    const transaction = toJS(
-      transactionStore!.transactions.find(
-        tx => tx.transactionAddress === match.params.transactionAddress,
+    const { t, recordStore, match } = this.props;
+    const record = toJS(
+      recordStore!.records.find(
+        tx => tx.recordAddress === match.params.recordAddress,
       ),
-    ) as ILoanTransaction;
+    ) as ILoanRecord;
 
-    return transaction && transaction.type === TransactionType.Loan ? (
+    return record && record.type === RecordType.Loan ? (
       <Card>
         <Form onSubmit={this.onSubmit}>
           <Form.Item>
@@ -87,7 +84,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
             <Input
               type="text"
               disabled
-              value={`${transaction.collateralAmount} ${transaction.collateralToken.symbol}`}
+              value={`${record.collateralAmount} ${record.collateralToken.symbol}`}
             />
           </Form.Item>
           <Form.Item>
@@ -105,7 +102,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
             <Input
               type="text"
               disabled
-              value={this.getCollateralRatio(transaction)}
+              value={this.getCollateralRatio(record)}
             />
           </Form.Item>
           <Form.Item>
@@ -113,8 +110,8 @@ class AddCollateralForm extends React.Component<IProps, IState> {
             <Input
               type="text"
               disabled
-              value={dayjs(transaction.createdAt)
-                .add(transaction.term.value, 'day')
+              value={dayjs(record.createdAt)
+                .add(record.term.value, 'day')
                 .format('YYYY-MM-DD')}
             />
           </Form.Item>
@@ -125,7 +122,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
         </Form>
       </Card>
     ) : (
-      <Card>{t('transactionId_is_invalid')}</Card>
+      <Card>{t('recordAddress_is_invalid')}</Card>
     );
   }
 }

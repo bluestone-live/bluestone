@@ -28,10 +28,10 @@ const routes = [
     }),
   },
   {
-    name: 'transaction-list',
-    path: '/transactions',
+    name: 'record-list',
+    path: '/records',
     component: Loadable({
-      loader: () => import('../pages/TransactionListPage'),
+      loader: () => import('../pages/RecordListPage'),
       loading: Loading,
     }),
   },
@@ -45,7 +45,7 @@ const routes = [
   },
   {
     name: 'loan-add-collateral',
-    path: '/loan/collateral/add/:transactionAddress',
+    path: '/loan/collateral/add/:recordAddress',
     component: Loadable({
       loader: () => import('../pages/AddCollateralPage'),
       loading: Loading,
@@ -53,7 +53,7 @@ const routes = [
   },
   {
     name: 'loan-withdraw-collateral',
-    path: '/loan/collateral/withdraw/:transactionAddress',
+    path: '/loan/collateral/withdraw/:recordAddress',
     component: Loadable({
       loader: () => import('../pages/WithdrawFreedCollateralPage'),
       loading: Loading,
@@ -61,7 +61,7 @@ const routes = [
   },
   {
     name: 'loan-repay',
-    path: '/loan/repay/:transactionAddress',
+    path: '/loan/repay/:recordAddress',
     component: Loadable({
       loader: () => import('../pages/RepayPage'),
       loading: Loading,

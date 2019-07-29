@@ -6,6 +6,7 @@ import { stringify } from 'querystring';
 import { inject } from 'mobx-react';
 import { TokenStore, LoanManagerStore, loanManagerStore } from '../stores';
 import { IToken } from '../constants/Token';
+import { terms } from '../constants/Term';
 
 interface IProps extends RouteComponentProps {
   tokenStore: TokenStore;
@@ -21,6 +22,14 @@ interface IProps extends RouteComponentProps {
 @inject('tokenStore', 'loanManagerStore')
 class LoanPage extends React.Component<IProps> {
   componentDidMount() {
+    this.setDefaultParams();
+  }
+
+  componentDidUpdate() {
+    this.setDefaultParams();
+  }
+
+  setDefaultParams = () => {
     const {
       location: { search },
       tokenStore,
@@ -44,14 +53,15 @@ class LoanPage extends React.Component<IProps> {
           : loanManagerStore!.getCollateralSymbolsByLoanSymbol(
               defaultLoanSymbol,
             )[0];
-      const defaultTerm = '30';
+      const defaultTerm = terms[0].value.toString();
+
       this.updateQueryParams({
         loanTokenSymbol: defaultLoanSymbol,
         collateralTokenSymbol: defaultCollateralSymbol,
         term: defaultTerm,
       });
     }
-  }
+  };
 
   updateQueryParams = (params: { [key: string]: string }) => {
     const {

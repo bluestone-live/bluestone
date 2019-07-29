@@ -45,7 +45,7 @@ export const deposit = async (
   );
 };
 
-export const getDepositTransactions = async (): Promise<string[]> => {
+export const getDepositRecords = async (): Promise<string[]> => {
   const contracts = await getContracts();
   return contracts.DepositManager.methods
     .getDepositsByUser(accountStore.defaultAccount)

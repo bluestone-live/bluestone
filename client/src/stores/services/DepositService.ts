@@ -2,16 +2,16 @@ import { nonDeployedContractJsonInterface, web3 } from './Web3Service';
 import { tokenStore } from '..';
 import { terms } from '../../constants/Term';
 import {
-  TransactionType,
-  getDepositTransactionStatus,
-  IDepositTransaction,
-} from '../../constants/Transaction';
+  RecordType,
+  getDepositRecordStatus,
+  IDepositRecord,
+} from '../../constants/Record';
 import { convertWeiToDecimal } from '../../utils/BigNumber';
 import { formatSolidityTime } from '../../utils/formatSolidityTime';
 
 export const getDeposit = async (
   depositAddress: string,
-): Promise<IDepositTransaction | null> => {
+): Promise<IDepositRecord | null> => {
   const depositContractInstance = new web3.eth.Contract(
     nonDeployedContractJsonInterface.Deposit.abi,
     depositAddress,
@@ -25,10 +25,10 @@ export const getDeposit = async (
     return null;
   }
   return {
-    transactionAddress: depositAddress,
+    recordAddress: depositAddress,
     owner: await depositContractInstance.methods.owner().call(),
-    type: TransactionType.Deposit,
-    status: await getDepositTransactionStatus(depositContractInstance),
+    type: RecordType.Deposit,
+    status: await getDepositRecordStatus(depositContractInstance),
     token,
     term,
     depositAmount: convertWeiToDecimal(

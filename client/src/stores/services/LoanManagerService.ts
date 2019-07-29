@@ -39,7 +39,7 @@ export const loan = async (
   );
 };
 
-export const getLoanTransactions = async (): Promise<string[]> => {
+export const getLoanRecords = async (): Promise<string[]> => {
   const { LoanManager } = await getContracts();
 
   return LoanManager.methods.getLoansByUser(accountStore.defaultAccount).call();
@@ -94,10 +94,7 @@ export const addCollateral = async (
   );
 };
 
-export const repayLoan = async (
-  transactionAddress: string,
-  amount: BigNumber,
-) => {
+export const repayLoan = async (recordAddress: string, amount: BigNumber) => {
   const flow = await getContractEventFlow(
     'LoanManager',
     'RepayLoanSuccessful',
@@ -108,12 +105,12 @@ export const repayLoan = async (
 
   return flow(LoanManager =>
     LoanManager.methods
-      .repayLoan(transactionAddress, amount.toString())
+      .repayLoan(recordAddress, amount.toString())
       .send({ from: accountStore.defaultAccount }),
   );
 };
 
-export const repayFully = async (transactionAddress: string) => {
+export const repayFully = async (recordAddress: string) => {
   const flow = await getContractEventFlow(
     'LoanManager',
     'RepayLoanSuccessful',
@@ -124,7 +121,7 @@ export const repayFully = async (transactionAddress: string) => {
 
   return flow(LoanManager =>
     LoanManager.methods
-      .repayLoanFully(transactionAddress)
+      .repayLoanFully(recordAddress)
       .send({ from: accountStore.defaultAccount }),
   );
 };

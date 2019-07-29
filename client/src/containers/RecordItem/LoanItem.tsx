@@ -1,9 +1,6 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import {
-  ILoanTransaction,
-  TransactionStatus,
-} from '../../constants/Transaction';
+import { ILoanRecord, RecordStatus } from '../../constants/Record';
 import { Row, Cell } from '../../components/common/Layout';
 import Button from '../../components/html/Button';
 import Anchor from '../../components/html/Anchor';
@@ -13,7 +10,7 @@ import { ThemedProps } from '../../styles/themes';
 import dayjs from 'dayjs';
 
 interface IProps extends WithTranslation, RouteComponentProps {
-  loanTransaction: ILoanTransaction;
+  loanRecord: ILoanRecord;
 }
 
 const StyledItemCell = styled(Cell)`
@@ -23,24 +20,24 @@ const StyledItemCell = styled(Cell)`
   padding: ${(props: ThemedProps) => props.theme.gap.small};
 `;
 
-class LoanTransactionItem extends React.Component<IProps> {
+class LoanRecordItem extends React.Component<IProps> {
   goTo = (path: string) => () => this.props.history.push(path);
 
   getActions = () => {
-    const { loanTransaction, t } = this.props;
-    if (loanTransaction.status === TransactionStatus.LoanLiquidating) {
+    const { loanRecord, t } = this.props;
+    if (loanRecord.status === RecordStatus.LoanLiquidating) {
       return (
         <Button disabled fullWidth>
-          {t('transaction_liquidating')}
+          {t('record_liquidating')}
         </Button>
       );
     }
-    if (loanTransaction.status === TransactionStatus.LoanClosed) {
+    if (loanRecord.status === RecordStatus.LoanClosed) {
       return (
         <Button.Group>
           <Button
             onClick={this.goTo(
-              `loan/collateral/withdraw/${loanTransaction.transactionAddress}`,
+              `loan/collateral/withdraw/${loanRecord.recordAddress}`,
             )}
           >
             {t('withdraw_collateral')}
@@ -52,16 +49,14 @@ class LoanTransactionItem extends React.Component<IProps> {
       <Button.Group>
         <Button
           onClick={this.goTo(
-            `/loan/collateral/add/${loanTransaction.transactionAddress}`,
+            `/loan/collateral/add/${loanRecord.recordAddress}`,
           )}
         >
           {t('add_collateral')}
         </Button>
         <Button
           primary
-          onClick={this.goTo(
-            `/loan/repay/${loanTransaction.transactionAddress}`,
-          )}
+          onClick={this.goTo(`/loan/repay/${loanRecord.recordAddress}`)}
         >
           {t('repay')}
         </Button>
@@ -70,22 +65,22 @@ class LoanTransactionItem extends React.Component<IProps> {
   };
 
   render() {
-    const { loanTransaction } = this.props;
+    const { loanRecord } = this.props;
 
     return (
       <div className="deposit-item">
         <Row>
           <StyledItemCell>
             <Anchor to="/action-logs">
-              collateral: {loanTransaction.collateralToken.symbol}; loan:
-              {loanTransaction.loanToken.symbol}
+              collateral: {loanRecord.collateralToken.symbol}; loan:
+              {loanRecord.loanToken.symbol}
             </Anchor>
           </StyledItemCell>
-          <StyledItemCell>{loanTransaction.term.text}</StyledItemCell>
-          <StyledItemCell>{loanTransaction.loanAmount}</StyledItemCell>
+          <StyledItemCell>{loanRecord.term.text}</StyledItemCell>
+          <StyledItemCell>{loanRecord.loanAmount}</StyledItemCell>
           <StyledItemCell>
-            {dayjs(loanTransaction.createdAt)
-              .add(loanTransaction.term.value, 'day')
+            {dayjs(loanRecord.createdAt)
+              .add(loanRecord.term.value, 'day')
               .format('YYYY-MM-DD')}
           </StyledItemCell>
           <StyledItemCell>{this.getActions()}</StyledItemCell>
@@ -95,4 +90,4 @@ class LoanTransactionItem extends React.Component<IProps> {
   }
 }
 
-export default withTranslation()(withRouter(LoanTransactionItem));
+export default withTranslation()(withRouter(LoanRecordItem));

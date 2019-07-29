@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { TransactionStore, TokenStore } from '../stores';
+import { RecordStore, TokenStore } from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -20,7 +20,7 @@ import {
 interface IProps
   extends WithTranslation,
     RouteComponentProps<{ tokenSymbol: string }> {
-  transactionStore?: TransactionStore;
+  recordStore?: RecordStore;
   tokenStore?: TokenStore;
 }
 
@@ -41,7 +41,7 @@ const isAutoRenewal = [
   },
 ];
 
-@inject('transactionStore', 'tokenStore')
+@inject('recordStore', 'tokenStore')
 @observer
 class DepositForm extends React.Component<IProps, IState> {
   state = {
@@ -96,18 +96,18 @@ class DepositForm extends React.Component<IProps, IState> {
   onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { transactionStore, tokenStore, match, history } = this.props;
+    const { recordStore, tokenStore, match, history } = this.props;
     const currentToken = tokenStore!.getToken(match.params.tokenSymbol);
     const { selectedAutoRenewal, selectedTerm, amount } = this.state;
 
-    await transactionStore!.deposit(
+    await recordStore!.deposit(
       currentToken!,
       selectedTerm.value,
       convertDecimalToWei(amount),
       selectedAutoRenewal.value,
     );
 
-    history.push(`/transactions?tokenSymbol=${match.params.tokenSymbol}`);
+    history.push(`/records?tokenSymbol=${match.params.tokenSymbol}`);
   };
 
   render() {
