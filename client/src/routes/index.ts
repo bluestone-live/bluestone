@@ -67,14 +67,6 @@ const routes = [
       loading: Loading,
     }),
   },
-  {
-    name: 'action-logs',
-    path: '/action-logs',
-    component: Loadable({
-      loader: () => import('../pages/ActionLogsPage'),
-      loading: Loading,
-    }),
-  },
 ];
 
 export default routes;
