@@ -31,7 +31,7 @@ contract LoanManager is Ownable, Pausable, Term {
     event LoanSuccessful(address indexed user, Loan loan);
     event RepayLoanSuccessful(address indexed user, Loan loan);
     event AddCollateralSuccessful(address indexed user, Loan loan);
-    event WithdrawFreeCollateralSuccessful(address indexed user);
+    event WithdrawFreedCollateralSuccessful(address indexed user);
 
     /// loan asset -> collateral asset -> enabled
     /// An loan asset pair refers to loan token A using collateral B, i.e., "B -> A",
@@ -245,7 +245,7 @@ contract LoanManager is Ownable, Pausable, Term {
         address user = msg.sender;
         _withdrawFreedCollateral(user, asset, amount);
         _tokenManager.sendTo(user, asset, amount);
-        emit WithdrawFreeCollateralSuccessful(user);
+        emit WithdrawFreedCollateralSuccessful(user);
     }
 
     function getFreedCollateral(address asset) external whenNotPaused view returns (uint) {

@@ -2,6 +2,7 @@ import { getContracts, getContractEventFlow } from './Web3Service';
 import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
 import { EventData } from 'web3-eth-contract';
+import { EventName } from '../../constants/Event';
 
 export const isLoanAssetPairEnabled = async (
   loanAssetAddress: string,
@@ -21,9 +22,13 @@ export const loan = async (
   collateralAmount: BigNumber,
   requestedFreedCollateral: BigNumber = new BigNumber(0),
 ): Promise<EventData> => {
-  const flow = await getContractEventFlow('LoanManager', 'LoanSuccessful', {
-    filter: { user: accountStore.defaultAccount },
-  });
+  const flow = await getContractEventFlow(
+    'LoanManager',
+    EventName.LoanSuccessful,
+    {
+      filter: { user: accountStore.defaultAccount },
+    },
+  );
 
   return flow(LoanManager =>
     LoanManager.methods
@@ -57,7 +62,7 @@ export const withdrawFreedCollateral = async (
 ) => {
   const flow = await getContractEventFlow(
     'LoanManager',
-    'WithdrawFreeCollateralSuccessful',
+    EventName.WithdrawFreedCollateralSuccessful,
     {
       filter: { user: accountStore.defaultAccount },
     },
@@ -77,7 +82,7 @@ export const addCollateral = async (
 ) => {
   const flow = await getContractEventFlow(
     'LoanManager',
-    'AddCollateralSuccessful',
+    EventName.AddCollateralSuccessful,
     {
       filter: { user: accountStore.defaultAccount },
     },
@@ -97,7 +102,7 @@ export const addCollateral = async (
 export const repayLoan = async (recordAddress: string, amount: BigNumber) => {
   const flow = await getContractEventFlow(
     'LoanManager',
-    'RepayLoanSuccessful',
+    EventName.RepayLoanSuccessful,
     {
       filter: { user: accountStore.defaultAccount },
     },
@@ -113,7 +118,7 @@ export const repayLoan = async (recordAddress: string, amount: BigNumber) => {
 export const repayFully = async (recordAddress: string) => {
   const flow = await getContractEventFlow(
     'LoanManager',
-    'RepayLoanSuccessful',
+    EventName.RepayLoanSuccessful,
     {
       filter: { user: accountStore.defaultAccount },
     },

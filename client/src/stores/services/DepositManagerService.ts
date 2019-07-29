@@ -1,6 +1,7 @@
 import { getContracts, getContractEventFlow } from './Web3Service';
 import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
+import { EventName } from '../../constants/Event';
 
 export const isDepositAssetEnabled = async (
   tokenAddress: string,
@@ -34,7 +35,7 @@ export const deposit = async (
 ) => {
   const flow = await getContractEventFlow(
     'DepositManager',
-    'DepositSuccessful',
+    EventName.DepositSuccessful,
     { filter: { user: accountStore.defaultAccount } },
   );
 
@@ -58,7 +59,7 @@ export const toggleRenewal = async (
 ) => {
   const flow = await getContractEventFlow(
     'DepositManager',
-    'SetRecurringDepositSuccessful',
+    EventName.SetRecurringDepositSuccessful,
     { filter: { user: accountStore.defaultAccount } },
   );
 
@@ -72,7 +73,7 @@ export const toggleRenewal = async (
 export const withdraw = async (depositAddress: string) => {
   const flow = await getContractEventFlow(
     'DepositManager',
-    'WithdrawDepositSuccessful',
+    EventName.WithdrawDepositSuccessful,
     { filter: { user: accountStore.defaultAccount } },
   );
 
