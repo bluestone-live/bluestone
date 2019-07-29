@@ -4,7 +4,8 @@ const Configuration = artifacts.require("Configuration");
 const PriceOracle = artifacts.require("PriceOracle");
 const TokenManager = artifacts.require("TokenManager");
 const LiquidityPools = artifacts.require("LiquidityPools");
-const { shouldFail, BN, time } = require("openzeppelin-test-helpers");
+const Loan = artifacts.require("Loan");
+const { time } = require("openzeppelin-test-helpers");
 const { createERC20Token, toFixedBN } = require("../../utils/index.js");
 const { expect } = require("chai");
 
@@ -115,7 +116,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     });
 
     context("after 6 days", () => {
-      let repayAmount, repayLoanSuccessfulLogs;
+      let repayAmount;
 
       before(async () => {
         await time.increase(time.duration.days(6));
@@ -124,17 +125,11 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
 
       it("repays in full", async () => {
         const loanAddress = await loanManager.loans.call(0);
-
-        repayAmount = await loanManager.repayLoan.call(loanAddress, "-1", {
+        const loan = await Loan.at(loanAddress)
+        repayAmount = await loan.remainingDebt()
+        await loanManager.repayLoan(loanAddress, repayAmount, {
           from: loaner
         });
-
-        const { logs } = await loanManager.repayLoan(loanAddress, "-1", {
-          from: loaner
-        });
-        repayLoanSuccessfulLogs = logs.filter(
-          ({ event }) => event === "RepayLoanSuccessful"
-        );
       });
 
       it("reduces loan asset balance from loaner", async () => {

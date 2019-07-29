@@ -1,5 +1,5 @@
 const Loan = artifacts.require('Loan')
-const { shouldFail, time, BN } = require('openzeppelin-test-helpers')
+const { shouldFail, BN } = require('openzeppelin-test-helpers')
 const { toFixedBN, createERC20Token } = require('../../utils/index.js')
 const { expect } = require('chai')
 
@@ -7,7 +7,7 @@ contract('Loan', ([owner]) => {
   const term = 30
   const loanAmount = toFixedBN(100)
   const collateralAmount = toFixedBN(300)
-  const interestRate = toFixedBN(5, 10)
+  const interestRate = toFixedBN(0.1)
   const minCollateralRatio = toFixedBN(1.5)
   const liquidationDiscount = toFixedBN(0.05)
   let loanAsset, collateralAsset
@@ -31,9 +31,9 @@ contract('Loan', ([owner]) => {
       )
   }
 
-  let loan
-
   describe('#setRecord', () => {
+    let loan
+
     before(async () => loan = await createLoan())
 
     it('succeeds', async () => {
@@ -43,50 +43,54 @@ contract('Loan', ([owner]) => {
     })
   })
 
-  describe('#accuredInterest', () => {
+  describe('#interest', () => {
+    let loan
+
     before(async () => loan = await createLoan())
 
     it('generates interest', async () => {
-      const twoDays = time.duration.days(2)
-      await time.increase(twoDays)        
-      
-      const accruedInterest = loanAmount.mul(interestRate).mul(twoDays).div(toFixedBN(1))
+      const interest = loanAmount
+        .mul(interestRate)
+        .mul(toFixedBN(term))
+        .div(toFixedBN(365))
+        .div(toFixedBN(1))
 
-      // time.increase() may not guarantee exact block time, use this 
-      // interest error to tolerate small fluctuations in time
-      const acceptableInterestError = toFixedBN(1, 14) // 0.0001
-
-      expect(await loan.accruedInterest())
-        .to.be.bignumber
-        .closeTo(accruedInterest, acceptableInterestError)
+      expect(await loan.interest()).to.be.bignumber.equal(interest)
     })
   })
 
   describe('#repay', () => {
+    let loan
+
     before(async () => loan = await createLoan())
 
     context('when repay amount is more than remaining debt', () => {
       it('reverts', async () => {
+        const amount = await loan.remainingDebt()
+
         await shouldFail.reverting(
-          loan.repay(toFixedBN(101))        
+          loan.repay(amount.add(toFixedBN(1))) 
         )
       })
     })
 
-    context('1. partial repay', () => {
-      const repayAmount = toFixedBN(50)
+    context('partial repay', () => {
+      let loan
+      const amount = toFixedBN(50)
+
+      before(async () => loan = await createLoan())
 
       it('does not return freed collateral', async () => {
-        const res = await loan.repay.call(repayAmount)    
+        const res = await loan.repay.call(amount)    
         expect(res[1]).to.be.bignumber.equal('0')
       })
 
       it('repays in partial', async () => {
-        await loan.repay(repayAmount)
+        await loan.repay(amount)
       })
 
       it('updates alreadyPaidAmount', async () => {
-        expect(await loan.alreadyPaidAmount()).to.be.bignumber.equal(repayAmount)
+        expect(await loan.alreadyPaidAmount()).to.be.bignumber.equal(amount)
       })
 
       it('does not close the loan', async () => {
@@ -95,13 +99,21 @@ contract('Loan', ([owner]) => {
     })
 
     context('2. full repay', () => {
+      let loan, amount
+
+      before(async () => loan = await createLoan())
+
+      before(async () => {
+        amount = await loan.remainingDebt()
+      })
+
       it('returns freed collateral', async () => {
-        const res = await loan.repay.call('-1')    
+        const res = await loan.repay.call(amount)    
         expect(res[1]).to.be.bignumber.equal(collateralAmount)
       })
 
       it('repays in full', async () => {
-        await loan.repay('-1')
+        await loan.repay(amount)
       })
 
       it('closes the loan', async () => {
@@ -111,28 +123,22 @@ contract('Loan', ([owner]) => {
   })
 
   describe('#liquidate', () => {
-    before(async () => loan = await createLoan())
-
     const assetPrice = toFixedBN(100)
     const collateralPrice = toFixedBN(100)
     
-    context('when liquidate amount is more than remaining debt', () => {
-      it('reverts', async () => {
-        await shouldFail.reverting(
-          loan.liquidate(toFixedBN(101), assetPrice, collateralPrice)        
-        )
-      })
-    })
+    context('partial liquidate', () => {
+      let loan
 
-    context('1. partial liquidate', () => {
-      const requestedAmount = toFixedBN(50)
+      before(async () => loan = await createLoan())
+
+      const amount = toFixedBN(50)
 
       it('liquidates in partial', async () => {
-        await loan.liquidate(requestedAmount, assetPrice, collateralPrice)
+        await loan.liquidate(amount, assetPrice, collateralPrice)
       })
 
       it('updates liquidatedAmount', async () => {
-        expect(await loan.liquidatedAmount()).to.be.bignumber.equal(requestedAmount)
+        expect(await loan.liquidatedAmount()).to.be.bignumber.equal(amount)
       })
 
       it('updates soldCollateralAmount', async () => {
@@ -145,17 +151,45 @@ contract('Loan', ([owner]) => {
       })
     })
 
-    context('2. full liquidate after one day', () => {
+    context('full liquidate', () => {
+      let loan, amount
+
       before(async () => {
-        await time.increase(time.duration.days(1))
+        loan = await createLoan()
+        amount = await loan.remainingDebt()
       })
 
       it('liquidates in full', async () => {
-        await loan.liquidate('-1', assetPrice, collateralPrice)
+        await loan.liquidate(amount, assetPrice, collateralPrice)
       })
 
       it('updates liquidatedAmount', async () => {
-        expect(await loan.liquidatedAmount()).to.be.bignumber.above(loanAmount)
+        expect(await loan.liquidatedAmount()).to.be.bignumber.equal(amount)
+      })
+
+      it('has no remaining debt', async () => {
+        expect(await loan.remainingDebt()).to.be.bignumber.equal('0')
+      })
+
+      it('closes the loan', async () => {
+        expect(await loan.isClosed()).to.be.true
+      })
+    })
+
+    context('when liquidate amount is more than remaining debt', () => {
+      let loan, amount
+
+      before(async () => {
+        loan = await createLoan()
+        amount = await loan.remainingDebt()
+      })
+
+      it('liquidates in full', async () => {
+        await loan.liquidate(amount.add(toFixedBN(1)), assetPrice, collateralPrice)        
+      })
+
+      it('updates liquidatedAmount', async () => {
+        expect(await loan.liquidatedAmount()).to.be.bignumber.equal(amount)
       })
 
       it('has no remaining debt', async () => {

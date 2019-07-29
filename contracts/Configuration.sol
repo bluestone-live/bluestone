@@ -16,7 +16,7 @@ contract Configuration is Ownable, Term {
     // loan asset address -> collateral asset address -> liquidation discount
     mapping(address => mapping(address => uint)) private _liquidationDiscountMap;
 
-    // loan asset address -> loan term -> loan interest rate
+    // loan asset address -> loan term -> loan annual interest rate
     mapping(address => mapping(uint8 => uint)) private _loanInterestRates;
 
     /// loan asset address -> deposit term -> loan term -> coeffcient

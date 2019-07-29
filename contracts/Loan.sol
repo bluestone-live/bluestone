@@ -1,6 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/math/Math.sol";
 import "./FixedMath.sol";
 
 
@@ -14,10 +15,10 @@ contract Loan {
     uint8 private _term;
     uint private _loanAmount;
     uint private _collateralAmount;
-    uint private _interestRate;
+    uint private _annualInterestRate;
+    uint private _interest;
     uint private _minCollateralRatio;
     uint private _liquidationDiscount;
-    uint private _accruedInterest;
     uint private _alreadyPaidAmount;
     uint private _liquidatedAmount;
     uint private _soldCollateralAmount;
@@ -42,7 +43,7 @@ contract Loan {
         uint8 term, 
         uint loanAmount, 
         uint collateralAmount, 
-        uint interestRate, 
+        uint annualInterestRate, 
         uint minCollateralRatio,
         uint liquidationDiscount
     ) 
@@ -54,10 +55,13 @@ contract Loan {
         _term = term;
         _loanAmount = loanAmount;
         _collateralAmount = collateralAmount;
-        _interestRate = interestRate;
+        _annualInterestRate = annualInterestRate;
+
+        // calculate simple interest
+        _interest = loanAmount.mulFixed(annualInterestRate).mul(term).div(365); 
+
         _minCollateralRatio = minCollateralRatio;
         _liquidationDiscount = liquidationDiscount;
-        _accruedInterest = 0;
         _alreadyPaidAmount = 0;
         _liquidatedAmount = 0;
         _soldCollateralAmount = 0;
@@ -80,37 +84,29 @@ contract Loan {
         _collateralAmount = _collateralAmount.add(amount);    
     }
 
-    /// @param amount The amount to repay (or -1 for max)
+    /// @param amount The amount to repay
     /// @return (repaidAmount, freedCollateralAmount)
     function repay(uint amount) external returns (uint, uint) {
-        require(!_isClosed);
+        require(!_isClosed, "Loan must not be closed.");
 
-        updateAccruedInterest();
         uint currRemainingDebt = remainingDebt();
-        uint repaidAmount;
 
-        // uint -1 will be 2^53-1, It's can be used here but I'm afraid it's not a good practice.
-        if (amount == uint(-1)) {
-            repaidAmount = currRemainingDebt;
-        } else {
-            require(amount <= currRemainingDebt);
-            repaidAmount = amount;
-        }
+        require(amount <= currRemainingDebt, "Invalid repay amount.");
 
-        _alreadyPaidAmount = _alreadyPaidAmount.add(repaidAmount);
+        _alreadyPaidAmount = _alreadyPaidAmount.add(amount);
         _lastRepaidAt = now;
 
         if (remainingDebt() == 0) {
             _isClosed = true;
 
             uint freedCollateralAmount = _collateralAmount.sub(_soldCollateralAmount);
-            return (repaidAmount, freedCollateralAmount);
+            return (amount, freedCollateralAmount);
         } else {
-            return (repaidAmount, 0);
+            return (amount, 0);
         }
     }
 
-    function liquidate(uint requestedAmount, uint loanAssetPrice, uint collateralAssetPrice) 
+    function liquidate(uint amount, uint loanAssetPrice, uint collateralAssetPrice) 
         external
         returns (uint, uint, uint)
     {
@@ -118,23 +114,8 @@ contract Loan {
         require(loanAssetPrice > 0, "Asset price must be greater than 0.");
         require(collateralAssetPrice > 0, "Collateral price must be greater than 0.");
 
-        updateAccruedInterest();
         uint currRemainingDebt = remainingDebt();
-        uint liquidatingAmount;
-
-        if (requestedAmount == uint(-1)) {
-            // Liquidate the full remaining debt
-            liquidatingAmount = currRemainingDebt;
-        } else {
-            // Liquidate a partial of remaining debt
-
-            require(
-                requestedAmount <= currRemainingDebt, 
-                "Requested amount must not be greater than remaining debt."
-            );
-
-            liquidatingAmount = requestedAmount;
-        }
+        uint liquidatingAmount = Math.min(amount, currRemainingDebt);
 
         uint soldCollateralAmount = liquidatingAmount
             .mulFixed(loanAssetPrice)
@@ -194,6 +175,14 @@ contract Loan {
         return _soldCollateralAmount;
     }
 
+    function annualInterestRate() external view returns (uint) {
+        return _annualInterestRate;
+    }
+
+    function interest() external view returns (uint) {
+        return _interest;
+    }
+
     function getRecord(uint8 depositTerm, uint8 poolIndex) external view returns (uint) {
         return _records[depositTerm][poolIndex];
     }
@@ -207,12 +196,7 @@ contract Loan {
     }
 
     // Check whether the loan is defaulted or under the required collaterization ratio
-    function isLiquidatable(uint loanAssetPrice, uint collateralAssetPrice) external returns (bool) {
-        if (_isClosed) {
-            return false;
-        }
-        updateAccruedInterest();
-
+    function isLiquidatable(uint loanAssetPrice, uint collateralAssetPrice) external view returns (bool) {
         uint currCollateralRatio = _collateralAmount.sub(_soldCollateralAmount)
             .mulFixed(collateralAssetPrice)
             .divFixed(remainingDebt())
@@ -224,20 +208,8 @@ contract Loan {
         return isUnderCollateralized || isOverDue;
     }
 
-    /// The latest accured interest is calculated upon query
-    function accruedInterest() public view returns (uint) {
-        uint prevRemainingDebt = remainingDebt();
-        uint newInterest = prevRemainingDebt.mulFixed(_interestRate.mul(now - _lastInterestUpdatedAt));
-        return _accruedInterest.add(newInterest);
-    }
-
-    // The remaining debt equals to orignal loan + accrued interest - repaid loan - liquidated loan.
+    // The remaining debt equals to orignal loan + interest - repaid loan - liquidated loan.
     function remainingDebt() public view returns (uint) {
-        return _loanAmount.add(_accruedInterest).sub(_alreadyPaidAmount).sub(_liquidatedAmount);
-    }
-
-    function updateAccruedInterest() private {
-        _accruedInterest = accruedInterest();
-        _lastInterestUpdatedAt = now;
+        return _loanAmount.add(_interest).sub(_alreadyPaidAmount).sub(_liquidatedAmount);
     }
 }

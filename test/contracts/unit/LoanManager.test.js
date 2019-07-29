@@ -107,21 +107,26 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     });
   });
 
-  describe("#getFreeCollateral", () => {
+  describe("#getFreedCollateral", () => {
     before(async () => {
       await createLoan();
       await createLoan();
     });
 
-    it("should be prev free collateral add new loan collateral amount", async () => {
+    it("frees collateral after fully repay", async () => {
       const prevFreeCollateralAssetBalance = await loanManager.getFreedCollateral(
         collateralAsset.address,
         { from: loaner }
       );
+
       const loanAddress = await loanManager.loans.call(1);
-      await loanManager.repayLoan(loanAddress, "-1", {
+      const loan = await Loan.at(loanAddress)
+      const repayAmount = await loan.remainingDebt()
+
+      await loanManager.repayLoan(loanAddress, repayAmount, {
         from: loaner
       });
+
       const freeCollateralAssetBalance = await loanManager.getFreedCollateral(
         collateralAsset.address,
         { from: loaner }
