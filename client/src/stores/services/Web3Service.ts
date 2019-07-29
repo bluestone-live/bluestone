@@ -2,7 +2,6 @@ import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { EventData, Contract, EventOptions } from 'web3-eth-contract';
 import { accountStore } from '..';
-import { convertDecimalToWei } from '../../utils/BigNumber';
 import { EventName } from '../../constants/Event';
 
 const requireContract = (contractName: string) =>
@@ -158,11 +157,11 @@ export const getContractEventFlow = async (
   return eventFlow;
 };
 
-export const getPassEvents = async (
+export const getPastEvents = async (
   contract: keyof DeployedContractInstances | Contract,
   eventName: EventName,
   options?: EventOptions,
-) => {
+): Promise<EventData[]> => {
   let contractInstance: Contract;
   if (typeof contract === 'string') {
     const contracts = await getContracts();
@@ -170,7 +169,7 @@ export const getPassEvents = async (
   } else {
     contractInstance = contract;
   }
-  contractInstance.getPastEvents(
+  return contractInstance.getPastEvents(
     eventName,
     options || {
       filter: {
