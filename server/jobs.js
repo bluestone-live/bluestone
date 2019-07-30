@@ -43,16 +43,7 @@ const updateDepositMaturity = createCronJob(CRON_EXP.EVERY_MIDNIGHT, async () =>
   debug(stderr)
 })
 
-// Update interest index histories for enabled deposit assets every midnight.
-const updateInterestIndexHistories = createCronJob(CRON_EXP.EVERY_MIDNIGHT, async () => {
-  const debug = _debug.extend('updateInterestIndexHistories')
-  const { stdout, stderr } = await exec('./scripts/bash/updateInterestIndexHistories')
-  debug(stdout)
-  debug(stderr)
-})
-
 module.exports = {
   postTokenPrices,
-  updateDepositMaturity,
-  updateInterestIndexHistories
+  updateDepositMaturity
 }

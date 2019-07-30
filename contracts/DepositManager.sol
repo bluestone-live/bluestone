@@ -36,12 +36,7 @@ contract DepositManager is Ownable, Pausable, Term {
         // If this asset has been initialized before
         bool isInitialized;
 
-        // deposit term -> interest index as of last update
-        mapping(uint8 => uint) interestIndexPerTerm;
-
-        // deposit term -> timestamp as of last update
-        mapping(uint8 => uint) lastTimestampPerTerm;
-
+        // TODO: remove it
         // deposit term -> interest rate as of last update
         mapping(uint8 => uint) lastInterestRatePerTerm;
 
@@ -73,8 +68,6 @@ contract DepositManager is Ownable, Pausable, Term {
     mapping(address => Deposit[]) private _depositsByUser;
 
     uint private _numDeposit;
-
-    uint constant private ONE = 10 ** 18;
 
     // How many days of interest index we want to keep in InterestIndexHistory
     uint constant private DAYS_OF_INTEREST_INDEX_TO_KEEP = 30;
@@ -201,33 +194,13 @@ contract DepositManager is Ownable, Pausable, Term {
         return _depositAssets[asset].isEnabled;
     }
 
+    // TODO: remove it
     function getDepositInterestRate(address asset, uint8 term) external view enabledDepositAsset(asset) returns (uint) {
         return _depositAssets[asset].lastInterestRatePerTerm[term];
     }
 
     function getDepositsByUser(address user) external whenNotPaused view returns (Deposit[] memory) {
         return _depositsByUser[user];
-    }
-
-    // Calculate new interest rate and interest index, and update them in DepositAsset
-    function updateDepositAssetInterestInfo(address asset, uint8 term) public whenNotPaused returns (uint) {
-        // TODO: verify msg.sender to be DepositManager or LoanManager
-
-        DepositAsset storage depositAsset = _depositAssets[asset];
-
-        uint currTimestamp = now;
-        uint lastTimestamp = depositAsset.lastTimestampPerTerm[term];
-        uint prevInterestIndex = depositAsset.interestIndexPerTerm[term];
-        uint interestRate = _calculateInterestRate(asset, term);
-        uint duration = currTimestamp.sub(lastTimestamp);
-
-        uint currInterestIndex = _calculateInterestIndex(prevInterestIndex, interestRate, duration);
-
-        depositAsset.interestIndexPerTerm[term] = currInterestIndex;
-        depositAsset.lastTimestampPerTerm[term] = currTimestamp;
-        depositAsset.lastInterestRatePerTerm[term] = interestRate;
-
-        return currInterestIndex;
     }
 
     // ADMIN --------------------------------------------------------------
@@ -240,9 +213,6 @@ contract DepositManager is Ownable, Pausable, Term {
         _liquidityPools.initPoolGroupsIfNeeded(asset);
 
         if (!depositAsset.isInitialized) {
-            depositAsset.interestIndexPerTerm[1] = ONE;
-            depositAsset.interestIndexPerTerm[30] = ONE;
-
             depositAsset.interestIndexHistoryPerTerm[1].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
             depositAsset.interestIndexHistoryPerTerm[30].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
 
@@ -290,74 +260,7 @@ contract DepositManager is Ownable, Pausable, Term {
         }
     }
 
-    // Update interest index histories for each asset
-    function updateAllInterestIndexHistories(address[] calldata assetList) external whenNotPaused onlyOwner {
-        for (uint i = 0; i < assetList.length; i++) {
-            updateInterestIndexHistories(assetList[i]);
-        }
-    }
-
-    // Update interest index hisotires for different deposit terms of an asset
-    function updateInterestIndexHistories(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
-        DepositAsset storage depositAsset = _depositAssets[asset];
-        uint8[2] memory terms = [1, 30];
-
-        for (uint i = 0; i < terms.length; i++) {
-            uint8 term = terms[i];
-
-            uint currTimestamp = now;
-            uint lastTimestamp = depositAsset.lastTimestampPerTerm[term];
-            uint prevInterestIndex = depositAsset.interestIndexPerTerm[term];
-            uint interestRate = depositAsset.lastInterestRatePerTerm[term];
-            uint duration = currTimestamp.sub(lastTimestamp);
-            uint currInterestIndex = _calculateInterestIndex(prevInterestIndex, interestRate, duration);
-
-            _updateInterestIndexHistory(asset, term, currInterestIndex);
-        }
-    }
-
     // INTERNAL  --------------------------------------------------------------
-
-    /// Calculate deposit interest rate according to the following formula:
-    ///
-    /// rs<term> = interestEarned / totalLoanableAmount
-    /// rs1 = (mb1 * rb1 * a11) / s1
-    /// rs30 = (mb1 * rb1 * a301 + mb30 * rb30 * a3030) / s30
-    ///
-    /// where rs1 = The deposit interest rate of 1-day term
-    ///       mb1 = The amount has loaned on 1-day term
-    ///       rb1 = The loan interest rate of 1-day term
-    ///       a301 = The coefficient of 1-day loan borrowed from 30-day deposit pool group
-    ///       s30  = The loanable amount of 30-day pool group
-    function _calculateInterestRate(address asset, uint8 depositTerm) internal view returns (uint) {
-        uint8[2] memory loanTerms = [1, 30];
-        uint interestEarned = 0;
-
-        for (uint i = 0; i < loanTerms.length; i++) {
-            uint8 loanTerm = loanTerms[i];
-
-            // Depending on the depositTerm, we update interestEarned
-            if (loanTerm <= depositTerm) {
-                uint totalLoanAfterRepay = _liquidityPools.poolGroups(asset, loanTerm).getTotalLoanAfterRepay();
-
-                if (totalLoanAfterRepay == 0) {
-                    // Skip interest calculation if there is no outstanding loan
-                    continue;
-                }
-
-                uint loanInterestRate = _config.getLoanInterestRate(asset, loanTerm);
-                uint coefficient = _config.getCoefficient(asset, depositTerm, loanTerm);
-
-                interestEarned = interestEarned.add(
-                    totalLoanAfterRepay.mulFixed(loanInterestRate).mulFixed(coefficient)
-                );
-            }
-        }
-
-        uint totalLoanableAmount = _liquidityPools.poolGroups(asset, depositTerm).totalLoanableAmount();
-
-        return interestEarned.divFixed(totalLoanableAmount);
-    }
 
     // Add a new interest index and remove the oldest interest index if necessary
     function _updateInterestIndexHistory(address asset, uint8 term, uint interestIndex) internal {
@@ -385,18 +288,5 @@ contract DepositManager is Ownable, Pausable, Term {
 
     function _isEnabledDepositAsset(address asset) private view returns (bool) {
         return _depositAssets[asset].isEnabled;
-    }
-
-    function _calculateInterestIndex(
-        uint prevInterestIndex, 
-        uint interestRate, 
-        uint duration
-    ) 
-        private 
-        pure 
-        returns (uint) 
-    {
-        // currIndex = prevIndex * (1 + interestRate * duration)
-        return prevInterestIndex.mulFixed(ONE.add(interestRate.mul(duration)));
     }
 }
