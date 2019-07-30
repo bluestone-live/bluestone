@@ -89,19 +89,28 @@ contract PoolGroup {
         }
     }
 
-    function getOneTimeDepositFromPool(uint8 index) external view returns (uint) {
+    function getOneTimeDepositFromPool(uint8 index) public view returns (uint) {
         uint8 poolId = poolIds[index];
         return poolsById[poolId].oneTimeDeposit;
     }
 
-    function getRecurringDepositFromPool(uint8 index) external view returns (uint) {
+    function getRecurringDepositFromPool(uint8 index) public view returns (uint) {
         uint8 poolId = poolIds[index];
         return poolsById[poolId].recurringDeposit;
+    }
+
+    function getTotalDepositFromPool(uint8 index) external view returns (uint) {
+        return getOneTimeDepositFromPool(index).add(getRecurringDepositFromPool(index));
     }
 
     function getLoanableAmountFromPool(uint8 index) external view returns (uint) {
         uint8 poolId = poolIds[index];
         return poolsById[poolId].loanableAmount;
+    }
+
+    function getLoanInterestFromPool(uint8 index) external view returns (uint) {
+        uint8 poolId = poolIds[index];
+        return poolsById[poolId].loanInterest;
     }
 
     function addOneTimeDepositToPool(uint8 index, uint amount) external {

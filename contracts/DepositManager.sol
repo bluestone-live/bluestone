@@ -51,6 +51,14 @@ contract DepositManager is Ownable, Pausable, Term {
 
     // Record interest index on a daily basis
     struct InterestIndexHistory {
+        /// Each interest index corresponds to a snapshot of a particular pool state
+        /// before updating deposit maturity of a PoolGroup. 
+        ///
+        /// depositInterest = loanInterest * (deposit / totalDeposit) * (1 - profitRatio)
+        /// And interestIndex here refers to `loanInterest / totalDeposit`.
+        ///
+        /// TODO: I couldn't find a meaningful variable name, so I kept "interestIndex",
+        /// but we could replace it though.
         mapping(uint => uint) interestIndexPerDay;
         uint lastDay;
     }
@@ -263,8 +271,26 @@ contract DepositManager is Ownable, Pausable, Term {
 
     // Update deposit maturity for each PoolGroup of an asset
     function updateDepositMaturity(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
-        _updatePoolGroupDepositMaturity(asset, 1);
-        _updatePoolGroupDepositMaturity(asset, 30);
+        uint8[2] memory terms = [1, 30];
+
+        for (uint i = 0; i < terms.length; i++) {
+            uint8 term = terms[i];
+            PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
+            uint8 index = 0;
+            uint totalDeposit = poolGroup.getTotalDepositFromPool(index);
+            uint loanInterest = poolGroup.getLoanInterestFromPool(index);
+            uint interestIndex;
+
+            if (totalDeposit > 0) {
+                interestIndex = loanInterest.divFixed(totalDeposit);
+            } else {
+                interestIndex = 0;
+            }
+
+            _updateInterestIndexHistory(asset, term, interestIndex);
+
+            _liquidityPools.updatePoolGroupDepositMaturity(asset, term);
+        }
     }
 
     // Update interest index histories for each asset
@@ -344,6 +370,7 @@ contract DepositManager is Ownable, Pausable, Term {
         history.lastDay++;
         history.interestIndexPerDay[history.lastDay] = interestIndex;
 
+        // TODO: make DAYS_OF_INTEREST_INDEX_TO_KEEP default to term and configurable
         uint dayToBeDropped = history.lastDay - DAYS_OF_INTEREST_INDEX_TO_KEEP;
 
         if (dayToBeDropped >= DAYS_OF_INTEREST_INDEX_TO_KEEP) {
@@ -361,24 +388,6 @@ contract DepositManager is Ownable, Pausable, Term {
 
     function _isEnabledDepositAsset(address asset) private view returns (bool) {
         return _depositAssets[asset].isEnabled;
-    }
-
-    // Update deposit maturity for a specific PoolGroup.
-    function _updatePoolGroupDepositMaturity(address asset, uint8 term) private {
-        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
-        uint8 index = 0;
-        uint oneTimeDeposit = poolGroup.getOneTimeDepositFromPool(index);
-
-        // TODO: store interest info for deposit interest calculation
-
-        // 1. Withdraw matured non-recurring deposit from the 1-day pool
-        poolGroup.withdrawOneTimeDepositFromPool(index, oneTimeDeposit);
-
-        // 2. Clear loan interest accumulated during the enture deposit term
-        poolGroup.clearLoanInterestFromPool(index);
-
-        // 3. Update pool IDs to reflect the deposit maturity change
-        poolGroup.updatePoolIds();
     }
 
     function _calculateInterestIndex(
