@@ -136,7 +136,7 @@ contract LoanManager is Ownable, Pausable, Term {
 
         _loansByUser[loaner].push(currLoan);
 
-        _loanFromPoolGroups(loanAsset, term, loanAmount, currLoan);        
+        _loanFromPoolGroups(currLoan);        
 
         _tokenManager.receiveFrom(loaner, collateralAsset, collateralAmount);
         _tokenManager.sendTo(loaner, loanAsset, loanAmount);
@@ -158,7 +158,7 @@ contract LoanManager is Ownable, Pausable, Term {
 
         (uint totalRepayAmount, uint freedCollateralAmount) = currLoan.repay(amount);
 
-        _repayLoanToPoolGroups(loanAsset, totalRepayAmount, currLoan);
+        _repayLoanToPoolGroups(totalRepayAmount, currLoan);
 
         _depositFreedCollateral(loaner, collateralAsset, freedCollateralAmount);
 
@@ -194,7 +194,7 @@ contract LoanManager is Ownable, Pausable, Term {
             collateralAssetPrice
         );
 
-        _repayLoanToPoolGroups(loanAsset, liquidatedAmount, currLoan);
+        _repayLoanToPoolGroups(liquidatedAmount, currLoan);
 
         _depositFreedCollateral(liquidator, collateralAsset, freedCollateralAmount);
 
@@ -294,41 +294,19 @@ contract LoanManager is Ownable, Pausable, Term {
 
     // PRIVATE --------------------------------------------------------------
 
-    function _loanFromPoolGroups(address loanAsset, uint8 loanTerm, uint loanAmount, Loan currLoan) private {
+    function _loanFromPoolGroups(Loan currLoan) private {
+        uint loanTerm = currLoan.term();
+
         if (loanTerm == 1) {
-            _loanFromPoolGroup(loanAsset, 1, loanTerm, loanAmount, currLoan);
-            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
+            _liquidityPools.loanFromPoolGroup(1, currLoan);
+            _liquidityPools.loanFromPoolGroup(30, currLoan);
         }  else if (loanTerm == 30) {
-            _loanFromPoolGroup(loanAsset, 30, loanTerm, loanAmount, currLoan);
+            _liquidityPools.loanFromPoolGroup(30, currLoan);
         }
     }
 
-    function _loanFromPoolGroup(
-        address asset,
-        uint8 depositTerm,
-        uint8 loanTerm,
-        uint loanAmount,
-        Loan currLoan
-    ) 
-        private 
-    {
-        _liquidityPools.loanFromPoolGroup(asset, depositTerm, loanTerm, loanAmount, currLoan);
-
-        /// Loan amount affects deposit interest rate, so we need to update 
-        /// deposit interest index and interest rate 
-        _depositManager.updateDepositAssetInterestInfo(asset, depositTerm);
-    }
-
-    function _repayLoanToPoolGroups(address asset, uint totalRepayAmount, Loan currLoan) private {
-        _repayLoanToPoolGroup(asset, 30, totalRepayAmount, currLoan);
-        _repayLoanToPoolGroup(asset, 1, totalRepayAmount, currLoan);
-    }
-
-    function _repayLoanToPoolGroup(address asset, uint8 depositTerm, uint totalRepayAmount, Loan currLoan) private {
-        _liquidityPools.repayLoanToPoolGroup(asset, depositTerm, totalRepayAmount, currLoan);
-
-        /// Loan amount affects deposit interest rate, so we need to update 
-        /// deposit interest index and interest rate 
-        _depositManager.updateDepositAssetInterestInfo(asset, depositTerm);
+    function _repayLoanToPoolGroups(uint totalRepayAmount, Loan currLoan) private {
+        _liquidityPools.repayLoanToPoolGroup(30, totalRepayAmount, currLoan);
+        _liquidityPools.repayLoanToPoolGroup(1, totalRepayAmount, currLoan);
     }
 }

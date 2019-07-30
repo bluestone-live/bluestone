@@ -33,15 +33,15 @@ contract LiquidityPools {
     }
 
     function loanFromPoolGroup(
-        address asset,
         uint8 depositTerm,
-        uint8 loanTerm,
-        uint loanAmount,
         Loan currLoan
     ) 
         external 
     {
-        PoolGroup poolGroup = poolGroups[asset][depositTerm];
+        address asset = currLoan.loanAsset();
+        uint8 loanTerm = currLoan.term();
+        uint loanAmount = currLoan.loanAmount();
+        uint loanInterest = currLoan.interest();
         uint coefficient = _config.getCoefficient(asset, depositTerm, loanTerm);
             
         // Calculate the total amount to be loaned from this pool group 
@@ -52,31 +52,41 @@ contract LiquidityPools {
 
         uint8 poolIndex = loanTerm - 1;
         uint8 poolGroupLength = depositTerm;
+        PoolGroup poolGroup = poolGroups[asset][depositTerm];
 
         // Incrementing the pool group index and loaning from each pool until loan amount is fulfilled.
         while (remainingLoanAmount > 0 && poolIndex < poolGroupLength) {
             uint loanableAmount = poolGroup.getLoanableAmountFromPool(poolIndex);
 
             if (loanableAmount > 0) {
-                uint loanedAmount = Math.min(remainingLoanAmount, loanableAmount);
+                uint loanAmountFromPool = Math.min(remainingLoanAmount, loanableAmount);
+                uint loanInterestToPool = loanInterest.mulFixed(loanAmountFromPool).divFixed(loanAmount);
 
-                poolGroup.loanFromPool(poolIndex, loanedAmount, loanTerm);
-                currLoan.setRecord(depositTerm, poolIndex, loanedAmount);
-                remainingLoanAmount = remainingLoanAmount.sub(loanedAmount);
+                poolGroup.loanFromPool(poolIndex, loanAmountFromPool, loanInterestToPool, loanTerm);
+                currLoan.setRecord(depositTerm, poolIndex, loanAmountFromPool);
+                remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
             }
 
             poolIndex++;
         }
     }
 
-    function repayLoanToPoolGroup(address asset, uint8 depositTerm, uint totalRepayAmount, Loan currLoan) external {
-        PoolGroup poolGroup = poolGroups[asset][depositTerm];
-
+    function repayLoanToPoolGroup(uint8 depositTerm, uint totalRepayAmount, Loan currLoan) external {
+        address asset = currLoan.loanAsset();
         uint totalLoanAmount = currLoan.loanAmount();
+
+        PoolGroup poolGroup = poolGroups[asset][depositTerm];
+        uint remainingRepayAmount = totalRepayAmount;
 
         // Repay loan back to each pool, proportional to the total loan from all pools
         for (uint8 poolIndex = 0; poolIndex < depositTerm; poolIndex++) {
+            if (remainingRepayAmount == 0) {
+                // Stop loop when remaining repay amount used up
+                break;
+            }
+
             uint loanAmount = currLoan.getRecord(depositTerm, poolIndex);
+
 
             if (loanAmount == 0) {
                 // Skip this pool since it has no loan
@@ -88,6 +98,7 @@ contract LiquidityPools {
             /// Then the amount pay back to this pool will be: 50 * 10 / 100 = 5
             uint repayAmount = totalRepayAmount.mulFixed(loanAmount).divFixed(totalLoanAmount);
             poolGroup.repayLoanToPool(poolIndex, repayAmount, currLoan.term());
+            remainingRepayAmount = remainingRepayAmount - repayAmount;
         }
     }
 }
