@@ -150,6 +150,12 @@ contract PoolGroup {
         totalRepaidPerTerm[loanTerm] = totalRepaidPerTerm[loanTerm].add(amount);
     }
 
+    function clearLoanInterestFromPool(uint8 index) external {
+        uint8 poolId = poolIds[index];
+        Pool storage pool = poolsById[poolId];
+        pool.loanInterest = 0;
+    }
+
     function transferRecurringDepositToOneTimeDeposit(uint8 index, uint amount) external {
         uint8 poolId = poolIds[index];
         Pool storage pool = poolsById[poolId];

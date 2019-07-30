@@ -369,10 +369,15 @@ contract DepositManager is Ownable, Pausable, Term {
         uint8 index = 0;
         uint oneTimeDeposit = poolGroup.getOneTimeDepositFromPool(index);
 
+        // TODO: store interest info for deposit interest calculation
+
         // 1. Withdraw matured non-recurring deposit from the 1-day pool
         poolGroup.withdrawOneTimeDepositFromPool(index, oneTimeDeposit);
 
-        // 2. Update pool IDs to reflect the deposit maturity change
+        // 2. Clear loan interest accumulated during the enture deposit term
+        poolGroup.clearLoanInterestFromPool(index);
+
+        // 3. Update pool IDs to reflect the deposit maturity change
         poolGroup.updatePoolIds();
     }
 

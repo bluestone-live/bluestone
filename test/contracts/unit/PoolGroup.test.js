@@ -138,6 +138,26 @@ contract("PoolGroup", () => {
     });
   });
 
+  describe("#clearLoanInterestFromPool", () => {
+    const loanTerm = 1;
+
+    before(async () => {
+      poolGroup = await PoolGroup.new(term);
+      await poolGroup.addOneTimeDepositToPool(poolIndex, amount);
+      await poolGroup.loanFromPool(poolIndex, amount, loanInterest, loanTerm);
+    });
+
+    it("succeeds", async () => {
+      await poolGroup.clearLoanInterestFromPool(poolIndex);
+    });
+
+    it("clears loanInterest", async () => {
+      const poolId = await poolGroup.poolIds(poolIndex);
+      pool = await poolGroup.poolsById(poolId);
+      expect(pool.loanInterest).to.be.bignumber.equal("0");
+    });
+  });
+
   describe("#updatePoolIds", () => {
     const initialPoolIndexes = [...Array(term).keys()];
 
