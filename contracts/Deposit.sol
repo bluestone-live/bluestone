@@ -13,7 +13,6 @@ contract Deposit {
     address private _owner;
     uint8 private _term;
     uint private _amount;
-    uint private _interestIndex;
     uint private _profitRatio;
     uint private _withdrewAmount;
     bool private _isRecurring;
@@ -28,7 +27,6 @@ contract Deposit {
         address owner, 
         uint8 term, 
         uint amount, 
-        uint interestIndex, 
         uint profitRatio,
         bool isRecurring
     ) public {
@@ -38,7 +36,6 @@ contract Deposit {
         _owner = owner;
         _term = term;
         _amount = amount;
-        _interestIndex = interestIndex;
         _profitRatio = profitRatio;
         _withdrewAmount = 0;
         _isRecurring = isRecurring;
@@ -104,7 +101,7 @@ contract Deposit {
     }
 
     function withdrawDepositAndInterest(uint currInterestIndex) external returns (uint, uint) {
-        uint totalInterests = _amount.mulFixed(currInterestIndex).divFixed(_interestIndex).sub(_amount);
+        uint totalInterests = _amount.mulFixed(currInterestIndex);
         uint interestsForShareholders = totalInterests.mulFixed(_profitRatio);
         uint interestsForDepositor = totalInterests.sub(interestsForShareholders);
 

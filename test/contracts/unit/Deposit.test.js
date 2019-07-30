@@ -6,7 +6,6 @@ const { expect } = require('chai')
 
 contract('Deposit', ([owner]) => {
   const amount = toFixedBN(100)
-  const interestIndex = toFixedBN(1)
   const profitRatio = toFixedBN(0.15)
   let asset
 
@@ -20,7 +19,7 @@ contract('Deposit', ([owner]) => {
     let deposit, datetime, now, createdAt
 
     before(async () => {
-      deposit = await Deposit.new(asset.address, owner, term, amount, interestIndex, profitRatio, isRecurring)
+      deposit = await Deposit.new(asset.address, owner, term, amount, profitRatio, isRecurring)
       now = await time.latest()
       datetime = await DateTime.new()
     })
@@ -44,15 +43,15 @@ contract('Deposit', ([owner]) => {
     let deposit
 
     beforeEach(async () => {
-      deposit = await Deposit.new(asset.address, owner, term, amount, interestIndex, profitRatio, isRecurring)
+      deposit = await Deposit.new(asset.address, owner, term, amount, profitRatio, isRecurring)
     })
 
     it('succeeds', async () => {
-      const currInterestIndex = toFixedBN(2)
+      const currInterestIndex = toFixedBN(0.05)
       const { '0': withdrewAmount, '1': interestsForShareholders } = 
         await deposit.withdrawDepositAndInterest.call(currInterestIndex) 
 
-      const expectedTotalInterests = amount.mul(currInterestIndex).div(interestIndex).sub(amount)
+      const expectedTotalInterests = amount.mul(currInterestIndex).div(toFixedBN(1))
       const expectedInterestsForShareholder = expectedTotalInterests.mul(profitRatio).div(toFixedBN(1))
       const expectedInterestsForDepositor = expectedTotalInterests.sub(expectedInterestsForShareholder)
       const expectedWithdrewAmount = amount.add(expectedInterestsForDepositor)
@@ -67,7 +66,7 @@ contract('Deposit', ([owner]) => {
     let deposit
 
     beforeEach(async () => {
-      deposit = await Deposit.new(asset.address, owner, term, amount, interestIndex, profitRatio, isRecurring)
+      deposit = await Deposit.new(asset.address, owner, term, amount, profitRatio, isRecurring)
     })
 
     it('succeeds', async () => {

@@ -49,11 +49,11 @@ contract('DepositManager', ([owner, depositor]) => {
 
         // At the first midnight, update interest index
         await time.increase(secondsUntilMidnight)        
-        await depositManager.updateInterestIndexHistories(asset.address, { from: owner })
+        await depositManager.updateDepositMaturity(asset.address, { from: owner })
 
         // At the second midnight, update interest index
         await time.increase(time.duration.days(1))
-        depositManager.updateInterestIndexHistories(asset.address, { from: owner })
+        depositManager.updateDepositMaturity(asset.address, { from: owner })
 
         // Pass through the second midnight
         await time.increase(time.duration.hours(1))

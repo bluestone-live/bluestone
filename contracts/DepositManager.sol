@@ -117,7 +117,6 @@ contract DepositManager is Ownable, Pausable, Term {
         }
 
         address user = msg.sender;
-        uint currInterestIndex = updateDepositAssetInterestInfo(asset, term);
         uint profitRatio = _config.getProfitRatio();
 
         Deposit currDeposit = new Deposit(
@@ -125,7 +124,6 @@ contract DepositManager is Ownable, Pausable, Term {
             user, 
             term, 
             amount, 
-            currInterestIndex, 
             profitRatio,
             isRecurring
         );
@@ -175,7 +173,6 @@ contract DepositManager is Ownable, Pausable, Term {
         require(currDeposit.isMatured(), "Deposit must be matured.");
 
         uint8 term = currDeposit.term();
-        updateDepositAssetInterestInfo(asset, term);
 
         if (currDeposit.isOverDue()) {
             // If a deposit is over due, depositor can only receive principle as a penalty
@@ -186,7 +183,7 @@ contract DepositManager is Ownable, Pausable, Term {
             emit WithdrawDepositSuccessful(user, currDeposit);
             return withdrewAmount;
         } else {
-            // Otherwise, depositor receives principle plus accrued interests
+            // Otherwise, depositor receives principle plus interest
             uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
             uint interestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
             (uint withdrewAmount, uint interestsForShareholders) = currDeposit.withdrawDepositAndInterest(interestIndex);
