@@ -1,7 +1,11 @@
 import * as React from 'react';
 import styled from 'styled-components';
 
-interface ILayoutProps {
+interface ILayoutProps
+  extends React.DetailedHTMLProps<
+    React.HTMLAttributes<HTMLDivElement>,
+    HTMLDivElement
+  > {
   children:
     | React.ReactChild
     | React.ReactChild[]
@@ -25,13 +29,15 @@ const StyledRow = styled.div`
 const StyledCell = styled.div``;
 
 export const Row = (props: ILayoutProps) => {
-  return <StyledRow className={props.className}>{props.children}</StyledRow>;
+  const { children, ref, ...restProps } = props;
+  return <StyledRow {...restProps}>{children}</StyledRow>;
 };
 
 export const Cell = (props: ICellProps) => {
+  const { children, ref, scale, ...restProps } = props;
   return (
-    <StyledCell className={props.className} style={{ flex: props.scale || 1 }}>
-      {props.children}
+    <StyledCell {...restProps} style={{ flex: scale || 1 }}>
+      {children}
     </StyledCell>
   );
 };

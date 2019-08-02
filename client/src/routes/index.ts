@@ -28,14 +28,6 @@ const routes = [
     }),
   },
   {
-    name: 'record-list',
-    path: '/records',
-    component: Loadable({
-      loader: () => import('../pages/RecordListPage'),
-      loading: Loading,
-    }),
-  },
-  {
     name: 'withdraw-freed-collateral',
     path: '/withdraw/:tokenAddress',
     component: Loadable({
@@ -64,6 +56,18 @@ const routes = [
     path: '/loan/repay/:recordAddress',
     component: Loadable({
       loader: () => import('../pages/RepayPage'),
+      loading: Loading,
+    }),
+  },
+  {
+    name: 'record-page',
+    path: [
+      '/records',
+      '/records/:recordType',
+      '/records/:recordType/:recordAddress',
+    ],
+    component: Loadable({
+      loader: () => import('../pages/RecordPage'),
       loading: Loading,
     }),
   },

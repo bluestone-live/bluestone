@@ -190,7 +190,7 @@ class HomePage extends React.Component<IProps, IState> {
                 <StyledTokenListRow key={token.symbol}>
                   <td>
                     <Anchor
-                      to={`/records?tokenSymbol=${token.symbol}&term=&status=`}
+                      to={`/records/deposit?currentToken=${token.address}`}
                     >
                       {token.logo}
                       {token.symbol}

@@ -6,7 +6,7 @@ import {
   withdraw,
 } from './services/DepositManagerService';
 import { BigNumber } from '../utils/BigNumber';
-import { IRecord, IDepositRecord, ILoanRecord } from '../constants/Record';
+import { IDepositRecord, ILoanRecord } from '../constants/Record';
 import { IToken } from '../constants/Token';
 import {
   loan,
@@ -18,11 +18,9 @@ import {
 import { getDeposit } from './services/DepositService';
 import { getLoan } from './services/LoanService';
 
-/**
- * repayLoandisplay, merge deposit and loan into one store
- */
 export class RecordStore {
-  @observable recordMap: Map<string, IRecord> = new Map();
+  @observable depositRecordMap: Map<string, IDepositRecord> = new Map();
+  @observable loanRecordMap: Map<string, ILoanRecord> = new Map();
 
   // deposit
   @action.bound
@@ -31,17 +29,26 @@ export class RecordStore {
       if (!tx) {
         return;
       }
-      this.recordMap.set(tx.recordAddress, tx);
+      this.depositRecordMap.set(tx.recordAddress, tx);
     });
   }
 
-  @computed get records() {
-    return Array.from(this.recordMap.values());
+  @computed get depositRecords() {
+    return Array.from(this.depositRecordMap.values());
+  }
+
+  @computed get loanRecords() {
+    return Array.from(this.loanRecordMap.values());
   }
 
   @action.bound
-  getRecordByAddress(recordAddress: string) {
-    return this.recordMap.get(recordAddress);
+  getDepositRecordByAddress(recordAddress: string) {
+    return this.depositRecordMap.get(recordAddress);
+  }
+
+  @action.bound
+  getLoanRecordByAddress(recordAddress: string) {
+    return this.loanRecordMap.get(recordAddress);
   }
 
   @action.bound
@@ -64,7 +71,7 @@ export class RecordStore {
 
   @action.bound
   async getDepositRecords() {
-    const depositAddresses = await getDepositRecords();
+    const depositAddresses = (await getDepositRecords()) || [];
     return this.saveOrUpdateDepositRecords(
       await Promise.all(depositAddresses.map(getDeposit)),
     );
@@ -77,7 +84,7 @@ export class RecordStore {
   }
 
   @action.bound
-  async getDepositRecordByAddress(recordAddress: string) {
+  async updateDepositRecordByAddress(recordAddress: string) {
     const depositRecord = await getDeposit(recordAddress);
     return this.saveOrUpdateDepositRecords([depositRecord]);
   }
@@ -98,7 +105,7 @@ export class RecordStore {
       if (!tx) {
         return;
       }
-      this.recordMap.set(tx.recordAddress, tx);
+      this.loanRecordMap.set(tx.recordAddress, tx);
     });
   }
 
@@ -126,14 +133,14 @@ export class RecordStore {
 
   @action.bound
   async getLoanRecords() {
-    const loanRecords = await getLoanRecords();
+    const loanRecords = (await getLoanRecords()) || [];
     return this.saveOrUpdateLoanRecords(
       await Promise.all(loanRecords.map(getLoan)),
     );
   }
 
   @action.bound
-  async updateLoanRecord(loanAddress: string) {
+  async updateLoanRecordByAddress(loanAddress: string) {
     return this.saveOrUpdateLoanRecords([await getLoan(loanAddress)]);
   }
 

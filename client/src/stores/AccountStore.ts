@@ -123,7 +123,7 @@ export class AccountStore {
         this.updateAllowance(token.symbol, newAllowance);
       });
 
-    const amount = await erc20.methods.totalSupply.call();
+    const amount = (await erc20.methods.totalSupply.call()) || 19000;
 
     await erc20.methods
       .approve(spender, amount.toString())

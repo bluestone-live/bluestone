@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components';
 import { ThemedProps } from '../../styles/themes';
 
 interface IProps {
-  type: string;
+  type?: string;
   fullWidth?: boolean;
   [propName: string]: any;
 }

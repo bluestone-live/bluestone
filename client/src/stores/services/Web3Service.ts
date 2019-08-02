@@ -160,7 +160,6 @@ export const getContractEventFlow = async (
 export const getPastEvents = async (
   contract: keyof DeployedContractInstances | Contract,
   eventName: EventName,
-  options?: EventOptions,
 ): Promise<EventData[]> => {
   let contractInstance: Contract;
   if (typeof contract === 'string') {
@@ -169,14 +168,13 @@ export const getPastEvents = async (
   } else {
     contractInstance = contract;
   }
-  return contractInstance.getPastEvents(
-    eventName,
-    options || {
-      filter: {
-        user: accountStore.defaultAccount,
-        fromBlock: 0,
-        toBlock: 'latest',
-      },
+  const res = contractInstance.getPastEvents(eventName, {
+    filter: {
+      user: accountStore.defaultAccount,
     },
-  );
+    fromBlock: 0,
+    toBlock: 'latest',
+  });
+
+  return res;
 };

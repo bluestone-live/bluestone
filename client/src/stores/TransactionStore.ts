@@ -10,16 +10,27 @@ import {
 } from './services/TransactionService';
 import { ITransaction } from '../constants/Transaction';
 import { EventData } from 'web3-eth-contract';
+import { uniqBy } from 'lodash';
 
 export class TransactionStore {
-  @observable loanTransactions: Map<string, ITransaction[]> = new Map<
+  @observable loanTransactionMap: Map<string, ITransaction[]> = new Map<
     string,
     ITransaction[]
   >();
-  @observable depositTransactions: Map<string, ITransaction[]> = new Map<
+  @observable depositTransactionMap: Map<string, ITransaction[]> = new Map<
     string,
     ITransaction[]
   >();
+
+  @action.bound
+  getLoanTransactionByRecordAddress(recordAddress: string) {
+    return this.loanTransactionMap.get(recordAddress);
+  }
+
+  @action.bound
+  getDepositTransactionByRecordAddress(recordAddress: string) {
+    return this.depositTransactionMap.get(recordAddress);
+  }
 
   @action.bound
   async getDepositTransactions() {
@@ -37,18 +48,25 @@ export class TransactionStore {
   async setDepositTransactions(events: EventData[]) {
     events.forEach(event => {
       const recordAddress = event.returnValues.deposit;
-      if (this.loanTransactions.has(event.returnValues.loan)) {
-        const transactions = this.loanTransactions.get(recordAddress);
-        this.loanTransactions.set(event.returnValues.loan, [
-          ...transactions!,
-          {
-            transactionHash: event.transactionHash,
-            event: event.event,
-            recordAddress,
-          },
-        ]);
+
+      if (this.depositTransactionMap.has(recordAddress)) {
+        const transactions = this.depositTransactionMap.get(recordAddress);
+        this.depositTransactionMap.set(
+          recordAddress,
+          uniqBy(
+            [
+              ...transactions!,
+              {
+                transactionHash: event.transactionHash,
+                event: event.event,
+                recordAddress,
+              },
+            ],
+            'transactionHash',
+          ),
+        );
       } else {
-        this.loanTransactions.set(event.returnValues.loan, [
+        this.depositTransactionMap.set(recordAddress, [
           {
             transactionHash: event.transactionHash,
             event: event.event,
@@ -76,18 +94,24 @@ export class TransactionStore {
   setLoanTransactions(events: EventData[]) {
     events.forEach(event => {
       const recordAddress = event.returnValues.loan;
-      if (this.loanTransactions.has(event.returnValues.loan)) {
-        const transactions = this.loanTransactions.get(recordAddress);
-        this.loanTransactions.set(event.returnValues.loan, [
-          ...transactions!,
-          {
-            transactionHash: event.transactionHash,
-            event: event.event,
-            recordAddress,
-          },
-        ]);
+      if (this.loanTransactionMap.has(recordAddress)) {
+        const transactions = this.loanTransactionMap.get(recordAddress);
+        this.loanTransactionMap.set(
+          recordAddress,
+          uniqBy(
+            [
+              ...transactions!,
+              {
+                transactionHash: event.transactionHash,
+                event: event.event,
+                recordAddress,
+              },
+            ],
+            'transactionHash',
+          ),
+        );
       } else {
-        this.loanTransactions.set(event.returnValues.loan, [
+        this.loanTransactionMap.set(recordAddress, [
           {
             transactionHash: event.transactionHash,
             event: event.event,

@@ -7,9 +7,10 @@ import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
-import { RecordType, ILoanRecord } from '../constants/Record';
+import { RecordType } from '../constants/Record';
 import dayjs from 'dayjs';
 import { convertDecimalToWei } from '../utils/BigNumber';
+import { stringify } from 'querystring';
 
 interface IProps
   extends WithTranslation,
@@ -32,7 +33,7 @@ class RepayForm extends React.Component<IProps, IState> {
 
   async componentDidMount() {
     const { recordStore, match } = this.props;
-    await recordStore!.updateLoanRecord(match.params.recordAddress);
+    await recordStore!.updateLoanRecordByAddress(match.params.recordAddress);
     this.setState({
       loading: true,
     });
@@ -53,20 +54,24 @@ class RepayForm extends React.Component<IProps, IState> {
       match.params.recordAddress,
       convertDecimalToWei(amount),
     );
-    const record = recordStore!.getRecordByAddress(
+    const record = recordStore!.getLoanRecordByAddress(
       match.params.recordAddress,
-    ) as ILoanRecord;
+    )!;
 
-    history.push(
-      `/records?tokenSymbol=${record.loanToken.symbol}&term=&status=`,
-    );
+    history.push({
+      pathname: '/records/loan',
+      search: stringify({
+        tokenSymbol: record.loanToken.symbol,
+        recordAddress: record.recordAddress,
+      }),
+    });
   };
 
   render() {
     const { t, recordStore, match } = this.props;
-    const record = recordStore!.getRecordByAddress(
+    const record = recordStore!.getLoanRecordByAddress(
       match.params.recordAddress,
-    ) as ILoanRecord;
+    );
 
     return record && record.type === RecordType.Loan ? (
       <Card>

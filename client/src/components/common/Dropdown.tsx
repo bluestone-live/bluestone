@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { ThemedProps } from '../../styles/themes';
 
 interface IProps {
-  children: React.ReactChild | React.ReactChild[];
+  children: React.ReactChild | React.ReactChild[] | string;
   options: IDropdownOption[];
   onSelected: (option: IDropdownOption) => void;
   className?: string;
@@ -40,7 +40,7 @@ const StyledOption = styled.div`
   cursor: pointer;
 `;
 
-interface IDropdownOption {
+export interface IDropdownOption {
   text: string;
   key: any;
 }

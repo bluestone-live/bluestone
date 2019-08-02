@@ -78,7 +78,7 @@ class LoanForm extends React.Component<IProps, IState> {
       convertDecimalToWei(requestedFreedCollateral),
     );
 
-    history.push(`/records?tokenSymbol=${loanToken.symbol}`);
+    history.push(`/records/loan?currentToken=${loanToken.address}`);
   };
 
   renderOption(key: string, value: any, text?: string) {

@@ -76,7 +76,6 @@ class Default extends React.Component<IProps> {
           <Container>
             {accountStore.defaultAccount ? children : <AuthorizationReminder />}
           </Container>
-          <button onClick={this.showMessage}>show message</button>
         </StyledMain>
       </StyledDefaultLayout>
     );

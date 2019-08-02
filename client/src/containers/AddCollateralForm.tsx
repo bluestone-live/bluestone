@@ -11,6 +11,7 @@ import { RecordType, ILoanRecord } from '../constants/Record';
 import { toJS } from 'mobx';
 import dayjs from 'dayjs';
 import { convertDecimalToWei } from '../utils/BigNumber';
+import { stringify } from 'querystring';
 
 interface IProps
   extends WithTranslation,
@@ -31,7 +32,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
 
   componentDidMount() {
     const { recordStore, match } = this.props;
-    recordStore!.updateLoanRecord(match.params.recordAddress);
+    recordStore!.updateLoanRecordByAddress(match.params.recordAddress);
   }
 
   onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -49,12 +50,18 @@ class AddCollateralForm extends React.Component<IProps, IState> {
       convertDecimalToWei(amount),
       convertDecimalToWei(0), // TODO request free collateral will add later
     );
-    await recordStore!.updateLoanRecord(match.params.recordAddress);
-    const record = recordStore!.getRecordByAddress(
+    await recordStore!.updateLoanRecordByAddress(match.params.recordAddress);
+    const record = recordStore!.getLoanRecordByAddress(
       match.params.recordAddress,
-    ) as ILoanRecord;
+    )!;
 
-    history.push(`/records?tokenSymbol=${record.loanToken.symbol}`);
+    history.push({
+      pathname: '/records/loan',
+      search: stringify({
+        tokenSymbol: record.loanToken.symbol,
+        recordAddress: record.recordAddress,
+      }),
+    });
   };
 
   getCollateralRatio = (record: ILoanRecord) => {
@@ -71,10 +78,10 @@ class AddCollateralForm extends React.Component<IProps, IState> {
   render() {
     const { t, recordStore, match } = this.props;
     const record = toJS(
-      recordStore!.records.find(
+      recordStore!.loanRecords.find(
         tx => tx.recordAddress === match.params.recordAddress,
       ),
-    ) as ILoanRecord;
+    );
 
     return record && record.type === RecordType.Loan ? (
       <Card>

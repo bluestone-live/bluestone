@@ -172,7 +172,7 @@ class RecordListPage extends React.Component<IProps, IState> {
     const status = this.state.status;
 
     const filteredRecords = this.filterRecords(
-      toJS(recordStore.records),
+      toJS(recordStore.loanRecords),
       this.tokenFilter,
       this.termFilter,
       this.statusFilter,

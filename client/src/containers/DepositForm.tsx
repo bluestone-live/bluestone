@@ -107,7 +107,7 @@ class DepositForm extends React.Component<IProps, IState> {
       selectedAutoRenewal.value,
     );
 
-    history.push(`/records?tokenSymbol=${match.params.tokenSymbol}`);
+    history.push(`/records/deposit?tokenSymbol=${match.params.tokenSymbol}`);
   };
 
   render() {
