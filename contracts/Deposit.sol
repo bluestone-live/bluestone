@@ -15,7 +15,6 @@ contract Deposit {
     uint private _amount;
     uint private _profitRatio;
     uint private _withdrewAmount;
-    bool private _isRecurring;
     uint private _createdAt;
     uint private _maturedAt;
     uint private _withdrewAt;
@@ -27,8 +26,7 @@ contract Deposit {
         address owner, 
         uint8 term, 
         uint amount, 
-        uint profitRatio,
-        bool isRecurring
+        uint profitRatio
     ) public {
         require(amount > 0);
 
@@ -38,7 +36,6 @@ contract Deposit {
         _amount = amount;
         _profitRatio = profitRatio;
         _withdrewAmount = 0;
-        _isRecurring = isRecurring;
         _createdAt = now;
 
         /// If a 1-day deposit is created at GMT 13:00:00 on Monday, it will be matured 
@@ -80,24 +77,12 @@ contract Deposit {
         return _term;
     }
 
-    function isRecurring() external view returns (bool) {
-        return _isRecurring;
-    }
-
     function createdAt() external view returns (uint) {
         return _createdAt;
     }
 
     function maturedAt() external view returns (uint) {
         return _maturedAt;
-    }
-
-    function enableRecurring() external {
-        _isRecurring = true;
-    }
-
-    function disableRecurring() external {
-        _isRecurring = false;
     }
 
     function withdrawDepositAndInterest(uint currInterestIndex) external returns (uint, uint) {

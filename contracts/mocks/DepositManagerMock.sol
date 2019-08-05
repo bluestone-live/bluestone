@@ -20,8 +20,8 @@ contract DepositManagerMock is DepositManager {
         public 
     {}
 
-    function deposit(address asset, uint8 term, uint amount, bool isRecurring) public returns (Deposit) {
-        Deposit currDeposit = super.deposit(asset, term, amount, isRecurring);
+    function deposit(address asset, uint8 term, uint amount) public returns (Deposit) {
+        Deposit currDeposit = super.deposit(asset, term, amount);
         deposits.push(currDeposit);
         return currDeposit;
     }

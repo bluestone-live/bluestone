@@ -26,7 +26,6 @@ contract DepositManager is Ownable, Pausable, Term {
     // Notice that event filter only can filter indexed property
     event DepositSuccessful(address indexed user, Deposit deposit);
     event WithdrawDepositSuccessful(address indexed user, Deposit deposit);
-    event SetRecurringDepositSuccessful(address indexed user, Deposit deposit);
 
     // Hold relavent information about a deposit asset
     struct DepositAsset {
@@ -93,7 +92,7 @@ contract DepositManager is Ownable, Pausable, Term {
 
     // PUBLIC  -----------------------------------------------------------------
 
-    function deposit(address asset, uint8 term, uint amount, bool isRecurring) 
+    function deposit(address asset, uint8 term, uint amount) 
         public 
         whenNotPaused
         enabledDepositAsset(asset)
@@ -103,11 +102,7 @@ contract DepositManager is Ownable, Pausable, Term {
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
         uint8 lastPoolIndex = term - 1;
 
-        if (isRecurring) {
-            poolGroup.addRecurringDepositToPool(lastPoolIndex, amount);
-        } else {
-            poolGroup.addOneTimeDepositToPool(lastPoolIndex, amount);
-        }
+        poolGroup.addDepositToPool(lastPoolIndex, amount);
 
         address user = msg.sender;
         uint profitRatio = _config.getProfitRatio();
@@ -117,8 +112,7 @@ contract DepositManager is Ownable, Pausable, Term {
             user, 
             term, 
             amount, 
-            profitRatio,
-            isRecurring
+            profitRatio
         );
 
         _numDeposit++;
@@ -132,36 +126,12 @@ contract DepositManager is Ownable, Pausable, Term {
         return currDeposit;
     }
     
-    function setRecurringDeposit(Deposit currDeposit, bool enableRecurring) external whenNotPaused {
-        address asset = currDeposit.asset();
-
-        require(_isEnabledDepositAsset(asset), "Deposit Asset must be enabled.");
-        require(msg.sender == currDeposit.owner(), "Must be owner.");
-
-        uint8 term = currDeposit.term();
-        uint amount = currDeposit.amount();
-        uint8 lastPoolIndex = term - 1;
-        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
-
-        if (enableRecurring && !currDeposit.isRecurring()) {
-            currDeposit.enableRecurring();
-            poolGroup.transferOneTimeDepositToRecurringDeposit(lastPoolIndex, amount);
-        } else if (!enableRecurring && currDeposit.isRecurring()) {
-            currDeposit.disableRecurring();
-            poolGroup.transferRecurringDepositToOneTimeDeposit(lastPoolIndex, amount);
-        } else {
-            revert("Invalid operation.");
-        }
-        emit SetRecurringDepositSuccessful(msg.sender, currDeposit);
-    }
-    
     function withdraw(Deposit currDeposit) external whenNotPaused returns (uint) {
         address asset = currDeposit.asset();
         address user = msg.sender;
 
         require(_isEnabledDepositAsset(asset), "Deposit Asset must be enabled.");
         require(user == currDeposit.owner(), "Must be owner.");
-        require(!currDeposit.isRecurring(), "Deposit must not be recurring.");
         require(!currDeposit.isWithdrawn(), "Deposit must not be withdrawn already.");
         require(currDeposit.isMatured(), "Deposit must be matured.");
 
@@ -244,7 +214,7 @@ contract DepositManager is Ownable, Pausable, Term {
             uint8 term = terms[i];
             PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
             uint8 index = 0;
-            uint totalDeposit = poolGroup.getTotalDepositFromPool(index);
+            uint totalDeposit = poolGroup.getDepositFromPool(index);
             uint loanInterest = poolGroup.getLoanInterestFromPool(index);
             uint interestIndex;
 

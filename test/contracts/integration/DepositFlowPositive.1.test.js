@@ -29,17 +29,9 @@ contract('DepositManager', ([owner, depositor]) => {
 
     let deposit
 
-    it('deposits without recurring', async () => {
-      await depositManager.deposit(asset.address, term, toFixedBN(50), false, { from: depositor })
+    it('deposits', async () => {
+      await depositManager.deposit(asset.address, term, toFixedBN(50), { from: depositor })
       deposit = await depositManager.deposits.call(0)
-    })
-
-    it('enables deposit recurring', async () => {
-      await depositManager.setRecurringDeposit(deposit, true, { from: depositor })
-    })
-
-    it('disables deposit recurring', async () => {
-      await depositManager.setRecurringDeposit(deposit, false, { from: depositor })
     })
 
     context('when deposit term is matured', () => {

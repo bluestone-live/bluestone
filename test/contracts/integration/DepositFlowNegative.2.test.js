@@ -25,7 +25,7 @@ contract('DepositManager', ([owner, depositor]) => {
     context('when the depositor does not have enough balance', () => {
       it('reverts deposit', async () => {
         await shouldFail.reverting(
-          depositManager.deposit(asset.address, term, toFixedBN(101), false, { from: depositor })
+          depositManager.deposit(asset.address, term, toFixedBN(101), { from: depositor })
         )
       })
     })

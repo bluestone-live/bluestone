@@ -24,7 +24,7 @@ contract('DepositManager', ([owner, depositor]) => {
     context('when the asset is disabled', () => {
       it('reverts deposit', async() => {
         await shouldFail.reverting(
-          depositManager.deposit(asset.address, term, toFixedBN(50), false, { from: depositor })
+          depositManager.deposit(asset.address, term, toFixedBN(50), { from: depositor })
         )
       })
     })

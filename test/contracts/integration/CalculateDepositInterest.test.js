@@ -61,8 +61,8 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
 
     before(async () => {
       const term = 30
-      await depositManager.deposit(loanAsset.address, term, depositAmount, false, { from: depositor })
-      await depositManager.deposit(loanAsset.address, term, depositAmount, false, { from: depositor })
+      await depositManager.deposit(loanAsset.address, term, depositAmount, { from: depositor })
+      await depositManager.deposit(loanAsset.address, term, depositAmount, { from: depositor })
 
       await loanManager.loan(
         term, 

@@ -10,51 +10,19 @@ contract("PoolGroup", () => {
   const loanInterest = toFixedBN(10);
   let poolGroup, pool;
 
-  describe("#addOneTimeDepositToPool", () => {
+  describe("#addDepositToPool", () => {
     before(async () => {
       poolGroup = await PoolGroup.new(term);
     });
 
     it("succeeds", async () => {
-      await poolGroup.addOneTimeDepositToPool(poolIndex, amount);
+      await poolGroup.addDepositToPool(poolIndex, amount);
       const poolId = await poolGroup.poolIds(poolIndex);
       pool = await poolGroup.poolsById(poolId);
     });
 
-    it("updates oneTimeDeposit", async () => {
-      expect(pool.oneTimeDeposit).to.be.bignumber.equal(amount);
-    });
-
-    it("does not update recurringDeposit", async () => {
-      expect(pool.recurringDeposit).to.be.bignumber.equal("0");
-    });
-
-    it("updates totalDeposit", async () => {
-      expect(await poolGroup.totalDeposit()).to.be.bignumber.equal(amount);
-    });
-  });
-
-  describe("#addRecurringDepositToPool", () => {
-    before(async () => {
-      poolGroup = await PoolGroup.new(term);
-    });
-
-    it("succeeds", async () => {
-      await poolGroup.addRecurringDepositToPool(poolIndex, amount);
-      const poolId = await poolGroup.poolIds(poolIndex);
-      pool = await poolGroup.poolsById(poolId);
-    });
-
-    it("does not update oneTimeDeposit", async () => {
-      expect(pool.oneTimeDeposit).to.be.bignumber.equal("0");
-    });
-
-    it("updates recurringDeposit", async () => {
-      expect(pool.recurringDeposit).to.be.bignumber.equal(amount);
-    });
-
-    it("updates loanableAmount", async () => {
-      expect(pool.loanableAmount).to.be.bignumber.equal(amount);
+    it("updates deposit", async () => {
+      expect(pool.deposit).to.be.bignumber.equal(amount);
     });
 
     it("updates totalDeposit", async () => {
@@ -67,7 +35,7 @@ contract("PoolGroup", () => {
 
     before(async () => {
       poolGroup = await PoolGroup.new(term);
-      await poolGroup.addOneTimeDepositToPool(poolIndex, amount);
+      await poolGroup.addDepositToPool(poolIndex, amount);
     });
 
     context("when loanable amount is not enough", () => {
@@ -113,7 +81,7 @@ contract("PoolGroup", () => {
 
     before(async () => {
       poolGroup = await PoolGroup.new(term);
-      await poolGroup.addOneTimeDepositToPool(poolIndex, amount);
+      await poolGroup.addDepositToPool(poolIndex, amount);
       await poolGroup.loanFromPool(poolIndex, amount, loanInterest, loanTerm);
     });
 
@@ -138,12 +106,32 @@ contract("PoolGroup", () => {
     });
   });
 
+  describe("#clearDepositFromPool", () => {
+    const loanTerm = 1;
+
+    before(async () => {
+      poolGroup = await PoolGroup.new(term);
+      await poolGroup.addDepositToPool(poolIndex, amount);
+      await poolGroup.loanFromPool(poolIndex, amount, loanInterest, loanTerm);
+    });
+
+    it("succeeds", async () => {
+      await poolGroup.clearDepositFromPool(poolIndex);
+    });
+
+    it("clears deposit", async () => {
+      const poolId = await poolGroup.poolIds(poolIndex);
+      pool = await poolGroup.poolsById(poolId);
+      expect(pool.deposit).to.be.bignumber.equal("0");
+    });
+  });
+
   describe("#clearLoanInterestFromPool", () => {
     const loanTerm = 1;
 
     before(async () => {
       poolGroup = await PoolGroup.new(term);
-      await poolGroup.addOneTimeDepositToPool(poolIndex, amount);
+      await poolGroup.addDepositToPool(poolIndex, amount);
       await poolGroup.loanFromPool(poolIndex, amount, loanInterest, loanTerm);
     });
 
@@ -191,55 +179,6 @@ contract("PoolGroup", () => {
           updatedPoolIndexes[i]
         );
       }
-    });
-  });
-
-  describe("#withdrawOneTimeDepositFromPool", () => {
-    const withdrawAmount = toFixedBN(50);
-
-    before(async () => {
-      poolGroup = await PoolGroup.new(term);
-      await poolGroup.addOneTimeDepositToPool(poolIndex, amount);
-    });
-
-    context("when withdraw amount is more than deposit", () => {
-      it("reverts", async () => {
-        await shouldFail.reverting(
-          poolGroup.withdrawOneTimeDepositFromPool(poolIndex, toFixedBN(101))
-        );
-      });
-    });
-
-    it("succeeds", async () => {
-      const poolId = await poolGroup.poolIds(poolIndex);
-      await poolGroup.withdrawOneTimeDepositFromPool(poolIndex, withdrawAmount);
-      pool = await poolGroup.poolsById(poolId);
-    });
-
-    it("updates oneTimeDeposit", async () => {
-      expect(pool.oneTimeDeposit).to.be.bignumber.equal(
-        amount.sub(withdrawAmount)
-      );
-    });
-
-    it("does not update recurringDeposit", async () => {
-      expect(pool.recurringDeposit).to.be.bignumber.equal("0");
-    });
-
-    it("updates loanableAmount", async () => {
-      expect(pool.loanableAmount).to.be.bignumber.equal(
-        amount.sub(withdrawAmount)
-      );
-    });
-
-    it("updates totalDeposit", async () => {
-      expect(await poolGroup.totalDeposit()).to.be.bignumber.equal(
-        amount.sub(withdrawAmount)
-      );
-    });
-
-    it("does not update totalLoan", async () => {
-      expect(await poolGroup.totalLoan()).to.be.bignumber.equal("0");
     });
   });
 });

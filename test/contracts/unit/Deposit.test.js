@@ -15,11 +15,10 @@ contract('Deposit', ([owner]) => {
 
   describe('#constructor', async () => {
     const term = new BN(1)
-    const isRecurring = false
     let deposit, datetime, now, createdAt
 
     before(async () => {
-      deposit = await Deposit.new(asset.address, owner, term, amount, profitRatio, isRecurring)
+      deposit = await Deposit.new(asset.address, owner, term, amount, profitRatio)
       now = await time.latest()
       datetime = await DateTime.new()
     })
@@ -39,11 +38,10 @@ contract('Deposit', ([owner]) => {
 
   describe('#withdrawDepositAndInterest', () => {
     const term = 1
-    const isRecurring = false
     let deposit
 
     beforeEach(async () => {
-      deposit = await Deposit.new(asset.address, owner, term, amount, profitRatio, isRecurring)
+      deposit = await Deposit.new(asset.address, owner, term, amount, profitRatio)
     })
 
     it('succeeds', async () => {
@@ -62,11 +60,10 @@ contract('Deposit', ([owner]) => {
 
   describe('#withdrawDeposit', () => {
     const term = 1
-    const isRecurring = false
     let deposit
 
     beforeEach(async () => {
-      deposit = await Deposit.new(asset.address, owner, term, amount, profitRatio, isRecurring)
+      deposit = await Deposit.new(asset.address, owner, term, amount, profitRatio)
     })
 
     it('succeeds', async () => {

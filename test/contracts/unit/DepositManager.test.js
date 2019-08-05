@@ -32,13 +32,12 @@ contract("DepositManager", ([owner, depositor]) => {
   describe("#getDepositsByUser", () => {
     const term = 1;
     const amount = toFixedBN(50);
-    const isRecurring = false;
 
     before(async () => {
-      await depositManager.deposit(asset.address, term, amount, isRecurring, {
+      await depositManager.deposit(asset.address, term, amount, {
         from: depositor
       });
-      await depositManager.deposit(asset.address, term, amount, isRecurring, {
+      await depositManager.deposit(asset.address, term, amount, {
         from: depositor
       });
     });
@@ -53,11 +52,10 @@ contract("DepositManager", ([owner, depositor]) => {
   });
 
   describe("#deposit", () => {
-    let term, amount, isRecurring;
+    let term, amount;
     before(async () => {
       term = 1;
       amount = toFixedBN(10);
-      isRecurring = true;
     });
 
     it("succeeds and emit DepositSuccessful event", async () => {
@@ -65,29 +63,9 @@ contract("DepositManager", ([owner, depositor]) => {
         asset.address,
         term,
         amount,
-        isRecurring,
         { from: depositor }
       );
       const events = logs.filter(({ event }) => event === "DepositSuccessful");
-      expect(events.length).to.be.equals(1);
-    });
-  });
-
-  describe("#setRecurringDeposit", () => {
-    let deposits;
-    before(async () => {
-      deposits = await depositManager.getDepositsByUser(depositor);
-    });
-
-    it("succeeds and emit SetRecurringDepositSuccessful event", async () => {
-      const { logs } = await depositManager.setRecurringDeposit(
-        deposits[0],
-        true,
-        { from: depositor }
-      );
-      const events = logs.filter(
-        ({ event }) => event === "SetRecurringDepositSuccessful"
-      );
       expect(events.length).to.be.equals(1);
     });
   });

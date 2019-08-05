@@ -31,10 +31,10 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       from: loaner
     });
     await depositManager.enableDepositAsset(loanAsset.address, { from: owner });
-    await depositManager.deposit(loanAsset.address, 1, depositAmount, false, {
+    await depositManager.deposit(loanAsset.address, 1, depositAmount, {
       from: depositor
     });
-    await depositManager.deposit(loanAsset.address, 30, depositAmount, false, {
+    await depositManager.deposit(loanAsset.address, 30, depositAmount, {
       from: depositor
     });
     await loanManager.enableLoanAssetPair(

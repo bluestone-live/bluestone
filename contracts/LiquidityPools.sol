@@ -105,10 +105,9 @@ contract LiquidityPools {
     function updatePoolGroupDepositMaturity(address asset, uint8 depositTerm) external {
         PoolGroup poolGroup = poolGroups[asset][depositTerm];
         uint8 index = 0;
-        uint oneTimeDeposit = poolGroup.getOneTimeDepositFromPool(index);
 
-        // 1. Withdraw matured non-recurring deposit from the 1-day pool
-        poolGroup.withdrawOneTimeDepositFromPool(index, oneTimeDeposit);
+        // 1. Clear matured deposit from the 1-day pool
+        poolGroup.clearDepositFromPool(index);
 
         // 2. Clear loan interest accumulated during the enture deposit term
         poolGroup.clearLoanInterestFromPool(index);

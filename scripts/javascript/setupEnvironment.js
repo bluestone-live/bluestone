@@ -160,7 +160,6 @@ module.exports = makeTruffleScript(async (network) => {
         loanAsset.address,
         term,
         toFixedBN(depositAmount),
-        false,
         { from: depositor }
       );
       debug(
