@@ -72,10 +72,18 @@ yarn
 yarn dev
 ```
 
-## Build for production
+## Deployment
+
+Make a production build:
 
 ```
 yarn build
+```
+
+Deploy to dev server:
+
+```
+yarn run deploy:dev
 ```
 
 ## Other Scripts

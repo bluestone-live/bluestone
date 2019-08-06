@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "NODE_ENV=dev webpack-dev-server --progress --hot --env=development -d",
     "build": "NODE_ENV=production webpack --progress --env=production -p",
+    "deploy:dev": "rsync -av dist/ root@bluestone.live:/var/www/alpha.bluestone.live/html",
     "lint": "tslint --project tsconfig.json --config tslint.json",
     "test": "jest",
     "translations": "node ./scripts/make-translations.js",
