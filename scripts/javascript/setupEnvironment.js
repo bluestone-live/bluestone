@@ -133,7 +133,12 @@ module.exports = makeTruffleScript(async (network) => {
 
   debug(`Initialize deposits for each asset and loans for each asset pair`);
   const tokenManager = await TokenManager.deployed();
-  const [owner, depositor, loaner] = await web3.eth.getAccounts();
+  const accounts = await web3.eth.getAccounts();
+
+  // Set depositor and loaner to the same account, so we can see transactions in one place 
+  const depositor = accounts[0];
+  const loaner = accounts[0];
+
   const initialSupply = 1000000;
   const initialAllowance = 1000000;
   const depositAmount = 50000;
@@ -145,7 +150,6 @@ module.exports = makeTruffleScript(async (network) => {
     divider();
 
     const loanAsset = await ERC20Mock.at(tokens[loanTokenSymbol].address);
-    await loanAsset.mint(depositor, initialSupply);
 
     await loanAsset.mint(depositor, toFixedBN(initialSupply));
     debug(`Mints ${initialSupply} ${loanTokenSymbol} to ${depositor}`)

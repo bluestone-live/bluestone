@@ -128,3 +128,27 @@ npx truffle test <test_file>
 ```
 
 Notice that `arc unit` will be executed in the `arc diff` process, which will run all the truffle tests for us.
+
+## Deployment
+
+**WARNING: current deployment strategy is still highly experienmental and immature.**
+
+Because deployed contracts are final, we always deploy fresh new contracts to the testnet and setup test environment from scratch. We may change our deployment strategy once we figure out how to upgrade existing contracts. 
+
+### Rinkeby testnet
+
+First, fill in the infura projectId and mnemonic in `config.js`.
+
+Deploy new contracts to rinkeby testnet:
+
+```
+npx truffle migrate --network rinkeby --reset
+```
+
+Setup initial state for the test environment:
+
+```
+./scripts/bash/setupEnvironment rinkeby
+```
+
+Since contract ABIs have been changed, we need to redeploy web app following the same section in client's README. 
