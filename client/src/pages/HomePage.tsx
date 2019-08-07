@@ -3,7 +3,6 @@ import { observer, inject } from 'mobx-react';
 import { TokenStore, AccountStore } from '../stores';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import Anchor from '../components/html/Anchor';
 import {
   calculateRate,
   RatePeriod,
@@ -14,7 +13,7 @@ import Card from '../components/common/Card';
 import Button from '../components/html/Button';
 import { ITerm, terms } from '../constants/Term';
 import { IToken, defaultTokenPairs } from '../constants/Token';
-import { BigNumber, convertWeiToDecimal } from '../utils/BigNumber';
+import { RouteComponentProps, withRouter } from 'react-router';
 
 const StyledTokenList = styled.table`
   width: 100%;
@@ -31,6 +30,12 @@ const StyledTokenList = styled.table`
 
 const StyledTokenListRow = styled.tr`
   height: 100px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${(props: ThemedProps) =>
+      props.theme.backgroundColor.hover};
+  }
 
   & td {
     text-align: center;
@@ -53,30 +58,11 @@ const StyledTermSelector = styled.div`
   align-items: center;
 `;
 
-const StyledAnchor = styled(Anchor)`
-  border: 1px solid ${(props: ThemedProps) => props.theme.borderColor.secondary};
+const StyledButton = styled(Button)`
   margin: 0 ${(props: ThemedProps) => props.theme.gap.small};
-  display: inline-block;
-  min-width: 100px;
-  padding: 0 ${(props: ThemedProps) => props.theme.gap.small};
-  height: 30px;
-  line-height: 30px;
-  border-radius: ${(props: ThemedProps) => props.theme.borderRadius.medium};
 `;
 
-const StyledPrimaryAnchor = styled(StyledAnchor)`
-  background-color: ${(props: ThemedProps) => props.theme.colors.primary};
-  color: ${(props: ThemedProps) => props.theme.fontColors.inverted};
-  border-color: transparent;
-
-  &:hover {
-    color: ${(props: ThemedProps) => props.theme.fontColors.inverted};
-    background-color: ${(props: ThemedProps) =>
-      props.theme.colors.primaryLight};
-  }
-`;
-
-interface IProps extends WithTranslation {
+interface IProps extends WithTranslation, RouteComponentProps {
   tokenStore: TokenStore;
   accountStore: AccountStore;
 }
@@ -102,6 +88,13 @@ class HomePage extends React.Component<IProps, IState> {
     });
   };
 
+  goTo = (path: string) => (
+    e: React.MouseEvent<HTMLTableRowElement | HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.stopPropagation();
+    this.props.history.push(path);
+  };
+
   renderActions(token: IToken) {
     const { accountStore, t } = this.props;
 
@@ -114,46 +107,30 @@ class HomePage extends React.Component<IProps, IState> {
 
       return (
         <React.Fragment>
-          <StyledAnchor to={`/deposit/${token.symbol}`}>
+          <StyledButton onClick={this.goTo(`/deposit/${token.symbol}`)}>
             {t('deposit')}
-          </StyledAnchor>
-          <StyledPrimaryAnchor
-            to={`/loan?loanTokenSymbol=${token.symbol}&collateralTokenSymbol=${collateralTokenSymbol}&term=30`}
+          </StyledButton>
+          <StyledButton
+            primary
+            onClick={this.goTo(
+              `/loan?loanTokenSymbol=${token.symbol}&collateralTokenSymbol=${collateralTokenSymbol}&term=30`,
+            )}
           >
             {t('loan')}
-          </StyledPrimaryAnchor>
+          </StyledButton>
         </React.Fragment>
       );
     } else {
       // TODO: show button loading state
       return (
         <React.Fragment>
-          <Button primary onClick={onEnableToken}>
+          <StyledButton primary onClick={onEnableToken}>
             {t('enable')}
-          </Button>
+          </StyledButton>
         </React.Fragment>
       );
     }
   }
-
-  renderFreedCollateralCell = (
-    token: IToken,
-    freedCollateral: BigNumber | undefined,
-  ) => {
-    const { t } = this.props;
-
-    if (freedCollateral && convertWeiToDecimal(freedCollateral) > 0) {
-      return (
-        <span>
-          {convertWeiToDecimal(freedCollateral)}
-          <StyledAnchor to={`/withdraw/${token.address}`}>
-            {t('withdraw')}
-          </StyledAnchor>
-        </span>
-      );
-    }
-    return <span>0</span>;
-  };
 
   render() {
     const {
@@ -187,14 +164,15 @@ class HomePage extends React.Component<IProps, IState> {
             </thead>
             <tbody>
               {validTokens.map(token => (
-                <StyledTokenListRow key={token.symbol}>
+                <StyledTokenListRow
+                  key={token.symbol}
+                  onClick={this.goTo(
+                    `/records/deposit?currentToken=${token.address}`,
+                  )}
+                >
                   <td>
-                    <Anchor
-                      to={`/records/deposit?currentToken=${token.address}`}
-                    >
-                      {token.logo}
-                      {token.symbol}
-                    </Anchor>
+                    {token.logo}
+                    {token.symbol}
                   </td>
                   <td>
                     {token.depositAnnualPercentageRates
@@ -226,4 +204,4 @@ class HomePage extends React.Component<IProps, IState> {
   }
 }
 
-export default withTranslation()(HomePage);
+export default withTranslation()(withRouter(HomePage));
