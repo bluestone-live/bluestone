@@ -81,7 +81,7 @@ export interface ILoanRecord {
   liquidatedAmount?: number;
   soldCollateralAmount?: number;
   createdAt: number;
-  accruedInterest: number;
+  interest: number;
   remainingDebt: number;
 }
 

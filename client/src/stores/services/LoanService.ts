@@ -58,8 +58,8 @@ export const getLoan = async (
     soldCollateralAmount: convertWeiToDecimal(
       await loanContractInstance.methods.soldCollateralAmount().call(),
     ),
-    accruedInterest: convertWeiToDecimal(
-      await loanContractInstance.methods.accruedInterest().call(),
+    interest: convertWeiToDecimal(
+      await loanContractInstance.methods.interest().call(),
     ),
     createdAt: formatSolidityTime(
       await loanContractInstance.methods.createdAt().call(),

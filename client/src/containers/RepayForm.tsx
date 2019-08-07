@@ -96,9 +96,7 @@ class RepayForm extends React.Component<IProps, IState> {
             <Input
               type="text"
               disabled
-              value={`${record.accruedInterest || 0} ${
-                record.loanToken.symbol
-              }`}
+              value={`${record.interest} ${record.loanToken.symbol}`}
             />
           </Form.Item>
           <Form.Item>
