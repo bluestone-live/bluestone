@@ -62,7 +62,7 @@ class Header extends React.PureComponent<IProps> {
       <StyledHeader>
         <StyledBrand to="/">BlueStone</StyledBrand>
         <StyledMenu>
-          <StyledMenuItem>{t('FAQ')}</StyledMenuItem>
+          <StyledMenuItem>{t('faq')}</StyledMenuItem>
           <StyledAccountItem onClick={onAccountClick}>
             {defaultAccount ? defaultAccount : t('no_account')}
           </StyledAccountItem>

@@ -144,7 +144,7 @@ class HomePage extends React.Component<IProps, IState> {
         <Card>
           <StyledActionBar>
             <StyledTermSelector>
-              {t('select_term')}
+              {t('select_term')}:
               <Radio
                 name="term"
                 onChange={this.onTermSelect}
@@ -156,7 +156,7 @@ class HomePage extends React.Component<IProps, IState> {
           <StyledTokenList>
             <thead>
               <tr>
-                <th style={{ minWidth: '220px' }}>{t('token')}</th>
+                <th style={{ minWidth: '220px' }}>{t('asset')}</th>
                 <th style={{ minWidth: '240px' }}>{t('deposit_apr')}</th>
                 <th style={{ minWidth: '240px' }}>{t('loan_apr')}</th>
                 <th />

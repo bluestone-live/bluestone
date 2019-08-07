@@ -5,11 +5,11 @@ export interface ITerm {
 
 export const terms: ITerm[] = [
   {
-    text: '1 Day',
+    text: '1-Day',
     value: 1,
   },
   {
-    text: '30 Days',
+    text: '30-Day',
     value: 30,
   },
 ];

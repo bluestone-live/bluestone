@@ -15,6 +15,7 @@ i18n
       zh: { translation: require('./translations/zh.json').translations },
       en: { translation: require('./translations/en.json').translations },
     },
+    lng: 'en',
     fallbackLng: 'en',
     ns: ['translations'],
     debug: process.env.NODE_ENV !== 'production',

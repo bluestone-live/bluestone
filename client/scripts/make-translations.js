@@ -60,7 +60,7 @@ async function processWorksheet(sheet) {
 async function writeToFile(lang) {
   fs.writeFileSync(
     path.join(__dirname, TRANSLATION_PATH, `${lang}.json`),
-    JSON.stringify(languageContent[lang], undefined, 2),
+    `${JSON.stringify(languageContent[lang], undefined, 2)}\n`,
     error => {
       console.log(`Save file ${lang}.json failed: ${error || 'unknown'}`);
     },
