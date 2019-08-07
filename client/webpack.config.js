@@ -128,7 +128,11 @@ module.exports = env => ({
       hash: env === 'production',
     }),
     new webpack.HashedModuleIdsPlugin(),
-    new OfflinePlugin(),
+    new OfflinePlugin({
+      ServiceWorker: {
+        events: true,
+      },
+    }),
     new BundleAnalyzerPlugin({
       analyzerMode: process.env.NODE_ENV === 'analyzer' ? 'server' : 'disabled',
     }),

@@ -79,5 +79,13 @@ if (process.env.NODE_ENV !== 'production') {
     (module as any).hot.accept();
   }
 } else {
-  OfflinePluginRuntime.install();
+  // TODO show upgrading progress
+  OfflinePluginRuntime.install({
+    onUpdateReady: () => {
+      OfflinePluginRuntime.applyUpdate();
+    },
+    onUpdated: () => {
+      window.location.reload();
+    },
+  });
 }
