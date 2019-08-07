@@ -19,14 +19,12 @@ export interface IDepositRecord {
   createdAt: number;
   maturedAt: number;
   withdrewAt?: number; // can a deposit order withdrew multiple times
-  isRecurring: boolean;
   contract: Contract;
 }
 
 export enum RecordStatus {
   Lock = -1,
   DepositNormal = 10,
-  DepositRecurring = 11,
   DepositMatured = 12,
   DepositOverDue = 13,
   DepositClose = 14,
@@ -40,15 +38,12 @@ export const getDepositRecordStatus = async (depositInstance: Contract) => {
   const isOverDue = await depositInstance.methods.isOverDue().call();
   const isWithdrawn = await depositInstance.methods.isWithdrawn().call();
   const isMatured = await depositInstance.methods.isMatured().call();
-  const isRecurring = await depositInstance.methods.isRecurring().call();
   if (isWithdrawn) {
     return RecordStatus.DepositClose;
   } else if (isOverDue) {
     return RecordStatus.DepositOverDue;
   } else if (isMatured) {
     return RecordStatus.DepositMatured;
-  } else if (isRecurring) {
-    return RecordStatus.DepositRecurring;
   }
   return RecordStatus.DepositNormal;
 };

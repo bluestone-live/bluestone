@@ -24,14 +24,12 @@ export const getDepositInterestRate = async (
 
 /**
  * deposit token
- * @param isRecurring: is auto renew
  * @returns Promise<PromiEvent>: https://web3js.readthedocs.io/en/1.0/callbacks-promises-events.html#promievent
  */
 export const deposit = async (
   assetAddress: string,
   term: number,
   amount: BigNumber,
-  isRecurring: boolean,
 ) => {
   const flow = await getContractEventFlow(
     'DepositManager',
@@ -41,7 +39,7 @@ export const deposit = async (
 
   return flow(DepositManager =>
     DepositManager.methods
-      .deposit(assetAddress, term, amount.toString(), isRecurring)
+      .deposit(assetAddress, term, amount.toString())
       .send({ from: accountStore.defaultAccount }),
   );
 };
@@ -51,23 +49,6 @@ export const getDepositRecords = async (): Promise<string[]> => {
   return contracts.DepositManager.methods
     .getDepositsByUser(accountStore.defaultAccount)
     .call();
-};
-
-export const toggleRenewal = async (
-  depositAddress: string,
-  enableRecurring: boolean,
-) => {
-  const flow = await getContractEventFlow(
-    'DepositManager',
-    EventName.SetRecurringDepositSuccessful,
-    { filter: { user: accountStore.defaultAccount } },
-  );
-
-  return flow(DepositManager =>
-    DepositManager.methods
-      .setRecurringDeposit(depositAddress, enableRecurring)
-      .send({ from: accountStore.defaultAccount }),
-  );
 };
 
 export const withdraw = async (depositAddress: string) => {

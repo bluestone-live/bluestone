@@ -39,17 +39,6 @@ class DepositDetail extends React.Component<IProps, IState> {
     this.setLoading(false);
   };
 
-  toggleRenewal = async () => {
-    const { depositRecord, recordStore } = this.props;
-    this.setLoading(true);
-    await recordStore.toggleRenewal(
-      depositRecord.recordAddress,
-      !depositRecord.isRecurring,
-    );
-    await recordStore.updateDepositRecordByAddress(depositRecord.recordAddress);
-    this.setLoading(false);
-  };
-
   render() {
     const { t, depositRecord, transactionsForRecord } = this.props;
     const { loading } = this.state;
@@ -87,20 +76,9 @@ class DepositDetail extends React.Component<IProps, IState> {
           </Cell>
         </Form.Item>
         <Form.Item>
-          <Cell>
-            <label>{t('is_auto_renewal')}</label>
-          </Cell>
-          <Cell scale={4}>
-            <TextBox>{depositRecord.isRecurring.toString()}</TextBox>
-          </Cell>
-        </Form.Item>
-        <Form.Item>
           <Button.Group>
             <Button primary onClick={this.withdraw} disabled={loading}>
               {t('withdraw')}
-            </Button>
-            <Button onClick={this.toggleRenewal} disabled={loading}>
-              {t('toggle_renewal')}
             </Button>
           </Button.Group>
         </Form.Item>

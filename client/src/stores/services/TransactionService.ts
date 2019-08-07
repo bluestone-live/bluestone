@@ -14,5 +14,3 @@ export const getDepositSuccessfulEvents = async () =>
   getPastEvents('DepositManager', EventName.DepositSuccessful);
 export const getWithdrawDepositSuccessfulEvents = async () =>
   getPastEvents('DepositManager', EventName.WithdrawDepositSuccessful);
-export const getSetRecurringDepositSuccessfulEvents = async () =>
-  getPastEvents('DepositManager', EventName.SetRecurringDepositSuccessful);

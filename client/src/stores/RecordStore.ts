@@ -2,7 +2,6 @@ import { observable, action, computed } from 'mobx';
 import {
   deposit,
   getDepositRecords,
-  toggleRenewal,
   withdraw,
 } from './services/DepositManagerService';
 import { BigNumber } from '../utils/BigNumber';
@@ -52,18 +51,8 @@ export class RecordStore {
   }
 
   @action.bound
-  async deposit(
-    token: IToken,
-    term: number,
-    amount: BigNumber,
-    isRecurring: boolean,
-  ) {
-    const depositEvent = await deposit(
-      token.address,
-      term,
-      amount,
-      isRecurring,
-    );
+  async deposit(token: IToken, term: number, amount: BigNumber) {
+    const depositEvent = await deposit(token.address, term, amount);
     const depositAddress = depositEvent.returnValues.deposit;
     const depositRecord = await getDeposit(depositAddress);
     return this.saveOrUpdateDepositRecords([depositRecord]);
@@ -87,11 +76,6 @@ export class RecordStore {
   async updateDepositRecordByAddress(recordAddress: string) {
     const depositRecord = await getDeposit(recordAddress);
     return this.saveOrUpdateDepositRecords([depositRecord]);
-  }
-
-  @action.bound
-  toggleRenewal(depositAddress: string, enableRecurring: boolean) {
-    return toggleRenewal(depositAddress, enableRecurring);
   }
 
   @action.bound

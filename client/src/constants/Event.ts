@@ -5,5 +5,4 @@ export enum EventName {
   WithdrawFreedCollateralSuccessful = 'WithdrawFreedCollateralSuccessful',
   DepositSuccessful = 'DepositSuccessful',
   WithdrawDepositSuccessful = 'WithdrawDepositSuccessful',
-  SetRecurringDepositSuccessful = 'SetRecurringDepositSuccessful',
 }

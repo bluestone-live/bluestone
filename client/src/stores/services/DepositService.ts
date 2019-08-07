@@ -43,7 +43,6 @@ export const getDeposit = async (
     maturedAt: formatSolidityTime(
       await depositContractInstance.methods.maturedAt().call(),
     ),
-    isRecurring: await depositContractInstance.methods.isRecurring().call(),
     contract: depositContractInstance,
   };
 };

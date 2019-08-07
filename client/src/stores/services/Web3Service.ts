@@ -109,7 +109,7 @@ export const getContracts = () => {
  *
  * return flow(DepositManager => {
  *   DepositManager.methods
- *     .deposit(assetAddress, term, amount.toString(), isRecurring)
+ *     .deposit(assetAddress, term, amount.toString())
  *     .send({ from: accountStore.defaultAccount });
  * });
  * ```

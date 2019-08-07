@@ -4,7 +4,6 @@ import {
   getAddCollateralSuccessfulEvents,
   getDepositSuccessfulEvents,
   getRepayLoanSuccessfulEvents,
-  getSetRecurringDepositSuccessfulEvents,
   getWithdrawDepositSuccessfulEvents,
   getWithdrawFreedCollatteralSuccessfulEvents,
 } from './services/TransactionService';
@@ -36,7 +35,6 @@ export class TransactionStore {
   async getDepositTransactions() {
     const res = await Promise.all([
       getDepositSuccessfulEvents(),
-      getSetRecurringDepositSuccessfulEvents(),
       getWithdrawDepositSuccessfulEvents(),
     ]);
     this.setDepositTransactions(
