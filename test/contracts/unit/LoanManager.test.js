@@ -107,37 +107,6 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     });
   });
 
-  describe("#getFreedCollateral", () => {
-    before(async () => {
-      await createLoan();
-      await createLoan();
-    });
-
-    it("frees collateral after fully repay", async () => {
-      const prevFreeCollateralAssetBalance = await loanManager.getFreedCollateral(
-        collateralAsset.address,
-        { from: loaner }
-      );
-
-      const loanAddress = await loanManager.loans.call(1);
-      const loan = await Loan.at(loanAddress);
-      const repayAmount = await loan.remainingDebt();
-
-      await loanManager.repayLoan(loanAddress, repayAmount, {
-        from: loaner
-      });
-
-      const freeCollateralAssetBalance = await loanManager.getFreedCollateral(
-        collateralAsset.address,
-        { from: loaner }
-      );
-
-      expect(freeCollateralAssetBalance).to.be.bignumber.equal(
-        prevFreeCollateralAssetBalance.add(basicCollateralAmount)
-      );
-    });
-  });
-
   describe("#repayLoan", () => {
     before(async () => {
       await createLoan();

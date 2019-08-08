@@ -7,6 +7,7 @@ import "../LiquidityPools.sol";
 import "../DepositManager.sol";
 import "../LoanManager.sol";
 import "../Loan.sol";
+import "../AccountManager.sol";
 
 
 contract LoanManagerMock is LoanManager {
@@ -17,9 +18,10 @@ contract LoanManagerMock is LoanManager {
         PriceOracle priceOracle,
         TokenManager tokenManager,
         LiquidityPools liquidityPools,
-        DepositManager depositManager
+        DepositManager depositManager,
+        AccountManager accountManager
     ) 
-        LoanManager(config, priceOracle, tokenManager, liquidityPools, depositManager)
+        LoanManager(config, priceOracle, tokenManager, liquidityPools, depositManager, accountManager)
         public 
     {}
 

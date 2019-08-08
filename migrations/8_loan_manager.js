@@ -4,14 +4,16 @@ const TokenManager = artifacts.require("./TokenManager.sol");
 const LiquidityPools = artifacts.require("./LiquidityPools.sol");
 const LoanManager = artifacts.require("./LoanManager.sol");
 const DepositManager = artifacts.require("./DepositManager.sol");
+const AccountManager = artifacts.require("./AccountManager.sol");
 
 module.exports = async function(deployer) {
   await deployer.deploy(
-    LoanManager, 
-    Configuration.address, 
-    PriceOracle.address, 
+    LoanManager,
+    Configuration.address,
+    PriceOracle.address,
     TokenManager.address,
     LiquidityPools.address,
-    DepositManager.address
+    DepositManager.address,
+    AccountManager.address
   );
 };

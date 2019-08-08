@@ -1,38 +1,31 @@
-const LoanManager = artifacts.require('LoanManager')
-const { shouldFail, constants } = require('openzeppelin-test-helpers')
-const { expect } = require('chai')
+const LoanManager = artifacts.require("LoanManager");
+const { shouldFail, constants } = require("openzeppelin-test-helpers");
+const { expect } = require("chai");
 
-contract('LoanManager', ([owner, depositor]) => {
-  let loanManager
+contract("LoanManager", ([owner, depositor]) => {
+  let loanManager;
 
   before(async () => {
-    loanManager = await LoanManager.deployed() 
-  })
+    loanManager = await LoanManager.deployed();
+  });
 
-  describe('pause loan manager', () => {
-    const asset = constants.ZERO_ADDRESS
+  describe("pause loan manager", () => {
+    const asset = constants.ZERO_ADDRESS;
 
-    context('when paused', () => {
+    context("when paused", () => {
       before(async () => {
-        await loanManager.pause()
-      })
+        await loanManager.pause();
+      });
 
-      it('reverts on public call', async() => {
-        await shouldFail.reverting(
-          loanManager.getFreedCollateral(asset, { from: depositor })
-        )
-      })
-    })
+      // TODO test actions
+    });
 
-    context('when unpaused', () => {
+    context("when unpaused", () => {
       before(async () => {
-        await loanManager.unpause()
-      })
+        await loanManager.unpause();
+      });
 
-      it('succeeds on public call', async() => {
-        const amount = await loanManager.getFreedCollateral(asset, { from: depositor })
-        expect(amount).to.be.bignumber.equal('0')
-      })
-    })
-  })
-})
+      // TODO test actions
+    });
+  });
+});

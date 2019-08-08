@@ -5,6 +5,7 @@ const PriceOracle = artifacts.require("PriceOracle");
 const TokenManager = artifacts.require("TokenManager");
 const LiquidityPools = artifacts.require("LiquidityPools");
 const Loan = artifacts.require("Loan");
+const AccountManager = artifacts.require("AccountManager");
 const { time } = require("openzeppelin-test-helpers");
 const { createERC20Token, toFixedBN } = require("../../utils/index.js");
 const { expect } = require("chai");
@@ -24,12 +25,14 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     tokenManager = await TokenManager.deployed();
     liquidityPools = await LiquidityPools.deployed();
     depositManager = await DepositManager.deployed();
+    accountManager = await AccountManager.deployed();
     loanManager = await LoanManager.new(
       config.address,
       priceOracle.address,
       tokenManager.address,
       liquidityPools.address,
-      depositManager.address
+      depositManager.address,
+      accountManager.address
     );
   });
 
@@ -58,12 +61,9 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       await depositManager.deposit(loanAsset.address, 1, depositAmount, {
         from: depositor
       });
-      await depositManager.deposit(
-        loanAsset.address,
-        30,
-        depositAmount,
-        { from: depositor }
-      );
+      await depositManager.deposit(loanAsset.address, 30, depositAmount, {
+        from: depositor
+      });
       await loanManager.enableLoanAssetPair(
         loanAsset.address,
         collateralAsset.address,
@@ -124,8 +124,8 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
 
       it("repays in full", async () => {
         const loanAddress = await loanManager.loans.call(0);
-        const loan = await Loan.at(loanAddress)
-        repayAmount = await loan.remainingDebt()
+        const loan = await Loan.at(loanAddress);
+        repayAmount = await loan.remainingDebt();
         await loanManager.repayLoan(loanAddress, repayAmount, {
           from: loaner
         });
