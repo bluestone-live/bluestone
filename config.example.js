@@ -23,6 +23,8 @@ module.exports = {
       USDC: { name: 'Tether', symbol: 'USDC' },
       WETH: { name: 'Wrapped Ether', symbol: 'WETH' }
     },
+    depositTerms: [30],
+    loanTerms: [7, 30],
     collateralRatio: {
       ETH: {
         DAI: 1.50,
@@ -53,15 +55,15 @@ module.exports = {
     },
     loanInterestRate: {
       ETH: {
-        1: 0.0000000004756469,
+        7: 0.0000000004756469,
         30: 0.0000000006341958
       },
       DAI: {
-        1: 0.000000003805175,
+        7: 0.000000003805175,
         30: 0.0000000047564688
       },
       USDT: {
-        1: 0.0000000019025875,
+        7: 0.0000000019025875,
         30: 0.0000000025367834
       }
     }

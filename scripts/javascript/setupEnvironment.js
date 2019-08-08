@@ -24,6 +24,8 @@ module.exports = makeTruffleScript(async (network) => {
   const config = await Configuration.deployed();
   const {
     tokens,
+    depositTerms,
+    loanTerms,
     collateralRatio,
     liquidationDiscount,
     loanInterestRate
@@ -50,6 +52,18 @@ module.exports = makeTruffleScript(async (network) => {
     tokens
   })
 
+  divider();
+
+  for (let depositTerm of depositTerms) {
+    await depositManager.enableDepositTerm(depositTerm)
+    debug(`enableDepositTerm: ${depositTerm}`)
+  }
+
+  for (let loanTerm of loanTerms) {
+    await loanManager.addLoanTerm(loanTerm)
+    debug(`addLoanTerm: ${loanTerm}`)
+  }
+
   // TODO: not sure if we need to setup WETH
   const tokenSymbolList = tokenSymbolListWithWETH.filter(symbol => symbol !== 'WETH')
 
@@ -57,7 +71,6 @@ module.exports = makeTruffleScript(async (network) => {
     divider();
 
     const loanAsset = tokens[loanTokenSymbol].address;
-    const loanTerms = [1, 30];
 
     await depositManager.enableDepositAsset(loanAsset);
     debug(`enableDepositAsset: ${loanTokenSymbol}`);
@@ -144,7 +157,6 @@ module.exports = makeTruffleScript(async (network) => {
   const depositAmount = 50000;
   const loanAmount = 100;
   const freedCollateralAmount = 0;
-  const terms = [1, 30];
 
   for (let loanTokenSymbol of tokenSymbolList) {
     divider();
@@ -159,15 +171,15 @@ module.exports = makeTruffleScript(async (network) => {
     });
     debug(`Depositor approves sending ${initialAllowance} ${loanTokenSymbol} as deposit to protocol`);
 
-    for (let term of terms) {
+    for (let depositTerm of depositTerms) {
       await depositManager.deposit(
         loanAsset.address,
-        term,
+        depositTerm,
         toFixedBN(depositAmount),
         { from: depositor }
       );
       debug(
-        `Depositor deposits ${depositAmount} ${loanTokenSymbol} in ${term}-day term`
+        `Depositor deposits ${depositAmount} ${loanTokenSymbol} in ${depositTerm}-day term`
       );
     }
 
@@ -186,7 +198,7 @@ module.exports = makeTruffleScript(async (network) => {
           `Loaner approves sending ${initialAllowance} ${collateralTokenSymbol} as collateral to protocol`
         );
 
-        for (let term of terms) {
+        for (let loanTerm of loanTerms) {
           const loanAssetPrice = priceList[tokenSymbolList.indexOf(loanTokenSymbol)]
           const collateralAssetPrice = priceList[tokenSymbolList.indexOf(collateralTokenSymbol)]
 
@@ -194,7 +206,7 @@ module.exports = makeTruffleScript(async (network) => {
           const collateralAmount = Math.round(loanAmount * loanAssetPrice / collateralAssetPrice * 3)
 
           await loanManager.loan(
-            term,
+            loanTerm,
             loanAsset.address,
             collateralAsset.address,
             toFixedBN(loanAmount),
@@ -203,16 +215,17 @@ module.exports = makeTruffleScript(async (network) => {
             { from: loaner }
           );
           debug(
-            `Loaner loans ${loanAmount} ${loanTokenSymbol} using ${collateralAmount} ${collateralTokenSymbol} collateral in ${term}-day term`
+            `Loaner loans ${loanAmount} ${loanTokenSymbol} using ${collateralAmount} ${collateralTokenSymbol} collateral in ${loanTerm}-day term`
           );
         }
       }
     }
 
-    // Now we have initial deposits and loans distributed evenly, we shall set initial coefficients
-    setCoefficient(loanTokenSymbol, loanAsset.address, 1, 1, 0.5);
-    setCoefficient(loanTokenSymbol, loanAsset.address, 30, 1, 0.5);
-    setCoefficient(loanTokenSymbol, loanAsset.address, 30, 30, 1);
+    for (let depositTerm of depositTerms) {
+      for (let loanTerm of loanTerms) {
+        setCoefficient(loanTokenSymbol, loanAsset.address, depositTerm, loanTerm, 1);
+      }
+    }
   }
 });
 
@@ -241,12 +254,14 @@ function isValidConfiguartion(configuration) {
   if (configuration) {
     const {
       tokens,
+      depositTerms,
+      loanTerms,
       collateralRatio,
       liquidationDiscount,
       loanInterestRate
     } = configuration;
     return (
-      tokens && collateralRatio && liquidationDiscount && loanInterestRate
+      tokens && depositTerms && loanTerms && collateralRatio && liquidationDiscount && loanInterestRate
     );
   } else {
     return false;
