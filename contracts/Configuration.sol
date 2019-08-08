@@ -1,11 +1,10 @@
 pragma solidity ^0.5.0;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./Term.sol";
 
 
 // Stores and retrieves business configurations. 
-contract Configuration is Ownable, Term {
+contract Configuration is Ownable {
     uint private constant MIN_COLLATERAL_RATIO = 12 * (10 ** 17); // 1.2 (120%)
     uint private constant MAX_LIQUIDATION_DISCOUNT = 5 * (10 ** 16); // 0.05 (5%)
     uint private constant MAX_PROFIT_RATIO = 3 * (10 ** 17); // 0.3 (30%)
@@ -43,8 +42,6 @@ contract Configuration is Ownable, Term {
     function getCoefficient(address asset, uint8 depositTerm, uint8 loanTerm) 
         external
         view
-        validDepositTerm(depositTerm)
-        validLoanTerm(loanTerm)
         returns (uint)
     {
         return _coefficients[asset][depositTerm][loanTerm];
@@ -58,7 +55,7 @@ contract Configuration is Ownable, Term {
         return _liquidationDiscountMap[loanAsset][collateralAsset];
     } 
 
-    function getLoanInterestRate(address asset, uint8 loanTerm) external view validLoanTerm(loanTerm) returns (uint) {
+    function getLoanInterestRate(address asset, uint8 loanTerm) external view returns (uint) {
         return _loanInterestRates[asset][loanTerm];
     }
 
@@ -79,8 +76,6 @@ contract Configuration is Ownable, Term {
     function setCoefficient(address asset, uint8 depositTerm, uint8 loanTerm, uint value)
         public
         onlyOwner
-        validDepositTerm(depositTerm)
-        validLoanTerm(loanTerm)
     {
         require(value <= 10 ** 18, "Invalid coefficient value.");
 
@@ -103,7 +98,6 @@ contract Configuration is Ownable, Term {
     function setLoanInterestRate(address asset, uint8 loanTerm, uint value)
         public
         onlyOwner
-        validLoanTerm(loanTerm)
     {
         _loanInterestRates[asset][loanTerm] = value;
     }

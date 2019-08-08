@@ -1,15 +1,15 @@
 const TokenManager = artifacts.require("TokenManager");
-const { shouldFail, time } = require("openzeppelin-test-helpers");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
 const { DepositManagerMock } = require("../../utils/mocks.js");
 const { expect } = require("chai");
 
 contract("DepositManager", ([owner, depositor]) => {
   const initialSupply = toFixedBN(1000);
-  let depositManager, tokenManager, asset;
+  let depositManager, tokenManager, asset, term;
 
   before(async () => {
     depositManager = await DepositManagerMock();
+    term = (await depositManager.getDepositTerms())[0];
     tokenManager = await TokenManager.deployed();
     asset = await createERC20Token(depositor, initialSupply);
     await asset.approve(tokenManager.address, initialSupply, {
@@ -20,7 +20,6 @@ contract("DepositManager", ([owner, depositor]) => {
 
   describe("#getDepositInterestRate", () => {
     it("succeeds", async () => {
-      const term = 1;
       const res = await depositManager.getDepositInterestRate(
         asset.address,
         term
@@ -30,7 +29,6 @@ contract("DepositManager", ([owner, depositor]) => {
   });
 
   describe("#getDepositsByUser", () => {
-    const term = 1;
     const amount = toFixedBN(50);
 
     before(async () => {
@@ -52,9 +50,9 @@ contract("DepositManager", ([owner, depositor]) => {
   });
 
   describe("#deposit", () => {
-    let term, amount;
+    let amount;
+
     before(async () => {
-      term = 1;
       amount = toFixedBN(10);
     });
 
@@ -70,10 +68,31 @@ contract("DepositManager", ([owner, depositor]) => {
     });
   });
 
+  describe("#enableDepositTerm", () => {
+    it("succeeds", async () => {
+      const term = 60;
+      const prevTerms = await depositManager.getDepositTerms();
+      await depositManager.enableDepositTerm(term);
+      const currTerms = await depositManager.getDepositTerms();
+      expect(currTerms.length).to.equal(prevTerms.length + 1);
+      expect(currTerms.map(term => term.toNumber())).to.contain(term);
+    });
+  });
+
+  describe("#disableDepositTerm", () => {
+    it("succeeds", async () => {
+      const term = 60;
+      const prevTerms = await depositManager.getDepositTerms();
+      await depositManager.disableDepositTerm(term);
+      const currTerms = await depositManager.getDepositTerms();
+      expect(currTerms.length).to.equal(prevTerms.length - 1);
+      expect(currTerms.map(term => term.toNumber())).to.not.contain(term);
+    });
+  });
+
   describe("#updateInterestIndexHistory", () => {
     const initialInterestIndex = toFixedBN(1);
     const updatedInterestIndex = toFixedBN(2);
-    const term = 1;
     const numDays = 30;
 
     before(async () => {

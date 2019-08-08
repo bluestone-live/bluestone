@@ -1,88 +1,68 @@
-const Configuration = artifacts.require("Configuration");
-const PriceOracle = artifacts.require("PriceOracle");
-const TokenManager = artifacts.require("TokenManager");
-const LiquidityPools = artifacts.require("LiquidityPools");
-const Loan = artifacts.require("Loan");
-const DateTime = artifacts.require("DateTime");
-const { time } = require("openzeppelin-test-helpers");
-const { createERC20Token, toFixedBN } = require("../../utils/index.js");
-const { DepositManagerMock, LoanManagerMock } = require("../../utils/mocks.js");
-const { expect } = require("chai");
+const Configuration = artifacts.require('Configuration')
+const PriceOracle = artifacts.require('PriceOracle')
+const TokenManager = artifacts.require('TokenManager')
+const LiquidityPools = artifacts.require('LiquidityPools')
+const Loan = artifacts.require('Loan')
+const DateTime = artifacts.require('DateTime')
+const { time } = require('openzeppelin-test-helpers')
+const { createERC20Token, toFixedBN } = require('../../utils/index.js')
+const { DepositManagerMock, LoanManagerMock } = require('../../utils/mocks.js')
+const { expect } = require('chai')
 
-contract("DepositManager", ([owner, depositor, loaner]) => {
-  let depositManager,
-    config,
-    priceOracle,
-    tokenManager,
-    liquidityPools,
-    loanManager,
-    datetime;
-  let loanAsset, collateralAsset;
-  const initialSupply = toFixedBN(3000);
-  const depositAmount = toFixedBN(1000);
-  const loanInterestRate30 = toFixedBN(0.05);
-  const a11 = toFixedBN(0.4);
-  const a301 = toFixedBN(0.6);
-  const a3030 = toFixedBN(1);
+contract('DepositManager', ([owner, depositor, loaner]) => {
+  let depositManager, config, priceOracle, tokenManager, loanManager
+  let loanAsset, collateralAsset
+  const initialSupply = toFixedBN(3000)
+  const depositAmount = toFixedBN(1000)
+  const loanInterestRate7 = toFixedBN(5, 8)
+  const loanInterestRate30 = toFixedBN(3, 8)
+  const a307 = toFixedBN(1)
+  const a3030 = toFixedBN(1)
 
   before(async () => {
-    config = await Configuration.deployed();
-    priceOracle = await PriceOracle.deployed();
-    tokenManager = await TokenManager.deployed();
-    liquidityPools = await LiquidityPools.deployed();
-    depositManager = await DepositManagerMock();
-    loanManager = await LoanManagerMock();
-    datetime = await DateTime.new();
-    loanAsset = await createERC20Token(depositor, initialSupply);
-    collateralAsset = await createERC20Token(loaner, initialSupply);
-    await loanAsset.mint(loaner, initialSupply);
-    await loanAsset.approve(tokenManager.address, initialSupply, {
-      from: depositor
-    });
-    await loanAsset.approve(tokenManager.address, initialSupply, {
-      from: loaner
-    });
-    await collateralAsset.approve(tokenManager.address, initialSupply, {
-      from: loaner
-    });
+    config = await Configuration.deployed()
+    priceOracle = await PriceOracle.deployed()
+    tokenManager = await TokenManager.deployed()
+    liquidityPools = await LiquidityPools.deployed()
+    depositManager = await DepositManagerMock()
+    loanManager = await LoanManagerMock()
+    datetime = await DateTime.new()
+    loanAsset = await createERC20Token(depositor, initialSupply)
+    collateralAsset = await createERC20Token(loaner, initialSupply)
+    await loanAsset.mint(loaner, initialSupply)
+    await loanAsset.approve(tokenManager.address, initialSupply, { from: depositor })
+    await loanAsset.approve(tokenManager.address, initialSupply, { from: loaner })
+    await collateralAsset.approve(tokenManager.address, initialSupply, { from: loaner })
 
-    await depositManager.enableDepositAsset(loanAsset.address, { from: owner });
-    await loanManager.enableLoanAssetPair(
-      loanAsset.address,
-      collateralAsset.address,
-      { from: owner }
-    );
+    await depositManager.enableDepositAsset(loanAsset.address, { from: owner })
+    await loanManager.enableLoanAssetPair(loanAsset.address, collateralAsset.address, { from: owner })
 
-    await priceOracle.setPrice(loanAsset.address, toFixedBN(10));
-    await priceOracle.setPrice(collateralAsset.address, toFixedBN(10));
+    await priceOracle.setPrice(loanAsset.address, toFixedBN(10))
+    await priceOracle.setPrice(collateralAsset.address, toFixedBN(10))
 
-    await config.setLoanInterestRate(loanAsset.address, 30, loanInterestRate30);
+    await config.setLoanInterestRate(loanAsset.address, 7, loanInterestRate7)
+    await config.setLoanInterestRate(loanAsset.address, 30, loanInterestRate30)
 
-    const assetList = [loanAsset, collateralAsset];
+    const assetList = [loanAsset, collateralAsset]
 
     for (let i = 0; i < assetList.length; i++) {
-      const asset = assetList[i];
-      await config.setCoefficient(asset.address, 1, 1, a11);
-      await config.setCoefficient(asset.address, 30, 1, a301);
-      await config.setCoefficient(asset.address, 30, 30, a3030);
+      const asset = assetList[i]
+      await config.setCoefficient(asset.address, 30, 7, a307)
+      await config.setCoefficient(asset.address, 30, 30, a3030)
     }
 
     await config.setShareholderAddress(owner);
   });
 
-  describe("calculate deposit interest", () => {
-    const loanAmount = toFixedBN(100);
-    const collateralAmount = toFixedBN(200);
-    let loan;
+  describe('calculate deposit interest', () => {
+    const loanAmount = toFixedBN(100)
+    const collateralAmount = toFixedBN(200)
+    let term, loan
 
     before(async () => {
-      const term = 30;
-      await depositManager.deposit(loanAsset.address, term, depositAmount, {
-        from: depositor
-      });
-      await depositManager.deposit(loanAsset.address, term, depositAmount, {
-        from: depositor
-      });
+      term = (await depositManager.getDepositTerms())[0]
+      await depositManager.deposit(loanAsset.address, term, depositAmount, { from: depositor })
+      await depositManager.deposit(loanAsset.address, term, depositAmount, { from: depositor })
 
       await loanManager.loan(
         term,
@@ -103,18 +83,16 @@ contract("DepositManager", ([owner, depositor, loaner]) => {
       });
     });
 
-    context("when 30-day deposit is matured", () => {
+    context('when deposit is matured', () => {
       before(async () => {
         await config.lockAllUserActions();
-        for (let i = 0; i < 30; i++) {
-          await depositManager.updateDepositMaturity(loanAsset.address, {
-            from: owner
-          });
+        for (let i = 0; i < term; i++) {
+          await depositManager.updateDepositMaturity(loanAsset.address, { from: owner })
         }
 
-        await time.increase(time.duration.days(31));
+        await time.increase(time.duration.days(term + 1))
         await config.unlockAllUserActions();
-      });
+      })
 
       it("withdraws deposit and interest", async () => {
         const deposit = await depositManager.deposits.call(0);
@@ -141,18 +119,16 @@ contract("DepositManager", ([owner, depositor, loaner]) => {
       });
     });
 
-    context("when 30-day deposit is overdue", () => {
+    context('when deposit is overdue', () => {
       before(async () => {
-        await time.increase(time.duration.days(70));
-      });
+        await time.increase(time.duration.days(term * 2 + 1))
+      }) 
 
-      it("withdraws deposit only", async () => {
-        const deposit = await depositManager.deposits.call(0);
-        const amount = await depositManager.withdraw.call(deposit, {
-          from: depositor
-        });
-        expect(amount).to.be.bignumber.equal(depositAmount);
-      });
-    });
-  });
-});
+      it('withdraws deposit only', async () => {
+        const deposit = await depositManager.deposits.call(0)
+        const amount = await depositManager.withdraw.call(deposit, { from: depositor })
+        expect(amount).to.be.bignumber.equal(depositAmount)
+      })
+    })
+  })
+})

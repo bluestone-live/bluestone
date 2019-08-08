@@ -1,6 +1,6 @@
 const LiquidityPools = artifacts.require('LiquidityPools')
-const { shouldFail, constants } = require('openzeppelin-test-helpers')
-const { createERC20Token, toFixedBN } = require('../../utils/index.js')
+const { constants } = require('openzeppelin-test-helpers')
+const { createERC20Token } = require('../../utils/index.js')
 const { expect } = require('chai')
 
 contract('LiquidityPools', ([owner, account]) => {
@@ -10,39 +10,32 @@ contract('LiquidityPools', ([owner, account]) => {
     liquidityPools = await LiquidityPools.deployed()
   })
 
-  describe('#initPoolGroupsIfNeeded', () => {
-    let pool1Address, pool30Address
+  describe('#initPoolGroupIfNeeded', () => {
+    const depositTerm = 30
+    let pool30Address
 
-    context('when pool groups are not initialized', () => {
+    context('when pool group is not initialized', () => {
       before(async () => {
         asset = await createERC20Token(account)
       })
 
       it('succeeds', async () => {
-        await liquidityPools.initPoolGroupsIfNeeded(asset.address)
+        await liquidityPools.initPoolGroupIfNeeded(asset.address, depositTerm)
       })
 
-      it('initializes pool groups', async () => {
-        pool1Address = await liquidityPools.poolGroups(asset.address, 1)
-        pool30Address = await liquidityPools.poolGroups(asset.address, 30)
+      it('initializes pool group', async () => {
+        pool30Address = await liquidityPools.poolGroups(asset.address, depositTerm)
 
-        expect(pool1Address).to.not.equal(constants.ZERO_ADDRESS)
         expect(pool30Address).to.not.equal(constants.ZERO_ADDRESS)
-      })
-
-      it('updates isPoolGroupsInitialized', async () => {
-        expect(await liquidityPools.isPoolGroupsInitialized(asset.address)).to.be.true
       })
     })
 
-    context('after pool groups have already been initialized', () => {
+    context('after pool group has already been initialized', () => {
       it('does nothing', async () => {
-        await liquidityPools.initPoolGroupsIfNeeded(asset.address)
+        await liquidityPools.initPoolGroupIfNeeded(asset.address, depositTerm)
 
-        const updatedPool1Address = await liquidityPools.poolGroups(asset.address, 1)
         const updatedPool30Address = await liquidityPools.poolGroups(asset.address, 30)
 
-        expect(updatedPool1Address).to.equal(pool1Address)
         expect(updatedPool30Address).to.equal(pool30Address)
       })
     })

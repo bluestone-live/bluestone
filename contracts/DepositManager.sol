@@ -10,11 +10,10 @@ import "./LiquidityPools.sol";
 import "./PoolGroup.sol";
 import "./FixedMath.sol";
 import "./Deposit.sol";
-import "./Term.sol";
 
 
 /// The main contract which handles everything related to deposit.
-contract DepositManager is Ownable, Pausable, Term {
+contract DepositManager is Ownable, Pausable {
     using SafeMath for uint;
     using FixedMath for uint;
 
@@ -32,9 +31,6 @@ contract DepositManager is Ownable, Pausable, Term {
         // Only enabled asset can perform deposit-related transactions
         bool isEnabled;
 
-        // If this asset has been initialized before
-        bool isInitialized;
-
         // TODO: remove it
         // deposit term -> interest rate as of last update
         mapping(uint8 => uint) lastInterestRatePerTerm;
@@ -45,6 +41,8 @@ contract DepositManager is Ownable, Pausable, Term {
 
     // Record interest index on a daily basis
     struct InterestIndexHistory {
+        bool isInitialized;
+
         /// Each interest index corresponds to a snapshot of a particular pool state
         /// before updating deposit maturity of a PoolGroup. 
         ///
@@ -56,6 +54,21 @@ contract DepositManager is Ownable, Pausable, Term {
         mapping(uint => uint) interestIndexPerDay;
         uint lastDay;
     }
+
+    // Includes enabled deposit asset addresses.
+    address[] private _depositAssetAddresses;
+
+    /// Includes enabled and disabled desposit terms.
+    /// We need to keep disabled deposit terms for deposit maturity update.
+    uint8[] private _allDepositTerms;
+
+    uint8[] private _enabledDepositTerms;
+
+    // Deposit term -> has been enabled once?
+    mapping(uint8 => bool) private _isDepositTermInitialized;
+
+    // Deposit term -> enabled?
+    mapping(uint8 => bool) private _isDepositTermEnabled;
 
     // Token address -> DepositAsset
     mapping(address => DepositAsset) private _depositAssets;
@@ -72,7 +85,7 @@ contract DepositManager is Ownable, Pausable, Term {
     uint constant private DAYS_OF_INTEREST_INDEX_TO_KEEP = 30;
 
     modifier enabledDepositAsset(address asset) {
-        require(_isEnabledDepositAsset(asset), "Deposit asset must be enabled.");
+        require(_depositAssets[asset].isEnabled, "Deposit asset must be enabled.");
         _;
     }
 
@@ -96,10 +109,10 @@ contract DepositManager is Ownable, Pausable, Term {
         public 
         whenNotPaused
         enabledDepositAsset(asset)
-        validDepositTerm(term) 
         returns (Deposit)
     {
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
+        require(_isDepositTermEnabled[term], "Invalid deposit term.");
 
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
         uint8 lastPoolIndex = term - 1;
@@ -135,7 +148,7 @@ contract DepositManager is Ownable, Pausable, Term {
         address asset = currDeposit.asset();
         address user = msg.sender;
 
-        require(_isEnabledDepositAsset(asset), "Deposit Asset must be enabled.");
+        require(_depositAssets[asset].isEnabled, "Deposit Asset must be enabled.");
         require(user == currDeposit.owner(), "Must be owner.");
         require(!currDeposit.isWithdrawn(), "Deposit must not be withdrawn already.");
         require(currDeposit.isMatured(), "Deposit must be matured.");
@@ -180,28 +193,82 @@ contract DepositManager is Ownable, Pausable, Term {
         return _depositsByUser[user];
     }
 
+    function getDepositTerms() external view returns (uint8[] memory) {
+        return _enabledDepositTerms;
+    }
+
     // ADMIN --------------------------------------------------------------
+
+    function enableDepositTerm(uint8 term) public whenNotPaused onlyOwner {
+        require(!_isDepositTermEnabled[term], "Term already enabled.");
+
+        _isDepositTermEnabled[term] = true;
+        _enabledDepositTerms.push(term);
+
+        // Only add this deposit term if it has not been enabled before 
+        if (!_isDepositTermInitialized[term]) {
+            _allDepositTerms.push(term);
+            _isDepositTermInitialized[term] = true;
+        }
+
+        /// Initialize pool group and interest index history for each existing asset
+        /// if they haven't been initialized
+        for (uint i = 0; i < _depositAssetAddresses.length; i++) {
+            address asset = _depositAssetAddresses[i];
+            _liquidityPools.initPoolGroupIfNeeded(asset, term);
+            _initInterestIndexHistoryIfNeeded(asset, term);
+        }
+    }
+
+    /// Disable a deposit term only affects deposit action
+    function disableDepositTerm(uint8 term) external whenNotPaused onlyOwner {
+        require(_isDepositTermEnabled[term], "Term already disabled.");
+
+        _isDepositTermEnabled[term] = false;
+
+        // Remove term from _enabledDepositTerms
+        for (uint i = 0; i < _enabledDepositTerms.length; i++) {
+            if (_enabledDepositTerms[i] == term) {
+                // Overwrite current term with the last term and shrink array size
+                _enabledDepositTerms[i] = _enabledDepositTerms[_enabledDepositTerms.length - 1];
+                delete _enabledDepositTerms[_enabledDepositTerms.length - 1];
+                _enabledDepositTerms.length--;
+            }
+        }
+    }
 
     function enableDepositAsset(address asset) external whenNotPaused onlyOwner {
         DepositAsset storage depositAsset = _depositAssets[asset];
 
-        require(!depositAsset.isEnabled, "This asset is enabled already.");
-
-        _liquidityPools.initPoolGroupsIfNeeded(asset);
-
-        if (!depositAsset.isInitialized) {
-            depositAsset.interestIndexHistoryPerTerm[1].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
-            depositAsset.interestIndexHistoryPerTerm[30].lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
-
-            depositAsset.isInitialized = true;
-        }
+        require(!depositAsset.isEnabled, "Asset is enabled already.");
 
         depositAsset.isEnabled = true;
+        _depositAssetAddresses.push(asset);
+
+        // Initialize pool group and interest index history if they haven't been initialized
+        for (uint i = 0; i < _enabledDepositTerms.length; i++) {
+            uint8 depositTerm = _enabledDepositTerms[i];
+            _liquidityPools.initPoolGroupIfNeeded(asset, depositTerm);
+            _initInterestIndexHistoryIfNeeded(asset, depositTerm);
+        }
     }
 
     function disableDepositAsset(address asset) external whenNotPaused onlyOwner enabledDepositAsset(asset) {
         DepositAsset storage depositAsset = _depositAssets[asset];
+
+        require(depositAsset.isEnabled, "Asset is disabled already.");
+
         depositAsset.isEnabled = false;
+        
+        // Remove asset from _depositAssetAddresses
+        for (uint i = 0; i < _depositAssetAddresses.length; i++) {
+            if (_depositAssetAddresses[i] == asset) {
+                // Overwrite current asset with the last asset and shrink array size
+                _depositAssetAddresses[i] = _depositAssetAddresses[_depositAssetAddresses.length - 1];
+                delete _depositAssetAddresses[_depositAssetAddresses.length - 1];
+                _depositAssetAddresses.length--;
+            }
+        }
     }
 
     // NOTE: The following admin functions are to be executed by backend jobs everyday at midnight
@@ -215,10 +282,8 @@ contract DepositManager is Ownable, Pausable, Term {
 
     // Update deposit maturity for each PoolGroup of an asset
     function updateDepositMaturity(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
-        uint8[2] memory terms = [1, 30];
-
-        for (uint i = 0; i < terms.length; i++) {
-            uint8 term = terms[i];
+        for (uint i = 0; i < _allDepositTerms.length; i++) {
+            uint8 term = _allDepositTerms[i];
             PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
             uint8 index = 0;
             uint totalDeposit = poolGroup.getDepositFromPool(index);
@@ -261,9 +326,14 @@ contract DepositManager is Ownable, Pausable, Term {
         return history.interestIndexPerDay[history.lastDay.sub(numDaysAgo)];
     }
 
-    // PRIVATE --------------------------------------------------------------
+    // PRIVATE  --------------------------------------------------------------
 
-    function _isEnabledDepositAsset(address asset) private view returns (bool) {
-        return _depositAssets[asset].isEnabled;
+    function _initInterestIndexHistoryIfNeeded(address asset, uint8 term) private {
+        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
+
+        if (!history.isInitialized) {
+            history.lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
+            history.isInitialized = true;
+        }
     }
 }

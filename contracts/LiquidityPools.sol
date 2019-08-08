@@ -15,7 +15,6 @@ contract LiquidityPools {
 
     // asset -> term -> PoolGroup
     mapping(address => mapping(uint8 => PoolGroup)) public poolGroups;
-    mapping(address => bool) public isPoolGroupsInitialized;
 
     Configuration private _config;
 
@@ -23,12 +22,33 @@ contract LiquidityPools {
         _config = config;
     }
 
-    function initPoolGroupsIfNeeded(address asset) external {
-        if (!isPoolGroupsInitialized[asset]) {
-            poolGroups[asset][1] = new PoolGroup(1);
-            poolGroups[asset][30] = new PoolGroup(30);
-            
-            isPoolGroupsInitialized[asset] = true;
+    function initPoolGroupIfNeeded(address asset, uint8 depositTerm) public {
+        if (address(poolGroups[asset][depositTerm]) == address(0)) {
+            poolGroups[asset][depositTerm] = new PoolGroup(depositTerm);
+        }
+    }
+
+    function loanFromPoolGroups(Loan currLoan, uint8[] calldata depositTerms) external {
+        uint loanTerm = currLoan.term();
+
+        for (uint i = 0; i < depositTerms.length; i++) {
+            uint8 depositTerm = depositTerms[i];
+
+            if (loanTerm <= depositTerm) {
+                _loanFromPoolGroup(depositTerm, currLoan);
+            }
+        }
+    }
+
+    function repayLoanToPoolGroups(uint totalRepayAmount, Loan currLoan, uint8[] calldata depositTerms) external {
+        uint loanTerm = currLoan.term();
+
+        for (uint i = 0; i < depositTerms.length; i++) {
+            uint8 depositTerm = depositTerms[i];
+
+            if (loanTerm <= depositTerm) {
+                _repayLoanToPoolGroup(depositTerm, totalRepayAmount, currLoan);
+            }
         }
     }
 
@@ -45,22 +65,6 @@ contract LiquidityPools {
 
         // 3. Update pool IDs to reflect the deposit maturity change
         poolGroup.updatePoolIds();
-    }
-
-    function loanFromPoolGroups(Loan currLoan) external {
-        uint loanTerm = currLoan.term();
-
-        if (loanTerm == 1) {
-            _loanFromPoolGroup(1, currLoan);
-            _loanFromPoolGroup(30, currLoan);
-        }  else if (loanTerm == 30) {
-            _loanFromPoolGroup(30, currLoan);
-        }
-    }
-
-    function repayLoanToPoolGroups(uint totalRepayAmount, Loan currLoan) external {
-        _repayLoanToPoolGroup(30, totalRepayAmount, currLoan);
-        _repayLoanToPoolGroup(1, totalRepayAmount, currLoan);
     }
 
     // PRIVATE

@@ -1,22 +1,22 @@
-const DepositManager = artifacts.require('DepositManager')
 const TokenManager = artifacts.require('TokenManager')
-const { shouldFail, time } = require('openzeppelin-test-helpers')
+const { shouldFail } = require('openzeppelin-test-helpers')
 const { createERC20Token, toFixedBN } = require('../../utils/index.js')
+const { DepositManagerMock } = require('../../utils/mocks.js')
 
 contract('DepositManager', ([owner, depositor]) => {
   let depositManager, tokenManager
 
   before(async () => {
-    depositManager = await DepositManager.deployed() 
+    depositManager = await DepositManagerMock()
     tokenManager = await TokenManager.deployed()
   })
 
   describe('deposit flow negative #1', () => {
     const initialSupply = toFixedBN(100)
-    const term = 1
-    let asset
+    let term, asset
 
     before(async () => {
+      term = (await depositManager.getDepositTerms())[0]
       asset = await createERC20Token(depositor, initialSupply)
       await asset.approve(tokenManager.address, initialSupply, { from: depositor })
     })

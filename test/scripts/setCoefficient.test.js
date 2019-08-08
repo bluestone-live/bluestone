@@ -37,16 +37,5 @@ describe('script: setCoefficient', () => {
         expect(succeed).to.be.false
       })
     })
-
-    context('when term is invalid', () => {
-      it('fails', async () => {
-        const depositTerm = 3
-        const loanTerm = 1
-        const value = 0.5
-        const succeed = await setCoefficient(cb, network, tokenSymbol, depositTerm, loanTerm, value)
-
-        expect(succeed).to.be.false
-      })
-    })
   })
 })

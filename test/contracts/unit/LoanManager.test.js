@@ -8,7 +8,7 @@ const { expect } = require("chai");
 contract("LoanManager", ([owner, depositor, loaner]) => {
   const initialSupply = toFixedBN(1000);
   const depositAmount = toFixedBN(100);
-  let depositManager, loanManager, loanAsset, collateralAsset;
+  let depositManager, loanManager, loanAsset, collateralAsset, term;
 
   before(async () => {
     priceOracle = await PriceOracle.deployed();
@@ -17,6 +17,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     loanManager = await LoanManagerMock();
     loanAsset = await createERC20Token(depositor, initialSupply);
     collateralAsset = await createERC20Token(loaner, initialSupply);
+    term = (await depositManager.getDepositTerms())[0]
 
     await priceOracle.setPrice(loanAsset.address, toFixedBN(10));
     await priceOracle.setPrice(collateralAsset.address, toFixedBN(10));
@@ -31,10 +32,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       from: loaner
     });
     await depositManager.enableDepositAsset(loanAsset.address, { from: owner });
-    await depositManager.deposit(loanAsset.address, 1, depositAmount, {
-      from: depositor
-    });
-    await depositManager.deposit(loanAsset.address, 30, depositAmount, {
+    await depositManager.deposit(loanAsset.address, term, depositAmount, {
       from: depositor
     });
     await loanManager.enableLoanAssetPair(
@@ -47,7 +45,6 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
   let basicCollateralAmount = toFixedBN(30);
 
   const createLoan = async (
-    term = 1,
     loanAmount = toFixedBN(10),
     collateralAmount = basicCollateralAmount,
     requestedFreedCollateral = 0
@@ -138,6 +135,28 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       const isClosed = await loanInstance.isClosed();
       expect(remainingDebtAfterRepay).to.be.bignumber.equal(toFixedBN(0));
       expect(isClosed).to.be.equal(true);
+    });
+  });
+
+  describe("#addLoanTerm", () => {
+    it("succeeds", async () => {
+      const term = 60;
+      const prevTerms = await loanManager.getLoanTerms();
+      await loanManager.addLoanTerm(term);
+      const currTerms = await loanManager.getLoanTerms();
+      expect(currTerms.length).to.equal(prevTerms.length + 1);
+      expect(currTerms.map(term => term.toNumber())).to.contain(term);
+    });
+  });
+
+  describe("#removeLoanTerm", () => {
+    it("succeeds", async () => {
+      const term = 60;
+      const prevTerms = await loanManager.getLoanTerms();
+      await loanManager.removeLoanTerm(term);
+      const currTerms = await loanManager.getLoanTerms();
+      expect(currTerms.length).to.equal(prevTerms.length - 1);
+      expect(currTerms.map(term => term.toNumber())).to.not.contain(term);
     });
   });
 });

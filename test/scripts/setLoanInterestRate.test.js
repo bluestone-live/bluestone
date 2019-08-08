@@ -25,15 +25,5 @@ describe('script: setLoanInterestRate', () => {
         expect(await config.getLoanInterestRate(asset, loanTerm)).to.be.bignumber.equal(toFixedBN(value))
       })
     })
-
-    context('when term is invalid', () => {
-      it('fails', async () => {
-        const loanTerm = 3
-        const value = 0.5
-        const succeed = await setLoanInterestRate(cb, network, tokenSymbol, loanTerm, value)
-
-        expect(succeed).to.be.false
-      })
-    })
   })
 })

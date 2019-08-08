@@ -13,10 +13,10 @@ contract('DepositManager', ([owner, depositor]) => {
 
   describe('deposit flow negative #3', () => {
     const initialSupply = toFixedBN(100)
-    const term = 1
-    let asset
+    let term, asset
 
     before(async () => {
+      term = (await depositManager.getDepositTerms())[0]
       asset = await createERC20Token(depositor, initialSupply)
       await asset.approve(tokenManager.address, initialSupply, { from: depositor })
       await depositManager.enableDepositAsset(asset.address, { from: owner })

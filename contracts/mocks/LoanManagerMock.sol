@@ -23,7 +23,10 @@ contract LoanManagerMock is LoanManager {
     ) 
         LoanManager(config, priceOracle, tokenManager, liquidityPools, depositManager, accountManager)
         public 
-    {}
+        {
+            super.addLoanTerm(7);
+            super.addLoanTerm(30);
+        }
 
     function loan(
         uint8 term,

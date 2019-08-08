@@ -18,7 +18,9 @@ contract DepositManagerMock is DepositManager {
     ) 
         DepositManager(config, priceOracle, tokenManager, liquidityPools)
         public 
-    {}
+        {
+            super.enableDepositTerm(30);
+        }
 
     function deposit(address asset, uint8 term, uint amount) public returns (Deposit) {
         Deposit currDeposit = super.deposit(asset, term, amount);

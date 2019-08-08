@@ -5,29 +5,27 @@ const { time } = require("openzeppelin-test-helpers");
 const { createERC20Token, toFixedBN } = require("../../utils/index.js");
 const { DepositManagerMock } = require("../../utils/mocks.js");
 
-contract("DepositManager", ([owner, depositor]) => {
-  let depositManager, tokenManager, config, datetime;
+contract('DepositManager', ([owner, depositor]) => {
+  let depositManager, tokenManager, config
 
   before(async () => {
-    depositManager = await DepositManagerMock();
-    tokenManager = await TokenManager.deployed();
-    config = await Configuration.deployed();
-    datetime = await DateTime.new();
-    await config.setShareholderAddress(owner);
-  });
+    depositManager = await DepositManagerMock() 
+    tokenManager = await TokenManager.deployed()
+    config = await Configuration.deployed()
+    datetime = await DateTime.new()
+    await config.setShareholderAddress(owner)
+  })
 
-  describe("deposit flow positive #1", () => {
-    const initialSupply = toFixedBN(100);
-    const term = 1;
-    let asset;
+  describe('deposit flow positive #1', () => {
+    const initialSupply = toFixedBN(100)
+    let term, asset
 
     before(async () => {
-      asset = await createERC20Token(depositor, initialSupply);
-      await asset.approve(tokenManager.address, initialSupply, {
-        from: depositor
-      });
-      await depositManager.enableDepositAsset(asset.address, { from: owner });
-    });
+      term = (await depositManager.getDepositTerms())[0]
+      asset = await createERC20Token(depositor, initialSupply)
+      await asset.approve(tokenManager.address, initialSupply, { from: depositor })
+      await depositManager.enableDepositAsset(asset.address, { from: owner })
+    })
 
     let deposit;
 
@@ -41,27 +39,18 @@ contract("DepositManager", ([owner, depositor]) => {
     context("when deposit term is matured", () => {
       before(async () => {
         config.lockAllUserActions();
-        const now = await time.latest();
-        const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
+        await time.increase(time.duration.days(term + 1))
 
-        // At the first midnight, update interest index
-        await time.increase(secondsUntilMidnight);
-        await depositManager.updateDepositMaturity(asset.address, {
-          from: owner
-        });
+        for (let i = 0; i < term; i++) {
+          await depositManager.updateDepositMaturity(asset.address, { from: owner })
+        }
 
-        // At the second midnight, update interest index
-        await time.increase(time.duration.days(1));
-        depositManager.updateDepositMaturity(asset.address, { from: owner });
-
-        // Pass through the second midnight
-        await time.increase(time.duration.hours(1));
         config.unlockAllUserActions();
-      });
+      })
 
-      it("withdraws deposit", async () => {
-        await depositManager.withdraw(deposit, { from: depositor });
-      });
-    });
-  });
-});
+      it('withdraws deposit', async () => {
+        await depositManager.withdraw(deposit, { from: depositor })
+      })
+    })
+  })
+})
