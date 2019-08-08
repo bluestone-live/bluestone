@@ -136,7 +136,7 @@ contract LoanManager is Ownable, Pausable, Term {
 
         _loansByUser[loaner].push(currLoan);
 
-        _loanFromPoolGroups(currLoan);        
+        _liquidityPools.loanFromPoolGroups(currLoan);        
 
         _tokenManager.receiveFrom(loaner, collateralAsset, collateralAmount);
         _tokenManager.sendTo(loaner, loanAsset, loanAmount);
@@ -158,7 +158,7 @@ contract LoanManager is Ownable, Pausable, Term {
 
         (uint totalRepayAmount, uint freedCollateralAmount) = currLoan.repay(amount);
 
-        _repayLoanToPoolGroups(totalRepayAmount, currLoan);
+        _liquidityPools.repayLoanToPoolGroups(totalRepayAmount, currLoan);
 
         _depositFreedCollateral(loaner, collateralAsset, freedCollateralAmount);
 
@@ -194,7 +194,7 @@ contract LoanManager is Ownable, Pausable, Term {
             collateralAssetPrice
         );
 
-        _repayLoanToPoolGroups(liquidatedAmount, currLoan);
+        _liquidityPools.repayLoanToPoolGroups(liquidatedAmount, currLoan);
 
         _depositFreedCollateral(liquidator, collateralAsset, freedCollateralAmount);
 
@@ -292,21 +292,4 @@ contract LoanManager is Ownable, Pausable, Term {
         _freedCollaterals[user][asset] = availableFreedCollateral.sub(amount);
     }
 
-    // PRIVATE --------------------------------------------------------------
-
-    function _loanFromPoolGroups(Loan currLoan) private {
-        uint loanTerm = currLoan.term();
-
-        if (loanTerm == 1) {
-            _liquidityPools.loanFromPoolGroup(1, currLoan);
-            _liquidityPools.loanFromPoolGroup(30, currLoan);
-        }  else if (loanTerm == 30) {
-            _liquidityPools.loanFromPoolGroup(30, currLoan);
-        }
-    }
-
-    function _repayLoanToPoolGroups(uint totalRepayAmount, Loan currLoan) private {
-        _liquidityPools.repayLoanToPoolGroup(30, totalRepayAmount, currLoan);
-        _liquidityPools.repayLoanToPoolGroup(1, totalRepayAmount, currLoan);
-    }
 }

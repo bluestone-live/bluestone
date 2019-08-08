@@ -32,11 +32,43 @@ contract LiquidityPools {
         }
     }
 
-    function loanFromPoolGroup(
+    function updatePoolGroupDepositMaturity(address asset, uint8 depositTerm) external {
+        PoolGroup poolGroup = poolGroups[asset][depositTerm];
+        uint8 index = 0;
+
+        // 1. Clear matured deposit from the 1-day pool
+        poolGroup.clearDepositFromPool(index);
+
+        // 2. Clear loan interest accumulated during the enture deposit term
+        poolGroup.clearLoanInterestFromPool(index);
+
+        // 3. Update pool IDs to reflect the deposit maturity change
+        poolGroup.updatePoolIds();
+    }
+
+    function loanFromPoolGroups(Loan currLoan) external {
+        uint loanTerm = currLoan.term();
+
+        if (loanTerm == 1) {
+            _loanFromPoolGroup(1, currLoan);
+            _loanFromPoolGroup(30, currLoan);
+        }  else if (loanTerm == 30) {
+            _loanFromPoolGroup(30, currLoan);
+        }
+    }
+
+    function repayLoanToPoolGroups(uint totalRepayAmount, Loan currLoan) external {
+        _repayLoanToPoolGroup(30, totalRepayAmount, currLoan);
+        _repayLoanToPoolGroup(1, totalRepayAmount, currLoan);
+    }
+
+    // PRIVATE
+
+    function _loanFromPoolGroup(
         uint8 depositTerm,
         Loan currLoan
     ) 
-        external 
+        private 
     {
         address asset = currLoan.loanAsset();
         uint8 loanTerm = currLoan.term();
@@ -71,7 +103,7 @@ contract LiquidityPools {
         }
     }
 
-    function repayLoanToPoolGroup(uint8 depositTerm, uint totalRepayAmount, Loan currLoan) external {
+    function _repayLoanToPoolGroup(uint8 depositTerm, uint totalRepayAmount, Loan currLoan) private {
         address asset = currLoan.loanAsset();
         uint totalLoanAmount = currLoan.loanAmount();
 
@@ -102,17 +134,4 @@ contract LiquidityPools {
         }
     }
 
-    function updatePoolGroupDepositMaturity(address asset, uint8 depositTerm) external {
-        PoolGroup poolGroup = poolGroups[asset][depositTerm];
-        uint8 index = 0;
-
-        // 1. Clear matured deposit from the 1-day pool
-        poolGroup.clearDepositFromPool(index);
-
-        // 2. Clear loan interest accumulated during the enture deposit term
-        poolGroup.clearLoanInterestFromPool(index);
-
-        // 3. Update pool IDs to reflect the deposit maturity change
-        poolGroup.updatePoolIds();
-    }
 }
