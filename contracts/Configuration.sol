@@ -37,6 +37,9 @@ contract Configuration is Ownable, Term {
     // Shareholder address which receives profit
     address private _shareholderAddress;
 
+    // Lock all functionalities related to deposit, loan and liquidating
+    bool private _isUserActionsLocked;
+
     function getCoefficient(address asset, uint8 depositTerm, uint8 loanTerm) 
         external
         view
@@ -66,6 +69,12 @@ contract Configuration is Ownable, Term {
     function getShareholderAddress() external view returns (address) {
         return _shareholderAddress;
     }
+
+    function isUserActionsLocked() public view returns (bool) {
+        return _isUserActionsLocked;
+    }
+
+    // ADMIN --------------------------------------------------------------
 
     function setCoefficient(address asset, uint8 depositTerm, uint8 loanTerm, uint value)
         public
@@ -109,5 +118,13 @@ contract Configuration is Ownable, Term {
         require(shareholderAddress != address(0), "Invalid shareholder address.");
 
         _shareholderAddress = shareholderAddress;
+    }
+
+    function lockAllUserActions() external onlyOwner {
+        _isUserActionsLocked = true;
+    }
+
+    function unlockAllUserActions() external onlyOwner {
+        _isUserActionsLocked = false;
     }
 }

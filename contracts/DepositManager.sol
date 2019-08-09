@@ -99,6 +99,8 @@ contract DepositManager is Ownable, Pausable, Term {
         validDepositTerm(term) 
         returns (Deposit)
     {
+        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
+
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
         uint8 lastPoolIndex = term - 1;
 
@@ -127,6 +129,9 @@ contract DepositManager is Ownable, Pausable, Term {
     }
     
     function withdraw(Deposit currDeposit) external whenNotPaused returns (uint) {
+
+        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
+
         address asset = currDeposit.asset();
         address user = msg.sender;
 
@@ -170,6 +175,8 @@ contract DepositManager is Ownable, Pausable, Term {
     }
 
     function getDepositsByUser(address user) external whenNotPaused view returns (Deposit[] memory) {
+        // We should lock this read action because the deposit records will be affecting while the pool group is updating
+        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
         return _depositsByUser[user];
     }
 

@@ -33,6 +33,7 @@ contract LiquidityPools {
     }
 
     function updatePoolGroupDepositMaturity(address asset, uint8 depositTerm) external {
+        require(_config.isUserActionsLocked(), "user actions need be locked before update maturity");
         PoolGroup poolGroup = poolGroups[asset][depositTerm];
         uint8 index = 0;
 
@@ -133,5 +134,4 @@ contract LiquidityPools {
             remainingRepayAmount = remainingRepayAmount - repayAmount;
         }
     }
-
 }

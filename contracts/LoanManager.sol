@@ -89,6 +89,7 @@ contract LoanManager is Ownable, Pausable, Term {
         validLoanTerm(term)
         returns (Loan)
     {
+        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
         require(_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
         require(loanAmount > 0, "Invalid loan amount.");
         require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
@@ -145,6 +146,7 @@ contract LoanManager is Ownable, Pausable, Term {
     }
 
     function repayLoan(Loan currLoan, uint amount) public whenNotPaused returns (uint) {
+        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
         address loanAsset = currLoan.loanAsset();
         address collateralAsset = currLoan.collateralAsset();
 
@@ -169,6 +171,7 @@ contract LoanManager is Ownable, Pausable, Term {
 
     // A loan can be liquidated when it is defaulted or the collaterization ratio is below requirement
     function liquidateLoan(Loan currLoan, uint amount) external whenNotPaused returns (uint, uint) {
+        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
         address loanAsset = currLoan.loanAsset();
         address collateralAsset = currLoan.collateralAsset();
 
@@ -206,6 +209,7 @@ contract LoanManager is Ownable, Pausable, Term {
         whenNotPaused
         returns (uint)
     {
+        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
         require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
 
         address loanAsset = currLoan.loanAsset();
@@ -239,6 +243,8 @@ contract LoanManager is Ownable, Pausable, Term {
     }
 
     function getLoansByUser(address user) external whenNotPaused view returns (Loan[] memory) {
+        // We should lock this read action because the loan records will be affecting while the pool group is updating
+        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
         return _loansByUser[user];
     }
 
