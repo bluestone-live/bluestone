@@ -1,0 +1,14 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+source $DIR/utils
+
+required_args=( network term )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Enable a deposit term."
+  show_help_message "$description" $required_args
+  exit 1
+fi
+
+run_truffle_script "$@"
