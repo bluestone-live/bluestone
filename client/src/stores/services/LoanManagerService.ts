@@ -50,31 +50,6 @@ export const getLoanRecords = async (): Promise<string[]> => {
   return LoanManager.methods.getLoansByUser(accountStore.defaultAccount).call();
 };
 
-export const getFreedCollateral = async (tokenAddress: string) => {
-  const { LoanManager } = await getContracts();
-
-  return LoanManager.methods.getFreedCollateral(tokenAddress).call();
-};
-
-export const withdrawFreedCollateral = async (
-  tokenAddress: string,
-  amount: BigNumber,
-) => {
-  const flow = await getContractEventFlow(
-    'LoanManager',
-    EventName.WithdrawFreedCollateralSuccessful,
-    {
-      filter: { user: accountStore.defaultAccount },
-    },
-  );
-
-  return flow(LoanManager =>
-    LoanManager.methods
-      .withdrawFreedCollateral(tokenAddress, amount.toString())
-      .send({ from: accountStore.defaultAccount }),
-  );
-};
-
 export const addCollateral = async (
   loanAddress: string,
   amount: BigNumber,

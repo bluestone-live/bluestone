@@ -8,7 +8,7 @@ export const getRepayLoanSuccessfulEvents = async () =>
 export const getAddCollateralSuccessfulEvents = async () =>
   getPastEvents('LoanManager', EventName.AddCollateralSuccessful);
 export const getWithdrawFreedCollatteralSuccessfulEvents = async () =>
-  getPastEvents('LoanManager', EventName.WithdrawFreedCollateralSuccessful);
+  getPastEvents('AccountManager', EventName.WithdrawFreedCollateralSuccessful);
 
 export const getDepositSuccessfulEvents = async () =>
   getPastEvents('DepositManager', EventName.DepositSuccessful);

@@ -9,6 +9,7 @@ const requireContract = (contractName: string) =>
 
 // Single instance
 const deployedContractJsonInterface = {
+  AccountManager: requireContract('AccountManager'),
   Configuration: requireContract('Configuration'),
   LiquidityPools: requireContract('LiquidityPools'),
   DepositManager: requireContract('DepositManager'),

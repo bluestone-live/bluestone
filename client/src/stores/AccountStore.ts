@@ -12,7 +12,7 @@ import { IToken } from '../constants/Token';
 import {
   getFreedCollateral,
   withdrawFreedCollateral,
-} from './services/LoanManagerService';
+} from './services/AccountManager';
 
 export class AccountStore {
   @observable accounts: string[] = [];
@@ -139,6 +139,7 @@ export class AccountStore {
   @action.bound
   async getFreedCollateral(token: IToken) {
     const freedCollateral = await getFreedCollateral(token.address);
+
     this.setFreedCollateral(token.address, freedCollateral);
   }
 

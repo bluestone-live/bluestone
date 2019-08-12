@@ -95,12 +95,15 @@ class HomePage extends React.Component<IProps, IState> {
     this.props.history.push(path);
   };
 
+  onEnableToken = (token: IToken) => async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.stopPropagation();
+    await this.props.accountStore.approveFullAllowance(token);
+  };
+
   renderActions(token: IToken) {
     const { accountStore, t } = this.props;
-
-    const onEnableToken = async () => {
-      await accountStore.approveFullAllowance(token);
-    };
 
     if (accountStore.hasAllowance(token.symbol)) {
       const collateralTokenSymbol = defaultTokenPairs[token.symbol];
@@ -124,7 +127,7 @@ class HomePage extends React.Component<IProps, IState> {
       // TODO: show button loading state
       return (
         <React.Fragment>
-          <StyledButton primary onClick={onEnableToken}>
+          <StyledButton primary onClick={this.onEnableToken(token)}>
             {t('enable')}
           </StyledButton>
         </React.Fragment>

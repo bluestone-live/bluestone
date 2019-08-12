@@ -2,7 +2,12 @@ import * as React from 'react';
 import { inject, observer } from 'mobx-react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { withRouter, RouteComponentProps } from 'react-router';
-import { RecordStore, TransactionStore, TokenStore } from '../stores';
+import {
+  RecordStore,
+  TransactionStore,
+  TokenStore,
+  AccountStore,
+} from '../stores';
 import Card from '../components/common/Card';
 import Radio from '../components/common/Radio';
 import styled from 'styled-components';
@@ -13,6 +18,8 @@ import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
 import { IDropdownOption } from '../components/common/Dropdown';
 import LoanDetailPanel from '../containers/LoanDetailPanel';
+import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
+import Button from '../components/html/Button';
 
 interface IProps
   extends WithTranslation,
@@ -20,6 +27,7 @@ interface IProps
   recordStore: RecordStore;
   transactionStore: TransactionStore;
   tokenStore: TokenStore;
+  accountStore: AccountStore;
 }
 
 interface IState {
@@ -31,19 +39,32 @@ const StyledCard = styled(Card)`
   min-height: 50px;
   align-items: center;
   display: flex;
+  justify-content: space-between;
 `;
 
-@inject('recordStore', 'transactionStore', 'tokenStore')
+const StyledBox = styled.div`
+  width: 100px;
+  flex: 1;
+  text-align: right;
+`;
+
+const StyledButton = styled(Button)`
+  margin-left: ${(props: ThemedProps) => props.theme.gap.medium};
+`;
+
+@inject('recordStore', 'transactionStore', 'tokenStore', 'accountStore')
 @observer
 class RecordPage extends React.Component<IProps, IState> {
   componentDidMount() {
     this.setDefaultToken();
     this.getDetailRecords();
+    this.getFreedCollateral();
   }
 
   componentDidUpdate() {
     this.setDefaultToken();
     this.getDetailRecords();
+    this.getFreedCollateral();
   }
 
   getDetailRecords = async () => {
@@ -58,6 +79,19 @@ class RecordPage extends React.Component<IProps, IState> {
     } else if (recordType === 'deposit') {
       return recordStore.getDepositRecords();
     }
+  };
+
+  getFreedCollateral = () => {
+    const { tokenStore, accountStore } = this.props;
+    const { currentToken } = parseQuery(location.search);
+
+    const selectedToken = tokenStore.getTokenByAddress(currentToken);
+
+    if (!selectedToken) {
+      return;
+    }
+
+    return accountStore.getFreedCollateral(selectedToken);
   };
 
   setDefaultToken = () => {
@@ -164,18 +198,27 @@ class RecordPage extends React.Component<IProps, IState> {
     );
   };
 
+  goTo = (path: string) => () => {
+    this.props.history.push(path);
+  };
+
   render() {
     const {
       match: {
         params: { recordType },
       },
       location,
+      accountStore,
+      t,
     } = this.props;
     const selectedOption = this.recordTypeOptions.find(
       option => option.value === recordType,
     );
 
     const { currentToken } = parseQuery(location.search);
+    const freedCollateral =
+      accountStore.getFreedCollateralByAddress(currentToken) ||
+      convertDecimalToWei(0);
 
     return currentToken ? (
       <div className="detail-page">
@@ -186,6 +229,14 @@ class RecordPage extends React.Component<IProps, IState> {
             options={this.recordTypeOptions}
             selectedOption={selectedOption}
           />
+          {recordType === 'loan' ? (
+            <StyledBox>
+              {t('freed_collateral')}:{convertWeiToDecimal(freedCollateral)}
+              <StyledButton onClick={this.goTo(`/withdraw/${currentToken}`)}>
+                {t('withdraw')}
+              </StyledButton>
+            </StyledBox>
+          ) : null}
         </StyledCard>
         <StyledCard>{this.showDetailPanel()}</StyledCard>
       </div>

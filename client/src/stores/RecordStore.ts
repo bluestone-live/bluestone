@@ -12,7 +12,6 @@ import {
   getLoanRecords,
   repayLoan,
   addCollateral,
-  withdrawFreedCollateral,
 } from './services/LoanManagerService';
 import { getDeposit } from './services/DepositService';
 import { getLoan } from './services/LoanService';
@@ -126,11 +125,6 @@ export class RecordStore {
   @action.bound
   async updateLoanRecordByAddress(loanAddress: string) {
     return this.saveOrUpdateLoanRecords([await getLoan(loanAddress)]);
-  }
-
-  @action.bound
-  withdrawCollateral(recordAddress: string, amount: BigNumber) {
-    return withdrawFreedCollateral(recordAddress, amount);
   }
 
   @action.bound
