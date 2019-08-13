@@ -7,6 +7,7 @@ import "./Configuration.sol";
 import "./PriceOracle.sol";
 import "./TokenManager.sol";
 import "./LiquidityPools.sol";
+import "./LoanManager.sol";
 import "./PoolGroup.sol";
 import "./FixedMath.sol";
 import "./Deposit.sol";
@@ -21,6 +22,7 @@ contract DepositManager is Ownable, Pausable {
     PriceOracle private _priceOracle;
     TokenManager private _tokenManager;
     LiquidityPools private _liquidityPools;
+    LoanManager private _loanManager;
 
     // Notice that event filter only can filter indexed property
     event DepositSuccessful(address indexed user, Deposit deposit);
@@ -87,20 +89,6 @@ contract DepositManager is Ownable, Pausable {
     modifier enabledDepositAsset(address asset) {
         require(_depositAssets[asset].isEnabled, "Deposit asset must be enabled.");
         _;
-    }
-
-    constructor(
-        Configuration config,
-        PriceOracle priceOracle,
-        TokenManager tokenManager,
-        LiquidityPools liquidityPools
-    ) 
-        public 
-    {
-        _config = config;
-        _priceOracle = priceOracle;
-        _tokenManager = tokenManager;
-        _liquidityPools = liquidityPools;
     }
 
     // PUBLIC  -----------------------------------------------------------------
@@ -198,6 +186,24 @@ contract DepositManager is Ownable, Pausable {
     }
 
     // ADMIN --------------------------------------------------------------
+    
+    function init(
+        Configuration config,
+        PriceOracle priceOracle,
+        TokenManager tokenManager,
+        LiquidityPools liquidityPools,
+        LoanManager loanManager
+    ) 
+        public 
+        whenNotPaused
+        onlyOwner
+    {
+        _config = config;
+        _priceOracle = priceOracle;
+        _tokenManager = tokenManager;
+        _liquidityPools = liquidityPools;
+        _loanManager = loanManager;
+    }
 
     function enableDepositTerm(uint8 term) public whenNotPaused onlyOwner {
         require(!_isDepositTermEnabled[term], "Term already enabled.");

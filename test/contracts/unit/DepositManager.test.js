@@ -1,6 +1,6 @@
 const TokenManager = artifacts.require("TokenManager");
+const DepositManager = artifacts.require("DepositManagerMock");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
-const { DepositManagerMock } = require("../../utils/mocks.js");
 const { expect } = require("chai");
 
 contract("DepositManager", ([owner, depositor]) => {
@@ -8,7 +8,7 @@ contract("DepositManager", ([owner, depositor]) => {
   let depositManager, tokenManager, asset, term;
 
   before(async () => {
-    depositManager = await DepositManagerMock();
+    depositManager = await DepositManager.deployed();
     term = (await depositManager.getDepositTerms())[0];
     tokenManager = await TokenManager.deployed();
     asset = await createERC20Token(depositor, initialSupply);

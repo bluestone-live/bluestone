@@ -57,24 +57,6 @@ contract LoanManager is Ownable, Pausable {
         uint liquidationDiscount;
     }
 
-    constructor(
-        Configuration config,
-        PriceOracle priceOracle,
-        TokenManager tokenManager,
-        LiquidityPools liquidityPools,
-        DepositManager depositManager,
-        AccountManager accountManager
-    )
-        public
-    {
-        _config = config;
-        _priceOracle = priceOracle;
-        _tokenManager = tokenManager;
-        _liquidityPools = liquidityPools;
-        _depositManager = depositManager;
-        _accountManager = accountManager;
-    }
-
     // PUBLIC  -----------------------------------------------------------------
 
     function loan(
@@ -254,6 +236,26 @@ contract LoanManager is Ownable, Pausable {
     }
 
     // ADMIN --------------------------------------------------------------
+
+    function init(
+        Configuration config,
+        PriceOracle priceOracle,
+        TokenManager tokenManager,
+        LiquidityPools liquidityPools,
+        DepositManager depositManager,
+        AccountManager accountManager
+    )
+        public
+        whenNotPaused
+        onlyOwner
+    {
+        _config = config;
+        _priceOracle = priceOracle;
+        _tokenManager = tokenManager;
+        _liquidityPools = liquidityPools;
+        _depositManager = depositManager;
+        _accountManager = accountManager;
+    }
 
     function addLoanTerm(uint8 term) public whenNotPaused onlyOwner {
         require(!_isValidLoanTerm[term], "Term already exists.");

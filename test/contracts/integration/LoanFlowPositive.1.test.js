@@ -3,9 +3,10 @@ const PriceOracle = artifacts.require("PriceOracle");
 const TokenManager = artifacts.require("TokenManager");
 const Loan = artifacts.require("Loan");
 const AccountManager = artifacts.require("AccountManager");
+const DepositManager = artifacts.require("DepositManagerMock");
+const LoanManager = artifacts.require("LoanManagerMock");
 const { time } = require("openzeppelin-test-helpers");
 const { createERC20Token, toFixedBN } = require("../../utils/index.js");
-const { DepositManagerMock, LoanManagerMock } = require('../../utils/mocks.js');
 const { expect } = require("chai");
 
 contract("LoanManager", ([owner, depositor, loaner]) => {
@@ -19,9 +20,9 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     config = await Configuration.deployed();
     priceOracle = await PriceOracle.deployed();
     tokenManager = await TokenManager.deployed();
-    depositManager = await DepositManagerMock();
     accountManager = await AccountManager.deployed();
-    loanManager = await LoanManagerMock();
+    depositManager = await DepositManager.deployed();
+    loanManager = await LoanManager.deployed();
   });
 
   describe("loan flow positive #1", () => {

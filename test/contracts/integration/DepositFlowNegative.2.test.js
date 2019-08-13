@@ -1,13 +1,13 @@
 const TokenManager = artifacts.require('TokenManager')
+const DepositManager = artifacts.require('DepositManagerMock')
 const { shouldFail } = require('openzeppelin-test-helpers')
 const { createERC20Token, toFixedBN } = require('../../utils/index.js')
-const { DepositManagerMock } = require('../../utils/mocks.js')
 
 contract('DepositManager', ([owner, depositor]) => {
   let depositManager, tokenManager
 
   before(async () => {
-    depositManager = await DepositManagerMock() 
+    depositManager = await DepositManager.deployed() 
     tokenManager = await TokenManager.deployed()
   })
 

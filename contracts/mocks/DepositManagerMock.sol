@@ -1,26 +1,10 @@
 pragma solidity ^0.5.0;
 
 import "../DepositManager.sol";
-import "../Configuration.sol";
-import "../PriceOracle.sol";
-import "../TokenManager.sol";
-import "../LiquidityPools.sol";
 
 
 contract DepositManagerMock is DepositManager {
     Deposit[] public deposits;
-
-    constructor(
-        Configuration config,
-        PriceOracle priceOracle,
-        TokenManager tokenManager,
-        LiquidityPools liquidityPools
-    ) 
-        DepositManager(config, priceOracle, tokenManager, liquidityPools)
-        public 
-        {
-            super.enableDepositTerm(30);
-        }
 
     function deposit(address asset, uint8 term, uint amount) public returns (Deposit) {
         Deposit currDeposit = super.deposit(asset, term, amount);

@@ -1,8 +1,9 @@
 const PriceOracle = artifacts.require("PriceOracle");
 const TokenManager = artifacts.require("TokenManager");
+const DepositManager = artifacts.require("DepositManagerMock");
+const LoanManager = artifacts.require("LoanManagerMock");
 const Loan = artifacts.require("Loan");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
-const { DepositManagerMock, LoanManagerMock } = require("../../utils/mocks.js");
 const { expect } = require("chai");
 
 contract("LoanManager", ([owner, depositor, loaner]) => {
@@ -13,8 +14,8 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
   before(async () => {
     priceOracle = await PriceOracle.deployed();
     tokenManager = await TokenManager.deployed();
-    depositManager = await DepositManagerMock();
-    loanManager = await LoanManagerMock();
+    depositManager = await DepositManager.deployed();
+    loanManager = await LoanManager.deployed();
     loanAsset = await createERC20Token(depositor, initialSupply);
     collateralAsset = await createERC20Token(loaner, initialSupply);
     term = (await depositManager.getDepositTerms())[0]
