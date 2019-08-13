@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { RecordStore, TokenStore } from '../stores';
+import { RecordStore, TokenStore, DepositManagerStore } from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Radio from '../components/common/Radio';
-import { terms, ITerm } from '../constants/Term';
+import { ITerm } from '../constants/Term';
 import Button from '../components/html/Button';
 import { convertDecimalToWei } from '../utils/BigNumber';
 import Form from '../components/html/Form';
@@ -22,6 +22,7 @@ interface IProps
     RouteComponentProps<{ tokenSymbol: string }> {
   recordStore?: RecordStore;
   tokenStore?: TokenStore;
+  depositManagerStore: DepositManagerStore;
 }
 
 interface IState {
@@ -29,18 +30,13 @@ interface IState {
   amount: number;
 }
 
-@inject('recordStore', 'tokenStore')
+@inject('recordStore', 'tokenStore', 'depositManagerStore')
 @observer
 class DepositForm extends React.Component<IProps, IState> {
   state = {
-    selectedTerm: terms[0],
+    selectedTerm: this.props.depositManagerStore.depositTerms[0],
     amount: 0,
   };
-
-  terms = terms.map(term => ({
-    ...term,
-    text: this.props.t(term.text),
-  }));
 
   componentDidMount() {
     const { match, history } = this.props;
@@ -51,12 +47,11 @@ class DepositForm extends React.Component<IProps, IState> {
   }
 
   onTermSelect = (value: number) => {
-    const term = this.terms.find(t => t.value === value);
-    if (!term) {
-      return;
-    }
     this.setState({
-      selectedTerm: term,
+      selectedTerm: {
+        text: `${value}-Day`,
+        value,
+      },
     });
   };
 
@@ -82,7 +77,7 @@ class DepositForm extends React.Component<IProps, IState> {
   };
 
   render() {
-    const { tokenStore, match, t } = this.props;
+    const { tokenStore, depositManagerStore, match, t } = this.props;
     const currentToken = tokenStore!.getToken(match.params.tokenSymbol);
     const { selectedTerm } = this.state;
 
@@ -114,7 +109,7 @@ class DepositForm extends React.Component<IProps, IState> {
             <Cell scale={4}>
               <Radio<number>
                 name="term"
-                options={this.terms}
+                options={depositManagerStore.depositTerms}
                 onChange={this.onTermSelect}
                 selectedOption={selectedTerm}
               />

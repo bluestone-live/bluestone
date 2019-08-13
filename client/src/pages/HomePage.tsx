@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { TokenStore, AccountStore } from '../stores';
+import { TokenStore, AccountStore, DepositManagerStore } from '../stores';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import {
@@ -11,7 +11,7 @@ import { ThemedProps } from '../styles/themes';
 import Radio from '../components/common/Radio';
 import Card from '../components/common/Card';
 import Button from '../components/html/Button';
-import { ITerm, terms } from '../constants/Term';
+import { ITerm } from '../constants/Term';
 import { IToken, defaultTokenPairs } from '../constants/Token';
 import { RouteComponentProps, withRouter } from 'react-router';
 
@@ -65,26 +65,26 @@ const StyledButton = styled(Button)`
 interface IProps extends WithTranslation, RouteComponentProps {
   tokenStore: TokenStore;
   accountStore: AccountStore;
+  depositManagerStore: DepositManagerStore;
 }
 
 interface IState {
   selectedTerm: ITerm;
 }
 
-@inject('tokenStore', 'accountStore')
+@inject('tokenStore', 'accountStore', 'depositManagerStore')
 @observer
 class HomePage extends React.Component<IProps, IState> {
   state = {
-    selectedTerm: terms[0],
+    selectedTerm: this.props.depositManagerStore.depositTerms[0],
   };
 
   onTermSelect = (value: number) => {
-    const term = terms.find(t => t.value === value);
-    if (!term) {
-      return;
-    }
     this.setState({
-      selectedTerm: term,
+      selectedTerm: {
+        text: `${value}-Day`,
+        value,
+      },
     });
   };
 
@@ -139,6 +139,7 @@ class HomePage extends React.Component<IProps, IState> {
     const {
       t,
       tokenStore: { validTokens },
+      depositManagerStore: { depositTerms },
     } = this.props;
     const { selectedTerm } = this.state;
 
@@ -152,7 +153,7 @@ class HomePage extends React.Component<IProps, IState> {
                 name="term"
                 onChange={this.onTermSelect}
                 selectedOption={selectedTerm}
-                options={terms}
+                options={depositTerms}
               />
             </StyledTermSelector>
           </StyledActionBar>

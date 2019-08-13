@@ -1,8 +1,12 @@
 import { observable, action, computed } from 'mobx';
 import { tokenStore } from './index';
-import { isLoanAssetPairEnabled } from './services/LoanManagerService';
+import {
+  getLoanTerms,
+  isLoanAssetPairEnabled,
+} from './services/LoanManagerService';
 import { getCollateralRatio } from './services/ConfigurationService';
 import { BigNumber } from '../utils/BigNumber';
+import { ITerm } from '../constants/Term';
 
 interface ILoanAssetPair {
   loanTokenSymbol: string;
@@ -12,6 +16,8 @@ interface ILoanAssetPair {
 }
 
 export class LoanManagerStore {
+  @observable loanTerms: ITerm[] = [];
+
   @observable loanAssetPairs = new Map<string, ILoanAssetPair | null>([
     ['ETH_DAI', null],
     ['ETH_USDT', null],
@@ -23,6 +29,7 @@ export class LoanManagerStore {
 
   @action.bound
   async init() {
+    await this.initLoanTerms();
     const tokenPairSymbolList = Array.from(this.loanAssetPairs.keys());
     await Promise.all(tokenPairSymbolList.map(this.initLoanAssetPair));
   }
@@ -55,6 +62,16 @@ export class LoanManagerStore {
   getLoanAssetPair(loanTokenSymbol: string, collateralTokenSymbol: string) {
     const tokenPairSymbol = `${loanTokenSymbol}_${collateralTokenSymbol}`.toUpperCase();
     return this.loanAssetPairs.get(tokenPairSymbol);
+  }
+
+  @action.bound
+  async initLoanTerms() {
+    const loanTerms = await getLoanTerms();
+    this.loanTerms = loanTerms
+      .sort((a, b) => a - b)
+      .map(term => {
+        return { text: `${term}-Day`, value: term };
+      });
   }
 
   @action.bound

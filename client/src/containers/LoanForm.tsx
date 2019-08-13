@@ -5,7 +5,6 @@ import { inject, observer } from 'mobx-react';
 import { updateState } from '../utils/updateState';
 import { convertDecimalToWei, convertWeiToDecimal } from '../utils/BigNumber';
 import { IToken } from '../constants/Token';
-import { terms } from '../constants/Term';
 import {
   calculateRate,
   RatePeriod,
@@ -25,6 +24,7 @@ interface IProps extends WithTranslation, RouteComponentProps {
   loanManagerStore?: LoanManagerStore;
   recordStore?: RecordStore;
   term: number;
+  availableTerms: number[];
   loanTokenSymbol: string;
   collateralTokenSymbol: string;
   onSelectChange: (
@@ -103,6 +103,7 @@ class LoanForm extends React.Component<IProps, IState> {
       loanManagerStore,
       t,
       term,
+      availableTerms,
       loanTokenSymbol,
       collateralTokenSymbol,
       onSelectChange,
@@ -121,9 +122,9 @@ class LoanForm extends React.Component<IProps, IState> {
       .getCollateralSymbolsByLoanSymbol(loanTokenSymbol)
       .map(tokenSymbol => this.renderOption(tokenSymbol, tokenSymbol));
 
-    const termOptions = terms
-      .map(iteratorTerm => iteratorTerm.value)
-      .map(thisTerm => this.renderOption(thisTerm.toString(), thisTerm));
+    const termOptions = availableTerms.map(thisTerm =>
+      this.renderOption(thisTerm.toString(), thisTerm),
+    );
 
     const loanToken = tokenStore!.getToken(loanTokenSymbol);
     const collateralToken = tokenStore!.getToken(collateralTokenSymbol!);

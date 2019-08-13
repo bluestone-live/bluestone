@@ -3,6 +3,11 @@ import { accountStore } from '../index';
 import { BigNumber } from '../../utils/BigNumber';
 import { EventName } from '../../constants/Event';
 
+export const getDepositTerms = async (): Promise<number[]> => {
+  const contract = await getContracts();
+  return contract.DepositManager.methods.getDepositTerms().call();
+};
+
 export const isDepositAssetEnabled = async (
   tokenAddress: string,
 ): Promise<boolean> => {

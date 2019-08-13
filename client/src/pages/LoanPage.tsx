@@ -4,9 +4,8 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
 import { inject } from 'mobx-react';
-import { TokenStore, LoanManagerStore, loanManagerStore } from '../stores';
+import { TokenStore, LoanManagerStore } from '../stores';
 import { IToken } from '../constants/Token';
-import { terms } from '../constants/Term';
 
 interface IProps extends RouteComponentProps {
   tokenStore: TokenStore;
@@ -33,6 +32,7 @@ class LoanPage extends React.Component<IProps> {
     const {
       location: { search },
       tokenStore,
+      loanManagerStore,
     } = this.props;
     const { term, loanTokenSymbol, collateralTokenSymbol } = parseQuery(search);
 
@@ -53,7 +53,7 @@ class LoanPage extends React.Component<IProps> {
           : loanManagerStore!.getCollateralSymbolsByLoanSymbol(
               defaultLoanSymbol,
             )[0];
-      const defaultTerm = terms[0].value.toString();
+      const defaultTerm = loanManagerStore.loanTerms[0].value.toString();
 
       this.updateQueryParams({
         loanTokenSymbol: defaultLoanSymbol,
@@ -87,6 +87,7 @@ class LoanPage extends React.Component<IProps> {
   render() {
     const {
       location: { search },
+      loanManagerStore,
     } = this.props;
     const { term, loanTokenSymbol, collateralTokenSymbol } = parseQuery(search);
 
@@ -102,6 +103,9 @@ class LoanPage extends React.Component<IProps> {
     return (
       <LoanForm
         term={Number.parseInt(term, 10)}
+        availableTerms={loanManagerStore.loanTerms.map(
+          loanTerm => loanTerm.value,
+        )}
         loanTokenSymbol={loanTokenSymbol}
         collateralTokenSymbol={collateralTokenSymbol}
         onSelectChange={this.onSelectChange}

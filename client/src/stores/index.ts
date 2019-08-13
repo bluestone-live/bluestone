@@ -4,6 +4,7 @@ import { ConfigurationStore } from './ConfigurationStore';
 import { TokenStore } from './TokenStore';
 import { LiquidityPoolsStore } from './LiquidityPoolsStore';
 import { RecordStore } from './RecordStore';
+import { DepositManagerStore } from './DepositManagerStore';
 import { LoanManagerStore } from './LoanManagerStore';
 import { TokenManagerStore } from './TokenManagerStore';
 import { ActionLogStore } from './ActionLogStore';
@@ -15,6 +16,7 @@ export const configurationStore = new ConfigurationStore();
 export const tokenStore = new TokenStore();
 export const liquidityPoolsStore = new LiquidityPoolsStore();
 export const recordStore = new RecordStore();
+export const depositManagerStore = new DepositManagerStore();
 export const loanManagerStore = new LoanManagerStore();
 export const tokenManagerStore = new TokenManagerStore();
 export const actionLogStore = new ActionLogStore();
@@ -23,6 +25,7 @@ export const transactionStore = new TransactionStore();
 
 export const initStore = async () => {
   const tokens = await tokenStore.initTokens();
+  await depositManagerStore.init();
   await loanManagerStore.init();
   await tokenManagerStore.init();
   await Promise.all(
@@ -42,6 +45,7 @@ export * from './ConfigurationStore';
 export * from './TokenStore';
 export * from './LiquidityPoolsStore';
 export * from './RecordStore';
+export * from './DepositManagerStore';
 export * from './LoanManagerStore';
 export * from './TokenManagerStore';
 export * from './ActionLogStore';
