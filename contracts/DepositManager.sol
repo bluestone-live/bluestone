@@ -184,6 +184,10 @@ contract DepositManager is Ownable, Pausable {
         return _enabledDepositTerms;
     }
 
+    function getDepositAssets() external view returns (address[] memory) {
+        return _depositAssetAddresses;
+    }
+
     // ADMIN --------------------------------------------------------------
     
     function init(

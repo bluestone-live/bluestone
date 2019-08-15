@@ -102,6 +102,23 @@ contract LiquidityPools {
         poolGroup.updatePoolIds();
     }
 
+    // Update totalLoanableAmountPerTerm for all pool groups of a deposit asset
+    function updateTotalLoanableAmountPerTerm(address depositAsset, uint8[] calldata depositTerms, uint8 loanTerm) external {
+        for (uint i = 0; i < depositTerms.length; i++) {
+            uint8 depositTerm = depositTerms[i];
+            PoolGroup poolGroup = poolGroups[depositAsset][depositTerm];
+            uint totalLoanableAmount;
+
+            // Add up loanableAmount from pools
+            for (uint8 j = loanTerm - 1; j < depositTerm; j++) {
+                uint loanableAmountOfPool = poolGroup.getLoanableAmountFromPool(j);
+                totalLoanableAmount = totalLoanableAmount.add(loanableAmountOfPool);
+            }
+
+            poolGroup.setTotalLoanableAmountPerTerm(loanTerm, totalLoanableAmount);
+        }
+    }
+
     // PRIVATE
 
     function _loanFromPoolGroup(

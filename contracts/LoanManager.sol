@@ -263,11 +263,19 @@ contract LoanManager is Ownable, Pausable {
         _accountManager = accountManager;
     }
 
-    function addLoanTerm(uint8 term) public whenNotPaused onlyOwner {
-        require(!_isValidLoanTerm[term], "Term already exists.");
+    function addLoanTerm(uint8 loanTerm) public whenNotPaused onlyOwner {
+        require(!_isValidLoanTerm[loanTerm], "Term already exists.");
 
-        _loanTerms.push(term);
-        _isValidLoanTerm[term] = true;
+        _loanTerms.push(loanTerm);
+        _isValidLoanTerm[loanTerm] = true;
+
+        address[] memory depositAssets = _depositManager.getDepositAssets();
+        uint8[] memory depositTerms = _depositManager.getDepositTerms();
+
+        // Update totalLoanableAmountPerTerm for each deposit asset and deposit term
+        for (uint i = 0; i < depositAssets.length; i++) {
+            _liquidityPools.updateTotalLoanableAmountPerTerm(depositAssets[i], depositTerms, loanTerm);
+        }
     }
 
     // Remove a loan term should only affect loan action

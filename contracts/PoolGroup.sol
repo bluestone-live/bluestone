@@ -91,6 +91,10 @@ contract PoolGroup {
         }
     }
 
+    function setTotalLoanableAmountPerTerm(uint8 loanTerm, uint amount) external {
+        totalLoanableAmountPerTerm[loanTerm] = amount;
+    }
+
     function addTotalLoanableAmountPerTerm(uint8 loanTerm, uint amount) external {
         totalLoanableAmountPerTerm[loanTerm] = totalLoanableAmountPerTerm[loanTerm].add(amount);
     }
