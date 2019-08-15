@@ -11,6 +11,8 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract PoolGroup {
     using SafeMath for uint;
 
+    // ANALYTICAL DATA ------------------------------------------------------------------------
+
     // Total deposit amount since the creation of this PoolGroup
     uint public totalDeposit;
 
@@ -22,14 +24,19 @@ contract PoolGroup {
     /// loan interest.
     uint public totalRepaid;
 
+    // The total amount that has loaned to each loan term since the creation of this PoolGroup.
+    mapping(uint8 => uint) public totalLoanPerTerm;
+
+    // The total amount that has repaid to each loan term since the creation of this PoolGroup.
+    mapping(uint8 => uint) public totalRepaidPerTerm;
+
+    // ----------------------------------------------------------------------------------------
+
     // Total amount that is available for loan
     uint public totalLoanableAmount;
 
-    // The total amount that has loaned to each loan term
-    mapping(uint8 => uint) public totalLoanPerTerm;
-
-    // The total amount that has repaid to each loan term
-    mapping(uint8 => uint) public totalRepaidPerTerm;
+    /// Total amount that is available for loan on each loan term
+    mapping(uint8 => uint) public totalLoanableAmountPerTerm;
 
     struct Pool {
         uint deposit;
@@ -82,6 +89,14 @@ contract PoolGroup {
         } else {
             return 0;
         }
+    }
+
+    function addTotalLoanableAmountPerTerm(uint8 loanTerm, uint amount) external {
+        totalLoanableAmountPerTerm[loanTerm] = totalLoanableAmountPerTerm[loanTerm].add(amount);
+    }
+
+    function subtractTotalLoanableAmountPerTerm(uint8 loanTerm, uint amount) external {
+        totalLoanableAmountPerTerm[loanTerm] = totalLoanableAmountPerTerm[loanTerm].sub(amount);
     }
 
     function getDepositFromPool(uint8 index) public view returns (uint) {
