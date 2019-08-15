@@ -287,9 +287,11 @@ contract DepositManager is Ownable, Pausable {
 
     // Update deposit maturity for each PoolGroup of an asset
     function updateDepositMaturity(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
+        uint8[] memory loanTerms = _loanManager.getLoanTerms();
+
         for (uint i = 0; i < _allDepositTerms.length; i++) {
-            uint8 term = _allDepositTerms[i];
-            PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
+            uint8 depositTerm = _allDepositTerms[i];
+            PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
             uint8 index = 0;
             uint totalDeposit = poolGroup.getDepositFromPool(index);
             uint loanInterest = poolGroup.getLoanInterestFromPool(index);
@@ -301,9 +303,9 @@ contract DepositManager is Ownable, Pausable {
                 interestIndex = 0;
             }
 
-            _updateInterestIndexHistory(asset, term, interestIndex);
+            _updateInterestIndexHistory(asset, depositTerm, interestIndex);
 
-            _liquidityPools.updatePoolGroupDepositMaturity(asset, term);
+            _liquidityPools.updatePoolGroupDepositMaturity(asset, depositTerm, loanTerms);
         }
     }
 

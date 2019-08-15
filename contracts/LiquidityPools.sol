@@ -78,7 +78,7 @@ contract LiquidityPools {
         }
     }
 
-    function updatePoolGroupDepositMaturity(address asset, uint8 depositTerm) external {
+    function updatePoolGroupDepositMaturity(address asset, uint8 depositTerm, uint8[] calldata loanTerms) external {
         require(_config.isUserActionsLocked(), "user actions need be locked before update maturity");
         PoolGroup poolGroup = poolGroups[asset][depositTerm];
         uint8 index = 0;
@@ -86,10 +86,19 @@ contract LiquidityPools {
         // 1. Clear matured deposit from the 1-day pool
         poolGroup.clearDepositFromPool(index);
 
-        // 2. Clear loan interest accumulated during the enture deposit term
+        // 2. Clear loan interest accumulated during the entire deposit term
         poolGroup.clearLoanInterestFromPool(index);
 
-        // 3. Update pool IDs to reflect the deposit maturity change
+        /// 3. For every loan term N <= current deposit term, subtract N-th pool's loanableAmount from 
+        /// totalLoanableAmountPerTerm since that amount will not be available after shifting pools.
+        for (uint i = 0; i < loanTerms.length; i++) {
+            if (loanTerms[i] <= depositTerm) {
+                uint loanableAmountOfPool = poolGroup.getLoanableAmountFromPool(loanTerms[i] - 1);
+                poolGroup.subtractTotalLoanableAmountPerTerm(loanTerms[i], loanableAmountOfPool);
+            }
+        }
+
+        // 4. Update pool IDs to reflect the deposit maturity change
         poolGroup.updatePoolIds();
     }
 
