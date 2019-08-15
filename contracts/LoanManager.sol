@@ -119,7 +119,9 @@ contract LoanManager is Ownable, Pausable {
 
         _loansByUser[loaner].push(currLoan);
 
-        _liquidityPools.loanFromPoolGroups(currLoan, _depositManager.getDepositTerms());        
+        uint8[] memory depositTerms = _depositManager.getDepositTerms();
+
+        _liquidityPools.loanFromPoolGroups(currLoan, depositTerms, _loanTerms);
 
         _tokenManager.receiveFrom(loaner, collateralAsset, collateralAmount);
         _tokenManager.sendTo(loaner, loanAsset, loanAmount);

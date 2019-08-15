@@ -47,14 +47,14 @@ contract LiquidityPools {
         }
     }
 
-    function loanFromPoolGroups(Loan currLoan, uint8[] calldata depositTerms) external {
+    function loanFromPoolGroups(Loan currLoan, uint8[] calldata depositTerms, uint8[] calldata loanTerms) external {
         uint loanTerm = currLoan.term();
 
         for (uint i = 0; i < depositTerms.length; i++) {
             uint8 depositTerm = depositTerms[i];
 
             if (loanTerm <= depositTerm) {
-                _loanFromPoolGroup(depositTerm, currLoan);
+                _loanFromPoolGroup(depositTerm, currLoan, loanTerms);
             }
         }
     }
@@ -90,7 +90,8 @@ contract LiquidityPools {
 
     function _loanFromPoolGroup(
         uint8 depositTerm,
-        Loan currLoan
+        Loan currLoan,
+        uint8[] memory loanTerms
     ) 
         private 
     {
@@ -107,11 +108,10 @@ contract LiquidityPools {
         /// pool group can provide. TODO: add a check here just in case.
 
         uint8 poolIndex = loanTerm - 1;
-        uint8 poolGroupLength = depositTerm;
         PoolGroup poolGroup = poolGroups[asset][depositTerm];
 
         // Incrementing the pool group index and loaning from each pool until loan amount is fulfilled.
-        while (remainingLoanAmount > 0 && poolIndex < poolGroupLength) {
+        while (remainingLoanAmount > 0 && poolIndex < depositTerm) {
             uint loanableAmount = poolGroup.getLoanableAmountFromPool(poolIndex);
 
             if (loanableAmount > 0) {
@@ -124,6 +124,13 @@ contract LiquidityPools {
             }
 
             poolIndex++;
+        }
+
+        // Subtract loan amount from totalLoanableAmountPerTerm for every loan term <= this loan term
+        for (uint i = 0; i < loanTerms.length; i++) {
+            if (loanTerms[i] <= loanTerm) {
+                poolGroup.subtractTotalLoanableAmountPerTerm(loanTerms[i], loanAmount);
+            }
         }
     }
 
