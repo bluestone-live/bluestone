@@ -59,14 +59,21 @@ contract LiquidityPools {
         }
     }
 
-    function repayLoanToPoolGroups(uint totalRepayAmount, Loan currLoan, uint8[] calldata depositTerms) external {
+    function repayLoanToPoolGroups(
+        uint totalRepayAmount, 
+        Loan currLoan, 
+        uint8[] calldata depositTerms, 
+        uint8[] calldata loanTerms
+    ) 
+        external 
+    {
         uint loanTerm = currLoan.term();
 
         for (uint i = 0; i < depositTerms.length; i++) {
             uint8 depositTerm = depositTerms[i];
 
             if (loanTerm <= depositTerm) {
-                _repayLoanToPoolGroup(depositTerm, totalRepayAmount, currLoan);
+                _repayLoanToPoolGroup(depositTerm, totalRepayAmount, currLoan, loanTerms);
             }
         }
     }
@@ -134,7 +141,14 @@ contract LiquidityPools {
         }
     }
 
-    function _repayLoanToPoolGroup(uint8 depositTerm, uint totalRepayAmount, Loan currLoan) private {
+    function _repayLoanToPoolGroup(
+        uint8 depositTerm, 
+        uint totalRepayAmount, 
+        Loan currLoan, 
+        uint8[] memory loanTerms
+    ) 
+        private 
+    {
         address asset = currLoan.loanAsset();
         uint totalLoanAmount = currLoan.loanAmount();
 
@@ -162,6 +176,13 @@ contract LiquidityPools {
             uint repayAmount = totalRepayAmount.mulFixed(loanAmount).divFixed(totalLoanAmount);
             poolGroup.repayLoanToPool(poolIndex, repayAmount, currLoan.term());
             remainingRepayAmount = remainingRepayAmount - repayAmount;
+
+            // Add repay amount to totalLoanableAmountPerTerm for every loan term <= current term the pool refers to
+            for (uint i = 0; i < loanTerms.length; i++) {
+                if (loanTerms[i] <= poolIndex + 1) {
+                    poolGroup.addTotalLoanableAmountPerTerm(loanTerms[i], repayAmount);
+                }
+            }
         }
     }
 }

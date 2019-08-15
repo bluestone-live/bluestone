@@ -143,8 +143,9 @@ contract LoanManager is Ownable, Pausable {
         require(loaner == currLoan.owner());
 
         (uint totalRepayAmount, uint freedCollateralAmount) = currLoan.repay(amount);
+        uint8[] memory depositTerms = _depositManager.getDepositTerms();
 
-        _liquidityPools.repayLoanToPoolGroups(totalRepayAmount, currLoan, _depositManager.getDepositTerms());
+        _liquidityPools.repayLoanToPoolGroups(totalRepayAmount, currLoan, depositTerms, _loanTerms);
 
         _accountManager.increaseFreedCollateral(collateralAsset, freedCollateralAmount);
 
@@ -181,7 +182,9 @@ contract LoanManager is Ownable, Pausable {
             collateralAssetPrice
         );
 
-        _liquidityPools.repayLoanToPoolGroups(liquidatedAmount, currLoan, _depositManager.getDepositTerms());
+        uint8[] memory depositTerms = _depositManager.getDepositTerms();
+
+        _liquidityPools.repayLoanToPoolGroups(liquidatedAmount, currLoan, depositTerms, _loanTerms);
 
         _accountManager.increaseFreedCollateral(collateralAsset, freedCollateralAmount);
 
