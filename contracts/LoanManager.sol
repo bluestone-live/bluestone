@@ -89,18 +89,19 @@ contract LoanManager is Ownable, Pausable {
 
         localVars.collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
         localVars.loanAssetPrice = _priceOracle.getPrice(loanAsset);
+        localVars.interestRate = _config.getLoanInterestRate(loanAsset, term);
+        localVars.liquidationDiscount = _config.getLiquidationDiscount(loanAsset, collateralAsset);
+        localVars.minCollateralRatio = _config.getCollateralRatio(loanAsset, collateralAsset);
+
+        uint interest = loanAmount.mulFixed(localVars.interestRate);
 
         localVars.currCollateralRatio = localVars.totalCollateralAmount
             .mulFixed(localVars.collateralAssetPrice)
-            .divFixed(loanAmount)
+            .divFixed(loanAmount.add(interest))
             .divFixed(localVars.loanAssetPrice);
 
-        localVars.minCollateralRatio = _config.getCollateralRatio(loanAsset, collateralAsset);
 
         require(localVars.currCollateralRatio >= localVars.minCollateralRatio, "Collateral ratio is below requirement.");
-
-        localVars.interestRate = _config.getLoanInterestRate(loanAsset, term);
-        localVars.liquidationDiscount = _config.getLiquidationDiscount(loanAsset, collateralAsset);
 
         Loan currLoan = new Loan(
             loanAsset,

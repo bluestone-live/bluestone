@@ -53,14 +53,14 @@ export const getLoanRecordStatus = async (
   loanToken: IToken,
   collateralToken: IToken,
 ) => {
-  // TODO: find out when will get lock status
   const isClosed = await loanContractInstance.methods.isClosed().call();
+  if (isClosed) {
+    return RecordStatus.LoanClosed;
+  }
   const isLiquidatable = await loanContractInstance.methods
     .isLiquidatable(loanToken.price, collateralToken.price)
     .call();
-  if (isClosed) {
-    return RecordStatus.LoanClosed;
-  } else if (isLiquidatable) {
+  if (isLiquidatable) {
     return RecordStatus.LoanLiquidating;
   }
   return RecordStatus.LoanNormal;

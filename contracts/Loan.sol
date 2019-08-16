@@ -197,6 +197,10 @@ contract Loan {
 
     // Check whether the loan is defaulted or under the required collaterization ratio
     function isLiquidatable(uint loanAssetPrice, uint collateralAssetPrice) external view returns (bool) {
+        if (_isClosed) {
+            return false;
+        }
+
         uint currCollateralRatio = _collateralAmount.sub(_soldCollateralAmount)
             .mulFixed(collateralAssetPrice)
             .divFixed(remainingDebt())

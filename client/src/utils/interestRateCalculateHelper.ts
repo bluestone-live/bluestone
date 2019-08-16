@@ -7,7 +7,7 @@ export enum RatePeriod {
 // Estimate interest rate for a given period and return percentage
 export const calculateRate = (ratePerSecond: BigNumber, period: RatePeriod) => {
   if (!ratePerSecond) {
-    return 0;
+    return '0';
   }
   const bigNumberRate = new BigNumber(ratePerSecond.toString());
 

@@ -134,14 +134,12 @@ class LoanForm extends React.Component<IProps, IState> {
     const loanToken = tokenStore!.getToken(loanTokenSymbol);
     const collateralToken = tokenStore!.getToken(collateralTokenSymbol!);
 
-    const annualPercentageRate = loanToken
+    const interestRate = loanToken
       ? loanToken.loanAnnualPercentageRates
-        ? calculateRate(
-            loanToken!.loanAnnualPercentageRates[term],
-            RatePeriod.Annual,
-          )
-        : '0'
-      : '0';
+        ? loanToken!.loanAnnualPercentageRates[term]
+        : new BigNumber(0)
+      : new BigNumber(0);
+    const annualPercentageRate = calculateRate(interestRate, RatePeriod.Annual);
 
     const loanAssetPair = loanManagerStore!.getLoanAssetPair(
       loanTokenSymbol,
@@ -152,14 +150,20 @@ class LoanForm extends React.Component<IProps, IState> {
     let minCollateralRatio = '0';
 
     if (loanAssetPair) {
-      currCollateralRatio = (loanAmount === 0
-        ? 0
-        : ((collateralAmount *
-            Number.parseFloat(convertWeiToDecimal(collateralToken!.price!))) /
-            loanAmount /
-            Number.parseFloat(convertWeiToDecimal(loanToken!.price!))) *
-          100
-      ).toFixed(2);
+      currCollateralRatio =
+        loanAmount === 0
+          ? '0'
+          : `${(
+              ((collateralAmount *
+                Number.parseFloat(
+                  convertWeiToDecimal(collateralToken!.price!),
+                )) /
+                this.estimateRepayAmount(
+                  Number.parseInt(annualPercentageRate, 10),
+                ) /
+                Number.parseFloat(convertWeiToDecimal(loanToken!.price!))) *
+              100
+            ).toFixed(2)}%`;
 
       minCollateralRatio = `${convertWeiToDecimal(
         formatBigNumber(loanAssetPair.collateralRatio).mul(new BigNumber(100)),
