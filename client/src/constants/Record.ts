@@ -14,8 +14,8 @@ export interface IDepositRecord {
   status: RecordStatus;
   token: IToken;
   term: ITerm; // address
-  depositAmount: number;
-  withdrewAmount?: number;
+  depositAmount: string;
+  withdrewAmount?: string;
   createdAt: number;
   maturedAt: number;
   withdrewAt?: number; // can a deposit order withdrew multiple times
@@ -74,15 +74,15 @@ export interface ILoanRecord {
   collateralToken: IToken;
   loanToken: IToken;
   term: ITerm;
-  loanAmount: number;
-  withdrewAmount?: number;
-  alreadyPaidAmount?: number;
-  collateralAmount: number;
-  liquidatedAmount?: number;
-  soldCollateralAmount?: number;
+  loanAmount: string;
+  withdrewAmount?: string;
+  alreadyPaidAmount?: string;
+  collateralAmount: string;
+  liquidatedAmount?: string;
+  soldCollateralAmount?: string;
   createdAt: number;
-  interest: number;
-  remainingDebt: number;
+  interest: string;
+  remainingDebt: string;
 }
 
 export type IRecord = IDepositRecord | ILoanRecord;

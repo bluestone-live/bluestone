@@ -3,7 +3,12 @@ import Card from '../components/common/Card';
 import { withRouter, RouteComponentProps } from 'react-router';
 import { inject, observer } from 'mobx-react';
 import { updateState } from '../utils/updateState';
-import { convertDecimalToWei, convertWeiToDecimal } from '../utils/BigNumber';
+import {
+  convertDecimalToWei,
+  convertWeiToDecimal,
+  BigNumber,
+  formatBigNumber,
+} from '../utils/BigNumber';
 import { IToken } from '../constants/Token';
 import {
   calculateRate,
@@ -134,7 +139,7 @@ class LoanForm extends React.Component<IProps, IState> {
         ? calculateRate(
             loanToken!.loanAnnualPercentageRates[term],
             RatePeriod.Annual,
-          ).toFixed(2)
+          )
         : '0'
       : '0';
 
@@ -149,15 +154,17 @@ class LoanForm extends React.Component<IProps, IState> {
     if (loanAssetPair) {
       currCollateralRatio = (loanAmount === 0
         ? 0
-        : ((collateralAmount * collateralToken!.price!) /
+        : ((collateralAmount *
+            Number.parseFloat(convertWeiToDecimal(collateralToken!.price!))) /
             loanAmount /
-            loanToken!.price!) *
+            Number.parseFloat(convertWeiToDecimal(loanToken!.price!))) *
           100
       ).toFixed(2);
 
       minCollateralRatio = `${convertWeiToDecimal(
-        loanAssetPair.collateralRatio,
-      ) * 100}%`;
+        formatBigNumber(loanAssetPair.collateralRatio).mul(new BigNumber(100)),
+        2,
+      )}%`;
     }
 
     const estimatedRepayDate = dayjs()

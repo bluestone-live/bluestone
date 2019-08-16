@@ -1,18 +1,25 @@
-import { convertWeiToDecimal } from './BigNumber';
+import { convertWeiToDecimal, BigNumber } from './BigNumber';
 
 export enum RatePeriod {
   Annual,
 }
 
 // Estimate interest rate for a given period and return percentage
-export const calculateRate = (ratePerSecond: any, period: RatePeriod) => {
-  const decimalRate = convertWeiToDecimal(ratePerSecond);
+export const calculateRate = (ratePerSecond: BigNumber, period: RatePeriod) => {
+  if (!ratePerSecond) {
+    return 0;
+  }
+  const bigNumberRate = new BigNumber(ratePerSecond.toString());
 
   switch (period) {
     case RatePeriod.Annual:
-      const yearInSeconds = 31536000;
-      return decimalRate * yearInSeconds * 100;
+      const yearInSeconds = new BigNumber(31536000);
+
+      return convertWeiToDecimal(
+        bigNumberRate.mul(yearInSeconds).mul(new BigNumber(100)),
+        2,
+      );
     default:
-      return decimalRate * 100;
+      return convertWeiToDecimal(bigNumberRate.mul(new BigNumber(100)), 2);
   }
 };

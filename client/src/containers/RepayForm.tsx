@@ -19,7 +19,7 @@ interface IProps
 }
 
 interface IState {
-  amount: number;
+  amount: string;
   loading: boolean;
 }
 
@@ -27,7 +27,7 @@ interface IState {
 @observer
 class RepayForm extends React.Component<IProps, IState> {
   state = {
-    amount: 0,
+    amount: '0',
     loading: false,
   };
 
@@ -41,7 +41,7 @@ class RepayForm extends React.Component<IProps, IState> {
 
   onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     this.setState({
-      amount: Number.parseFloat(e.currentTarget.value),
+      amount: e.currentTarget.value,
     });
 
   onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

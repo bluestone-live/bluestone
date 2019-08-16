@@ -2,11 +2,33 @@ import BigNumber from 'bn.js';
 
 export { BigNumber };
 
-export const convertWeiToDecimal = (bn: BigNumber) => {
+const significant = 18;
+
+export const convertWeiToDecimal = (bn: BigNumber, precision: number = 18) => {
   if (!bn) {
-    return 0;
+    return '0';
   }
-  return Number.parseFloat(bn.toString()) / 1e18;
+  const numberString = bn.toString();
+
+  const padString = numberString.padStart(
+    numberString.length + significant,
+    '0',
+  );
+
+  const integerPlaces = Number.parseInt(
+    padString.substring(0, padString.length - significant),
+    10,
+  ).toString();
+
+  const decimalPlaces = padString.substring(
+    padString.length - significant,
+    padString.length,
+  );
+
+  return `${integerPlaces}.${decimalPlaces.substring(
+    decimalPlaces.length - precision,
+    decimalPlaces.length,
+  )}`;
 };
 
 /**
@@ -16,20 +38,30 @@ export const convertWeiToDecimal = (bn: BigNumber) => {
  * toFixed(0.03) -> 3e16
  * toFixed(5, 16) -> 5e16
  */
-export const convertDecimalToWei = (num: number, significant: number = 18) => {
+export const convertDecimalToWei = (num: number | string) => {
   if (!num) {
     return new BigNumber(0);
   }
-  const decimalPlaces = (num.toString().split('.')[1] || []).length;
+
+  const fixedNumber = typeof num === 'number' ? num.toFixed(significant) : num;
+  const decimalPlaces = (fixedNumber.split('.')[1] || '').replace(/0*$/, '')
+    .length;
 
   if (decimalPlaces === 0) {
     return new BigNumber(num).mul(
       new BigNumber(10).pow(new BigNumber(significant)),
     );
   } else {
-    const integer = num * Math.pow(10, decimalPlaces);
+    const integer = fixedNumber.replace(/0*$/, '').replace('.', '');
     return new BigNumber(integer).mul(
       new BigNumber(10).pow(new BigNumber(significant - decimalPlaces)),
     );
   }
 };
+
+/**
+ * format a bignumber.js instance to BN.js instance
+ * @param bn bignumber.js instance
+ */
+export const formatBigNumber = (bn: BigNumber) =>
+  convertDecimalToWei(convertWeiToDecimal(bn));
