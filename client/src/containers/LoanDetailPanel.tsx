@@ -84,14 +84,14 @@ class LoanDetailPanel extends React.Component<IProps> {
           />
         </StyledListWrapper>
         <Cell scale={1.5}>
-          {recordAddress && loanRecord ? (
+          {recordAddress && loanRecord && (
             <LoanDetail
               loanRecord={loanRecord}
               transactionsForRecord={transactionStore!.getLoanTransactionByRecordAddress(
                 loanRecord.recordAddress,
               )}
             />
-          ) : null}
+          )}
         </Cell>
       </StyledRow>
     );

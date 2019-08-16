@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IDepositRecord } from '../constants/Record';
+import { IDepositRecord, RecordStatus } from '../constants/Record';
 import { Row, Cell } from '../components/common/Layout';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Form from '../components/html/Form';
@@ -75,16 +75,18 @@ class DepositDetail extends React.Component<IProps, IState> {
             </TextBox>
           </Cell>
         </Form.Item>
-        <Form.Item>
-          <Button.Group>
-            <Button primary onClick={this.withdraw} disabled={loading}>
-              {t('withdraw')}
-            </Button>
-          </Button.Group>
-        </Form.Item>
-        {transactionsForRecord ? (
+        {depositRecord.status === RecordStatus.DepositMatured && (
+          <Form.Item>
+            <Button.Group>
+              <Button primary onClick={this.withdraw} disabled={loading}>
+                {t('withdraw')}
+              </Button>
+            </Button.Group>
+          </Form.Item>
+        )}
+        {transactionsForRecord && (
           <TransactionList transactions={transactionsForRecord} />
-        ) : null}
+        )}
       </div>
     );
   }

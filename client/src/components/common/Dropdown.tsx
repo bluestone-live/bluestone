@@ -82,7 +82,7 @@ export default class Dropdown extends React.Component<IProps, IState> {
         onBlur={this.hideOptions}
       >
         {children}
-        {showOptions ? (
+        {showOptions && (
           <StyledOptionsContainer>
             {options.map(option => (
               <StyledOption
@@ -93,7 +93,7 @@ export default class Dropdown extends React.Component<IProps, IState> {
               </StyledOption>
             ))}
           </StyledOptionsContainer>
-        ) : null}
+        )}
       </StyledDropdown>
     );
   }

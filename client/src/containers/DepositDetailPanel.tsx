@@ -84,7 +84,7 @@ class DepositDetailPanel extends React.Component<IProps> {
           />
         </StyledListWrapper>
         <Cell scale={1.5}>
-          {recordAddress && depositRecord ? (
+          {recordAddress && depositRecord && (
             <DepositDetail
               recordStore={recordStore}
               depositRecord={depositRecord}
@@ -92,7 +92,7 @@ class DepositDetailPanel extends React.Component<IProps> {
                 depositRecord.recordAddress,
               )}
             />
-          ) : null}
+          )}
         </Cell>
       </StyledRow>
     );

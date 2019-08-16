@@ -32,11 +32,15 @@ export class RecordStore {
   }
 
   @computed get depositRecords() {
-    return Array.from(this.depositRecordMap.values());
+    return Array.from(this.depositRecordMap.values()).sort(
+      (deposit1, deposit2) => deposit2.createdAt - deposit1.createdAt,
+    );
   }
 
   @computed get loanRecords() {
-    return Array.from(this.loanRecordMap.values());
+    return Array.from(this.loanRecordMap.values()).sort(
+      (loan1, loan2) => loan2.createdAt - loan1.createdAt,
+    );
   }
 
   @action.bound

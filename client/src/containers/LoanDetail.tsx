@@ -31,18 +31,7 @@ const showActions = (props: IProps) => {
     );
   }
   if (loanRecord.status === RecordStatus.LoanClosed) {
-    return (
-      <Button.Group>
-        <Button
-          onClick={goTo(
-            `loan/collateral/withdraw/${loanRecord.recordAddress}`,
-            props,
-          )}
-        >
-          {t('withdraw_collateral')}
-        </Button>
-      </Button.Group>
-    );
+    return null;
   }
   return (
     <Button.Group>
@@ -115,9 +104,9 @@ const LoanDetail = (props: IProps) => {
         <TextBox id="collateralRatio">{collateralRatio} %</TextBox>
       </Form.Item>
       {showActions(props)}
-      {transactionsForRecord ? (
+      {transactionsForRecord && (
         <TransactionList transactions={transactionsForRecord} />
-      ) : null}
+      )}
     </div>
   );
 };

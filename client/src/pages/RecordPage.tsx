@@ -220,27 +220,29 @@ class RecordPage extends React.Component<IProps, IState> {
       accountStore.getFreedCollateralByAddress(currentToken) ||
       convertDecimalToWei(0);
 
-    return currentToken ? (
-      <div className="detail-page">
-        <StyledCard>
-          <Radio<string>
-            name="recordType"
-            onChange={this.recordTypeChangeHandler}
-            options={this.recordTypeOptions}
-            selectedOption={selectedOption}
-          />
-          {recordType === 'loan' ? (
-            <StyledBox>
-              {t('freed_collateral')}:{convertWeiToDecimal(freedCollateral)}
-              <StyledButton onClick={this.goTo(`/withdraw/${currentToken}`)}>
-                {t('withdraw')}
-              </StyledButton>
-            </StyledBox>
-          ) : null}
-        </StyledCard>
-        <StyledCard>{this.showDetailPanel()}</StyledCard>
-      </div>
-    ) : null;
+    return (
+      currentToken && (
+        <div className="detail-page">
+          <StyledCard>
+            <Radio<string>
+              name="recordType"
+              onChange={this.recordTypeChangeHandler}
+              options={this.recordTypeOptions}
+              selectedOption={selectedOption}
+            />
+            {recordType === 'loan' && (
+              <StyledBox>
+                {t('freed_collateral')}:{convertWeiToDecimal(freedCollateral)}
+                <StyledButton onClick={this.goTo(`/withdraw/${currentToken}`)}>
+                  {t('withdraw')}
+                </StyledButton>
+              </StyledBox>
+            )}
+          </StyledCard>
+          <StyledCard>{this.showDetailPanel()}</StyledCard>
+        </div>
+      )
+    );
   }
 }
 
