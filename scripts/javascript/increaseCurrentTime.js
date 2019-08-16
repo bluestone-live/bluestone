@@ -3,19 +3,21 @@ const debug = require("debug")("script:increaseCurrentTime");
 
 module.exports = makeTruffleScript(async timeInSecond => {
   const timeBefore = (await web3.eth.getBlock("latest")).timestamp;
-  web3.currentProvider.send(
+  web3.currentProvider.send.bind(web3.currentProvider)(
     {
       jsonrpc: "2.0",
       method: "evm_increaseTime",
-      params: [Number.parseInt(timeInSecond)]
+      params: [Number.parseInt(timeInSecond)],
+      id: new Date().getTime()
     },
     debug
   );
-  web3.currentProvider.send(
+  await web3.currentProvider.send.bind(web3.currentProvider)(
     {
       jsonrpc: "2.0",
       method: "evm_mine",
-      params: []
+      params: [],
+      id: new Date().getTime()
     },
     debug
   );
