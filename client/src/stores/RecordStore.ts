@@ -15,6 +15,7 @@ import {
 } from './services/LoanManagerService';
 import { getDeposit } from './services/DepositService';
 import { getLoan } from './services/LoanService';
+import { loanManagerStore, depositManagerStore } from '.';
 
 export class RecordStore {
   @observable depositRecordMap: Map<string, IDepositRecord> = new Map();
@@ -57,7 +58,10 @@ export class RecordStore {
   async deposit(token: IToken, term: number, amount: BigNumber) {
     const depositEvent = await deposit(token.address, term, amount);
     const depositAddress = depositEvent.returnValues.deposit;
-    const depositRecord = await getDeposit(depositAddress);
+    const depositRecord = await getDeposit(
+      depositAddress,
+      depositManagerStore.depositTerms,
+    );
     return this.saveOrUpdateDepositRecords([depositRecord]);
   }
 
@@ -65,19 +69,29 @@ export class RecordStore {
   async getDepositRecords() {
     const depositAddresses = (await getDepositRecords()) || [];
     return this.saveOrUpdateDepositRecords(
-      await Promise.all(depositAddresses.map(getDeposit)),
+      await Promise.all(
+        depositAddresses.map((depositRecordAddress: string) =>
+          getDeposit(depositRecordAddress, depositManagerStore.depositTerms),
+        ),
+      ),
     );
   }
 
   @action.bound
   async updateDeposit(depositAddress: string) {
-    const depositRecord = await getDeposit(depositAddress);
+    const depositRecord = await getDeposit(
+      depositAddress,
+      depositManagerStore.depositTerms,
+    );
     return this.saveOrUpdateDepositRecords([depositRecord]);
   }
 
   @action.bound
   async updateDepositRecordByAddress(recordAddress: string) {
-    const depositRecord = await getDeposit(recordAddress);
+    const depositRecord = await getDeposit(
+      recordAddress,
+      depositManagerStore.depositTerms,
+    );
     return this.saveOrUpdateDepositRecords([depositRecord]);
   }
 
@@ -114,7 +128,10 @@ export class RecordStore {
       collateralAmount,
       requestedFreedCollateral,
     );
-    const loanRecord = await getLoan(loanEvent.returnValues.loan);
+    const loanRecord = await getLoan(
+      loanEvent.returnValues.loan,
+      loanManagerStore.loanTerms,
+    );
     this.saveOrUpdateLoanRecords([loanRecord]);
   }
 
@@ -122,13 +139,19 @@ export class RecordStore {
   async getLoanRecords() {
     const loanRecords = (await getLoanRecords()) || [];
     return this.saveOrUpdateLoanRecords(
-      await Promise.all(loanRecords.map(getLoan)),
+      await Promise.all(
+        loanRecords.map((loanRecordAddress: string) =>
+          getLoan(loanRecordAddress, loanManagerStore.loanTerms),
+        ),
+      ),
     );
   }
 
   @action.bound
   async updateLoanRecordByAddress(loanAddress: string) {
-    return this.saveOrUpdateLoanRecords([await getLoan(loanAddress)]);
+    return this.saveOrUpdateLoanRecords([
+      await getLoan(loanAddress, loanManagerStore.loanTerms),
+    ]);
   }
 
   @action.bound

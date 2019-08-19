@@ -6,13 +6,17 @@ const PriceOracle = artifacts.require("./PriceOracle.sol");
 const ERC20Mock = artifacts.require("./ERC20Mock.sol");
 const WrappedEther = artifacts.require("./WrappedEther.sol");
 const TokenManager = artifacts.require("./TokenManager.sol");
-const { makeTruffleScript, fetchTokenPrices, mergeNetworkConfig } = require("./utils.js");
+const {
+  makeTruffleScript,
+  fetchTokenPrices,
+  mergeNetworkConfig
+} = require("./utils.js");
 const { configuration } = require("../../config.js");
 const { BN } = web3.utils;
 
-module.exports = makeTruffleScript(async (network) => {
-  if (network !== 'development' && network !== 'rinkeby') {
-    throw "setupEnvironment should only run against testnet."
+module.exports = makeTruffleScript(async network => {
+  if (network !== "development" && network !== "rinkeby") {
+    throw "setupEnvironment should only run against testnet.";
   }
 
   if (!isValidConfiguartion(configuration)) {
@@ -31,41 +35,48 @@ module.exports = makeTruffleScript(async (network) => {
     loanInterestRate
   } = configuration;
 
-  const tokenSymbolListWithWETH = Object.keys(tokens)
+  const tokenSymbolListWithWETH = Object.keys(tokens);
 
   for (let i = 0; i < tokenSymbolListWithWETH.length; i++) {
-    const symbol = tokenSymbolListWithWETH[i]
+    const symbol = tokenSymbolListWithWETH[i];
     const { name } = tokens[symbol];
-    let deployedToken
+    let deployedToken;
 
-    if (symbol === 'WETH') {
-      deployedToken = await WrappedEther.new()
+    if (symbol === "WETH") {
+      deployedToken = await WrappedEther.new();
     } else {
-      deployedToken = await ERC20Mock.new(name, symbol)
+      deployedToken = await ERC20Mock.new(name, symbol);
     }
 
-    debug(`Deployed ${symbol} at ${deployedToken.address}`)
-    tokens[symbol].address = deployedToken.address
+    debug(`Deployed ${symbol} at ${deployedToken.address}`);
+    tokens[symbol].address = deployedToken.address;
   }
 
   mergeNetworkConfig(network, {
     tokens
-  })
+  });
 
   divider();
 
-  for (let depositTerm of depositTerms) {
-    await depositManager.enableDepositTerm(depositTerm)
-    debug(`enableDepositTerm: ${depositTerm}`)
-  }
+  try {
+    for (let depositTerm of depositTerms) {
+      await depositManager.enableDepositTerm(depositTerm);
+      debug(`enableDepositTerm: ${depositTerm}`);
+    }
 
-  for (let loanTerm of loanTerms) {
-    await loanManager.addLoanTerm(loanTerm)
-    debug(`addLoanTerm: ${loanTerm}`)
+    for (let loanTerm of loanTerms) {
+      await loanManager.addLoanTerm(loanTerm);
+      debug(`addLoanTerm: ${loanTerm}`);
+    }
+  } catch (e) {
+    // just continue if the term already enabled
+    console.log(e);
   }
 
   // TODO: not sure if we need to setup WETH
-  const tokenSymbolList = tokenSymbolListWithWETH.filter(symbol => symbol !== 'WETH')
+  const tokenSymbolList = tokenSymbolListWithWETH.filter(
+    symbol => symbol !== "WETH"
+  );
 
   for (let loanTokenSymbol of tokenSymbolList) {
     divider();
@@ -132,7 +143,7 @@ module.exports = makeTruffleScript(async (network) => {
 
   divider();
 
-  const priceList = await fetchTokenPrices(tokenSymbolList)
+  const priceList = await fetchTokenPrices(tokenSymbolList);
   const scaledPriceList = priceList.map(price => toFixedBN(price));
   const priceOracle = await PriceOracle.deployed();
   const tokenAddressList = tokenSymbolList.map(
@@ -148,7 +159,7 @@ module.exports = makeTruffleScript(async (network) => {
   const tokenManager = await TokenManager.deployed();
   const accounts = await web3.eth.getAccounts();
 
-  // Set depositor and loaner to the same account, so we can see transactions in one place 
+  // Set depositor and loaner to the same account, so we can see transactions in one place
   const depositor = accounts[0];
   const loaner = accounts[0];
 
@@ -164,12 +175,14 @@ module.exports = makeTruffleScript(async (network) => {
     const loanAsset = await ERC20Mock.at(tokens[loanTokenSymbol].address);
 
     await loanAsset.mint(depositor, toFixedBN(initialSupply));
-    debug(`Mints ${initialSupply} ${loanTokenSymbol} to ${depositor}`)
+    debug(`Mints ${initialSupply} ${loanTokenSymbol} to ${depositor}`);
 
     await loanAsset.approve(tokenManager.address, toFixedBN(initialAllowance), {
       from: depositor
     });
-    debug(`Depositor approves sending ${initialAllowance} ${loanTokenSymbol} as deposit to protocol`);
+    debug(
+      `Depositor approves sending ${initialAllowance} ${loanTokenSymbol} as deposit to protocol`
+    );
 
     for (let depositTerm of depositTerms) {
       await depositManager.deposit(
@@ -189,21 +202,29 @@ module.exports = makeTruffleScript(async (network) => {
           tokens[collateralTokenSymbol].address
         );
         await collateralAsset.mint(loaner, toFixedBN(initialSupply));
-        debug(`Mints ${initialSupply} ${collateralTokenSymbol} to ${loaner}`)
+        debug(`Mints ${initialSupply} ${collateralTokenSymbol} to ${loaner}`);
 
-        await collateralAsset.approve(tokenManager.address, toFixedBN(initialAllowance), {
-          from: loaner
-        });
+        await collateralAsset.approve(
+          tokenManager.address,
+          toFixedBN(initialAllowance),
+          {
+            from: loaner
+          }
+        );
         debug(
           `Loaner approves sending ${initialAllowance} ${collateralTokenSymbol} as collateral to protocol`
         );
 
         for (let loanTerm of loanTerms) {
-          const loanAssetPrice = priceList[tokenSymbolList.indexOf(loanTokenSymbol)]
-          const collateralAssetPrice = priceList[tokenSymbolList.indexOf(collateralTokenSymbol)]
+          const loanAssetPrice =
+            priceList[tokenSymbolList.indexOf(loanTokenSymbol)];
+          const collateralAssetPrice =
+            priceList[tokenSymbolList.indexOf(collateralTokenSymbol)];
 
           // 300% collateral ratio
-          const collateralAmount = Math.round(loanAmount * loanAssetPrice / collateralAssetPrice * 3)
+          const collateralAmount = Math.round(
+            ((loanAmount * loanAssetPrice) / collateralAssetPrice) * 3
+          );
 
           await loanManager.loan(
             loanTerm,
@@ -223,7 +244,13 @@ module.exports = makeTruffleScript(async (network) => {
 
     for (let depositTerm of depositTerms) {
       for (let loanTerm of loanTerms) {
-        setCoefficient(loanTokenSymbol, loanAsset.address, depositTerm, loanTerm, 1);
+        setCoefficient(
+          loanTokenSymbol,
+          loanAsset.address,
+          depositTerm,
+          loanTerm,
+          1
+        );
       }
     }
   }
@@ -261,7 +288,12 @@ function isValidConfiguartion(configuration) {
       loanInterestRate
     } = configuration;
     return (
-      tokens && depositTerms && loanTerms && collateralRatio && liquidationDiscount && loanInterestRate
+      tokens &&
+      depositTerms &&
+      loanTerms &&
+      collateralRatio &&
+      liquidationDiscount &&
+      loanInterestRate
     );
   } else {
     return false;

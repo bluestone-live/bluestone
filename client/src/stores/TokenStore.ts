@@ -7,8 +7,8 @@ import {
 import { getLoanInterestRate } from './services/ConfigurationService';
 import { IToken, SupportToken } from '../constants/Token';
 import { getPrice } from './services/PriceOracleService';
-import { terms } from '../constants/Term';
 import { IAnnualPercentageRateValues } from '../constants/Rate';
+import { ITerm } from '../constants/Term';
 
 export class TokenStore {
   @observable tokens = new Map<string, IToken | null>(
@@ -45,8 +45,6 @@ export class TokenStore {
     const tokenSymbols = Array.from(this.tokens.keys());
     const tokens = await Promise.all(tokenSymbols.map(this.loadTokenIfNeeded));
     await Promise.all(tokenSymbols.map(this.isDepositAssetEnabled));
-    await Promise.all(tokenSymbols.map(this.getDepositInterestRates));
-    await Promise.all(tokenSymbols.map(this.getLoanInterestRates));
     await Promise.all(tokenSymbols.map(this.getTokenPrice));
     return tokens;
   }
@@ -83,7 +81,7 @@ export class TokenStore {
   }
 
   @action.bound
-  async getDepositInterestRates(tokenSymbol: string) {
+  async getDepositInterestRates(tokenSymbol: string, terms: ITerm[]) {
     const token = this.tokens.get(tokenSymbol);
     if (!token) {
       throw new Error(`no such token: ${tokenSymbol}`);
@@ -102,7 +100,7 @@ export class TokenStore {
   }
 
   @action.bound
-  async getLoanInterestRates(tokenSymbol: string) {
+  async getLoanInterestRates(tokenSymbol: string, terms: ITerm[]) {
     const token = this.tokens.get(tokenSymbol);
     if (!token) {
       throw new Error(`no such token: ${tokenSymbol}`);

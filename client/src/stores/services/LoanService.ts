@@ -1,6 +1,5 @@
 import { nonDeployedContractJsonInterface, web3 } from './Web3Service';
 import { tokenStore } from '..';
-import { terms } from '../../constants/Term';
 import {
   RecordType,
   ILoanRecord,
@@ -8,9 +7,11 @@ import {
 } from '../../constants/Record';
 import { convertWeiToDecimal } from '../../utils/BigNumber';
 import { formatSolidityTime } from '../../utils/formatSolidityTime';
+import { ITerm } from '../../constants/Term';
 
 export const getLoan = async (
   loanAddress: string,
+  terms: ITerm[],
 ): Promise<ILoanRecord | null> => {
   const loanContractInstance = new web3.eth.Contract(
     nonDeployedContractJsonInterface.Loan.abi,

@@ -20,11 +20,10 @@ const StyledImagePanel = styled.section`
 class AuthorizationReminder extends React.Component<IProps> {
   render() {
     const { accountStore, t } = this.props;
-    return (
-      accountStore!.defaultAccount && (
-        <StyledImagePanel>{t('please_click_connect')}</StyledImagePanel>
-      )
-    );
+
+    return accountStore!.defaultAccount ? (
+      <StyledImagePanel>{t('please_click_connect')}</StyledImagePanel>
+    ) : null;
   }
 }
 
