@@ -93,19 +93,14 @@ contract DepositManager is Ownable, Pausable {
 
     // PUBLIC  -----------------------------------------------------------------
 
-    function deposit(address asset, uint8 term, uint amount) 
+    function deposit(address asset, uint8 depositTerm, uint amount) 
         public 
         whenNotPaused
         enabledDepositAsset(asset)
         returns (Deposit)
     {
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
-        require(_isDepositTermEnabled[term], "Invalid deposit term.");
-
-        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
-        uint8 lastPoolIndex = term - 1;
-
-        poolGroup.addDepositToPool(lastPoolIndex, amount);
+        require(_isDepositTermEnabled[depositTerm], "Invalid deposit term.");
 
         address user = msg.sender;
         uint profitRatio = _config.getProfitRatio();
@@ -113,10 +108,14 @@ contract DepositManager is Ownable, Pausable {
         Deposit currDeposit = new Deposit(
             asset,
             user, 
-            term, 
+            depositTerm, 
             amount, 
             profitRatio
         );
+
+        uint8[] memory loanTerms = _loanManager.getLoanTerms();
+
+        _liquidityPools.addDepositToPoolGroup(currDeposit, loanTerms);
 
         _numDeposit++;
 

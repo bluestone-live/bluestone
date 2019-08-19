@@ -4,6 +4,7 @@ import "openzeppelin-solidity/contracts/math/Math.sol";
 import "./FixedMath.sol";
 import "./Configuration.sol";
 import "./PoolGroup.sol";
+import "./Deposit.sol";
 import "./Loan.sol";
 
 
@@ -25,6 +26,24 @@ contract LiquidityPools {
     function initPoolGroupIfNeeded(address asset, uint8 depositTerm) public {
         if (address(poolGroups[asset][depositTerm]) == address(0)) {
             poolGroups[asset][depositTerm] = new PoolGroup(depositTerm);
+        }
+    }
+
+    function addDepositToPoolGroup(Deposit currDeposit, uint8[] calldata loanTerms) external {
+        address asset = currDeposit.asset();
+        uint8 depositTerm = currDeposit.term();
+        uint amount = currDeposit.amount();
+
+        PoolGroup poolGroup = poolGroups[asset][depositTerm];
+        uint8 lastPoolIndex = depositTerm - 1;
+
+        poolGroup.addDepositToPool(lastPoolIndex, amount);
+
+        // Add deposit amount to totalLoanableAmountPerTerm for every loan term <= this deposit term
+        for (uint i = 0; i < loanTerms.length; i++) {
+            if (loanTerms[i] <= depositTerm) {
+                poolGroup.addTotalLoanableAmountPerTerm(loanTerms[i], amount);
+            }
         }
     }
 

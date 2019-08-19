@@ -1,16 +1,19 @@
 const TokenManager = artifacts.require("TokenManager");
 const DepositManager = artifacts.require("DepositManagerMock");
-const { toFixedBN, createERC20Token } = require("../../utils/index.js");
+const LiquidityPools = artifacts.require("LiquidityPools");
+const PoolGroup = artifacts.require("PoolGroup");
+const { toFixedBN, createERC20Token, printLogs } = require("../../utils/index.js");
 const { expect } = require("chai");
 
 contract("DepositManager", ([owner, depositor]) => {
   const initialSupply = toFixedBN(1000);
-  let depositManager, tokenManager, asset, term;
+  let depositManager, tokenManager, liquidityPools, asset, term;
 
   before(async () => {
     depositManager = await DepositManager.deployed();
     term = (await depositManager.getDepositTerms())[0];
     tokenManager = await TokenManager.deployed();
+    liquidityPools = await LiquidityPools.deployed();
     asset = await createERC20Token(depositor, initialSupply);
     await asset.approve(tokenManager.address, initialSupply, {
       from: depositor
@@ -28,27 +31,6 @@ contract("DepositManager", ([owner, depositor]) => {
     });
   });
 
-  describe("#getDepositsByUser", () => {
-    const amount = toFixedBN(50);
-
-    before(async () => {
-      await depositManager.deposit(asset.address, term, amount, {
-        from: depositor
-      });
-      await depositManager.deposit(asset.address, term, amount, {
-        from: depositor
-      });
-    });
-
-    it("succeeds", async () => {
-      const deposits = await depositManager.getDepositsByUser(depositor);
-
-      expect(deposits.length).to.equal(2);
-      expect(deposits[0]).to.equal(await depositManager.deposits.call(0));
-      expect(deposits[1]).to.equal(await depositManager.deposits.call(1));
-    });
-  });
-
   describe("#deposit", () => {
     let amount;
 
@@ -56,17 +38,38 @@ contract("DepositManager", ([owner, depositor]) => {
       amount = toFixedBN(10);
     });
 
-    it("succeeds and emit DepositSuccessful event", async () => {
-      const { logs } = await depositManager.deposit(
+    let res
+
+    it("succeeds", async () => {
+      res = await depositManager.deposit(
         asset.address,
         term,
         amount,
         { from: depositor }
       );
-      const events = logs.filter(({ event }) => event === "DepositSuccessful");
+    });
+
+    it("emits DepositSuccessful event", async () => {
+      const events = res.logs.filter(({ event }) => event === "DepositSuccessful");
       expect(events.length).to.be.equals(1);
     });
+
+    it("updates totalLoanableAmountPerTerm for PoolGroup", async () => {
+      const poolGroupAddress = await liquidityPools.poolGroups(asset.address, term);
+      const poolGroup = await PoolGroup.at(poolGroupAddress);
+      expect(await poolGroup.totalLoanableAmountPerTerm(term)).to.bignumber.equal(amount);
+    });
   });
+
+  describe("#getDepositsByUser", () => {
+    it("succeeds", async () => {
+      const deposits = await depositManager.getDepositsByUser(depositor);
+
+      expect(deposits.length).to.equal(1);
+      expect(deposits[0]).to.equal(await depositManager.deposits.call(0));
+    });
+  });
+
 
   describe("#enableDepositTerm", () => {
     it("succeeds", async () => {
