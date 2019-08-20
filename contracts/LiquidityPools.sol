@@ -214,9 +214,13 @@ contract LiquidityPools {
             if (loanableAmount > 0) {
                 uint loanAmountFromPool = Math.min(remainingLoanAmount, loanableAmount);
                 uint loanInterestToPool = loanInterest.mulFixed(loanAmountFromPool).divFixed(totalLoanAmount);
+                uint8 poolId = poolGroup.poolIds(poolIndex);
 
                 poolGroup.loanFromPool(poolIndex, loanAmountFromPool, loanInterestToPool, loanTerm);
-                currLoan.setRecord(depositTerm, poolIndex, loanAmountFromPool);
+
+                // Record the actual pool we loan from, so we know which pool to repay back later
+                currLoan.setRecord(depositTerm, poolId, loanAmountFromPool);
+
                 remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
             }
 
@@ -252,8 +256,8 @@ contract LiquidityPools {
                 break;
             }
 
-            uint loanAmount = currLoan.getRecord(depositTerm, poolIndex);
-
+            uint8 poolId = poolGroup.poolIds(poolIndex);
+            uint loanAmount = currLoan.getRecord(depositTerm, poolId);
 
             if (loanAmount == 0) {
                 // Skip this pool since it has no loan

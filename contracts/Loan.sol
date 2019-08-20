@@ -28,7 +28,7 @@ contract Loan {
     uint private _lastLiquidatedAt;
     bool private _isClosed;
 
-    /// Deposit Term -> Pool Index -> Amount
+    /// Deposit Term -> Pool ID -> Amount
     /// How much have one loaned from a specific pool (identified by Pool Index) 
     /// in a specific pool group (identified by Deposit Term).
     mapping(uint8 => mapping(uint8 => uint)) private _records;
@@ -72,10 +72,10 @@ contract Loan {
         _isClosed = false;
     }
 
-    function setRecord(uint8 depositTerm, uint8 poolIndex, uint amount) external {
+    function setRecord(uint8 depositTerm, uint8 poolId, uint amount) external {
         require(amount > 0);
 
-        _records[depositTerm][poolIndex] = amount;
+        _records[depositTerm][poolId] = amount;
     }
 
     function addCollateral(uint amount) external {
@@ -183,8 +183,8 @@ contract Loan {
         return _interest;
     }
 
-    function getRecord(uint8 depositTerm, uint8 poolIndex) external view returns (uint) {
-        return _records[depositTerm][poolIndex];
+    function getRecord(uint8 depositTerm, uint8 poolId) external view returns (uint) {
+        return _records[depositTerm][poolId];
     }
 
     function isClosed() external view returns (bool) {

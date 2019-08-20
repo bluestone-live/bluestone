@@ -5,7 +5,9 @@ const Loan = artifacts.require("Loan");
 const AccountManager = artifacts.require("AccountManager");
 const DepositManager = artifacts.require("DepositManagerMock");
 const LoanManager = artifacts.require("LoanManagerMock");
-const { time } = require("openzeppelin-test-helpers");
+const LiquidityPools = artifacts.require("LiquidityPools");
+const PoolGroup = artifacts.require("PoolGroup");
+const { time, BN } = require("openzeppelin-test-helpers");
 const { createERC20Token, toFixedBN } = require("../../utils/index.js");
 const { expect } = require("chai");
 
@@ -14,7 +16,8 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
   let priceOracle,
     tokenManager,
     depositManager,
-    loanManager;
+    loanManager,
+    liquidityPools;
 
   before(async () => {
     config = await Configuration.deployed();
@@ -23,6 +26,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     accountManager = await AccountManager.deployed();
     depositManager = await DepositManager.deployed();
     loanManager = await LoanManager.deployed();
+    liquidityPools = await LiquidityPools.deployed();
   });
 
   describe("loan flow positive #1", () => {
@@ -100,17 +104,45 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       expect(loanSuccessfulLogs.length).to.be.equal(1);
     });
 
+    let poolGroup
+
+    it("loans from the correct pool", async () => {
+      const poolGroupAddress = await liquidityPools.poolGroups(loanAsset.address, term);
+      poolGroup = await PoolGroup.at(poolGroupAddress);
+      const poolIndex = term.sub(new BN(1));
+      const loanableAmount = await poolGroup.getLoanableAmountFromPool(poolIndex);
+      expect(loanableAmount).to.bignumber.equal(depositAmount.sub(loanAmount));
+    });
+
+    let loanAddress, loan
+
+    it("stores loan record", async () => {
+      loanAddress = await loanManager.loans.call(0);
+      loan = await Loan.at(loanAddress);
+
+      const poolId = term.sub(new BN(1));
+      const loanRecordAmount = await loan.getRecord(term, poolId);
+      expect(loanRecordAmount).to.bignumber.equal(loanAmount);
+    });
+
     context("after 6 days", () => {
+      const numDays = 6;
       let repayAmount;
 
       before(async () => {
-        await time.increase(time.duration.days(6));
+        await config.lockAllUserActions();
+
+        for (let i = 0; i < numDays; i++) {
+          await depositManager.updateDepositMaturity(loanAsset.address);
+        }
+
+        await config.unlockAllUserActions();
+
+        await time.increase(time.duration.days(numDays));
         prevLoanAssetBalance = await loanAsset.balanceOf(loaner);
       });
 
       it("repays in full", async () => {
-        const loanAddress = await loanManager.loans.call(0);
-        const loan = await Loan.at(loanAddress);
         repayAmount = await loan.remainingDebt();
         await loanManager.repayLoan(loanAddress, repayAmount, {
           from: loaner
@@ -121,6 +153,12 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
         expect(await loanAsset.balanceOf(loaner)).to.be.bignumber.equal(
           prevLoanAssetBalance.sub(repayAmount)
         );
+      });
+
+      it("repays to the correct pool", async () => {
+        const poolIndexAfterSixDays = term.sub(new BN(numDays + 1));
+        const loanableAmount = await poolGroup.getLoanableAmountFromPool(poolIndexAfterSixDays); 
+        expect(loanableAmount).to.bignumber.equal(repayAmount);
       });
     });
   });
