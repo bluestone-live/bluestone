@@ -24,6 +24,8 @@ export const wethStore = new WethStore();
 export const transactionStore = new TransactionStore();
 
 export const initStore = async () => {
+  await configurationStore.getIfUserActionsLocked();
+  await configurationStore.ListenUserActionsLockChangeEvent();
   const tokens = await tokenStore.initTokens();
   await depositManagerStore.init();
   await loanManagerStore.init();

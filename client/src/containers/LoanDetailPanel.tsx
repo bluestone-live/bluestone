@@ -3,7 +3,7 @@ import { ILoanRecord } from '../constants/Record';
 import { Row, Cell } from '../components/common/Layout';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import LoanRecordList from './LoanRecordList';
-import { RecordStore, TransactionStore } from '../stores';
+import { RecordStore, TransactionStore, ConfigurationStore } from '../stores';
 import { RouteComponentProps, withRouter } from 'react-router';
 import parseQuery from '../utils/parseQuery';
 import LoanDetail from './LoanDetail';
@@ -15,6 +15,7 @@ import { inject, observer } from 'mobx-react';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   transactionStore?: TransactionStore;
+  configurationStore?: ConfigurationStore;
   loanRecords: ILoanRecord[];
   currentToken: string;
   validTokens: IToken[];
@@ -38,7 +39,7 @@ const StyledDropDown = styled(DropDown)`
   border-width: 0 0 1px 0;
 `;
 
-@inject('transactionStore')
+@inject('transactionStore', 'configurationStore')
 @observer
 class LoanDetailPanel extends React.Component<IProps> {
   componentDidMount() {
@@ -52,6 +53,7 @@ class LoanDetailPanel extends React.Component<IProps> {
       validTokens,
       currentToken,
       transactionStore,
+      configurationStore,
     } = this.props;
 
     const { recordAddress } = parseQuery(search);
@@ -86,6 +88,7 @@ class LoanDetailPanel extends React.Component<IProps> {
         <Cell scale={1.5}>
           {recordAddress && loanRecord && (
             <LoanDetail
+              isUserActionsLocked={configurationStore!.isUserActionsLocked}
               loanRecord={loanRecord}
               transactionsForRecord={transactionStore!.getLoanTransactionByRecordAddress(
                 loanRecord.recordAddress,

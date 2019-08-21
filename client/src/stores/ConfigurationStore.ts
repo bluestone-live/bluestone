@@ -1,17 +1,31 @@
 import { observable, action } from 'mobx';
-import { getProfitRatio } from './services/ConfigurationService';
-import { BigNumber } from '../utils/BigNumber';
+import {
+  isUserActionsLocked,
+  listenUserActionsLockChangeEvent,
+} from './services/ConfigurationService';
 
 export class ConfigurationStore {
-  @observable profitRatio: BigNumber = new BigNumber(0);
+  @observable isUserActionsLocked: boolean = false;
 
   @action.bound
-  getProfitRatioSuccess(res: BigNumber) {
-    this.profitRatio = res;
+  async getIfUserActionsLocked() {
+    const res = await isUserActionsLocked();
+    return this.setUserActionsLock(res);
   }
 
-  @action.bound async getProfitRatio() {
-    const res = await getProfitRatio();
-    return this.getProfitRatioSuccess(res);
+  @action.bound
+  setUserActionsLock(locked: boolean, triggerByEvent: boolean = false) {
+    if (triggerByEvent && locked !== this.isUserActionsLocked) {
+      setTimeout(() => {
+        window.location.reload();
+      }, 0);
+    }
+
+    this.isUserActionsLocked = locked;
+  }
+
+  @action.bound
+  listenUserActionsLockChangeEvent() {
+    listenUserActionsLockChangeEvent(this.setUserActionsLock);
   }
 }

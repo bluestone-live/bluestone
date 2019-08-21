@@ -6,20 +6,21 @@ import Input from '../components/html/Input';
 import { RouteComponentProps } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
-import { AccountStore } from '../stores';
+import { AccountStore, ConfigurationStore } from '../stores';
 import { convertDecimalToWei } from '../utils/BigNumber';
 
 interface IProps
   extends WithTranslation,
     RouteComponentProps<{ tokenAddress: string }> {
   accountStore: AccountStore;
+  configurationStore: ConfigurationStore;
 }
 
 interface IState {
   amount: number;
 }
 
-@inject('accountStore')
+@inject('accountStore', 'configurationStore')
 @observer
 class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
   state = {
@@ -44,7 +45,7 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
   };
 
   render() {
-    const { t, match, accountStore } = this.props;
+    const { t, match, accountStore, configurationStore } = this.props;
     const { amount } = this.state;
     const availableAmount = accountStore.getFreedCollateralByAddress(
       match.params.tokenAddress,
@@ -72,7 +73,9 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
           </Form.Item>
           <Form.Item>
             <label />
-            <Button primary>{t('submit')}</Button>
+            <Button primary disabled={configurationStore.isUserActionsLocked}>
+              {t('submit')}
+            </Button>
           </Form.Item>
         </Form>
       </Card>

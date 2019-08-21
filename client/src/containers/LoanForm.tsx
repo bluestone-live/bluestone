@@ -22,12 +22,18 @@ import Input from '../components/html/Input';
 import StyledTextBox from '../components/common/TextBox';
 import Button from '../components/html/Button';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { TokenStore, LoanManagerStore, RecordStore } from '../stores';
+import {
+  TokenStore,
+  LoanManagerStore,
+  RecordStore,
+  ConfigurationStore,
+} from '../stores';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   tokenStore?: TokenStore;
   loanManagerStore?: LoanManagerStore;
   recordStore?: RecordStore;
+  configurationStore?: ConfigurationStore;
   term: number;
   availableTerms: number[];
   loanTokenSymbol: string;
@@ -42,7 +48,7 @@ interface IState {
   collateralAmount: number;
 }
 
-@inject('tokenStore', 'loanManagerStore', 'recordStore')
+@inject('tokenStore', 'loanManagerStore', 'recordStore', 'configurationStore')
 @observer
 class LoanForm extends React.Component<IProps, IState> {
   state = { loanAmount: 0, collateralAmount: 0 };
@@ -106,6 +112,7 @@ class LoanForm extends React.Component<IProps, IState> {
     const {
       tokenStore,
       loanManagerStore,
+      configurationStore,
       t,
       term,
       availableTerms,
@@ -294,7 +301,12 @@ class LoanForm extends React.Component<IProps, IState> {
             <Row>
               <Cell>
                 <Form.Item>
-                  <Button primary>{t('loan')}</Button>
+                  <Button
+                    disabled={configurationStore!.isUserActionsLocked}
+                    primary
+                  >
+                    {t('loan')}
+                  </Button>
                 </Form.Item>
               </Cell>
             </Row>

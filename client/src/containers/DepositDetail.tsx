@@ -5,7 +5,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import Form from '../components/html/Form';
 import TextBox from '../components/common/TextBox';
 import Button from '../components/html/Button';
-import { RecordStore } from '../stores';
+import { RecordStore, ConfigurationStore } from '../stores';
 import { observer } from 'mobx-react';
 import { ITransaction } from '../constants/Transaction';
 import TransactionList from './TransactionList';
@@ -13,6 +13,7 @@ import TransactionList from './TransactionList';
 interface IProps extends WithTranslation {
   depositRecord: IDepositRecord;
   recordStore: RecordStore;
+  configurationStore: ConfigurationStore;
   transactionsForRecord?: ITransaction[];
 }
 
@@ -40,7 +41,12 @@ class DepositDetail extends React.Component<IProps, IState> {
   };
 
   render() {
-    const { t, depositRecord, transactionsForRecord } = this.props;
+    const {
+      t,
+      depositRecord,
+      transactionsForRecord,
+      configurationStore,
+    } = this.props;
     const { loading } = this.state;
 
     return (

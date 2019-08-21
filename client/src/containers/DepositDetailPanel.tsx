@@ -3,7 +3,7 @@ import { IDepositRecord } from '../constants/Record';
 import { Row, Cell } from '../components/common/Layout';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import DepositRecordList from './DepositRecordList';
-import { RecordStore, TransactionStore } from '../stores';
+import { RecordStore, TransactionStore, ConfigurationStore } from '../stores';
 import { RouteComponentProps, withRouter } from 'react-router';
 import parseQuery from '../utils/parseQuery';
 import DepositDetail from './DepositDetail';
@@ -15,6 +15,7 @@ import { observer, inject } from 'mobx-react';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   transactionStore?: TransactionStore;
+  configurationStore?: ConfigurationStore;
   depositRecords: IDepositRecord[];
   currentToken: string;
   validTokens: IToken[];
@@ -38,7 +39,7 @@ const StyledDropDown = styled(DropDown)`
   border-width: 0 0 1px 0;
 `;
 
-@inject('transactionStore')
+@inject('transactionStore', 'configurationStore')
 @observer
 class DepositDetailPanel extends React.Component<IProps> {
   componentDidMount() {
@@ -52,6 +53,7 @@ class DepositDetailPanel extends React.Component<IProps> {
       validTokens,
       currentToken,
       transactionStore,
+      configurationStore,
     } = this.props;
 
     const { recordAddress } = parseQuery(search);
@@ -86,6 +88,7 @@ class DepositDetailPanel extends React.Component<IProps> {
         <Cell scale={1.5}>
           {recordAddress && depositRecord && (
             <DepositDetail
+              configurationStore={configurationStore!}
               recordStore={recordStore}
               depositRecord={depositRecord}
               transactionsForRecord={transactionStore!.getDepositTransactionByRecordAddress(

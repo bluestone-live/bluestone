@@ -7,6 +7,7 @@ import {
   TransactionStore,
   TokenStore,
   AccountStore,
+  ConfigurationStore,
 } from '../stores';
 import Card from '../components/common/Card';
 import Radio from '../components/common/Radio';
@@ -28,6 +29,7 @@ interface IProps
   transactionStore: TransactionStore;
   tokenStore: TokenStore;
   accountStore: AccountStore;
+  configurationStore: ConfigurationStore;
 }
 
 interface IState {
@@ -52,7 +54,13 @@ const StyledButton = styled(Button)`
   margin-left: ${(props: ThemedProps) => props.theme.gap.medium};
 `;
 
-@inject('recordStore', 'transactionStore', 'tokenStore', 'accountStore')
+@inject(
+  'recordStore',
+  'transactionStore',
+  'tokenStore',
+  'accountStore',
+  'configurationStore',
+)
 @observer
 class RecordPage extends React.Component<IProps, IState> {
   componentDidMount() {
@@ -209,6 +217,7 @@ class RecordPage extends React.Component<IProps, IState> {
       },
       location,
       accountStore,
+      configurationStore,
       t,
     } = this.props;
     const selectedOption = this.recordTypeOptions.find(

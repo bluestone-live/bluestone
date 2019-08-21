@@ -16,12 +16,13 @@ import { convertWeiToDecimal } from '../utils/BigNumber';
 interface IProps extends WithTranslation, RouteComponentProps {
   loanRecord: ILoanRecord;
   transactionsForRecord?: ITransaction[];
+  isUserActionsLocked: boolean;
 }
 
 const goTo = (path: string, props: IProps) => () => props.history.push(path);
 
 const showActions = (props: IProps) => {
-  const { loanRecord, t } = props;
+  const { loanRecord, t, isUserActionsLocked } = props;
 
   if (loanRecord.status === RecordStatus.LoanLiquidating) {
     return (
@@ -36,6 +37,7 @@ const showActions = (props: IProps) => {
   return (
     <Button.Group>
       <Button
+        disabled={isUserActionsLocked}
         onClick={goTo(
           `/loan/collateral/add/${loanRecord.recordAddress}`,
           props,
@@ -45,6 +47,7 @@ const showActions = (props: IProps) => {
       </Button>
       <Button
         primary
+        disabled={isUserActionsLocked}
         onClick={goTo(`/loan/repay/${loanRecord.recordAddress}`, props)}
       >
         {t('repay')}

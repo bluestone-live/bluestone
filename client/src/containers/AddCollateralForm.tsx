@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { RecordStore } from '../stores';
+import { RecordStore, ConfigurationStore } from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -17,13 +17,14 @@ interface IProps
   extends WithTranslation,
     RouteComponentProps<{ recordAddress: string }> {
   recordStore?: RecordStore;
+  configurationStore?: ConfigurationStore;
 }
 
 interface IState {
   amount: number;
 }
 
-@inject('recordStore')
+@inject('recordStore', 'configurationStore')
 @observer
 class AddCollateralForm extends React.Component<IProps, IState> {
   state = {
@@ -76,7 +77,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
   };
 
   render() {
-    const { t, recordStore, match } = this.props;
+    const { t, recordStore, configurationStore, match } = this.props;
     const record = toJS(
       recordStore!.loanRecords.find(
         tx => tx.recordAddress === match.params.recordAddress,
@@ -124,7 +125,9 @@ class AddCollateralForm extends React.Component<IProps, IState> {
           </Form.Item>
           <Form.Item>
             <label />
-            <Button primary>{t('submit')}</Button>
+            <Button primary disabled={configurationStore!.isUserActionsLocked}>
+              {t('add_collateral')}
+            </Button>
           </Form.Item>
         </Form>
       </Card>

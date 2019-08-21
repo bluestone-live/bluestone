@@ -9,6 +9,9 @@ contract Configuration is Ownable {
     uint private constant MAX_LIQUIDATION_DISCOUNT = 5 * (10 ** 16); // 0.05 (5%)
     uint private constant MAX_PROFIT_RATIO = 3 * (10 ** 17); // 0.3 (30%)
 
+    event LockUserActions();
+    event UnlockUserActions();
+
     // loan asset address -> collateral asset address -> collteral ratio 
     mapping(address => mapping(address => uint)) private _collateralRatioMap;
 
@@ -38,6 +41,7 @@ contract Configuration is Ownable {
 
     // Lock all functionalities related to deposit, loan and liquidating
     bool private _isUserActionsLocked;
+
 
     function getCoefficient(address asset, uint8 depositTerm, uint8 loanTerm) 
         external
@@ -116,9 +120,11 @@ contract Configuration is Ownable {
 
     function lockAllUserActions() external onlyOwner {
         _isUserActionsLocked = true;
+        emit LockUserActions();
     }
 
     function unlockAllUserActions() external onlyOwner {
         _isUserActionsLocked = false;
+        emit UnlockUserActions();
     }
 }

@@ -1,7 +1,12 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { RecordStore, TokenStore, DepositManagerStore } from '../stores';
+import {
+  RecordStore,
+  TokenStore,
+  ConfigurationStore,
+  DepositManagerStore,
+} from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -22,7 +27,8 @@ interface IProps
     RouteComponentProps<{ tokenSymbol: string }> {
   recordStore?: RecordStore;
   tokenStore?: TokenStore;
-  depositManagerStore: DepositManagerStore;
+  configurationStore?: ConfigurationStore;
+  depositManagerStore?: DepositManagerStore;
 }
 
 interface IState {
@@ -30,11 +36,16 @@ interface IState {
   amount: number;
 }
 
-@inject('recordStore', 'tokenStore', 'depositManagerStore')
+@inject(
+  'recordStore',
+  'tokenStore',
+  'configurationStore',
+  'depositManagerStore',
+)
 @observer
 class DepositForm extends React.Component<IProps, IState> {
   state = {
-    selectedTerm: this.props.depositManagerStore.depositTerms[0],
+    selectedTerm: this.props.depositManagerStore!.depositTerms[0],
     amount: 0,
   };
 
@@ -77,7 +88,13 @@ class DepositForm extends React.Component<IProps, IState> {
   };
 
   render() {
-    const { tokenStore, depositManagerStore, match, t } = this.props;
+    const {
+      tokenStore,
+      configurationStore,
+      depositManagerStore,
+      match,
+      t,
+    } = this.props;
     const currentToken = tokenStore!.getToken(match.params.tokenSymbol);
     const { selectedTerm } = this.state;
 
@@ -109,7 +126,7 @@ class DepositForm extends React.Component<IProps, IState> {
             <Cell scale={4}>
               <Radio<number>
                 name="term"
-                options={depositManagerStore.depositTerms}
+                options={depositManagerStore!.depositTerms}
                 onChange={this.onTermSelect}
                 selectedOption={selectedTerm}
               />
@@ -132,7 +149,9 @@ class DepositForm extends React.Component<IProps, IState> {
           </Form.Item>
           <Form.Item>
             <label />
-            <Button primary>{t('submit')}</Button>
+            <Button primary disabled={configurationStore!.isUserActionsLocked}>
+              {t('submit')}
+            </Button>
           </Form.Item>
         </Form>
       </Card>
