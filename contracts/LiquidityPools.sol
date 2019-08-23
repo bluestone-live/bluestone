@@ -14,6 +14,15 @@ contract LiquidityPools {
     using SafeMath for uint;
     using FixedMath for uint;
 
+    /// This struct is used internally in the `loanFromPoolGroups` function to avoid
+    /// "CompilerError: Stack too deep, try removing local variables"
+    struct LoanFromPoolGroupsLocalVars {
+        uint8 loanTerm;
+        address loanAsset;
+        uint loanAmount;
+        uint8 depositTerm;
+    }
+
     // asset -> term -> PoolGroup
     mapping(address => mapping(uint8 => PoolGroup)) public poolGroups;
 
@@ -48,14 +57,74 @@ contract LiquidityPools {
     }
 
     function loanFromPoolGroups(Loan currLoan, uint8[] calldata depositTerms, uint8[] calldata loanTerms) external {
-        uint loanTerm = currLoan.term();
+        LoanFromPoolGroupsLocalVars memory localVars;
+        localVars.loanTerm = currLoan.term();
+        localVars.loanAsset = currLoan.loanAsset();
+        localVars.loanAmount = currLoan.loanAmount();
+        uint loanableAmountFromAllPoolGroups;
+        uint numAvailablePoolGroups;
 
+        // Calculate total loanable amount from available pool groups
         for (uint i = 0; i < depositTerms.length; i++) {
-            uint8 depositTerm = depositTerms[i];
+            localVars.depositTerm = depositTerms[i];
 
-            if (loanTerm <= depositTerm) {
-                _loanFromPoolGroup(depositTerm, currLoan, loanTerms);
+            if (localVars.loanTerm > localVars.depositTerm) {
+                continue;
             }
+
+            uint loanableAmountFromThisPoolGroup = poolGroups[localVars.loanAsset][localVars.depositTerm]
+                .totalLoanableAmountPerTerm(localVars.loanTerm);
+            loanableAmountFromAllPoolGroups = loanableAmountFromAllPoolGroups.add(loanableAmountFromThisPoolGroup);
+            numAvailablePoolGroups++;
+        }
+
+        // Check if we have sufficient amount to lend out
+        require(localVars.loanAmount <= loanableAmountFromAllPoolGroups, "Insufficient amount for loan");
+
+        uint remainingLoanAmount = localVars.loanAmount;
+
+        // Loan from available pool groups
+        for (uint i = 0; i < depositTerms.length; i++) {
+            localVars.depositTerm = depositTerms[i];
+
+            if (localVars.loanTerm > localVars.depositTerm) {
+                continue;
+            }
+
+            if (numAvailablePoolGroups == 1) {
+                // This is the last pool group left, so loan the remaining amount from it
+                _loanFromPoolGroup(remainingLoanAmount, localVars.depositTerm, currLoan, loanTerms);
+                break;
+            }
+
+            uint loanableAmountFromThisPoolGroup = poolGroups[localVars.loanAsset][localVars.depositTerm]
+                .totalLoanableAmountPerTerm(localVars.loanTerm);
+
+            // Calculate amount to be loaned from this pool group, proportionally to its totalLoanableAmountPerTerm
+            uint loanAmountFromThisPoolGroup = localVars.loanAmount
+                .mulFixed(loanableAmountFromThisPoolGroup) 
+                .divFixed(loanableAmountFromAllPoolGroups);
+
+            /// If there is non-zero remainder for the above calculation, it means we have precision-loss after 
+            /// 18 decimal places. So loaners will receive loan amount less than what they asked for.
+            /// We fix this issue in the next step.
+            uint remainder = localVars.loanAmount
+                .mulFixed(loanableAmountFromThisPoolGroup)
+                .mod(loanableAmountFromAllPoolGroups);
+
+            if (remainder > 0) {
+                /// Compensate the precision-loss by adding one (wei) to the loan amount. If the result exceeds the
+                /// maximum amount this pool group can provide, we take full loanable amount from this pool group.
+                /// This strategy fixes the precision-loss issue while prevents overdraw from any pool group.
+                loanAmountFromThisPoolGroup = Math.min(
+                    loanAmountFromThisPoolGroup.add(1), 
+                    loanableAmountFromThisPoolGroup
+                );
+            }
+
+            _loanFromPoolGroup(loanAmountFromThisPoolGroup, localVars.depositTerm, currLoan, loanTerms);
+            remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromThisPoolGroup);
+            numAvailablePoolGroups--;
         }
     }
 
@@ -122,6 +191,7 @@ contract LiquidityPools {
     // PRIVATE
 
     function _loanFromPoolGroup(
+        uint loanAmount,
         uint8 depositTerm,
         Loan currLoan,
         uint8[] memory loanTerms
@@ -130,15 +200,9 @@ contract LiquidityPools {
     {
         address asset = currLoan.loanAsset();
         uint8 loanTerm = currLoan.term();
-        uint loanAmount = currLoan.loanAmount();
+        uint totalLoanAmount = currLoan.loanAmount();
         uint loanInterest = currLoan.interest();
-        uint coefficient = _config.getCoefficient(asset, depositTerm, loanTerm);
-            
-        // Calculate the total amount to be loaned from this pool group 
-        uint remainingLoanAmount = coefficient.mulFixed(loanAmount);
-
-        /// Assuming the calculated loan amount is always not more than the amount the 
-        /// pool group can provide. TODO: add a check here just in case.
+        uint remainingLoanAmount = loanAmount;
 
         uint8 poolIndex = loanTerm - 1;
         PoolGroup poolGroup = poolGroups[asset][depositTerm];
@@ -149,7 +213,7 @@ contract LiquidityPools {
 
             if (loanableAmount > 0) {
                 uint loanAmountFromPool = Math.min(remainingLoanAmount, loanableAmount);
-                uint loanInterestToPool = loanInterest.mulFixed(loanAmountFromPool).divFixed(loanAmount);
+                uint loanInterestToPool = loanInterest.mulFixed(loanAmountFromPool).divFixed(totalLoanAmount);
 
                 poolGroup.loanFromPool(poolIndex, loanAmountFromPool, loanInterestToPool, loanTerm);
                 currLoan.setRecord(depositTerm, poolIndex, loanAmountFromPool);
