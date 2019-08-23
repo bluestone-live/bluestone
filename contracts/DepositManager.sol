@@ -35,10 +35,10 @@ contract DepositManager is Ownable, Pausable {
 
         // TODO: remove it
         // deposit term -> interest rate as of last update
-        mapping(uint8 => uint) lastInterestRatePerTerm;
+        mapping(uint => uint) lastInterestRatePerTerm;
 
         // deposit term -> interest index history
-        mapping(uint8 => InterestIndexHistory) interestIndexHistoryPerTerm;
+        mapping(uint => InterestIndexHistory) interestIndexHistoryPerTerm;
     }
 
     // Record interest index on a daily basis
@@ -62,15 +62,15 @@ contract DepositManager is Ownable, Pausable {
 
     /// Includes enabled and disabled desposit terms.
     /// We need to keep disabled deposit terms for deposit maturity update.
-    uint8[] private _allDepositTerms;
+    uint[] private _allDepositTerms;
 
-    uint8[] private _enabledDepositTerms;
+    uint[] private _enabledDepositTerms;
 
     // Deposit term -> has been enabled once?
-    mapping(uint8 => bool) private _isDepositTermInitialized;
+    mapping(uint => bool) private _isDepositTermInitialized;
 
     // Deposit term -> enabled?
-    mapping(uint8 => bool) private _isDepositTermEnabled;
+    mapping(uint => bool) private _isDepositTermEnabled;
 
     // Token address -> DepositAsset
     mapping(address => DepositAsset) private _depositAssets;
@@ -93,7 +93,7 @@ contract DepositManager is Ownable, Pausable {
 
     // PUBLIC  -----------------------------------------------------------------
 
-    function deposit(address asset, uint8 depositTerm, uint amount) 
+    function deposit(address asset, uint depositTerm, uint amount) 
         public 
         whenNotPaused
         enabledDepositAsset(asset)
@@ -113,7 +113,7 @@ contract DepositManager is Ownable, Pausable {
             profitRatio
         );
 
-        uint8[] memory loanTerms = _loanManager.getLoanTerms();
+        uint[] memory loanTerms = _loanManager.getLoanTerms();
 
         _liquidityPools.addDepositToPoolGroup(currDeposit, loanTerms);
 
@@ -140,7 +140,7 @@ contract DepositManager is Ownable, Pausable {
         require(!currDeposit.isWithdrawn(), "Deposit must not be withdrawn already.");
         require(currDeposit.isMatured(), "Deposit must be matured.");
 
-        uint8 term = currDeposit.term();
+        uint term = currDeposit.term();
 
         if (currDeposit.isOverDue()) {
             // If a deposit is over due, depositor can only receive principle as a penalty
@@ -170,7 +170,7 @@ contract DepositManager is Ownable, Pausable {
     }
 
     // TODO: remove it
-    function getDepositInterestRate(address asset, uint8 term) external view enabledDepositAsset(asset) returns (uint) {
+    function getDepositInterestRate(address asset, uint term) external view enabledDepositAsset(asset) returns (uint) {
         return _depositAssets[asset].lastInterestRatePerTerm[term];
     }
 
@@ -180,7 +180,7 @@ contract DepositManager is Ownable, Pausable {
         return _depositsByUser[user];
     }
 
-    function getDepositTerms() external view returns (uint8[] memory) {
+    function getDepositTerms() external view returns (uint[] memory) {
         return _enabledDepositTerms;
     }
 
@@ -208,7 +208,7 @@ contract DepositManager is Ownable, Pausable {
         _loanManager = loanManager;
     }
 
-    function enableDepositTerm(uint8 term) public whenNotPaused onlyOwner {
+    function enableDepositTerm(uint term) public whenNotPaused onlyOwner {
         require(!_isDepositTermEnabled[term], "Term already enabled.");
 
         _isDepositTermEnabled[term] = true;
@@ -230,7 +230,7 @@ contract DepositManager is Ownable, Pausable {
     }
 
     /// Disable a deposit term only affects deposit action
-    function disableDepositTerm(uint8 term) external whenNotPaused onlyOwner {
+    function disableDepositTerm(uint term) external whenNotPaused onlyOwner {
         require(_isDepositTermEnabled[term], "Term already disabled.");
 
         _isDepositTermEnabled[term] = false;
@@ -256,7 +256,7 @@ contract DepositManager is Ownable, Pausable {
 
         // Initialize pool group and interest index history if they haven't been initialized
         for (uint i = 0; i < _enabledDepositTerms.length; i++) {
-            uint8 depositTerm = _enabledDepositTerms[i];
+            uint depositTerm = _enabledDepositTerms[i];
             _liquidityPools.initPoolGroupIfNeeded(asset, depositTerm);
             _initInterestIndexHistoryIfNeeded(asset, depositTerm);
         }
@@ -291,12 +291,12 @@ contract DepositManager is Ownable, Pausable {
 
     // Update deposit maturity for each PoolGroup of an asset
     function updateDepositMaturity(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
-        uint8[] memory loanTerms = _loanManager.getLoanTerms();
+        uint[] memory loanTerms = _loanManager.getLoanTerms();
 
         for (uint i = 0; i < _allDepositTerms.length; i++) {
-            uint8 depositTerm = _allDepositTerms[i];
+            uint depositTerm = _allDepositTerms[i];
             PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
-            uint8 index = 0;
+            uint index = 0;
             uint totalDeposit = poolGroup.getDepositFromPool(index);
             uint loanInterest = poolGroup.getLoanInterestFromPool(index);
             uint interestIndex;
@@ -316,7 +316,7 @@ contract DepositManager is Ownable, Pausable {
     // INTERNAL  --------------------------------------------------------------
 
     // Add a new interest index and remove the oldest interest index if necessary
-    function _updateInterestIndexHistory(address asset, uint8 term, uint interestIndex) internal {
+    function _updateInterestIndexHistory(address asset, uint term, uint interestIndex) internal {
         InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
 
         // Add a new interest index
@@ -332,14 +332,14 @@ contract DepositManager is Ownable, Pausable {
         }
     }
 
-    function _getInterestIndexFromDaysAgo(address asset, uint8 term, uint numDaysAgo) internal view returns (uint) {
+    function _getInterestIndexFromDaysAgo(address asset, uint term, uint numDaysAgo) internal view returns (uint) {
         InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
         return history.interestIndexPerDay[history.lastDay.sub(numDaysAgo)];
     }
 
     // PRIVATE  --------------------------------------------------------------
 
-    function _initInterestIndexHistoryIfNeeded(address asset, uint8 term) private {
+    function _initInterestIndexHistoryIfNeeded(address asset, uint term) private {
         InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
 
         if (!history.isInitialized) {

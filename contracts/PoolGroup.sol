@@ -25,10 +25,10 @@ contract PoolGroup {
     uint public totalRepaid;
 
     // The total amount that has loaned to each loan term since the creation of this PoolGroup.
-    mapping(uint8 => uint) public totalLoanPerTerm;
+    mapping(uint => uint) public totalLoanPerTerm;
 
     // The total amount that has repaid to each loan term since the creation of this PoolGroup.
-    mapping(uint8 => uint) public totalRepaidPerTerm;
+    mapping(uint => uint) public totalRepaidPerTerm;
 
     // ----------------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ contract PoolGroup {
     uint public totalLoanableAmount;
 
     /// Total amount that is available for loan on each loan term
-    mapping(uint8 => uint) public totalLoanableAmountPerTerm;
+    mapping(uint => uint) public totalLoanableAmountPerTerm;
 
     struct Pool {
         uint deposit;
@@ -61,10 +61,10 @@ contract PoolGroup {
     /// 3rd day: [2, 3, 4, ..., 29, 0, 1]
     /// …
     /// 30th day: [29, 0, 1, ..., 26, 27, 28]
-    uint8[] public poolIds;
+    uint[] public poolIds;
 
-    constructor(uint8 term) public {
-        for (uint8 i = 0; i < term; i++) {
+    constructor(uint term) public {
+        for (uint i = 0; i < term; i++) {
             poolsById.push(Pool({
                 deposit: 0,
                 loanableAmount: 0,
@@ -83,7 +83,7 @@ contract PoolGroup {
         }
     }
 
-    function getTotalLoanAfterRepayPerTerm(uint8 loanTerm) external view returns (uint) {
+    function getTotalLoanAfterRepayPerTerm(uint loanTerm) external view returns (uint) {
         if (totalLoanPerTerm[loanTerm] > totalRepaidPerTerm[loanTerm]) {
             return totalLoanPerTerm[loanTerm].sub(totalRepaidPerTerm[loanTerm]);
         } else {
@@ -91,35 +91,35 @@ contract PoolGroup {
         }
     }
 
-    function setTotalLoanableAmountPerTerm(uint8 loanTerm, uint amount) external {
+    function setTotalLoanableAmountPerTerm(uint loanTerm, uint amount) external {
         totalLoanableAmountPerTerm[loanTerm] = amount;
     }
 
-    function addTotalLoanableAmountPerTerm(uint8 loanTerm, uint amount) external {
+    function addTotalLoanableAmountPerTerm(uint loanTerm, uint amount) external {
         totalLoanableAmountPerTerm[loanTerm] = totalLoanableAmountPerTerm[loanTerm].add(amount);
     }
 
-    function subtractTotalLoanableAmountPerTerm(uint8 loanTerm, uint amount) external {
+    function subtractTotalLoanableAmountPerTerm(uint loanTerm, uint amount) external {
         totalLoanableAmountPerTerm[loanTerm] = totalLoanableAmountPerTerm[loanTerm].sub(amount);
     }
 
-    function getDepositFromPool(uint8 index) public view returns (uint) {
-        uint8 poolId = poolIds[index];
+    function getDepositFromPool(uint index) public view returns (uint) {
+        uint poolId = poolIds[index];
         return poolsById[poolId].deposit;
     }
 
-    function getLoanableAmountFromPool(uint8 index) external view returns (uint) {
-        uint8 poolId = poolIds[index];
+    function getLoanableAmountFromPool(uint index) external view returns (uint) {
+        uint poolId = poolIds[index];
         return poolsById[poolId].loanableAmount;
     }
 
-    function getLoanInterestFromPool(uint8 index) external view returns (uint) {
-        uint8 poolId = poolIds[index];
+    function getLoanInterestFromPool(uint index) external view returns (uint) {
+        uint poolId = poolIds[index];
         return poolsById[poolId].loanInterest;
     }
 
-    function addDepositToPool(uint8 index, uint amount) external {
-        uint8 poolId = poolIds[index];
+    function addDepositToPool(uint index, uint amount) external {
+        uint poolId = poolIds[index];
         Pool storage pool = poolsById[poolId];
         pool.deposit = pool.deposit.add(amount); 
         pool.loanableAmount = pool.loanableAmount.add(amount);
@@ -127,8 +127,8 @@ contract PoolGroup {
         totalLoanableAmount = totalLoanableAmount.add(amount);
     }
 
-    function loanFromPool(uint8 index, uint amount, uint interest, uint8 loanTerm) external {
-        uint8 poolId = poolIds[index];
+    function loanFromPool(uint index, uint amount, uint interest, uint loanTerm) external {
+        uint poolId = poolIds[index];
         Pool storage pool = poolsById[poolId];
         pool.loanableAmount = pool.loanableAmount.sub(amount);
         totalLoan = totalLoan.add(amount);
@@ -137,8 +137,8 @@ contract PoolGroup {
         pool.loanInterest = pool.loanInterest.add(interest);
     }
 
-    function repayLoanToPool(uint8 index, uint amount, uint8 loanTerm) external {
-        uint8 poolId = poolIds[index];
+    function repayLoanToPool(uint index, uint amount, uint loanTerm) external {
+        uint poolId = poolIds[index];
         Pool storage pool = poolsById[poolId];
         pool.loanableAmount = pool.loanableAmount.add(amount);
         totalRepaid = totalRepaid.add(amount);
@@ -146,14 +146,14 @@ contract PoolGroup {
         totalRepaidPerTerm[loanTerm] = totalRepaidPerTerm[loanTerm].add(amount);
     }
 
-    function clearDepositFromPool(uint8 index) external {
-        uint8 poolId = poolIds[index];
+    function clearDepositFromPool(uint index) external {
+        uint poolId = poolIds[index];
         Pool storage pool = poolsById[poolId];
         pool.deposit = 0;
     }
 
-    function clearLoanInterestFromPool(uint8 index) external {
-        uint8 poolId = poolIds[index];
+    function clearLoanInterestFromPool(uint index) external {
+        uint poolId = poolIds[index];
         Pool storage pool = poolsById[poolId];
         pool.loanInterest = 0;
     }
@@ -161,8 +161,8 @@ contract PoolGroup {
     /// Update pool ID at each index to reflect the maturity change of the pools using formula:
     /// poolId = (poolId + 1) % poolGroup.length
     function updatePoolIds() external {
-        for (uint8 i = 0; i < poolIds.length; i++) {
-            poolIds[i] = (poolIds[i] + 1) % uint8(poolIds.length);           
+        for (uint i = 0; i < poolIds.length; i++) {
+            poolIds[i] = (poolIds[i] + 1) % poolIds.length;           
         }
     }
 }

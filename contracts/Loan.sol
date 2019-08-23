@@ -12,7 +12,7 @@ contract Loan {
     address private _loanAsset;
     address private _collateralAsset;
     address private _owner;
-    uint8 private _term;
+    uint private _term;
     uint private _loanAmount;
     uint private _collateralAmount;
     uint private _annualInterestRate;
@@ -31,7 +31,7 @@ contract Loan {
     /// Deposit Term -> Pool ID -> Amount
     /// How much have one loaned from a specific pool (identified by Pool Index) 
     /// in a specific pool group (identified by Deposit Term).
-    mapping(uint8 => mapping(uint8 => uint)) private _records;
+    mapping(uint => mapping(uint => uint)) private _records;
 
     uint constant private DAY_IN_SECONDS = 24 * 60 * 60;
     uint constant private ONE = 10 ** 18;
@@ -40,7 +40,7 @@ contract Loan {
         address loanAsset,
         address collateralAsset,
         address owner, 
-        uint8 term, 
+        uint term, 
         uint loanAmount, 
         uint collateralAmount, 
         uint annualInterestRate, 
@@ -72,7 +72,7 @@ contract Loan {
         _isClosed = false;
     }
 
-    function setRecord(uint8 depositTerm, uint8 poolId, uint amount) external {
+    function setRecord(uint depositTerm, uint poolId, uint amount) external {
         require(amount > 0);
 
         _records[depositTerm][poolId] = amount;
@@ -151,7 +151,7 @@ contract Loan {
         return _owner;
     }
 
-    function term() external view returns (uint8) {
+    function term() external view returns (uint) {
         return _term;
     }
 
@@ -183,7 +183,7 @@ contract Loan {
         return _interest;
     }
 
-    function getRecord(uint8 depositTerm, uint8 poolId) external view returns (uint) {
+    function getRecord(uint depositTerm, uint poolId) external view returns (uint) {
         return _records[depositTerm][poolId];
     }
 

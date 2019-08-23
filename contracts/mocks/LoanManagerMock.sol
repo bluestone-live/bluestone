@@ -8,7 +8,7 @@ contract LoanManagerMock is LoanManager {
     Loan[] public loans;
 
     function loan(
-        uint8 term,
+        uint term,
         address loanAsset, 
         address collateralAsset,
         uint loanAmount,

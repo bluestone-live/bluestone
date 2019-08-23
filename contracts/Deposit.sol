@@ -11,7 +11,7 @@ contract Deposit {
 
     address private _asset;
     address private _owner;
-    uint8 private _term;
+    uint private _term;
     uint private _amount;
     uint private _profitRatio;
     uint private _withdrewAmount;
@@ -24,7 +24,7 @@ contract Deposit {
     constructor(
         address asset,
         address owner, 
-        uint8 term, 
+        uint term, 
         uint amount, 
         uint profitRatio
     ) public {
@@ -73,7 +73,7 @@ contract Deposit {
         return _withdrewAmount;
     }
 
-    function term() external view returns (uint8) {
+    function term() external view returns (uint) {
         return _term;
     }
 

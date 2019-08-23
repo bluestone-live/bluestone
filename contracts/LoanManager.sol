@@ -31,9 +31,9 @@ contract LoanManager is Ownable, Pausable {
     event RepayLoanSuccessful(address indexed user, Loan loan);
     event AddCollateralSuccessful(address indexed user, Loan loan);
 
-    uint8[] private _loanTerms;
+    uint[] private _loanTerms;
 
-    mapping(uint8 => bool) private _isValidLoanTerm;
+    mapping(uint => bool) private _isValidLoanTerm;
 
     /// loan asset -> collateral asset -> enabled
     /// An loan asset pair refers to loan token A using collateral B, i.e., "B -> A",
@@ -60,7 +60,7 @@ contract LoanManager is Ownable, Pausable {
     // PUBLIC  -----------------------------------------------------------------
 
     function loan(
-        uint8 term,
+        uint term,
         address loanAsset,
         address collateralAsset,
         uint loanAmount,
@@ -119,7 +119,7 @@ contract LoanManager is Ownable, Pausable {
 
         _loansByUser[loaner].push(currLoan);
 
-        uint8[] memory depositTerms = _depositManager.getDepositTerms();
+        uint[] memory depositTerms = _depositManager.getDepositTerms();
 
         _liquidityPools.loanFromPoolGroups(currLoan, depositTerms, _loanTerms);
 
@@ -143,7 +143,7 @@ contract LoanManager is Ownable, Pausable {
         require(loaner == currLoan.owner());
 
         (uint totalRepayAmount, uint freedCollateralAmount) = currLoan.repay(amount);
-        uint8[] memory depositTerms = _depositManager.getDepositTerms();
+        uint[] memory depositTerms = _depositManager.getDepositTerms();
 
         _liquidityPools.repayLoanToPoolGroups(totalRepayAmount, currLoan, depositTerms, _loanTerms);
 
@@ -182,7 +182,7 @@ contract LoanManager is Ownable, Pausable {
             collateralAssetPrice
         );
 
-        uint8[] memory depositTerms = _depositManager.getDepositTerms();
+        uint[] memory depositTerms = _depositManager.getDepositTerms();
 
         _liquidityPools.repayLoanToPoolGroups(liquidatedAmount, currLoan, depositTerms, _loanTerms);
 
@@ -237,7 +237,7 @@ contract LoanManager is Ownable, Pausable {
         return _loansByUser[user];
     }
 
-    function getLoanTerms() external view returns (uint8[] memory) {
+    function getLoanTerms() external view returns (uint[] memory) {
         return _loanTerms;
     }
 
@@ -263,14 +263,14 @@ contract LoanManager is Ownable, Pausable {
         _accountManager = accountManager;
     }
 
-    function addLoanTerm(uint8 loanTerm) public whenNotPaused onlyOwner {
+    function addLoanTerm(uint loanTerm) public whenNotPaused onlyOwner {
         require(!_isValidLoanTerm[loanTerm], "Term already exists.");
 
         _loanTerms.push(loanTerm);
         _isValidLoanTerm[loanTerm] = true;
 
         address[] memory depositAssets = _depositManager.getDepositAssets();
-        uint8[] memory depositTerms = _depositManager.getDepositTerms();
+        uint[] memory depositTerms = _depositManager.getDepositTerms();
 
         // Update totalLoanableAmountPerTerm for each deposit asset and deposit term
         for (uint i = 0; i < depositAssets.length; i++) {
@@ -279,7 +279,7 @@ contract LoanManager is Ownable, Pausable {
     }
 
     // Remove a loan term should only affect loan action
-    function removeLoanTerm(uint8 term) external whenNotPaused onlyOwner {
+    function removeLoanTerm(uint term) external whenNotPaused onlyOwner {
         require(_isValidLoanTerm[term], "Term does not exist.");
 
         _isValidLoanTerm[term] = false;

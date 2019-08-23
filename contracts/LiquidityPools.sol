@@ -17,15 +17,15 @@ contract LiquidityPools {
     /// This struct is used internally in the `loanFromPoolGroups` function to avoid
     /// "CompilerError: Stack too deep, try removing local variables"
     struct LoanFromPoolGroupsLocalVars {
-        uint8 loanTerm;
+        uint loanTerm;
         address loanAsset;
         uint loanAmount;
         uint loanInterest;
-        uint8 depositTerm;
+        uint depositTerm;
     }
 
     // asset -> term -> PoolGroup
-    mapping(address => mapping(uint8 => PoolGroup)) public poolGroups;
+    mapping(address => mapping(uint => PoolGroup)) public poolGroups;
 
     Configuration private _config;
 
@@ -33,19 +33,19 @@ contract LiquidityPools {
         _config = config;
     }
 
-    function initPoolGroupIfNeeded(address asset, uint8 depositTerm) public {
+    function initPoolGroupIfNeeded(address asset, uint depositTerm) public {
         if (address(poolGroups[asset][depositTerm]) == address(0)) {
             poolGroups[asset][depositTerm] = new PoolGroup(depositTerm);
         }
     }
 
-    function addDepositToPoolGroup(Deposit currDeposit, uint8[] calldata loanTerms) external {
+    function addDepositToPoolGroup(Deposit currDeposit, uint[] calldata loanTerms) external {
         address asset = currDeposit.asset();
-        uint8 depositTerm = currDeposit.term();
+        uint depositTerm = currDeposit.term();
         uint amount = currDeposit.amount();
 
         PoolGroup poolGroup = poolGroups[asset][depositTerm];
-        uint8 lastPoolIndex = depositTerm - 1;
+        uint lastPoolIndex = depositTerm - 1;
 
         poolGroup.addDepositToPool(lastPoolIndex, amount);
 
@@ -57,7 +57,7 @@ contract LiquidityPools {
         }
     }
 
-    function loanFromPoolGroups(Loan currLoan, uint8[] calldata depositTerms, uint8[] calldata loanTerms) external {
+    function loanFromPoolGroups(Loan currLoan, uint[] calldata depositTerms, uint[] calldata loanTerms) external {
         LoanFromPoolGroupsLocalVars memory localVars;
         localVars.loanTerm = currLoan.term();
         localVars.loanAsset = currLoan.loanAsset();
@@ -132,15 +132,15 @@ contract LiquidityPools {
     function repayLoanToPoolGroups(
         uint totalRepayAmount, 
         Loan currLoan, 
-        uint8[] calldata depositTerms, 
-        uint8[] calldata loanTerms
+        uint[] calldata depositTerms, 
+        uint[] calldata loanTerms
     ) 
         external 
     {
         uint loanTerm = currLoan.term();
 
         for (uint i = 0; i < depositTerms.length; i++) {
-            uint8 depositTerm = depositTerms[i];
+            uint depositTerm = depositTerms[i];
 
             if (loanTerm <= depositTerm) {
                 _repayLoanToPoolGroup(depositTerm, totalRepayAmount, currLoan, loanTerms);
@@ -148,10 +148,10 @@ contract LiquidityPools {
         }
     }
 
-    function updatePoolGroupDepositMaturity(address asset, uint8 depositTerm, uint8[] calldata loanTerms) external {
+    function updatePoolGroupDepositMaturity(address asset, uint depositTerm, uint[] calldata loanTerms) external {
         require(_config.isUserActionsLocked(), "user actions need be locked before update maturity");
         PoolGroup poolGroup = poolGroups[asset][depositTerm];
-        uint8 index = 0;
+        uint index = 0;
 
         // 1. Clear matured deposit from the 1-day pool
         poolGroup.clearDepositFromPool(index);
@@ -173,14 +173,14 @@ contract LiquidityPools {
     }
 
     // Update totalLoanableAmountPerTerm for all pool groups of a deposit asset
-    function updateTotalLoanableAmountPerTerm(address depositAsset, uint8[] calldata depositTerms, uint8 loanTerm) external {
+    function updateTotalLoanableAmountPerTerm(address depositAsset, uint[] calldata depositTerms, uint loanTerm) external {
         for (uint i = 0; i < depositTerms.length; i++) {
-            uint8 depositTerm = depositTerms[i];
+            uint depositTerm = depositTerms[i];
             PoolGroup poolGroup = poolGroups[depositAsset][depositTerm];
             uint totalLoanableAmount;
 
             // Add up loanableAmount from pools
-            for (uint8 j = loanTerm - 1; j < depositTerm; j++) {
+            for (uint j = loanTerm - 1; j < depositTerm; j++) {
                 uint loanableAmountOfPool = poolGroup.getLoanableAmountFromPool(j);
                 totalLoanableAmount = totalLoanableAmount.add(loanableAmountOfPool);
             }
@@ -202,9 +202,9 @@ contract LiquidityPools {
     /// 6, 29, 7, 28, 8, 27, ..., 16, 19, 17, 18
     function _loanFromPoolGroup(
         uint loanAmount,
-        uint8 depositTerm,
+        uint depositTerm,
         Loan currLoan,
-        uint8[] memory loanTerms
+        uint[] memory loanTerms
     ) 
         internal 
     {
@@ -218,9 +218,9 @@ contract LiquidityPools {
         PoolGroup poolGroup = poolGroups[localVars.loanAsset][depositTerm];
         
         // Mark left, right and current pool index 
-        uint8 left = localVars.loanTerm - 1;
-        uint8 right = depositTerm - 1;
-        uint8 poolIndex = left;
+        uint left = localVars.loanTerm - 1;
+        uint right = depositTerm - 1;
+        uint poolIndex = left;
         bool onLeftSide = true;
 
         while (remainingLoanAmount > 0 && left <= right) {
@@ -232,7 +232,7 @@ contract LiquidityPools {
                     .mulFixed(loanAmountFromPool)
                     .divFixed(localVars.loanAmount);
 
-                uint8 poolId = poolGroup.poolIds(poolIndex);
+                uint poolId = poolGroup.poolIds(poolIndex);
 
                 poolGroup.loanFromPool(poolIndex, loanAmountFromPool, loanInterestToPool, localVars.loanTerm);
 
@@ -272,10 +272,10 @@ contract LiquidityPools {
     // PRIVATE
 
     function _repayLoanToPoolGroup(
-        uint8 depositTerm, 
+        uint depositTerm, 
         uint totalRepayAmount, 
         Loan currLoan, 
-        uint8[] memory loanTerms
+        uint[] memory loanTerms
     ) 
         private 
     {
@@ -286,13 +286,13 @@ contract LiquidityPools {
         uint remainingRepayAmount = totalRepayAmount;
 
         // Repay loan back to each pool, proportional to the total loan from all pools
-        for (uint8 poolIndex = 0; poolIndex < depositTerm; poolIndex++) {
+        for (uint poolIndex = 0; poolIndex < depositTerm; poolIndex++) {
             if (remainingRepayAmount == 0) {
                 // Stop loop when remaining repay amount used up
                 break;
             }
 
-            uint8 poolId = poolGroup.poolIds(poolIndex);
+            uint poolId = poolGroup.poolIds(poolIndex);
             uint loanAmount = currLoan.getRecord(depositTerm, poolId);
 
             if (loanAmount == 0) {

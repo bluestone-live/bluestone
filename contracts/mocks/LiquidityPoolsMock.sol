@@ -8,9 +8,9 @@ contract LiquidityPoolsMock is LiquidityPools {
 
     function loanFromPoolGroup(
         uint loanAmount,
-        uint8 depositTerm,
+        uint depositTerm,
         Loan currLoan,
-        uint8[] calldata loanTerms
+        uint[] calldata loanTerms
     )
         external
     {
