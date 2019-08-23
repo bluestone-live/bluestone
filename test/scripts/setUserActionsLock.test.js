@@ -2,7 +2,7 @@ const Configuration = artifacts.require("Configuration");
 const setUserActionsLock = require("../../scripts/javascript/setUserActionsLock.js");
 const { expect } = require("chai");
 
-describe("script: setCoefficient", () => {
+describe("script: setUserActionsLock", () => {
   let config;
   let cb = () => {};
   const network = "development";

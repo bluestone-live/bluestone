@@ -241,18 +241,6 @@ module.exports = makeTruffleScript(async network => {
         }
       }
     }
-
-    for (let depositTerm of depositTerms) {
-      for (let loanTerm of loanTerms) {
-        setCoefficient(
-          loanTokenSymbol,
-          loanAsset.address,
-          depositTerm,
-          loanTerm,
-          1
-        );
-      }
-    }
   }
 });
 
@@ -298,22 +286,4 @@ function isValidConfiguartion(configuration) {
   } else {
     return false;
   }
-}
-
-async function setCoefficient(
-  tokenSymbol,
-  tokenAddress,
-  depositTerm,
-  loanTerm,
-  decimalValue
-) {
-  debug(
-    `setCoefficient: ${tokenSymbol} ${depositTerm} ${loanTerm} ${decimalValue}`
-  );
-  await config.setCoefficient(
-    tokenAddress,
-    depositTerm,
-    loanTerm,
-    toFixedBN(decimalValue)
-  );
 }

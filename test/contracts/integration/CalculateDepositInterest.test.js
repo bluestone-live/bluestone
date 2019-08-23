@@ -44,14 +44,6 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     await config.setLoanInterestRate(loanAsset.address, 7, loanInterestRate7)
     await config.setLoanInterestRate(loanAsset.address, 30, loanInterestRate30)
 
-    const assetList = [loanAsset, collateralAsset]
-
-    for (let i = 0; i < assetList.length; i++) {
-      const asset = assetList[i]
-      await config.setCoefficient(asset.address, 30, 7, a307)
-      await config.setCoefficient(asset.address, 30, 30, a3030)
-    }
-
     await config.setShareholderAddress(owner);
   });
 

@@ -6,7 +6,7 @@ source $DIR/utils
 required_args=( network token_symbol )
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Print various status for a given asset from smart contract. Can be used to manually calculate new coefficient."
+  description="Print various status for a given asset from smart contract."
   show_help_message "$description" $required_args
   exit 1
 fi

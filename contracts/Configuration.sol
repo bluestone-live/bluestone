@@ -21,18 +21,6 @@ contract Configuration is Ownable {
     // loan asset address -> loan term -> loan annual interest rate
     mapping(address => mapping(uint8 => uint)) private _loanInterestRates;
 
-    /// loan asset address -> deposit term -> loan term -> coeffcient
-    /// Coefficent `a` defines how much percentage of the loan should be 
-    /// borrowed from a particular PoolGroup.
-    /// 
-    /// If we use `a_<depositTerm>_<loanTerm>` to represent an coefficent, 
-    /// then, for example, when a 1-day loan of 10 ETH is made, 
-    /// the coefficent distribution could look like this:
-    /// - 50% of the loan draws from 1-day PoolGroup (a_1_1 = 0.5)
-    /// - 30% of the loan draws from 7-day PoolGroup (a_7_1 = 0.3)
-    /// - 20% of the loan draws from 30-day PoolGroup (a_30_1 = 0.2)
-    mapping(address => mapping(uint8 => mapping(uint8 => uint))) private _coefficients;
-
     // The percentage we take from deposit interest as profit
     uint private _profitRatio = 15 * (10 ** 16); // 0.15 (15%)
 
@@ -41,15 +29,6 @@ contract Configuration is Ownable {
 
     // Lock all functionalities related to deposit, loan and liquidating
     bool private _isUserActionsLocked;
-
-
-    function getCoefficient(address asset, uint8 depositTerm, uint8 loanTerm) 
-        external
-        view
-        returns (uint)
-    {
-        return _coefficients[asset][depositTerm][loanTerm];
-    }
 
     function getCollateralRatio(address loanAsset, address collateralAsset) external view returns (uint) {
         return _collateralRatioMap[loanAsset][collateralAsset];
@@ -76,15 +55,6 @@ contract Configuration is Ownable {
     }
 
     // ADMIN --------------------------------------------------------------
-
-    function setCoefficient(address asset, uint8 depositTerm, uint8 loanTerm, uint value)
-        public
-        onlyOwner
-    {
-        require(value <= 10 ** 18, "Invalid coefficient value.");
-
-        _coefficients[asset][depositTerm][loanTerm] = value;
-    }
 
     function setCollateralRatio(address loanAsset, address collateralAsset, uint collateralRatio) public onlyOwner {
         require(collateralRatio >= MIN_COLLATERAL_RATIO);

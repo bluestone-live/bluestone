@@ -11,21 +11,6 @@ contract("Configuration", function([owner, anotherAccount]) {
     token = await createERC20Token(owner);
   });
 
-  describe("#setCoefficient", () => {
-    const depositTerm = 1;
-    const loanTerm = 1;
-    const value = toFixedBN(0.5);
-
-    it("succeeds", async () => {
-      await config.setCoefficient(token.address, depositTerm, loanTerm, value, {
-        from: owner
-      });
-      expect(
-        await config.getCoefficient(token.address, depositTerm, loanTerm)
-      ).to.be.bignumber.equal(value);
-    });
-  });
-
   describe("#setLoanInterestRate", () => {
     let loanAsset;
 
