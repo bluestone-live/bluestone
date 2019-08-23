@@ -20,6 +20,7 @@ contract LiquidityPools {
         uint8 loanTerm;
         address loanAsset;
         uint loanAmount;
+        uint loanInterest;
         uint8 depositTerm;
     }
 
@@ -188,35 +189,52 @@ contract LiquidityPools {
         }
     }
 
-    // PRIVATE
+    // INTERNAL
 
+    /// Loan from pool on left-hand side, then right-hand side, move pointers towards middle
+    /// and repeat until loan amount is fulfilled.
+    /// 
+    /// For example, 
+    /// if loan term is 1 and deposit term is 7, the sequence is:
+    /// 0, 6, 1, 5, 2, 4, 3
+    ///
+    /// if loan term is 7 and deposit term is 30, the sequence is:
+    /// 6, 29, 7, 28, 8, 27, ..., 16, 19, 17, 18
     function _loanFromPoolGroup(
         uint loanAmount,
         uint8 depositTerm,
         Loan currLoan,
         uint8[] memory loanTerms
     ) 
-        private 
+        internal 
     {
-        address asset = currLoan.loanAsset();
-        uint8 loanTerm = currLoan.term();
-        uint totalLoanAmount = currLoan.loanAmount();
-        uint loanInterest = currLoan.interest();
-        uint remainingLoanAmount = loanAmount;
+        LoanFromPoolGroupsLocalVars memory localVars;
+        localVars.loanAsset = currLoan.loanAsset();
+        localVars.loanTerm = currLoan.term();
+        localVars.loanAmount = currLoan.loanAmount();
+        localVars.loanInterest = currLoan.interest();
+        uint remainingLoanAmount = localVars.loanAmount;
 
-        uint8 poolIndex = loanTerm - 1;
-        PoolGroup poolGroup = poolGroups[asset][depositTerm];
+        PoolGroup poolGroup = poolGroups[localVars.loanAsset][depositTerm];
+        
+        // Mark left, right and current pool index 
+        uint8 left = localVars.loanTerm - 1;
+        uint8 right = depositTerm - 1;
+        uint8 poolIndex = left;
+        bool onLeftSide = true;
 
-        // Incrementing the pool group index and loaning from each pool until loan amount is fulfilled.
-        while (remainingLoanAmount > 0 && poolIndex < depositTerm) {
+        while (remainingLoanAmount > 0 && left <= right) {
             uint loanableAmount = poolGroup.getLoanableAmountFromPool(poolIndex);
 
             if (loanableAmount > 0) {
                 uint loanAmountFromPool = Math.min(remainingLoanAmount, loanableAmount);
-                uint loanInterestToPool = loanInterest.mulFixed(loanAmountFromPool).divFixed(totalLoanAmount);
+                uint loanInterestToPool = localVars.loanInterest
+                    .mulFixed(loanAmountFromPool)
+                    .divFixed(localVars.loanAmount);
+
                 uint8 poolId = poolGroup.poolIds(poolIndex);
 
-                poolGroup.loanFromPool(poolIndex, loanAmountFromPool, loanInterestToPool, loanTerm);
+                poolGroup.loanFromPool(poolIndex, loanAmountFromPool, loanInterestToPool, localVars.loanTerm);
 
                 // Record the actual pool we loan from, so we know which pool to repay back later
                 currLoan.setRecord(depositTerm, poolId, loanAmountFromPool);
@@ -224,16 +242,34 @@ contract LiquidityPools {
                 remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
             }
 
-            poolIndex++;
+            // Switch side
+            if (onLeftSide) {
+                // In an odd-number pool group, we need to stop when we reach the last pool in the middle
+                if (left == right) {
+                    break;
+                }
+
+                poolIndex = right;
+                onLeftSide = false;
+            } else {
+                // Update left and right pointers as both have been loaned
+                left++;
+                right--;
+
+                poolIndex = left;
+                onLeftSide = true;
+            }
         }
 
         // Subtract loan amount from totalLoanableAmountPerTerm for every loan term <= this loan term
         for (uint i = 0; i < loanTerms.length; i++) {
-            if (loanTerms[i] <= loanTerm) {
+            if (loanTerms[i] <= localVars.loanTerm) {
                 poolGroup.subtractTotalLoanableAmountPerTerm(loanTerms[i], loanAmount);
             }
         }
     }
+
+    // PRIVATE
 
     function _repayLoanToPoolGroup(
         uint8 depositTerm, 
