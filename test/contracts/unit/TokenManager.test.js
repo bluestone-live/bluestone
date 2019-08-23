@@ -1,5 +1,5 @@
 const TokenManager = artifacts.require('TokenManager')
-const { shouldFail } = require('openzeppelin-test-helpers')
+const { expectRevert } = require('openzeppelin-test-helpers')
 const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 const { expect } = require('chai')
 
@@ -39,7 +39,7 @@ contract('TokenManager', ([owner, customer]) => {
       })
 
       it('reverts', async () => {
-        await shouldFail.reverting(
+        await expectRevert.unspecified(
           tokenManager.receiveFrom(customer, asset.address, amount)
         )
       })
@@ -73,7 +73,7 @@ contract('TokenManager', ([owner, customer]) => {
       })
 
       it('reverts', async () => {
-        await shouldFail.reverting(
+        await expectRevert.unspecified(
           tokenManager.sendTo(customer, asset.address, amount)
         )
       })

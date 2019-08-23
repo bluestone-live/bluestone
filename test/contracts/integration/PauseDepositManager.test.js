@@ -1,5 +1,5 @@
 const DepositManager = artifacts.require('DepositManager')
-const { shouldFail, constants } = require('openzeppelin-test-helpers')
+const { expectRevert, constants } = require('openzeppelin-test-helpers')
 const { expect } = require('chai')
 
 contract('DepositManager', ([owner, depositor]) => {
@@ -18,7 +18,7 @@ contract('DepositManager', ([owner, depositor]) => {
       })
 
       it('reverts on public call', async() => {
-        await shouldFail.reverting(
+        await expectRevert.unspecified(
           depositManager.isDepositAssetEnabled(asset, { from: depositor })
         )
       })

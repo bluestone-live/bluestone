@@ -1,5 +1,5 @@
 const PoolGroup = artifacts.require("PoolGroup");
-const { shouldFail, BN } = require("openzeppelin-test-helpers");
+const { expectRevert, BN } = require("openzeppelin-test-helpers");
 const { toFixedBN } = require("../../utils/index.js");
 const { expect } = require("chai");
 
@@ -40,7 +40,7 @@ contract("PoolGroup", () => {
 
     context("when loanable amount is not enough", () => {
       it("reverts", async () => {
-        await shouldFail.reverting(
+        await expectRevert.unspecified(
           poolGroup.loanFromPool(
             poolIndex,
             toFixedBN(101),

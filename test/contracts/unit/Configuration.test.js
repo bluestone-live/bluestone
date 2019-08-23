@@ -1,5 +1,5 @@
 const Configuration = artifacts.require("Configuration");
-const { shouldFail } = require("openzeppelin-test-helpers");
+const { expectRevert } = require("openzeppelin-test-helpers");
 const { createERC20Token, toFixedBN } = require("../../utils/index.js");
 const { expect } = require("chai");
 
@@ -77,7 +77,7 @@ contract("Configuration", function([owner, anotherAccount]) {
       const collateralRatio = toFixedBN(1.1);
 
       it("reverts", async () => {
-        await shouldFail.reverting(
+        await expectRevert.unspecified(
           config.setCollateralRatio(
             loanAsset.address,
             collateralAsset.address,
@@ -120,7 +120,7 @@ contract("Configuration", function([owner, anotherAccount]) {
       const liquidationDiscount = toFixedBN(0.06);
 
       it("reverts", async () => {
-        await shouldFail.reverting(
+        await expectRevert.unspecified(
           config.setLiquidationDiscount(
             loanAsset.address,
             collateralAsset.address,

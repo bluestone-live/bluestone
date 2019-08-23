@@ -1,5 +1,5 @@
 const Loan = artifacts.require("Loan");
-const { shouldFail, BN } = require("openzeppelin-test-helpers");
+const { expectRevert, BN } = require("openzeppelin-test-helpers");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
 const { expect } = require("chai");
 
@@ -68,7 +68,7 @@ contract("Loan", ([owner]) => {
       it("reverts", async () => {
         const amount = await loan.remainingDebt();
 
-        await shouldFail.reverting(loan.repay(amount.add(toFixedBN(1))));
+        await expectRevert.unspecified(loan.repay(amount.add(toFixedBN(1))));
       });
     });
 

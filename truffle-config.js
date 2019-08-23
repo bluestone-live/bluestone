@@ -18,6 +18,8 @@
  *
  */
 
+require('chai/register-should');
+
 const HDWalletProvider = require("truffle-hdwallet-provider");
 const { infura, mnemonic, accountIndex } = require("./config");
 

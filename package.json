@@ -6,10 +6,11 @@
     "test": "npx truffle test"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "ethlint": "^1.2.4",
     "ganache-cli": "^6.4.4",
     "nodemon": "^1.19.1",
-    "openzeppelin-test-helpers": "^0.1.2",
+    "openzeppelin-test-helpers": "^0.4.2",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "truffle": "^5.0.22"

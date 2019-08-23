@@ -1,6 +1,6 @@
 const TokenManager = artifacts.require('TokenManager')
 const DepositManager = artifacts.require('DepositManagerMock')
-const { shouldFail } = require('openzeppelin-test-helpers')
+const { expectRevert } = require('openzeppelin-test-helpers')
 const { createERC20Token, toFixedBN } = require('../../utils/index.js')
 
 contract('DepositManager', ([owner, depositor]) => {
@@ -30,7 +30,7 @@ contract('DepositManager', ([owner, depositor]) => {
       it('reverts withdraw', async() => {
         const deposit = await depositManager.deposits.call(0)
 
-        await shouldFail.reverting(
+        await expectRevert.unspecified(
           depositManager.withdraw(deposit, { from: depositor })
         )
       })

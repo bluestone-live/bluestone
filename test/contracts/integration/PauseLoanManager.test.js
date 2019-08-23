@@ -1,5 +1,5 @@
 const LoanManager = artifacts.require("LoanManager");
-const { shouldFail, constants } = require("openzeppelin-test-helpers");
+const { expectRevert, constants } = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
 
 contract("LoanManager", ([owner, depositor]) => {
