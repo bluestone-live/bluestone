@@ -20,7 +20,8 @@ module.exports = async function(deployer, network) {
     PriceOracle.address, 
     TokenManager.address,
     LiquidityPools.address,
-    LoanManager.address
+    LoanManager.address,
+    AccountManager.address
   )
 
   await loanManager.init(
@@ -45,7 +46,8 @@ module.exports = async function(deployer, network) {
       PriceOracle.address, 
       TokenManager.address,
       LiquidityPools.address,
-      LoanManagerMock.address
+      LoanManagerMock.address,
+      AccountManager.address
     )
 
     await depositManagerMock.enableDepositTerm(30)

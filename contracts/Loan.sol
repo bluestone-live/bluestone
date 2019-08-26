@@ -195,6 +195,10 @@ contract Loan {
         return _createdAt;
     }
 
+    function isOverDue() public view returns (bool) {
+        return now > _createdAt + _term * DAY_IN_SECONDS;
+    }
+
     // Check whether the loan is defaulted or under the required collaterization ratio
     function isLiquidatable(uint loanAssetPrice, uint collateralAssetPrice) external view returns (bool) {
         if (_isClosed) {
@@ -207,9 +211,8 @@ contract Loan {
             .divFixed(loanAssetPrice);
 
         bool isUnderCollateralized = currCollateralRatio < _minCollateralRatio;
-        bool isOverDue = now > _createdAt + _term * DAY_IN_SECONDS;
 
-        return isUnderCollateralized || isOverDue;
+        return isUnderCollateralized || isOverDue();
     }
 
     // The remaining debt equals to orignal loan + interest - repaid loan - liquidated loan.

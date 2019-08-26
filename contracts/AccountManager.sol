@@ -10,6 +10,22 @@ contract AccountManager is Pausable {
 
     TokenManager private _tokenManager;
 
+    struct Statistics {
+        // key -> integer value 
+        mapping(string => uint) generalStats;
+
+        // asset -> key -> integer value
+        mapping(address => mapping(string => uint)) assetStats;
+    }
+
+    // account -> stats
+    mapping(address => Statistics) _accountStats;
+
+    /// user -> asset -> freed collateral
+    /// When a loan has been repaid and liquidated, the remaining collaterals
+    /// becomes "free" and can be withdrawn or be used for new loan
+    mapping(address => mapping(address => uint)) private _freedCollaterals;
+
     event WithdrawFreedCollateralSuccessful(address indexed user);
 
     constructor(
@@ -20,10 +36,33 @@ contract AccountManager is Pausable {
         _tokenManager = tokenManager;
     }
 
-    /// user -> asset -> freed collateral
-    /// When a loan has been repaid and liquidated, the remaining collaterals
-    /// becomes "free" and can be withdrawn or be used for new loan
-    mapping(address => mapping(address => uint)) private _freedCollaterals;
+    function getGeneralStat(address account, string memory key) public whenNotPaused view returns (uint) {
+        return _accountStats[account].generalStats[key];
+    }
+
+    function getAssetStat(address account, address asset, string memory key) public whenNotPaused view returns (uint) {
+        return _accountStats[account].assetStats[asset][key];
+    }
+
+    function setGeneralStat(address account, string memory key, uint value) public whenNotPaused {
+        // TODO: verify msg.sender
+        _accountStats[account].generalStats[key] = value;
+    }
+
+    function setAssetStat(address account, address asset, string memory key, uint value) public whenNotPaused {
+        // TODO: verify msg.sender
+        _accountStats[account].assetStats[asset][key] = value;
+    }
+
+    function incrementGeneralStat(address account, string calldata key, uint value) external whenNotPaused {
+        uint prevStat = getGeneralStat(account, key);
+        setGeneralStat(account, key, prevStat.add(value));
+    }
+
+    function incrementAssetStat(address account, address asset, string calldata key, uint value) external whenNotPaused {
+        uint prevStat = getAssetStat(account, asset, key);
+        setAssetStat(account, asset, key, prevStat.add(value));
+    }
 
     function getFreedCollateral(address asset) external whenNotPaused view returns (uint) {
         return _freedCollaterals[msg.sender][asset];

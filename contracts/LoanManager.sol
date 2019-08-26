@@ -126,6 +126,10 @@ contract LoanManager is Ownable, Pausable {
         _tokenManager.receiveFrom(loaner, collateralAsset, collateralAmount);
         _tokenManager.sendTo(loaner, loanAsset, loanAmount);
 
+        _accountManager.incrementGeneralStat(loaner, "totalLoans", 1);
+        _accountManager.incrementAssetStat(loaner, loanAsset, "totalLoans", 1);
+        _accountManager.incrementAssetStat(loaner, loanAsset, "totalLoanAmount", loanAmount);
+
         emit LoanSuccessful(loaner, currLoan);
 
         return currLoan;
@@ -187,6 +191,10 @@ contract LoanManager is Ownable, Pausable {
         _liquidityPools.repayLoanToPoolGroups(liquidatedAmount, currLoan, depositTerms, _loanTerms);
 
         _accountManager.increaseFreedCollateral(collateralAsset, freedCollateralAmount);
+
+        if (currLoan.isOverDue()) {
+            _accountManager.incrementGeneralStat(currLoan.owner(), "totalDefaults", 1);
+        }
 
         _tokenManager.receiveFrom(liquidator, loanAsset, liquidatedAmount);
 

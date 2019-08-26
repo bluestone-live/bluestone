@@ -11,6 +11,7 @@ import "./LoanManager.sol";
 import "./PoolGroup.sol";
 import "./FixedMath.sol";
 import "./Deposit.sol";
+import "./AccountManager.sol";
 
 
 /// The main contract which handles everything related to deposit.
@@ -23,6 +24,7 @@ contract DepositManager is Ownable, Pausable {
     TokenManager private _tokenManager;
     LiquidityPools private _liquidityPools;
     LoanManager private _loanManager;
+    AccountManager private _accountManager;
 
     // Notice that event filter only can filter indexed property
     event DepositSuccessful(address indexed user, Deposit deposit);
@@ -123,6 +125,10 @@ contract DepositManager is Ownable, Pausable {
 
         _tokenManager.receiveFrom(user, asset, amount);
 
+        _accountManager.incrementGeneralStat(user, "totalDeposits", 1);
+        _accountManager.incrementAssetStat(user, asset, "totalDeposits", 1);
+        _accountManager.incrementAssetStat(user, asset, "totalDepositAmount", amount);
+
         emit DepositSuccessful(user, currDeposit);
 
         return currDeposit;
@@ -195,7 +201,8 @@ contract DepositManager is Ownable, Pausable {
         PriceOracle priceOracle,
         TokenManager tokenManager,
         LiquidityPools liquidityPools,
-        LoanManager loanManager
+        LoanManager loanManager,
+        AccountManager accountManager
     ) 
         public 
         whenNotPaused
@@ -206,6 +213,7 @@ contract DepositManager is Ownable, Pausable {
         _tokenManager = tokenManager;
         _liquidityPools = liquidityPools;
         _loanManager = loanManager;
+        _accountManager = accountManager;
     }
 
     function enableDepositTerm(uint term) public whenNotPaused onlyOwner {

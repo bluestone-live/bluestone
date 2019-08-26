@@ -1,6 +1,7 @@
 const AccountManager = artifacts.require("AccountManager");
 const TokenManager = artifacts.require("TokenManager");
 const { createERC20Token, toFixedBN } = require("../../utils/index.js");
+const { BN } = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
 
 contract("AccountManager", ([owner]) => {
@@ -13,6 +14,47 @@ contract("AccountManager", ([owner]) => {
     tokenManager = await TokenManager.deployed();
     token = await createERC20Token(owner);
   });
+
+  describe("Statistics", () => {
+    const totalDeposits = new BN(100);
+    const totalDepositAmount = new BN(1000);
+
+    describe("#setGeneralStat", () => {
+      it("succeeds", async () => {
+        const key = "totalDeposits";
+
+        await accountManager.setGeneralStat(owner, key, totalDeposits);
+        expect(await accountManager.getGeneralStat(owner, key)).to.bignumber.equal(totalDeposits);
+      })
+    })
+
+    describe("#incrementGeneralStat", () => {
+      it("succeeds", async () => {
+        const key = "totalDeposits";
+
+        await accountManager.incrementGeneralStat(owner, key, new BN(1));
+        expect(await accountManager.getGeneralStat(owner, key)).to.bignumber.equal(totalDeposits.add(new BN(1)));
+      })
+    })
+
+    describe("#setAssetStat", () => {
+      it("succeeds", async () => {
+        const key = "totalDepositAmount";
+
+        await accountManager.setAssetStat(owner, token.address, key, totalDepositAmount);
+        expect(await accountManager.getAssetStat(owner, token.address, key)).to.bignumber.equal(totalDepositAmount);
+      })
+    })
+
+    describe("#incrementAssetStat", () => {
+      it("succeeds", async () => {
+        const key = "totalDepositAmount";
+
+        await accountManager.incrementAssetStat(owner, token.address, key, new BN(100));
+        expect(await accountManager.getAssetStat(owner, token.address, key)).to.bignumber.equal(totalDepositAmount.add(new BN(100)));
+      })
+    })
+  })
 
   describe("#getFreedCollateral", () => {
     it("succeeds", async () => {
