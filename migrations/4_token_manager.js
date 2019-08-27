@@ -1,5 +1,6 @@
 const TokenManager = artifacts.require("./TokenManager.sol");
+const { deploy } = require("../scripts/javascript/utils");
 
-module.exports = function(deployer) {
-  deployer.deploy(TokenManager);
+module.exports = async function(deployer, network) {
+  await deploy(deployer, network, TokenManager);
 };

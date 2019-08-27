@@ -15,18 +15,16 @@ module.exports = makeTruffleScript(async (network) => {
     let deployedToken
 
     if (symbol === 'WETH') {
-      deployedToken = await WrappedEther.new()
+      deployedToken = await WrappedEther.new();
     } else {
-      deployedToken = await ERC20Mock.new(name, symbol)
+      deployedToken = await ERC20Mock.new(name, symbol);
     }
-
-    debug(`Deployed ${symbol} at ${deployedToken.address}`)
-    tokens[symbol].address = deployedToken.address
+    
+    debug(`Deployed ${symbol} at ${deployedToken.address}`);
+    tokens[symbol].address = deployedToken.address;
   }
 
-  mergeNetworkConfig(network, {
-    tokens
-  })
+  mergeNetworkConfig(network, ["tokens"], tokens)
 
   return tokens
 })

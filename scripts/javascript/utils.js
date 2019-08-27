@@ -3,48 +3,63 @@ const CoinMarketCap = require('../../libs/CoinMarketCap.js')
 const config = require('../../config.js')
 const fs = require('fs')
 const path = require('path')
+const Immutable = require('seamless-immutable')
 
 const constants = {
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000'
 }
 
-const getNetworkFile = () => path.join(__dirname, '..', '..', 'network.json')
+const getNetworkFile = (network) => path.join(__dirname, '..', '..', 'networks', `${network}.json`)
 
-const loadNetworkConfig = () => {
+const loadNetworkConfig = (network) => {
   const debug = _debug.extend('loadNetworkConfig')
-  const filePath = getNetworkFile()
+  const filePath = getNetworkFile(network)
 
   debug('Loading network file...')
 
   try {
-    const networks = fs.readFileSync(filePath)
+    const content = fs.readFileSync(filePath)
     debug('Existing network file found.')
-    return JSON.parse(networks)
+    return Immutable(JSON.parse(content))
   } catch (err) {
     debug('No network file found, return empty json object.')
-    return {} 
+    return Immutable({})
   }
 }
 
-const mergeNetworkConfig = (network, data) => {
+/** 
+  * Merge value object to network file, according to the specified path, 
+  * e.g., ["foo", "bar"] -> { foo: { bar: value } }
+  */
+const mergeNetworkConfig = (network, path, value) => {
   const debug = _debug.extend('mergeNetworkConfig')
 
-  const filePath = getNetworkFile()
-  const networks = loadNetworkConfig()
-
-  const updated = Object.assign({}, networks, {
-    [network]: data
-  })
+  const filePath = getNetworkFile(network)
+  const prevNetworkConfig = loadNetworkConfig(network)
+  const updatedNetworkConfig = Immutable.setIn(prevNetworkConfig, path, value);
 
   debug('Merging network file...')
-  fs.writeFileSync(filePath, JSON.stringify(updated, null, 4))
-  debug('Merged network file.')
+  fs.writeFileSync(filePath, JSON.stringify(updatedNetworkConfig, null, 4))
+}
+
+// Deploy a contract and save contract address
+const deploy = async (deployer, network, contract, ...args) => {
+  const debug = _debug.extend('deploy')
+  const contractName = contract._json.contractName;
+
+  debug(`Deploying ${contractName}...`);
+  await deployer.deploy(contract, ...args)
+
+  const deployedContract = await contract.deployed()
+  mergeNetworkConfig(network, ["contracts", contractName], deployedContract.address);
+
+  debug(`Deployed ${contractName} at ${deployedContract.address}.`);
 }
 
 const getTokenAddress = async (tokenSymbol) => {
   const debug = _debug.extend('getTokenAddress')
-  const network = loadNetworkConfig()
-  const tokenAddress = network['development']['tokens'][tokenSymbol].address
+  const network = loadNetworkConfig('development')
+  const tokenAddress = network['tokens'][tokenSymbol].address
 
   if (tokenAddress === constants.ZERO_ADDRESS) {
     throw `Token ${tokenSymbol} must be deployed first.`
@@ -124,5 +139,6 @@ module.exports = {
   fetchTokenPrices,
   makeTruffleScript,
   loadNetworkConfig,
-  mergeNetworkConfig
+  mergeNetworkConfig,
+  deploy
 }

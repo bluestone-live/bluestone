@@ -7,10 +7,11 @@ const LoanManager = artifacts.require("./LoanManager.sol");
 const AccountManager = artifacts.require("./AccountManager.sol");
 const DepositManagerMock = artifacts.require("./DepositManagerMock.sol");
 const LoanManagerMock = artifacts.require("./LoanManagerMock.sol");
+const { deploy } = require("../scripts/javascript/utils");
 
 module.exports = async function(deployer, network) {
-  await deployer.deploy(DepositManager)
-  await deployer.deploy(LoanManager)
+  await deploy(deployer, network, DepositManager)
+  await deploy(deployer, network, LoanManager)
 
   const depositManager = await DepositManager.deployed()
   const loanManager = await LoanManager.deployed()

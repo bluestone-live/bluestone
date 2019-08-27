@@ -42,7 +42,7 @@ module.exports = makeTruffleScript(async network => {
     const { name } = tokens[symbol];
     let deployedToken;
 
-    if (symbol === "WETH") {
+    if (symbol === 'WETH') {
       deployedToken = await WrappedEther.new();
     } else {
       deployedToken = await ERC20Mock.new(name, symbol);
@@ -52,9 +52,7 @@ module.exports = makeTruffleScript(async network => {
     tokens[symbol].address = deployedToken.address;
   }
 
-  mergeNetworkConfig(network, {
-    tokens
-  });
+  mergeNetworkConfig(network, ["tokens"], tokens);
 
   divider();
 

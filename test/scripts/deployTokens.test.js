@@ -7,7 +7,7 @@ describe('script: deployTokens', () => {
     const cb = () => {}
     const network = 'development'
     const tokens = await deployTokens(cb, network)
-    const networkConfig = loadNetworkConfig()[network]
+    const networkConfig = loadNetworkConfig(network)
 
     expect(networkConfig.tokens.ETH.address).to.equal(tokens.ETH.address)
     expect(networkConfig.tokens.DAI.address).to.equal(tokens.DAI.address)

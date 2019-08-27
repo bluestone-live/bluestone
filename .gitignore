@@ -16,3 +16,4 @@ config.js
 
 # ethereum network configs
 network.json
+networks/development.json

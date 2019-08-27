@@ -1,9 +1,7 @@
 const LiquidityPools = artifacts.require("./LiquidityPools.sol");
 const Configuration = artifacts.require("./Configuration.sol");
+const { deploy } = require("../scripts/javascript/utils");
 
-module.exports = function(deployer) {
-  deployer.deploy(
-    LiquidityPools,
-    Configuration.address
-  );
+module.exports = async function(deployer, network) {
+  await deploy(deployer, network, LiquidityPools, Configuration.address);
 };
