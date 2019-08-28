@@ -10,7 +10,7 @@ import Form from '../components/html/Form';
 import { RecordType, ILoanRecord } from '../constants/Record';
 import { toJS } from 'mobx';
 import dayjs from 'dayjs';
-import { convertDecimalToWei } from '../utils/BigNumber';
+import { convertDecimalToWei, convertWeiToDecimal } from '../utils/BigNumber';
 import { stringify } from 'querystring';
 
 interface IProps
@@ -70,9 +70,10 @@ class AddCollateralForm extends React.Component<IProps, IState> {
       return 'calculate error';
     }
     return (
-      (record.collateralAmount * (record.collateralToken.price || 0)) /
-      (record.loanToken.price || 1) /
-      record.loanAmount
+      (Number.parseFloat(record.collateralAmount) *
+        Number.parseFloat(convertWeiToDecimal(record.collateralToken.price))) /
+      Number.parseFloat(convertWeiToDecimal(record.loanToken.price || '1')) /
+      Number.parseFloat(record.loanAmount)
     );
   };
 
