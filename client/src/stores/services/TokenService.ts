@@ -1,22 +1,13 @@
-import { nonDeployedContractJsonInterface, web3 } from './Web3Service';
+import {
+  nonDeployedContractJsonInterface,
+  web3,
+  getNetworkFile,
+} from './Web3Service';
 import { accountStore } from '..';
-import networkConfig from '../../../../network.json';
 import { BigNumber } from '../../utils/BigNumber';
 
 export const getTokenAddress = async (tokenSymbol: string) => {
-  const networkType = await web3.eth.net.getNetworkType();
-  let currNetwork;
-
-  // Map web3 network type to that in network.json
-  switch (networkType) {
-    case 'private':
-      currNetwork = 'development';
-      break;
-    default:
-      currNetwork = networkType;
-  }
-
-  const network = networkConfig[currNetwork];
+  const network = await getNetworkFile();
 
   if (!network) {
     return null;

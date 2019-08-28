@@ -22,6 +22,7 @@ require('chai/register-should');
 
 const HDWalletProvider = require("truffle-hdwallet-provider");
 const { infura, mnemonic, accountIndex } = require("./config");
+const path = require("path");
 
 module.exports = {
   /**
@@ -105,5 +106,7 @@ module.exports = {
         //  evmVersion: "byzantium"
       }
     }
-  }
+  },
+
+  contracts_build_directory: path.join(__dirname, "client/src/contracts")
 };

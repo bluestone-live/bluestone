@@ -5,7 +5,7 @@ import { accountStore } from '..';
 import { EventName } from '../../constants/Event';
 
 const requireContract = (contractName: string) =>
-  require(`../../../../build/contracts/${contractName}.json`);
+  require(`../../contracts/${contractName}.json`);
 
 // Single instance
 const deployedContractJsonInterface = {
@@ -39,15 +39,43 @@ if ((global as any).ethereum) {
   // TODO alert "please install MetaMask first"
 }
 
+const networkFilesCache = new Map();
+
+// Get network file which stores deployed contract addresses
+export const getNetworkFile = async () => {
+  const networkType = await web3.eth.net.getNetworkType();
+  let currNetwork;
+
+  // Map web3 network type to that in network.json
+  switch (networkType) {
+    case 'private':
+      currNetwork = 'development';
+      break;
+    default:
+      currNetwork = networkType;
+  }
+
+  if (networkFilesCache.has(currNetwork)) {
+    return networkFilesCache.get(currNetwork);
+  } else {
+    const networkFile = await import(
+      `../../../../networks/${currNetwork}.json`
+    );
+    networkFilesCache.set(currNetwork, networkFile);
+    return networkFile;
+  }
+};
+
 /**
  * create contract instance by JSON interface
  * @param contract: contract JSON interface
  */
 const deployedContractInstanceFactory = async (contract: any) => {
-  const netId = await web3.eth.net.getId();
+  const networkFile = await getNetworkFile();
+  const contractAddress = networkFile.contracts[contract.contractName];
   const instance = new web3.eth.Contract(
     contract.abi as AbiItem[],
-    contract.networks[netId].address,
+    contractAddress,
   );
   return instance;
 };

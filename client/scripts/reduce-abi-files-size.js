@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const reduceABIFileSize = () => {
-  const contractsFolder = path.resolve(__dirname, '../../build/contracts');
+  const contractsFolder = path.resolve(__dirname, 'contracts');
 
   const fileNames = fs.readdirSync(contractsFolder);
 
@@ -14,8 +14,7 @@ const reduceABIFileSize = () => {
       filePath,
       JSON.stringify(
         {
-          abi: contractDeclarationFile.abi,
-          networks: contractDeclarationFile.networks,
+          abi: contractDeclarationFile.abi
         },
         null,
         2,

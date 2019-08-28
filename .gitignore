@@ -15,5 +15,7 @@ config.js
 .vscode
 
 # ethereum network configs
-network.json
 networks/development.json
+
+# contract build files
+client/src/contracts
