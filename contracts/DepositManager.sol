@@ -45,8 +45,6 @@ contract DepositManager is Ownable, Pausable {
 
     // Record interest index on a daily basis
     struct InterestIndexHistory {
-        bool isInitialized;
-
         /// Each interest index corresponds to a snapshot of a particular pool state
         /// before updating deposit maturity of a PoolGroup. 
         ///
@@ -138,7 +136,6 @@ contract DepositManager is Ownable, Pausable {
     }
     
     function withdraw(Deposit currDeposit) external whenNotPaused returns (uint) {
-
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
 
         address asset = currDeposit.asset();
@@ -151,27 +148,17 @@ contract DepositManager is Ownable, Pausable {
 
         uint term = currDeposit.term();
 
-        if (currDeposit.isOverDue()) {
-            // If a deposit is over due, depositor can only receive principle as a penalty
-            uint withdrewAmount = currDeposit.withdrawDeposit();
-            _tokenManager.sendTo(user, asset, withdrewAmount);
+        // Depositor receives principle plus interest
+        uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
+        uint interestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
+        (uint withdrewAmount, uint interestsForShareholders) = currDeposit.withdrawDepositAndInterest(interestIndex);
+        address shareholder = _config.getShareholderAddress();
 
-            // Note: interests profit will remain in tokenManager account
-            emit WithdrawDepositSuccessful(user, currDeposit);
-            return withdrewAmount;
-        } else {
-            // Otherwise, depositor receives principle plus interest
-            uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
-            uint interestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
-            (uint withdrewAmount, uint interestsForShareholders) = currDeposit.withdrawDepositAndInterest(interestIndex);
-            address shareholder = _config.getShareholderAddress();
+        _tokenManager.sendTo(user, asset, withdrewAmount);
+        _tokenManager.sendTo(shareholder, asset, interestsForShareholders);
 
-            _tokenManager.sendTo(user, asset, withdrewAmount);
-            _tokenManager.sendTo(shareholder, asset, interestsForShareholders);
-
-            emit WithdrawDepositSuccessful(user, currDeposit);
-            return withdrewAmount;
-        }
+        emit WithdrawDepositSuccessful(user, currDeposit);
+        return withdrewAmount;
     }
 
     function isDepositAssetEnabled(address asset) external whenNotPaused view returns (bool) {
@@ -257,7 +244,6 @@ contract DepositManager is Ownable, Pausable {
         for (uint i = 0; i < _depositAssetAddresses.length; i++) {
             address asset = _depositAssetAddresses[i];
             _liquidityPools.initPoolGroupIfNeeded(asset, term);
-            _initInterestIndexHistoryIfNeeded(asset, term);
         }
     }
 
@@ -290,7 +276,6 @@ contract DepositManager is Ownable, Pausable {
         for (uint i = 0; i < _enabledDepositTerms.length; i++) {
             uint depositTerm = _enabledDepositTerms[i];
             _liquidityPools.initPoolGroupIfNeeded(asset, depositTerm);
-            _initInterestIndexHistoryIfNeeded(asset, depositTerm);
         }
     }
 
@@ -347,36 +332,17 @@ contract DepositManager is Ownable, Pausable {
 
     // INTERNAL  --------------------------------------------------------------
 
-    // Add a new interest index and remove the oldest interest index if necessary
+    // Add a new interest index
     function _updateInterestIndexHistory(address asset, uint term, uint interestIndex) internal {
         InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
 
         // Add a new interest index
         history.lastDay++;
         history.interestIndexPerDay[history.lastDay] = interestIndex;
-
-        // TODO: make DAYS_OF_INTEREST_INDEX_TO_KEEP default to term and configurable
-        uint dayToBeDropped = history.lastDay - DAYS_OF_INTEREST_INDEX_TO_KEEP;
-
-        if (dayToBeDropped >= DAYS_OF_INTEREST_INDEX_TO_KEEP) {
-            // Remove the oldest interest index
-            delete history.interestIndexPerDay[dayToBeDropped];
-        }
     }
 
     function _getInterestIndexFromDaysAgo(address asset, uint term, uint numDaysAgo) internal view returns (uint) {
         InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
         return history.interestIndexPerDay[history.lastDay.sub(numDaysAgo)];
-    }
-
-    // PRIVATE  --------------------------------------------------------------
-
-    function _initInterestIndexHistoryIfNeeded(address asset, uint term) private {
-        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
-
-        if (!history.isInitialized) {
-            history.lastDay = DAYS_OF_INTEREST_INDEX_TO_KEEP - 1;
-            history.isInitialized = true;
-        }
     }
 }

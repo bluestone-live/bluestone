@@ -21,7 +21,7 @@ contract('DepositManager', ([owner, depositor]) => {
     let term, asset
 
     before(async () => {
-      term = (await depositManager.getDepositTerms())[0]
+      term = (await depositManager.getDepositTerms())[0].toNumber()
       asset = await createERC20Token(depositor, initialSupply)
       await asset.approve(tokenManager.address, initialSupply, { from: depositor })
       await depositManager.enableDepositAsset(asset.address, { from: owner })

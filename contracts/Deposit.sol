@@ -56,10 +56,6 @@ contract Deposit {
         return now >= _maturedAt;
     }
 
-    function isOverDue() public view returns (bool) {
-        return now >= _maturedAt + 30 * DAY_IN_SECONDS;
-    }
-
     function asset() external view returns (address) {
         return _asset;
     }
@@ -105,12 +101,5 @@ contract Deposit {
         _withdrewAt = now;
 
         return (_withdrewAmount, interestsForShareholders);
-    }
-
-    function withdrawDeposit() external returns (uint) {
-        _withdrewAmount = _amount;
-        _withdrewAt = now;
-
-        return _withdrewAmount;
     }
 }

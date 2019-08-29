@@ -17,8 +17,6 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
   const depositAmount = toFixedBN(1000)
   const loanInterestRate7 = toFixedBN(5, 8)
   const loanInterestRate30 = toFixedBN(3, 8)
-  const a307 = toFixedBN(1)
-  const a3030 = toFixedBN(1)
 
   before(async () => {
     config = await Configuration.deployed()
@@ -53,7 +51,7 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     let term, loan
 
     before(async () => {
-      term = (await depositManager.getDepositTerms())[0]
+      term = (await depositManager.getDepositTerms())[0].toNumber()
       await depositManager.deposit(loanAsset.address, term, depositAmount, { from: depositor })
       await depositManager.deposit(loanAsset.address, term, depositAmount, { from: depositor })
 
@@ -111,17 +109,5 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
         );
       });
     });
-
-    context('when deposit is overdue', () => {
-      before(async () => {
-        await time.increase(time.duration.days(term * 2 + 1))
-      }) 
-
-      it('withdraws deposit only', async () => {
-        const deposit = await depositManager.deposits.call(0)
-        const amount = await depositManager.withdraw.call(deposit, { from: depositor })
-        expect(amount).to.be.bignumber.equal(depositAmount)
-      })
-    })
   })
 })

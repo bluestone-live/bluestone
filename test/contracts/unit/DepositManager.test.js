@@ -138,15 +138,6 @@ contract("DepositManager", ([owner, depositor]) => {
       );
       expect(actualInterestIndex).to.be.bignumber.equal(initialInterestIndex);
     });
-
-    it("clears interestIndex of the day before firstDay", async () => {
-      const actualInterestIndex = await depositManager.getInterestIndexFromDaysAgo(
-        asset.address,
-        term,
-        numDays
-      );
-      expect(actualInterestIndex).to.be.bignumber.equal("0");
-    });
   });
 
   describe("#getInterestIndex", () => {
