@@ -4,7 +4,7 @@ import { ThemedProps } from '../../styles/themes';
 
 interface IFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  children: React.ReactChild | React.ReactChild[];
+  children: React.ReactNode;
   horizontal?: boolean;
 }
 

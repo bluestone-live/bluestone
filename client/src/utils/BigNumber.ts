@@ -4,7 +4,7 @@ export { BigNumber };
 
 const significant = 18;
 
-export const convertWeiToDecimal = (bn: BigNumber, precision: number = 18) => {
+export const convertWeiToDecimal = (bn?: BigNumber, precision: number = 18) => {
   if (!bn) {
     return '0';
   }

@@ -13,7 +13,11 @@ const { expect } = require("chai");
 
 contract("LoanManager", ([owner, depositor, loaner]) => {
   const initialSupply = toFixedBN(1000);
+<<<<<<< HEAD
   let priceOracle, tokenManager, depositManager, loanManager, liquidityPools;
+=======
+  let priceOracle, tokenManager, depositManager, loanManager;
+>>>>>>> [Contract]: store freed collateral by correct key.
 
   before(async () => {
     config = await Configuration.deployed();
