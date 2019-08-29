@@ -69,10 +69,8 @@ contract("AccountManager", ([owner]) => {
     it("succeeds", async () => {
       await accountManager.increaseFreedCollateral(
         token.address,
-        increaseAmount,
-        {
-          from: owner
-        }
+        owner,
+        increaseAmount
       );
       const amount = await accountManager.getFreedCollateral(token.address, {
         from: owner
@@ -83,10 +81,8 @@ contract("AccountManager", ([owner]) => {
     after(async () => {
       await accountManager.decreaseFreedCollateral(
         token.address,
-        increaseAmount,
-        {
-          from: owner
-        }
+        owner,
+        increaseAmount
       );
     });
   });
@@ -94,19 +90,15 @@ contract("AccountManager", ([owner]) => {
     before(async () => {
       await accountManager.increaseFreedCollateral(
         token.address,
-        increaseAmount,
-        {
-          from: owner
-        }
+        owner,
+        increaseAmount
       );
     });
     it("succeeds", async () => {
       await accountManager.decreaseFreedCollateral(
         token.address,
-        decreaseAmount,
-        {
-          from: owner
-        }
+        owner,
+        decreaseAmount
       );
 
       const amount = await accountManager.getFreedCollateral(token.address, {
@@ -125,10 +117,8 @@ contract("AccountManager", ([owner]) => {
       await token.mint(tokenManager.address, increaseAmount.mul(toFixedBN(10)));
       await accountManager.increaseFreedCollateral(
         token.address,
-        increaseAmount,
-        {
-          from: owner
-        }
+        owner,
+        increaseAmount
       );
       freedCollateralAmount = await accountManager.getFreedCollateral(
         token.address,

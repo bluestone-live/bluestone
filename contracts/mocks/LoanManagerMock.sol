@@ -13,7 +13,7 @@ contract LoanManagerMock is LoanManager {
         address collateralAsset,
         uint loanAmount,
         uint collateralAmount,
-        uint requestedFreedCollateral
+        bool useFreedCollateral
     ) 
         public returns (Loan) 
     {
@@ -23,7 +23,7 @@ contract LoanManagerMock is LoanManager {
             collateralAsset,
             loanAmount,
             collateralAmount,
-            requestedFreedCollateral
+            useFreedCollateral
         );
 
         loans.push(currLoan);

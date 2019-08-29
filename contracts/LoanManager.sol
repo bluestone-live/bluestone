@@ -49,6 +49,7 @@ contract LoanManager is Ownable, Pausable {
     /// "CompilerError: Stack too deep, try removing local variables"
     struct LoanLocalVars {
         uint totalCollateralAmount;
+        uint remainingCollateralAmount;
         uint loanAssetPrice;
         uint collateralAssetPrice;
         uint currCollateralRatio;
@@ -65,7 +66,7 @@ contract LoanManager is Ownable, Pausable {
         address collateralAsset,
         uint loanAmount,
         uint collateralAmount,
-        uint requestedFreedCollateral
+        bool useFreedCollateral
     )
         public
         whenNotPaused
@@ -74,17 +75,18 @@ contract LoanManager is Ownable, Pausable {
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
         require(_isLoanAssetPairEnabled[loanAsset][collateralAsset], "Loan asset pair must be enabled.");
         require(loanAmount > 0, "Invalid loan amount.");
-        require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
+        require(collateralAmount > 0, "Invalid collateral amount.");
         require(_isValidLoanTerm[term], "Invalid loan term.");
 
         address loaner = msg.sender;
         LoanLocalVars memory localVars;
         localVars.totalCollateralAmount = collateralAmount;
+        localVars.remainingCollateralAmount = collateralAmount;
 
         // Combine freed collateral if needed
-        if (requestedFreedCollateral > 0) {
-            _accountManager.decreaseFreedCollateral(collateralAsset, requestedFreedCollateral);
-            localVars.totalCollateralAmount = localVars.totalCollateralAmount.add(requestedFreedCollateral);
+        if (useFreedCollateral) {
+            uint availableFreedCollateral = _accountManager.decreaseFreedCollateral(collateralAsset, loaner, collateralAmount);
+            localVars.remainingCollateralAmount = localVars.remainingCollateralAmount.sub(availableFreedCollateral);
         }
 
         localVars.collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
@@ -123,7 +125,7 @@ contract LoanManager is Ownable, Pausable {
 
         _liquidityPools.loanFromPoolGroups(currLoan, depositTerms, _loanTerms);
 
-        _tokenManager.receiveFrom(loaner, collateralAsset, collateralAmount);
+        _tokenManager.receiveFrom(loaner, collateralAsset, localVars.remainingCollateralAmount);
         _tokenManager.sendTo(loaner, loanAsset, loanAmount);
 
         _accountManager.incrementGeneralStat(loaner, "totalLoans", 1);
@@ -151,7 +153,7 @@ contract LoanManager is Ownable, Pausable {
 
         _liquidityPools.repayLoanToPoolGroups(totalRepayAmount, currLoan, depositTerms, _loanTerms);
 
-        _accountManager.increaseFreedCollateral(collateralAsset, freedCollateralAmount);
+        _accountManager.increaseFreedCollateral(collateralAsset, loaner, freedCollateralAmount);
 
         _tokenManager.receiveFrom(loaner, loanAsset, totalRepayAmount);
 
@@ -190,7 +192,7 @@ contract LoanManager is Ownable, Pausable {
 
         _liquidityPools.repayLoanToPoolGroups(liquidatedAmount, currLoan, depositTerms, _loanTerms);
 
-        _accountManager.increaseFreedCollateral(collateralAsset, freedCollateralAmount);
+        _accountManager.increaseFreedCollateral(collateralAsset, currLoan.owner(), freedCollateralAmount);
 
         if (currLoan.isOverDue()) {
             _accountManager.incrementGeneralStat(currLoan.owner(), "totalDefaults", 1);
@@ -201,13 +203,13 @@ contract LoanManager is Ownable, Pausable {
         return (liquidatedAmount, soldCollateralAmount);
     }
 
-    function addCollateral(Loan currLoan, uint collateralAmount, uint requestedFreedCollateral)
+    function addCollateral(Loan currLoan, uint collateralAmount, bool useFreedCollateral)
         external
         whenNotPaused
         returns (uint)
     {
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
-        require(collateralAmount > 0 || requestedFreedCollateral > 0, "Invalid collateral amount.");
+        require(collateralAmount > 0, "Invalid collateral amount.");
 
         address loanAsset = currLoan.loanAsset();
         address collateralAsset = currLoan.collateralAsset();
@@ -218,21 +220,21 @@ contract LoanManager is Ownable, Pausable {
 
         require(loaner == currLoan.owner(), "Collateral can only be added by owner.");
 
-        uint totalCollateralAmount = collateralAmount;
+        uint remainingCollateralAmount = collateralAmount;
 
         // Combine freed collateral if needed
-        if (requestedFreedCollateral > 0) {
-            _accountManager.decreaseFreedCollateral(collateralAsset, requestedFreedCollateral);
-            totalCollateralAmount = totalCollateralAmount.add(requestedFreedCollateral);
+        if (useFreedCollateral) {
+            uint availableFreedCollateral = _accountManager.decreaseFreedCollateral(collateralAsset, loaner, collateralAmount);
+            remainingCollateralAmount = remainingCollateralAmount.sub(availableFreedCollateral);
         }
 
-        currLoan.addCollateral(totalCollateralAmount);
+        currLoan.addCollateral(collateralAmount);
 
-        _tokenManager.receiveFrom(loaner, collateralAsset, totalCollateralAmount);
+        _tokenManager.receiveFrom(loaner, collateralAsset, remainingCollateralAmount);
 
         emit AddCollateralSuccessful(loaner, currLoan);
 
-        return totalCollateralAmount;
+        return collateralAmount;
     }
 
     function isLoanAssetPairEnabled(address loanAsset, address collateralAsset) external whenNotPaused view returns (bool) {

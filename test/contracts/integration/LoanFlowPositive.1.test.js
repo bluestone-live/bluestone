@@ -13,11 +13,7 @@ const { expect } = require("chai");
 
 contract("LoanManager", ([owner, depositor, loaner]) => {
   const initialSupply = toFixedBN(1000);
-  let priceOracle,
-    tokenManager,
-    depositManager,
-    loanManager,
-    liquidityPools;
+  let priceOracle, tokenManager, depositManager, loanManager, liquidityPools;
 
   before(async () => {
     config = await Configuration.deployed();
@@ -69,7 +65,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     let loanSuccessfulLogs;
 
     it("makes a loan", async () => {
-      const requestedFreedCollateral = 0;
+      const useFreedCollateral = false;
       prevLoanAssetBalance = await loanAsset.balanceOf(loaner);
       prevCollateralAssetBalance = await collateralAsset.balanceOf(loaner);
 
@@ -79,7 +75,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
         collateralAsset.address,
         loanAmount,
         collateralAmount,
-        requestedFreedCollateral,
+        useFreedCollateral,
         { from: loaner }
       );
 
@@ -104,17 +100,22 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       expect(loanSuccessfulLogs.length).to.be.equal(1);
     });
 
-    let poolGroup
+    let poolGroup;
 
     it("loans from the correct pool", async () => {
-      const poolGroupAddress = await liquidityPools.poolGroups(loanAsset.address, term);
+      const poolGroupAddress = await liquidityPools.poolGroups(
+        loanAsset.address,
+        term
+      );
       poolGroup = await PoolGroup.at(poolGroupAddress);
       const poolIndex = term.sub(new BN(1));
-      const loanableAmount = await poolGroup.getLoanableAmountFromPool(poolIndex);
+      const loanableAmount = await poolGroup.getLoanableAmountFromPool(
+        poolIndex
+      );
       expect(loanableAmount).to.bignumber.equal(depositAmount.sub(loanAmount));
     });
 
-    let loanAddress, loan
+    let loanAddress, loan;
 
     it("stores loan record", async () => {
       loanAddress = await loanManager.loans.call(0);
@@ -144,7 +145,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
 
       it("repays in full", async () => {
         repayAmount = await loan.remainingDebt();
-        await loanManager.repayLoan(loanAddress, repayAmount, {
+        const { logs } = await loanManager.repayLoan(loanAddress, repayAmount, {
           from: loaner
         });
       });
@@ -157,8 +158,21 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
 
       it("repays to the correct pool", async () => {
         const poolIndexAfterSixDays = term.sub(new BN(numDays + 1));
-        const loanableAmount = await poolGroup.getLoanableAmountFromPool(poolIndexAfterSixDays); 
+        const loanableAmount = await poolGroup.getLoanableAmountFromPool(
+          poolIndexAfterSixDays
+        );
         expect(loanableAmount).to.bignumber.equal(repayAmount);
+      });
+
+      it("increase freed collateral amount", async () => {
+        const freedCollateral = await accountManager.getFreedCollateral(
+          collateralAsset.address,
+          {
+            from: loaner
+          }
+        );
+
+        expect(freedCollateral).to.bignumber.equal(collateralAmount);
       });
     });
   });

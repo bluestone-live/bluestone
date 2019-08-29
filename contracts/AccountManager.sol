@@ -68,26 +68,26 @@ contract AccountManager is Pausable {
         return _freedCollaterals[msg.sender][asset];
     }
 
+    // only can call by user
     function withdrawFreedCollateral(address asset, uint amount) external whenNotPaused {
         address user = msg.sender;
-        decreaseFreedCollateral(asset, amount);
-        _tokenManager.sendTo(user, asset, amount);
+        uint availableFreedCollateral = decreaseFreedCollateral(asset, user, amount);
+        _tokenManager.sendTo(user, asset, availableFreedCollateral);
         emit WithdrawFreedCollateralSuccessful(user);
     }
 
-    function increaseFreedCollateral(address asset, uint amount) external {
-        address user = msg.sender;
+    // only can call by other contract
+    function increaseFreedCollateral(address asset, address user, uint amount) external {
         _freedCollaterals[user][asset] = _freedCollaterals[user][asset].add(amount);
     }
 
-    function decreaseFreedCollateral(address asset, uint amount) public {
+    function decreaseFreedCollateral(address asset, address user, uint amount) public returns (uint) {
         require(amount > 0, "The decrease in Freed collateral amount must be greater than 0.");
-        address user = msg.sender;
 
-        uint availableFreedCollateral = _freedCollaterals[user][asset];
+        uint availableFreedCollateral = Math.min(_freedCollaterals[user][asset], amount);
 
-        require(amount <= availableFreedCollateral, "Not enough freed collateral.");
+        _freedCollaterals[user][asset] = _freedCollaterals[user][asset].sub(availableFreedCollateral);
 
-        _freedCollaterals[user][asset] = availableFreedCollateral.sub(amount);
+        return availableFreedCollateral;
     }
 }

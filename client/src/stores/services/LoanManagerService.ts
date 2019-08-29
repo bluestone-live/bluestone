@@ -25,7 +25,7 @@ export const loan = async (
   collateralTokenAddress: string,
   loanAmount: BigNumber,
   collateralAmount: BigNumber,
-  requestedFreedCollateral: BigNumber = new BigNumber(0),
+  useFreedCollateral: boolean = false,
 ): Promise<EventData> => {
   const flow = await getContractEventFlow(
     'LoanManager',
@@ -43,7 +43,7 @@ export const loan = async (
         collateralTokenAddress,
         loanAmount.toString(),
         collateralAmount.toString(),
-        requestedFreedCollateral.toString(),
+        useFreedCollateral,
       )
       .send({ from: accountStore.defaultAccount }),
   );
@@ -58,7 +58,7 @@ export const getLoanRecords = async (): Promise<string[]> => {
 export const addCollateral = async (
   loanAddress: string,
   amount: BigNumber,
-  requestedFreedCollateral: BigNumber,
+  useFreedCollateral: boolean,
 ) => {
   const flow = await getContractEventFlow(
     'LoanManager',
@@ -70,11 +70,7 @@ export const addCollateral = async (
 
   return flow(LoanManager =>
     LoanManager.methods
-      .addCollateral(
-        loanAddress,
-        amount.toString(),
-        requestedFreedCollateral.toString(),
-      )
+      .addCollateral(loanAddress, amount.toString(), useFreedCollateral)
       .send({ from: accountStore.defaultAccount }),
   );
 };

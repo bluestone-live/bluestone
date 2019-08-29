@@ -1,24 +1,33 @@
+const AccountManager = artifacts.require("AccountManager");
 const PriceOracle = artifacts.require("PriceOracle");
 const TokenManager = artifacts.require("TokenManager");
 const DepositManager = artifacts.require("DepositManagerMock");
 const LoanManager = artifacts.require("LoanManagerMock");
 const Loan = artifacts.require("Loan");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
+const { expectEvent, BN } = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
 
 contract("LoanManager", ([owner, depositor, loaner]) => {
   const initialSupply = toFixedBN(1000);
   const depositAmount = toFixedBN(100);
-  let depositManager, loanManager, loanAsset, collateralAsset, term;
+  const freedCollateralAmount = toFixedBN(1000);
+  let accountManager,
+    depositManager,
+    loanManager,
+    loanAsset,
+    collateralAsset,
+    term;
 
   before(async () => {
+    accountManager = await AccountManager.deployed();
     priceOracle = await PriceOracle.deployed();
     tokenManager = await TokenManager.deployed();
     depositManager = await DepositManager.deployed();
     loanManager = await LoanManager.deployed();
     loanAsset = await createERC20Token(depositor, initialSupply);
     collateralAsset = await createERC20Token(loaner, initialSupply);
-    term = (await depositManager.getDepositTerms())[0]
+    term = (await depositManager.getDepositTerms())[0];
 
     await priceOracle.setPrice(loanAsset.address, toFixedBN(10));
     await priceOracle.setPrice(collateralAsset.address, toFixedBN(10));
@@ -41,6 +50,13 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       collateralAsset.address,
       { from: owner }
     );
+
+    // add some freed collateral amount
+    await accountManager.increaseFreedCollateral(
+      collateralAsset.address,
+      loaner,
+      freedCollateralAmount
+    );
   });
 
   let basicCollateralAmount = toFixedBN(30);
@@ -48,7 +64,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
   const createLoan = async (
     loanAmount = toFixedBN(10),
     collateralAmount = basicCollateralAmount,
-    requestedFreedCollateral = 0
+    useFreedCollateral = false
   ) => {
     await loanManager.loan(
       term,
@@ -56,7 +72,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       collateralAsset.address,
       loanAmount,
       collateralAmount,
-      requestedFreedCollateral,
+      useFreedCollateral,
       { from: loaner }
     );
   };
@@ -76,32 +92,72 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
   });
 
   describe("#addCollateral", () => {
-    let prevCollateralAssetBalance;
+    context("without freed collateral", () => {
+      let prevCollateralAssetBalance;
+      before(async () => {
+        await createLoan();
+        prevCollateralAssetBalance = await collateralAsset.balanceOf(loaner);
+      });
 
-    before(async () => {
-      await createLoan();
-      prevCollateralAssetBalance = await collateralAsset.balanceOf(loaner);
+      it("succeeds and emit a AddCollateralSuccessful event", async () => {
+        const loanAddress = await loanManager.loans.call(0);
+        const collateralAmount = toFixedBN(10);
+        const useFreedCollateral = false;
+        const { logs } = await loanManager.addCollateral(
+          loanAddress,
+          collateralAmount,
+          useFreedCollateral,
+          { from: loaner }
+        );
+
+        expect(await collateralAsset.balanceOf(loaner)).to.be.bignumber.equal(
+          prevCollateralAssetBalance.sub(collateralAmount)
+        );
+        expectEvent.inLogs(logs, "AddCollateralSuccessful");
+      });
     });
 
-    it("succeeds and emit a AddCollateralSuccessful event", async () => {
-      const loanAddress = await loanManager.loans.call(0);
+    context("with freed collateral", () => {
       const collateralAmount = toFixedBN(10);
-      const requestedFreedCollateral = 0;
-      const { logs } = await loanManager.addCollateral(
-        loanAddress,
-        collateralAmount,
-        requestedFreedCollateral,
-        { from: loaner }
-      );
+      let prevCollateralAssetBalance, prevFreedCollateralAmount;
 
-      const AddCollateralSuccessfulLogs = logs.filter(
-        ({ event }) => event === "AddCollateralSuccessful"
-      );
+      before(async () => {
+        prevCollateralAssetBalance = await collateralAsset.balanceOf(loaner);
+        prevFreedCollateralAmount = await accountManager.getFreedCollateral(
+          collateralAsset.address,
+          { from: loaner }
+        );
+      });
 
-      expect(await collateralAsset.balanceOf(loaner)).to.be.bignumber.equal(
-        prevCollateralAssetBalance.sub(collateralAmount)
-      );
-      expect(AddCollateralSuccessfulLogs.length).to.be.equal(1);
+      it("succeeds and emit a AddCollateralSuccessful event", async () => {
+        const loanAddress = await loanManager.loans.call(0);
+        const useFreedCollateral = true;
+        const { logs } = await loanManager.addCollateral(
+          loanAddress,
+          collateralAmount,
+          useFreedCollateral,
+          { from: loaner }
+        );
+
+        expectEvent.inLogs(logs, "AddCollateralSuccessful");
+      });
+
+      it("didn't use account balance", async () => {
+        expect(await collateralAsset.balanceOf(loaner)).to.be.bignumber.equal(
+          prevCollateralAssetBalance
+        );
+      });
+
+      it("reduce freed collateral amount", async () => {
+        const freedCollateralAmount = await accountManager.getFreedCollateral(
+          collateralAsset.address,
+          { from: loaner }
+        );
+
+        expect(freedCollateralAmount).to.bignumber.equal(
+          prevFreedCollateralAmount.sub(collateralAmount)
+        );
+      });
     });
   });
 

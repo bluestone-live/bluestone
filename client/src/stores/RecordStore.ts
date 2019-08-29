@@ -118,7 +118,7 @@ export class RecordStore {
     collateralToken: IToken,
     loanAmount: BigNumber,
     collateralAmount: BigNumber,
-    requestedFreedCollateral: BigNumber,
+    useFreedCollateral: boolean,
   ) {
     const loanEvent = await loan(
       term,
@@ -126,7 +126,7 @@ export class RecordStore {
       collateralToken.address,
       loanAmount,
       collateralAmount,
-      requestedFreedCollateral,
+      useFreedCollateral,
     );
     const loanRecord = await getLoan(
       loanEvent.returnValues.loan,
@@ -158,9 +158,9 @@ export class RecordStore {
   addCollateral(
     recordAddress: string,
     amount: BigNumber,
-    requestedFreedCollateral: BigNumber,
+    useFreedCollateral: boolean,
   ) {
-    return addCollateral(recordAddress, amount, requestedFreedCollateral);
+    return addCollateral(recordAddress, amount, useFreedCollateral);
   }
 
   @action.bound

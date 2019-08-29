@@ -78,7 +78,7 @@ class LoanForm extends React.Component<IProps, IState> {
     }
 
     // TODO: add input/checkbox field to use freed collateral
-    const requestedFreedCollateral = 0;
+    const useFreedCollateral: boolean = false;
 
     await recordStore!.loan(
       term,
@@ -86,7 +86,7 @@ class LoanForm extends React.Component<IProps, IState> {
       collateralToken,
       convertDecimalToWei(loanAmount),
       convertDecimalToWei(collateralAmount),
-      convertDecimalToWei(requestedFreedCollateral),
+      useFreedCollateral,
     );
 
     history.push(`/records/loan?currentToken=${loanToken.address}`);
