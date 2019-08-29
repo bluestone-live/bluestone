@@ -36,14 +36,14 @@ const StyledFormItem = styled.div`
   justify-content: flex-end;
   width: 100%;
   & > * {
-    flex: 1;
+    flex: 2;
   }
 
   & label {
     display: block;
     width: 100%;
     height: 100%;
-    flex: 0;
+    flex: 1;
     font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
     text-align: right;
     padding: 0 ${(props: ThemedProps) => props.theme.gap.small};

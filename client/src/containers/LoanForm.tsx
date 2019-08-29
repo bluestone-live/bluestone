@@ -7,7 +7,6 @@ import {
   convertDecimalToWei,
   convertWeiToDecimal,
   BigNumber,
-  formatBigNumber,
 } from '../utils/BigNumber';
 import { IToken } from '../constants/Token';
 import {

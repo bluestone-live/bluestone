@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { IDepositRecord, RecordStatus } from '../constants/Record';
-import { Row, Cell } from '../components/common/Layout';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Form from '../components/html/Form';
 import TextBox from '../components/common/TextBox';
 import Button from '../components/html/Button';
-import { RecordStore, ConfigurationStore } from '../stores';
+import { RecordStore } from '../stores';
 import { observer } from 'mobx-react';
 import { ITransaction } from '../constants/Transaction';
 import TransactionList from './TransactionList';
@@ -13,7 +12,6 @@ import TransactionList from './TransactionList';
 interface IProps extends WithTranslation {
   depositRecord: IDepositRecord;
   recordStore: RecordStore;
-  configurationStore: ConfigurationStore;
   transactionsForRecord?: ITransaction[];
 }
 
@@ -41,45 +39,26 @@ class DepositDetail extends React.Component<IProps, IState> {
   };
 
   render() {
-    const {
-      t,
-      depositRecord,
-      transactionsForRecord,
-      configurationStore,
-    } = this.props;
+    const { t, depositRecord, transactionsForRecord } = this.props;
     const { loading } = this.state;
 
     return (
       <div className="deposit-detail">
         <Form.Item>
-          <Row>
-            <Cell>
-              <label htmlFor="amount">{t('deposit_amount')}</label>
-            </Cell>
-            <Cell scale={4}>
-              <TextBox>{depositRecord.depositAmount}</TextBox>
-            </Cell>
-          </Row>
+          <label htmlFor="amount">{t('deposit_amount')}</label>
+          <TextBox>{depositRecord.depositAmount}</TextBox>
         </Form.Item>
         <Form.Item>
-          <Cell>
-            <label>{t('select_term')}</label>
-          </Cell>
-          <Cell scale={4}>
-            <TextBox>{depositRecord.term.text}</TextBox>
-          </Cell>
+          <label>{t('select_term')}</label>
+          <TextBox>{depositRecord.term.text}</TextBox>
         </Form.Item>
         <Form.Item>
-          <Cell>
-            <label>{t('actual_income')}</label>
-          </Cell>
-          <Cell scale={4}>
-            <TextBox>
-              {
-                // TODO: depends on the contract refactor
-              }
-            </TextBox>
-          </Cell>
+          <label>{t('actual_income')}</label>
+          <TextBox>
+            {
+              // TODO: depends on the contract refactor
+            }
+          </TextBox>
         </Form.Item>
         {depositRecord.status === RecordStatus.DepositMatured && (
           <Form.Item>
