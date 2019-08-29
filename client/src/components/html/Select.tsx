@@ -15,6 +15,7 @@ const StyledSelect = styled.select`
   -webkit-appearance: none;
   appearance: none;
   background-color: #fff;
+  width: 100%;
 
   &::-ms-expand {
     display: none;

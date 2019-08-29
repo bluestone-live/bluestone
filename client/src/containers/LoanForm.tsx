@@ -27,9 +27,12 @@ import {
   LoanManagerStore,
   RecordStore,
   ConfigurationStore,
+  AccountStore,
 } from '../stores';
+import Toggle from '../components/common/Toggle';
 
 interface IProps extends WithTranslation, RouteComponentProps {
+  accountStore?: AccountStore;
   tokenStore?: TokenStore;
   loanManagerStore?: LoanManagerStore;
   recordStore?: RecordStore;
@@ -46,12 +49,23 @@ interface IProps extends WithTranslation, RouteComponentProps {
 interface IState {
   loanAmount: number;
   collateralAmount: number;
+  useFreedCollateral: boolean;
 }
 
-@inject('tokenStore', 'loanManagerStore', 'recordStore', 'configurationStore')
+@inject(
+  'accountStore',
+  'tokenStore',
+  'loanManagerStore',
+  'recordStore',
+  'configurationStore',
+)
 @observer
 class LoanForm extends React.Component<IProps, IState> {
-  state = { loanAmount: 0, collateralAmount: 0 };
+  state = { loanAmount: 0, collateralAmount: 0, useFreedCollateral: false };
+
+  async componentDidMount() {
+    await this.getFreedCollateral();
+  }
 
   handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.currentTarget;
@@ -68,7 +82,7 @@ class LoanForm extends React.Component<IProps, IState> {
       loanTokenSymbol,
       collateralTokenSymbol,
     } = this.props;
-    const { loanAmount, collateralAmount } = this.state;
+    const { loanAmount, collateralAmount, useFreedCollateral } = this.state;
     const loanToken = tokenStore!.getToken(loanTokenSymbol || '');
     const collateralToken = tokenStore!.getToken(collateralTokenSymbol || '');
 
@@ -78,8 +92,6 @@ class LoanForm extends React.Component<IProps, IState> {
     }
 
     // TODO: add input/checkbox field to use freed collateral
-    const useFreedCollateral: boolean = false;
-
     await recordStore!.loan(
       term,
       loanToken,
@@ -108,8 +120,55 @@ class LoanForm extends React.Component<IProps, IState> {
     return loanAmount * (1 + termPercentageRate / 100);
   }
 
+  getFreedCollateral = () => {
+    const { accountStore, tokenStore, collateralTokenSymbol } = this.props;
+    const collateralToken = tokenStore!.getToken(collateralTokenSymbol || '');
+
+    if (!collateralToken) {
+      return;
+    }
+
+    return accountStore!.getFreedCollateral(collateralToken);
+  };
+
+  onUseFreedCollateralChange = (useFreedCollateral: boolean) =>
+    this.setState({
+      useFreedCollateral,
+    });
+
+  renderFreedCollateral = (freedCollateral?: BigNumber) => {
+    const { t } = this.props;
+
+    return (
+      <Row>
+        <Form.Item>
+          <Cell>
+            <label htmlFor="">{t('use_freed_collateral')}</label>
+          </Cell>
+          <Cell>
+            <Toggle
+              defaultValue={this.state.useFreedCollateral}
+              onChange={this.onUseFreedCollateralChange}
+            />
+          </Cell>
+        </Form.Item>
+        <Form.Item key="freed_collateral_amount">
+          <Cell>
+            <label>{t('freed_collateral_amount')}</label>
+          </Cell>
+          <Cell>
+            <StyledTextBox>
+              {convertWeiToDecimal(freedCollateral)}
+            </StyledTextBox>
+          </Cell>
+        </Form.Item>
+      </Row>
+    );
+  };
+
   render() {
     const {
+      accountStore,
       tokenStore,
       loanManagerStore,
       configurationStore,
@@ -183,14 +242,28 @@ class LoanForm extends React.Component<IProps, IState> {
       .add(term, 'day')
       .format('DD/MM/YYYY');
 
+    if (!collateralToken) {
+      return null;
+    }
+
+    const freedCollateral = accountStore!.getFreedCollateralByAddress(
+      collateralToken!.address,
+    );
+
+    const couldUseFreedCollateral = freedCollateral
+      ? Number.parseFloat(convertWeiToDecimal(freedCollateral)) !== 0
+      : false;
+
     return (
       <div>
         <Card>
           <Form onSubmit={this.handleSubmit}>
             <Row>
-              <Cell>
-                <Form.Item>
+              <Form.Item>
+                <Cell>
                   <label htmlFor="loanTokenSymbol">{t('borrow')}:</label>
+                </Cell>
+                <Cell>
                   <Select
                     id="loanTokenSymbol"
                     name="loanTokenSymbol"
@@ -199,11 +272,13 @@ class LoanForm extends React.Component<IProps, IState> {
                   >
                     {loanTokenOptions}
                   </Select>
-                </Form.Item>
-              </Cell>
-              <Cell>
-                <Form.Item>
+                </Cell>
+              </Form.Item>
+              <Form.Item>
+                <Cell>
                   <label htmlFor="loanAmount">{t('amount')}:</label>
+                </Cell>
+                <Cell>
                   <Input
                     id="loanAmount"
                     name="loanAmount"
@@ -213,11 +288,15 @@ class LoanForm extends React.Component<IProps, IState> {
                     onChange={this.handleChange}
                     value={loanAmount}
                   />
-                </Form.Item>
-              </Cell>
-              <Cell>
-                <Form.Item>
+                </Cell>
+              </Form.Item>
+            </Row>
+            <Row>
+              <Form.Item>
+                <Cell>
                   <label htmlFor="term">{t('term')}:</label>
+                </Cell>
+                <Cell>
                   <Select
                     id="term"
                     name="term"
@@ -226,24 +305,27 @@ class LoanForm extends React.Component<IProps, IState> {
                   >
                     {termOptions}
                   </Select>
-                </Form.Item>
-              </Cell>
-              <Cell>
-                <Form.Item>
+                </Cell>
+              </Form.Item>
+              <Form.Item>
+                <Cell>
                   <label htmlFor="apr">{t('apr')}:</label>{' '}
+                </Cell>
+                <Cell>
                   <StyledTextBox id="apr">
                     {annualPercentageRate}%
                   </StyledTextBox>
-                </Form.Item>
-              </Cell>
+                </Cell>
+              </Form.Item>
             </Row>
-
             <Row>
-              <Cell>
-                <Form.Item>
+              <Form.Item>
+                <Cell>
                   <label htmlFor="collateralTokenSymbol">
                     {t('collateral')}:
                   </label>
+                </Cell>
+                <Cell>
                   <Select
                     id="collateralTokenSymbol"
                     name="collateralTokenSymbol"
@@ -252,11 +334,13 @@ class LoanForm extends React.Component<IProps, IState> {
                   >
                     {collateralTokenOptions}
                   </Select>
-                </Form.Item>
-              </Cell>
-              <Cell>
-                <Form.Item>
+                </Cell>
+              </Form.Item>
+              <Form.Item>
+                <Cell>
                   <label htmlFor="collateralAmount">{t('amount')}:</label>
+                </Cell>
+                <Cell>
                   <Input
                     id="collateralAmount"
                     type="number"
@@ -266,20 +350,25 @@ class LoanForm extends React.Component<IProps, IState> {
                     value={collateralAmount}
                     onChange={this.handleChange}
                   />
-                </Form.Item>
-              </Cell>
-              <Cell>
-                <Form.Item>
+                </Cell>
+              </Form.Item>
+            </Row>
+            <Row>
+              <Form.Item>
+                <Cell>
                   <label htmlFor="collateralRatio">
                     {t('collateral_ratio')}:
                   </label>
+                </Cell>
+                <Cell scale={3}>
                   <StyledTextBox id="collateralRatio">
                     {currCollateralRatio} % / {minCollateralRatio}
                   </StyledTextBox>
-                </Form.Item>
-              </Cell>
+                </Cell>
+              </Form.Item>
             </Row>
-
+            {couldUseFreedCollateral &&
+              this.renderFreedCollateral(freedCollateral)}
             {this.state.loanAmount > 0 ? (
               <Row>
                 <Cell>
@@ -299,16 +388,17 @@ class LoanForm extends React.Component<IProps, IState> {
               ''
             )}
             <Row>
-              <Cell>
-                <Form.Item>
+              <Form.Item>
+                <Cell>
                   <Button
                     disabled={configurationStore!.isUserActionsLocked}
                     primary
+                    fullWidth
                   >
                     {t('loan')}
                   </Button>
-                </Form.Item>
-              </Cell>
+                </Cell>
+              </Form.Item>
             </Row>
           </Form>
         </Card>
