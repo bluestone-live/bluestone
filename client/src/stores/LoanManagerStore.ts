@@ -5,7 +5,7 @@ import {
   isLoanAssetPairEnabled,
 } from './services/LoanManagerService';
 import { getCollateralRatio } from './services/ConfigurationService';
-import { BigNumber } from '../utils/BigNumber';
+import { BigNumber, convertWeiToDecimal } from '../utils/BigNumber';
 import { ITerm } from '../constants/Term';
 
 interface ILoanAssetPair {
@@ -68,6 +68,7 @@ export class LoanManagerStore {
   async initLoanTerms() {
     const loanTerms = await getLoanTerms();
     this.loanTerms = loanTerms
+      .map(term => Number.parseFloat(term.toString()))
       .sort((a, b) => a - b)
       .map(term => {
         return { text: `${term}-Day`, value: term };

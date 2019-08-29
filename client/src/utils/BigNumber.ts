@@ -4,7 +4,7 @@ export { BigNumber };
 
 const significant = 18;
 
-export const convertWeiToDecimal = (bn?: BigNumber, precision: number = 18) => {
+export const convertWeiToDecimal = (bn?: BigNumber, precision: number = 4) => {
   if (!bn) {
     return '0';
   }
@@ -25,10 +25,9 @@ export const convertWeiToDecimal = (bn?: BigNumber, precision: number = 18) => {
     padString.length,
   );
 
-  return `${integerPlaces}.${decimalPlaces.substring(
-    decimalPlaces.length - precision,
-    decimalPlaces.length,
-  )}`;
+  return `${integerPlaces}.${decimalPlaces
+    .substring(decimalPlaces.length - significant, decimalPlaces.length)
+    .substring(0, precision)}`;
 };
 
 /**

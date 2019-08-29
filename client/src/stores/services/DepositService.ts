@@ -18,7 +18,9 @@ export const getDeposit = async (
     depositAddress,
   );
   const tokenAddress = await depositContractInstance.methods.asset().call();
-  const termValue = await depositContractInstance.methods.term().call();
+  const termValue = Number.parseFloat(
+    (await depositContractInstance.methods.term().call()).toString(),
+  );
   const token = tokenStore.getTokenByAddress(tokenAddress);
   const term = terms.find(t => t.value === termValue);
   if (!token || !term) {

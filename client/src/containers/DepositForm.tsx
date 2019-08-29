@@ -13,7 +13,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Radio from '../components/common/Radio';
 import { ITerm } from '../constants/Term';
 import Button from '../components/html/Button';
-import { convertDecimalToWei } from '../utils/BigNumber';
+import { convertDecimalToWei, BigNumber } from '../utils/BigNumber';
 import Form from '../components/html/Form';
 import { Row, Cell } from '../components/common/Layout';
 import StyledTextBox from '../components/common/TextBox';
@@ -80,7 +80,7 @@ class DepositForm extends React.Component<IProps, IState> {
 
     await recordStore!.deposit(
       currentToken!,
-      selectedTerm.value,
+      new BigNumber(selectedTerm.value),
       convertDecimalToWei(amount),
     );
 

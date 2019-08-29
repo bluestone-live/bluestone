@@ -55,7 +55,7 @@ export class RecordStore {
   }
 
   @action.bound
-  async deposit(token: IToken, term: number, amount: BigNumber) {
+  async deposit(token: IToken, term: BigNumber, amount: BigNumber) {
     const depositEvent = await deposit(token.address, term, amount);
     const depositAddress = depositEvent.returnValues.deposit;
     const depositRecord = await getDeposit(
@@ -113,7 +113,7 @@ export class RecordStore {
   // loan
   @action.bound
   async loan(
-    term: number,
+    term: BigNumber,
     loanToken: IToken,
     collateralToken: IToken,
     loanAmount: BigNumber,

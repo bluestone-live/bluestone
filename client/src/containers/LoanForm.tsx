@@ -93,7 +93,7 @@ class LoanForm extends React.Component<IProps, IState> {
 
     // TODO: add input/checkbox field to use freed collateral
     await recordStore!.loan(
-      term,
+      new BigNumber(term),
       loanToken,
       collateralToken,
       convertDecimalToWei(loanAmount),
@@ -231,10 +231,11 @@ class LoanForm extends React.Component<IProps, IState> {
               100
             ).toFixed(2)}%`;
 
-      minCollateralRatio = `${convertWeiToDecimal(
-        formatBigNumber(loanAssetPair.collateralRatio).mul(new BigNumber(100)),
-        2,
-      )}%`;
+      minCollateralRatio = `${(
+        Number.parseFloat(
+          convertWeiToDecimal(loanAssetPair.collateralRatio, 2),
+        ) * 100
+      ).toFixed(2)}%`;
     }
 
     const estimatedRepayDate = dayjs()

@@ -13,12 +13,7 @@ export const calculateRate = (ratePerSecond: BigNumber, period: RatePeriod) => {
 
   switch (period) {
     case RatePeriod.Annual:
-      const yearInSeconds = new BigNumber(31536000);
-
-      return convertWeiToDecimal(
-        bigNumberRate.mul(yearInSeconds).mul(new BigNumber(100)),
-        2,
-      );
+      return convertWeiToDecimal(bigNumberRate.mul(new BigNumber(100)), 2);
     default:
       return convertWeiToDecimal(bigNumberRate.mul(new BigNumber(100)), 2);
   }

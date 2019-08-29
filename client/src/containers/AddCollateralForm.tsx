@@ -95,7 +95,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
           0)) /
       (Number.parseFloat(convertWeiToDecimal(record.loanToken.price)) || 1) /
       Number.parseFloat(record.loanAmount)
-    );
+    ).toFixed(4);
   };
 
   onUseFreedCollateralChange = (useFreedCollateral: boolean) =>

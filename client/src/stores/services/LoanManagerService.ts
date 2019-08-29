@@ -4,7 +4,7 @@ import { BigNumber } from '../../utils/BigNumber';
 import { EventData } from 'web3-eth-contract';
 import { EventName } from '../../constants/Event';
 
-export const getLoanTerms = async (): Promise<number[]> => {
+export const getLoanTerms = async (): Promise<BigNumber[]> => {
   const contract = await getContracts();
   return contract.LoanManager.methods.getLoanTerms().call();
 };
@@ -20,7 +20,7 @@ export const isLoanAssetPairEnabled = async (
 };
 
 export const loan = async (
-  term: number,
+  term: BigNumber,
   loanTokenAddress: string,
   collateralTokenAddress: string,
   loanAmount: BigNumber,
@@ -38,7 +38,7 @@ export const loan = async (
   return flow(LoanManager =>
     LoanManager.methods
       .loan(
-        term,
+        term.toString(),
         loanTokenAddress,
         collateralTokenAddress,
         loanAmount.toString(),

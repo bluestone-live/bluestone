@@ -9,6 +9,7 @@ import { IToken, SupportToken } from '../constants/Token';
 import { getPrice } from './services/PriceOracleService';
 import { IAnnualPercentageRateValues } from '../constants/Rate';
 import { ITerm } from '../constants/Term';
+import { BigNumber } from '../utils/BigNumber';
 
 export class TokenStore {
   @observable tokens = new Map<string, IToken | null>(
@@ -88,7 +89,10 @@ export class TokenStore {
     }
     const depositAnnualPercentageRates: IAnnualPercentageRateValues = {};
     for (const term of terms) {
-      const interest = await getDepositInterestRate(token.address, term.value);
+      const interest = await getDepositInterestRate(
+        token.address,
+        new BigNumber(term.value),
+      );
 
       // TODO: the interest we get is per second, not per year. Rename it.
       depositAnnualPercentageRates[term.value] = interest;

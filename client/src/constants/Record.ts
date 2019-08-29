@@ -13,7 +13,7 @@ export interface IDepositRecord {
   type: RecordType;
   status: RecordStatus;
   token: IToken;
-  term: ITerm; // address
+  term: ITerm;
   depositAmount: string;
   withdrewAmount?: string;
   createdAt: number;

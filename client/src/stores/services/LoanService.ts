@@ -5,7 +5,7 @@ import {
   ILoanRecord,
   getLoanRecordStatus,
 } from '../../constants/Record';
-import { convertWeiToDecimal } from '../../utils/BigNumber';
+import { convertWeiToDecimal, BigNumber } from '../../utils/BigNumber';
 import { formatSolidityTime } from '../../utils/formatSolidityTime';
 import { ITerm } from '../../constants/Term';
 
@@ -23,10 +23,13 @@ export const getLoan = async (
   const collateralTokenAddress = await loanContractInstance.methods
     .collateralAsset()
     .call();
-  const termValue = await loanContractInstance.methods.term().call();
+  const termValue = Number.parseFloat(
+    (await loanContractInstance.methods.term().call()).toString(),
+  );
   const loanToken = tokenStore.getTokenByAddress(loanTokenAddress);
   const collateralToken = tokenStore.getTokenByAddress(collateralTokenAddress);
   const term = terms.find(t => t.value === termValue);
+
   if (!loanToken || !collateralToken || !term) {
     // throw new Error(`invalid data: ${depositAddress}`);
     return null;
@@ -61,12 +64,14 @@ export const getLoan = async (
     ),
     interest: convertWeiToDecimal(
       await loanContractInstance.methods.interest().call(),
+      18,
     ),
     createdAt: formatSolidityTime(
       await loanContractInstance.methods.createdAt().call(),
     ),
     remainingDebt: convertWeiToDecimal(
       await loanContractInstance.methods.remainingDebt().call(),
+      18,
     ),
   };
 };
