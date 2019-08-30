@@ -5,7 +5,7 @@ const DepositManager = artifacts.require("DepositManagerMock");
 const LoanManager = artifacts.require("LoanManagerMock");
 const Loan = artifacts.require("Loan");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
-const { expectEvent, BN } = require("openzeppelin-test-helpers");
+const { expectEvent, expectRevert, constants } = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
 
 contract("LoanManager", ([owner, depositor, loaner]) => {
@@ -159,6 +159,12 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
         );
       });
     });
+
+    context("when Loan address is invalid", () => {
+      it("reverts", async () => {
+        await expectRevert(loanManager.addCollateral(constants.ZERO_ADDRESS, toFixedBN(1), false), "Invalid loan.")
+      });
+    })
   });
 
   describe("#repayLoan", () => {
@@ -181,6 +187,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       expect(alreadyPaidAmount).to.be.bignumber.equal(wantToPayAmount);
       expect(isClosed).to.be.equal(false);
     });
+
     it("repays fully", async () => {
       const loanAddress = await loanManager.loans.call(2);
       const loanInstance = await Loan.at(loanAddress);
@@ -193,7 +200,21 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       expect(remainingDebtAfterRepay).to.be.bignumber.equal(toFixedBN(0));
       expect(isClosed).to.be.equal(true);
     });
+
+    context("when Loan address is invalid", () => {
+      it("reverts", async () => {
+        await expectRevert(loanManager.repayLoan(constants.ZERO_ADDRESS, toFixedBN(1)), "Invalid loan.")
+      });
+    })
   });
+
+  describe("#liquidateLoan", () => {
+    context("when Loan address is invalid", () => {
+      it("reverts", async () => {
+        await expectRevert(loanManager.liquidateLoan(constants.ZERO_ADDRESS, toFixedBN(1)), "Invalid loan.")
+      });
+    })
+  })
 
   describe("#addLoanTerm", () => {
     it("succeeds", async () => {

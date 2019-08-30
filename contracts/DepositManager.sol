@@ -75,8 +75,8 @@ contract DepositManager is Ownable, Pausable {
     // Token address -> DepositAsset
     mapping(address => DepositAsset) private _depositAssets;
 
-    // Deposit address -> Deposit
-    mapping(address => Deposit) private _deposits;
+    // Deposit address -> valid?
+    mapping(address => bool) private _isDepositValid;
 
     // User address -> List of Deposit 
     mapping(address => Deposit[]) private _depositsByUser;
@@ -88,6 +88,11 @@ contract DepositManager is Ownable, Pausable {
 
     modifier enabledDepositAsset(address asset) {
         require(_depositAssets[asset].isEnabled, "Deposit asset must be enabled.");
+        _;
+    }
+
+    modifier validDeposit(Deposit currDeposit) {
+        require(_isDepositValid[address(currDeposit)], "Invalid deposit.");
         _;
     }
 
@@ -122,6 +127,8 @@ contract DepositManager is Ownable, Pausable {
 
         _numDeposit++;
 
+        _isDepositValid[address(currDeposit)] = true;
+
         _depositsByUser[user].push(currDeposit);
 
         _tokenManager.receiveFrom(user, asset, amount);
@@ -135,7 +142,7 @@ contract DepositManager is Ownable, Pausable {
         return currDeposit;
     }
     
-    function withdraw(Deposit currDeposit) external whenNotPaused returns (uint) {
+    function withdraw(Deposit currDeposit) external whenNotPaused validDeposit(currDeposit) returns (uint) {
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
 
         address asset = currDeposit.asset();

@@ -40,6 +40,9 @@ contract LoanManager is Ownable, Pausable {
     /// Loan-related transactions can happen only if "B -> A" is enabled.
     mapping(address => mapping(address => bool)) private _isLoanAssetPairEnabled;
 
+    // Loan address -> valid?
+    mapping(address => bool) private _isLoanValid;
+
     // User address -> A list of Loans
     mapping(address => Loan[]) private _loansByUser;
 
@@ -56,6 +59,11 @@ contract LoanManager is Ownable, Pausable {
         uint minCollateralRatio;
         uint interestRate;
         uint liquidationDiscount;
+    }
+
+    modifier validLoan(Loan currLoan) {
+        require(_isLoanValid[address(currLoan)], "Invalid loan.");
+        _;
     }
 
     // PUBLIC  -----------------------------------------------------------------
@@ -119,6 +127,8 @@ contract LoanManager is Ownable, Pausable {
 
         _numLoans++;
 
+        _isLoanValid[address(currLoan)] = true;
+
         _loansByUser[loaner].push(currLoan);
 
         uint[] memory depositTerms = _depositManager.getDepositTerms();
@@ -137,7 +147,7 @@ contract LoanManager is Ownable, Pausable {
         return currLoan;
     }
 
-    function repayLoan(Loan currLoan, uint amount) public whenNotPaused returns (uint) {
+    function repayLoan(Loan currLoan, uint amount) public whenNotPaused validLoan(currLoan) returns (uint) {
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
         address loanAsset = currLoan.loanAsset();
         address collateralAsset = currLoan.collateralAsset();
@@ -163,8 +173,10 @@ contract LoanManager is Ownable, Pausable {
     }
 
     // A loan can be liquidated when it is defaulted or the collaterization ratio is below requirement
-    function liquidateLoan(Loan currLoan, uint amount) external whenNotPaused returns (uint, uint) {
+    function liquidateLoan(Loan currLoan, uint amount) external whenNotPaused validLoan(currLoan) returns (uint, uint) {
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
+
+        LoanLocalVars memory localVars;
         address loanAsset = currLoan.loanAsset();
         address collateralAsset = currLoan.collateralAsset();
 
@@ -174,18 +186,18 @@ contract LoanManager is Ownable, Pausable {
 
         require(liquidator != currLoan.owner(), "Loan cannot be liquidated by the owner.");
 
-        uint loanAssetPrice = _priceOracle.getPrice(loanAsset);
-        uint collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
+        localVars.loanAssetPrice = _priceOracle.getPrice(loanAsset);
+        localVars.collateralAssetPrice = _priceOracle.getPrice(collateralAsset);
 
         require(
-            currLoan.isLiquidatable(loanAssetPrice, collateralAssetPrice),
+            currLoan.isLiquidatable(localVars.loanAssetPrice, localVars.collateralAssetPrice),
             "Loan is not liquidatable."
         );
 
         (uint liquidatedAmount, uint soldCollateralAmount, uint freedCollateralAmount) = currLoan.liquidate(
             amount,
-            loanAssetPrice,
-            collateralAssetPrice
+            localVars.loanAssetPrice,
+            localVars.collateralAssetPrice
         );
 
         uint[] memory depositTerms = _depositManager.getDepositTerms();
@@ -206,6 +218,7 @@ contract LoanManager is Ownable, Pausable {
     function addCollateral(Loan currLoan, uint collateralAmount, bool useFreedCollateral)
         external
         whenNotPaused
+        validLoan(currLoan)
         returns (uint)
     {
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");

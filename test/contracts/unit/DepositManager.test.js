@@ -7,6 +7,7 @@ const {
   createERC20Token,
   printLogs
 } = require("../../utils/index.js");
+const { constants, expectRevert } = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
 
 contract("DepositManager", ([owner, depositor]) => {
@@ -57,6 +58,14 @@ contract("DepositManager", ([owner, depositor]) => {
         await poolGroup.totalLoanableAmountPerTerm(term)
       ).to.bignumber.equal(amount);
     });
+  });
+
+  describe("#withdraw", () => {
+    context("when Deposit address is invalid", () => {
+      it("reverts", async () => {
+        await expectRevert(depositManager.withdraw(constants.ZERO_ADDRESS), "Invalid deposit.")
+      });
+    })
   });
 
   describe("#getDepositsByUser", () => {
