@@ -49,16 +49,8 @@ class DepositDetail extends React.Component<IProps, IState> {
           <TextBox>{depositRecord.depositAmount}</TextBox>
         </Form.Item>
         <Form.Item>
-          <label>{t('select_term')}</label>
-          <TextBox>{depositRecord.term.text}</TextBox>
-        </Form.Item>
-        <Form.Item>
-          <label>{t('actual_income')}</label>
-          <TextBox>
-            {
-              // TODO: depends on the contract refactor
-            }
-          </TextBox>
+          <label>{t('interest_earned')}</label>
+          <TextBox>{depositRecord.interestEarned}</TextBox>
         </Form.Item>
         {depositRecord.status === RecordStatus.DepositMatured && (
           <Form.Item>

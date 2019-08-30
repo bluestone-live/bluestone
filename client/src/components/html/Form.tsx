@@ -34,7 +34,6 @@ const StyledFormItem = styled.div`
   display: flex;
   padding: ${(props: ThemedProps) => props.theme.gap.small};
   justify-content: flex-end;
-  width: 100%;
   & > * {
     flex: 2;
   }

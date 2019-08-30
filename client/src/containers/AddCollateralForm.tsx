@@ -90,12 +90,13 @@ class AddCollateralForm extends React.Component<IProps, IState> {
       return 'calculate error';
     }
     return (
-      (Number.parseFloat(record.collateralAmount) *
+      ((Number.parseFloat(record.collateralAmount) *
         (Number.parseFloat(convertWeiToDecimal(record.collateralToken.price)) ||
           0)) /
-      (Number.parseFloat(convertWeiToDecimal(record.loanToken.price)) || 1) /
-      Number.parseFloat(record.loanAmount)
-    ).toFixed(4);
+        (Number.parseFloat(convertWeiToDecimal(record.loanToken.price)) || 1) /
+        Number.parseFloat(record.loanAmount)) *
+      100
+    ).toFixed(2);
   };
 
   onUseFreedCollateralChange = (useFreedCollateral: boolean) =>
@@ -200,11 +201,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
                 <label>{t('collateral_ratio')}</label>
               </Cell>
               <Cell scale={3}>
-                <Input
-                  type="text"
-                  disabled
-                  value={this.getCollateralRatio(record)}
-                />
+                <TextBox>{`${this.getCollateralRatio(record)} %`}</TextBox>
               </Cell>
             </Row>
           </Form.Item>
