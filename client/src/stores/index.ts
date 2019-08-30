@@ -35,14 +35,6 @@ export const initStore = async () => {
   );
   await Promise.all(
     tokens.map(token => {
-      return tokenStore.getDepositInterestRates(
-        token.symbol,
-        depositManagerStore.depositTerms,
-      );
-    }),
-  );
-  await Promise.all(
-    tokens.map(token => {
       return tokenStore.getLoanInterestRates(
         token.symbol,
         loanManagerStore.loanTerms,

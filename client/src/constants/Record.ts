@@ -16,6 +16,7 @@ export interface IDepositRecord {
   term: ITerm;
   depositAmount: string;
   withdrewAmount?: string;
+  interestEarned: string;
   createdAt: number;
   maturedAt: number;
   withdrewAt?: number; // can a deposit order withdrew multiple times

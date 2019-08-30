@@ -1,9 +1,6 @@
 import { observable, action, computed } from 'mobx';
 import { getTokenAddress, getERC20Token } from './services/TokenService';
-import {
-  isDepositAssetEnabled,
-  getDepositInterestRate,
-} from './services/DepositManagerService';
+import { isDepositAssetEnabled } from './services/DepositManagerService';
 import { getLoanInterestRate } from './services/ConfigurationService';
 import { IToken, SupportToken } from '../constants/Token';
 import { getPrice } from './services/PriceOracleService';
@@ -79,28 +76,6 @@ export class TokenStore {
     }
     const depositEnabled = await isDepositAssetEnabled(token.address);
     return this.updateToken(token.symbol, { ...token, depositEnabled });
-  }
-
-  @action.bound
-  async getDepositInterestRates(tokenSymbol: string, terms: ITerm[]) {
-    const token = this.tokens.get(tokenSymbol);
-    if (!token) {
-      throw new Error(`no such token: ${tokenSymbol}`);
-    }
-    const depositAnnualPercentageRates: IAnnualPercentageRateValues = {};
-    for (const term of terms) {
-      const interest = await getDepositInterestRate(
-        token.address,
-        new BigNumber(term.value),
-      );
-
-      // TODO: the interest we get is per second, not per year. Rename it.
-      depositAnnualPercentageRates[term.value] = interest;
-    }
-    return this.updateToken(tokenSymbol, {
-      ...token,
-      depositAnnualPercentageRates,
-    });
   }
 
   @action.bound

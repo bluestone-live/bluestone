@@ -21,7 +21,6 @@ export interface IToken {
   symbol: string;
   address: string;
   defaultLoanPair: string;
-  depositAnnualPercentageRates?: IAnnualPercentageRateValues;
   loanAnnualPercentageRates?: IAnnualPercentageRateValues;
   logo?: string;
   depositEnabled: boolean;

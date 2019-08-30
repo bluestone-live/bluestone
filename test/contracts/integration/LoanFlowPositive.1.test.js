@@ -127,11 +127,8 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       expect(loanSuccessfulLogs.length).to.be.equal(1);
     });
 
-<<<<<<< HEAD
     let poolGroup;
 
-=======
->>>>>>> [Contract]: get interest index from depositManager
     it("loans from the correct pool", async () => {
       const poolGroupAddress = await liquidityPools.poolGroups(
         loanAsset.address,

@@ -8,6 +8,7 @@ import {
 import { convertWeiToDecimal } from '../../utils/BigNumber';
 import { formatSolidityTime } from '../../utils/formatSolidityTime';
 import { ITerm } from '../../constants/Term';
+import { getInterestIndex } from './DepositManagerService';
 
 export const getDeposit = async (
   depositAddress: string,
@@ -23,6 +24,16 @@ export const getDeposit = async (
   );
   const token = tokenStore.getTokenByAddress(tokenAddress);
   const term = terms.find(t => t.value === termValue);
+  const interestIndex = convertWeiToDecimal(
+    await getInterestIndex(depositAddress),
+  );
+
+  const depositAmount = convertWeiToDecimal(
+    await depositContractInstance.methods.amount().call(),
+  );
+  const interestEarned = (
+    Number.parseFloat(depositAmount) * Number.parseFloat(interestIndex)
+  ).toFixed(4);
   if (!token || !term) {
     // throw new Error(`invalid data: ${depositAddress}`);
     return null;
@@ -34,9 +45,8 @@ export const getDeposit = async (
     status: await getDepositRecordStatus(depositContractInstance),
     token,
     term,
-    depositAmount: convertWeiToDecimal(
-      await depositContractInstance.methods.amount().call(),
-    ),
+    depositAmount,
+    interestEarned,
     withdrewAmount: convertWeiToDecimal(
       await depositContractInstance.methods.withdrewAmount().call(),
     ),

@@ -17,14 +17,13 @@ export const isDepositAssetEnabled = async (
     .call();
 };
 
-export const getDepositInterestRate = async (
-  tokenAddress: string,
-  term: BigNumber,
+export const getInterestIndex = async (
+  depositAddress: string,
 ): Promise<BigNumber> => {
   const contract = await getContracts();
 
   return contract.DepositManager.methods
-    .getDepositInterestRate(tokenAddress, term.toString())
+    .getInterestIndex(depositAddress)
     .call();
 };
 

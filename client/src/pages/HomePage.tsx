@@ -161,7 +161,6 @@ class HomePage extends React.Component<IProps, IState> {
             <thead>
               <tr>
                 <th style={{ minWidth: '220px' }}>{t('asset')}</th>
-                <th style={{ minWidth: '240px' }}>{t('deposit_apr')}</th>
                 <th style={{ minWidth: '240px' }}>{t('loan_apr')}</th>
                 <th />
               </tr>
@@ -177,16 +176,6 @@ class HomePage extends React.Component<IProps, IState> {
                   <td>
                     {token.logo}
                     {token.symbol}
-                  </td>
-                  <td>
-                    {token.depositAnnualPercentageRates
-                      ? `${calculateRate(
-                          token.depositAnnualPercentageRates[
-                            selectedTerm.value
-                          ],
-                          RatePeriod.Annual,
-                        )}%`
-                      : '0%'}
                   </td>
                   <td>
                     {token.loanAnnualPercentageRates
