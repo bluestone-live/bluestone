@@ -106,13 +106,16 @@ contract DepositManager is Ownable, Pausable {
 
         address user = msg.sender;
         uint profitRatio = _config.getProfitRatio();
+        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
+        uint poolId = poolGroup.poolIds(depositTerm - 1);
 
         Deposit currDeposit = new Deposit(
             asset,
-            user, 
-            depositTerm, 
-            amount, 
-            profitRatio
+            user,
+            depositTerm,
+            amount,
+            profitRatio,
+            poolId
         );
 
         uint[] memory loanTerms = _loanManager.getLoanTerms();
@@ -175,9 +178,30 @@ contract DepositManager is Ownable, Pausable {
         return _depositAssets[asset].isEnabled;
     }
 
-    // TODO: remove it
-    function getDepositInterestRate(address asset, uint term) external view enabledDepositAsset(asset) returns (uint) {
-        return _depositAssets[asset].lastInterestRatePerTerm[term];
+    function getInterestIndex(Deposit currDeposit) external view returns (uint) {
+        require(currDeposit.owner() == msg.sender, "Must be owner");
+        bool isMatured = currDeposit.isMatured();
+        address asset = currDeposit.asset();
+        uint term = currDeposit.term();
+        uint profitRatio = currDeposit.profitRatio();
+        uint poolId = currDeposit.poolId();
+
+        if (isMatured) {
+            uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
+            uint originalInterestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
+            return originalInterestIndex.sub(originalInterestIndex.mulFixed(profitRatio));
+        }
+
+        PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
+        uint totalDeposit = poolGroup.getDepositByPoolId(poolId);
+
+        if (totalDeposit == 0) {
+            return 0;
+        }
+
+        uint loanInterest = poolGroup.getLoanInterestByPoolId(poolId);
+
+        return loanInterest.sub(loanInterest.mulFixed(profitRatio)).divFixed(totalDeposit);
     }
 
     function getDepositsByUser(address user) external whenNotPaused view returns (Deposit[] memory) {

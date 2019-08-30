@@ -2,7 +2,11 @@ const TokenManager = artifacts.require("TokenManager");
 const DepositManager = artifacts.require("DepositManagerMock");
 const LiquidityPools = artifacts.require("LiquidityPools");
 const PoolGroup = artifacts.require("PoolGroup");
-const { toFixedBN, createERC20Token, printLogs } = require("../../utils/index.js");
+const {
+  toFixedBN,
+  createERC20Token,
+  printLogs
+} = require("../../utils/index.js");
 const { expect } = require("chai");
 
 contract("DepositManager", ([owner, depositor]) => {
@@ -21,16 +25,6 @@ contract("DepositManager", ([owner, depositor]) => {
     await depositManager.enableDepositAsset(asset.address);
   });
 
-  describe("#getDepositInterestRate", () => {
-    it("succeeds", async () => {
-      const res = await depositManager.getDepositInterestRate(
-        asset.address,
-        term
-      );
-      expect(res).to.be.bignumber.equal(toFixedBN(0));
-    });
-  });
-
   describe("#deposit", () => {
     let amount;
 
@@ -38,26 +32,30 @@ contract("DepositManager", ([owner, depositor]) => {
       amount = toFixedBN(10);
     });
 
-    let res
+    let res;
 
     it("succeeds", async () => {
-      res = await depositManager.deposit(
-        asset.address,
-        term,
-        amount,
-        { from: depositor }
-      );
+      res = await depositManager.deposit(asset.address, term, amount, {
+        from: depositor
+      });
     });
 
     it("emits DepositSuccessful event", async () => {
-      const events = res.logs.filter(({ event }) => event === "DepositSuccessful");
+      const events = res.logs.filter(
+        ({ event }) => event === "DepositSuccessful"
+      );
       expect(events.length).to.be.equals(1);
     });
 
     it("updates totalLoanableAmountPerTerm for PoolGroup", async () => {
-      const poolGroupAddress = await liquidityPools.poolGroups(asset.address, term);
+      const poolGroupAddress = await liquidityPools.poolGroups(
+        asset.address,
+        term
+      );
       const poolGroup = await PoolGroup.at(poolGroupAddress);
-      expect(await poolGroup.totalLoanableAmountPerTerm(term)).to.bignumber.equal(amount);
+      expect(
+        await poolGroup.totalLoanableAmountPerTerm(term)
+      ).to.bignumber.equal(amount);
     });
   });
 
@@ -69,7 +67,6 @@ contract("DepositManager", ([owner, depositor]) => {
       expect(deposits[0]).to.equal(await depositManager.deposits.call(0));
     });
   });
-
 
   describe("#enableDepositTerm", () => {
     it("succeeds", async () => {
@@ -149,6 +146,23 @@ contract("DepositManager", ([owner, depositor]) => {
         numDays
       );
       expect(actualInterestIndex).to.be.bignumber.equal("0");
+    });
+  });
+
+  describe("#getInterestIndex", () => {
+    before(async () => {
+      res = await depositManager.deposit(asset.address, term, toFixedBN(10), {
+        from: depositor
+      });
+    });
+
+    it("gets zero in the beginning", async () => {
+      const deposit = (await depositManager.getDepositsByUser(depositor))[1];
+
+      const interestRate = await depositManager.getInterestIndex(deposit, {
+        from: depositor
+      });
+      expect(interestRate).to.bignumber.equal(toFixedBN(0));
     });
   });
 });

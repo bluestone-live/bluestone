@@ -18,6 +18,7 @@ contract Deposit {
     uint private _createdAt;
     uint private _maturedAt;
     uint private _withdrewAt;
+    uint private _poolId;
 
     uint private constant DAY_IN_SECONDS = 86400;
 
@@ -26,7 +27,8 @@ contract Deposit {
         address owner, 
         uint term, 
         uint amount, 
-        uint profitRatio
+        uint profitRatio,
+        uint poolId
     ) public {
         require(amount > 0);
 
@@ -35,6 +37,7 @@ contract Deposit {
         _term = term;
         _amount = amount;
         _profitRatio = profitRatio;
+        _poolId = poolId;
         _withdrewAmount = 0;
         _createdAt = now;
 
@@ -83,6 +86,14 @@ contract Deposit {
 
     function maturedAt() external view returns (uint) {
         return _maturedAt;
+    }
+
+    function profitRatio() external view returns (uint) {
+        return _profitRatio;
+    }
+
+    function poolId() external view returns (uint) {
+        return _poolId;
     }
 
     function withdrawDepositAndInterest(uint currInterestIndex) external returns (uint, uint) {

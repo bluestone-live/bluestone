@@ -105,6 +105,10 @@ contract PoolGroup {
 
     function getDepositFromPool(uint index) public view returns (uint) {
         uint poolId = poolIds[index];
+        return getDepositByPoolId(poolId);
+    }
+
+    function getDepositByPoolId(uint poolId) public view returns (uint) {
         return poolsById[poolId].deposit;
     }
 
@@ -115,6 +119,10 @@ contract PoolGroup {
 
     function getLoanInterestFromPool(uint index) external view returns (uint) {
         uint poolId = poolIds[index];
+        return getLoanInterestByPoolId(poolId);
+    }
+
+    function getLoanInterestByPoolId(uint poolId) public view returns (uint) {
         return poolsById[poolId].loanInterest;
     }
 

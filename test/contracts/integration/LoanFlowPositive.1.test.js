@@ -13,6 +13,8 @@ const { expect } = require("chai");
 
 contract("LoanManager", ([owner, depositor, loaner]) => {
   const initialSupply = toFixedBN(1000);
+  const interestRate = toFixedBN(0.15);
+  const profitRatio = toFixedBN(0.1);
   let priceOracle, tokenManager, depositManager, loanManager, liquidityPools;
 
   before(async () => {
@@ -33,6 +35,12 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       term = (await depositManager.getDepositTerms())[0];
       loanAsset = await createERC20Token(depositor, initialSupply);
       collateralAsset = await createERC20Token(loaner, initialSupply);
+
+      await config.setProfitRatio(profitRatio);
+
+      await config.setLoanInterestRate(loanAsset.address, term, interestRate, {
+        from: owner
+      });
       await priceOracle.setPrice(loanAsset.address, toFixedBN(10));
       await priceOracle.setPrice(collateralAsset.address, toFixedBN(10));
       await loanAsset.approve(tokenManager.address, initialSupply, {
@@ -63,6 +71,25 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
     let prevLoanAssetBalance, prevCollateralAssetBalance;
 
     let loanSuccessfulLogs;
+
+    let poolGroup;
+
+    before(async () => {
+      const poolGroupAddress = await liquidityPools.poolGroups(
+        loanAsset.address,
+        term
+      );
+      poolGroup = await PoolGroup.at(poolGroupAddress);
+    });
+
+    it("get init amount of the pool", async () => {
+      const poolId = await poolGroup.poolIds(term - 1);
+      pool = await poolGroup.poolsById(poolId.toString());
+
+      expect(pool.deposit).to.bignumber.equal(depositAmount);
+      expect(pool.loanableAmount).to.bignumber.equal(depositAmount);
+      expect(pool.loanInterest).to.bignumber.equal(toFixedBN(0));
+    });
 
     it("makes a loan", async () => {
       const useFreedCollateral = false;
@@ -100,8 +127,11 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       expect(loanSuccessfulLogs.length).to.be.equal(1);
     });
 
+<<<<<<< HEAD
     let poolGroup;
 
+=======
+>>>>>>> [Contract]: get interest index from depositManager
     it("loans from the correct pool", async () => {
       const poolGroupAddress = await liquidityPools.poolGroups(
         loanAsset.address,
@@ -124,6 +154,44 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       const poolId = term.sub(new BN(1));
       const loanRecordAmount = await loan.getRecord(term, poolId);
       expect(loanRecordAmount).to.bignumber.equal(loanAmount);
+    });
+
+    it("reduce loanable amount", async () => {
+      const poolId = await poolGroup.poolIds(term - 1);
+      pool = await poolGroup.poolsById(poolId.toString());
+
+      expect(pool.deposit).to.bignumber.equal(depositAmount);
+      expect(pool.loanableAmount).to.bignumber.equal(
+        depositAmount.sub(loanAmount)
+      );
+    });
+
+    it("increase loan interest", async () => {
+      const interest = loanAmount
+        .mul(interestRate)
+        .mul(toFixedBN(term))
+        .div(toFixedBN(365))
+        .div(toFixedBN(1));
+      const poolId = await poolGroup.poolIds(term - 1);
+      pool = await poolGroup.poolsById(poolId.toString());
+
+      expect(pool.loanInterest).to.bignumber.equal(interest);
+    });
+
+    it("changes interest index", async () => {
+      const poolId = await poolGroup.poolIds(term - 1);
+      pool = await poolGroup.poolsById(poolId.toString());
+
+      const deposit = (await depositManager.getDepositsByUser(depositor))[0];
+      const interestIndex = await depositManager.getInterestIndex(deposit, {
+        from: depositor
+      });
+
+      const expectedInterestIndex = pool.loanInterest
+        .sub(pool.loanInterest.mul(profitRatio).div(toFixedBN(1)))
+        .mul(toFixedBN(1))
+        .div(pool.deposit);
+      expect(interestIndex).to.bignumber.equal(expectedInterestIndex);
     });
 
     context("after 6 days", () => {
