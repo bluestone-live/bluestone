@@ -5,8 +5,37 @@ import { ThemedProps } from '../../styles/themes';
 interface IProps {
   type?: string;
   fullWidth?: boolean;
+  suffix?: React.ReactNode;
+  prefix?: React.ReactNode;
   [propName: string]: any;
 }
+
+const StyledInputGroup = styled.div`
+  display: flex;
+
+  > input {
+    flex: 1;
+
+    &:not(:last-child) {
+      border-radius: ${(props: ThemedProps) => props.theme.borderRadius.medium}
+        0 0 ${(props: ThemedProps) => props.theme.borderRadius.medium};
+      margin-right: -1px;
+    }
+  }
+
+  > .addon {
+    flex: 0;
+    &:first-child {
+      margin-right: -1px;
+
+      & ~ input {
+        border-radius: ${(props: ThemedProps) =>
+            props.theme.borderRadius.medium}
+          ${(props: ThemedProps) => props.theme.borderRadius.medium} 0 0;
+      }
+    }
+  }
+`;
 
 const StyledInput = styled.input`
   font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
@@ -30,8 +59,18 @@ const StyledInput = styled.input`
     `}
 `;
 
+const renderAddon = (content: React.ReactNode) => {
+  return <div className="addon">{content}</div>;
+};
+
 const Input = (props: IProps) => {
-  return <StyledInput {...props} />;
+  return (
+    <StyledInputGroup>
+      {props.prefix && renderAddon(props.prefix)}
+      <StyledInput {...props} />
+      {props.suffix && renderAddon(props.suffix)}
+    </StyledInputGroup>
+  );
 };
 
 export default Input;
