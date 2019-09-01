@@ -11,6 +11,8 @@ import { RecordType } from '../constants/Record';
 import dayjs from 'dayjs';
 import { convertDecimalToWei } from '../utils/BigNumber';
 import { stringify } from 'querystring';
+import styled from 'styled-components';
+import { ThemedProps } from '../styles/themes';
 
 interface IProps
   extends WithTranslation,
@@ -23,6 +25,13 @@ interface IState {
   amount: string;
   loading: boolean;
 }
+
+const StyledSuffixButton = styled(Button)`
+  border-radius: 0 ${(props: ThemedProps) => props.theme.borderRadius.medium}
+    ${(props: ThemedProps) => props.theme.borderRadius.medium} 0;
+
+  height: 100%;
+`;
 
 @inject('recordStore', 'configurationStore')
 @observer
@@ -44,6 +53,15 @@ class RepayForm extends React.Component<IProps, IState> {
     this.setState({
       amount: e.currentTarget.value,
     });
+
+  onMaxButtonClick = (remainingDebt: string) => (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.preventDefault();
+    this.setState({
+      amount: remainingDebt,
+    });
+  };
 
   onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,6 +88,7 @@ class RepayForm extends React.Component<IProps, IState> {
 
   render() {
     const { t, recordStore, configurationStore, match } = this.props;
+    const { amount } = this.state;
     const record = recordStore!.getLoanRecordByAddress(
       match.params.recordAddress,
     );
@@ -85,7 +104,16 @@ class RepayForm extends React.Component<IProps, IState> {
               step={1e-18}
               min={1e-18}
               max={record.remainingDebt}
+              value={amount}
               onChange={this.onAmountChange}
+              suffix={
+                <StyledSuffixButton
+                  primary
+                  onClick={this.onMaxButtonClick(record.remainingDebt)}
+                >
+                  {t('max')}
+                </StyledSuffixButton>
+              }
             />
           </Form.Item>
           <Form.Item>
