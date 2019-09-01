@@ -44,7 +44,7 @@ export const deposit = async (
 
   return flow(DepositManager =>
     DepositManager.methods
-      .deposit(assetAddress, term, amount.toString())
+      .deposit(assetAddress, term.toString(), amount.toString())
       .send({ from: accountStore.defaultAccount }),
   );
 };

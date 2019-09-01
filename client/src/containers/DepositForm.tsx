@@ -16,11 +16,6 @@ import Button from '../components/html/Button';
 import { convertDecimalToWei, BigNumber } from '../utils/BigNumber';
 import Form from '../components/html/Form';
 import { Row, Cell } from '../components/common/Layout';
-import StyledTextBox from '../components/common/TextBox';
-import {
-  calculateRate,
-  RatePeriod,
-} from '../utils/interestRateCalculateHelper';
 
 interface IProps
   extends WithTranslation,

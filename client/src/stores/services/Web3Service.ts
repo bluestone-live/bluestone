@@ -159,7 +159,9 @@ export const getContractEventFlow = async (
   }
 
   let eventSubscription: any;
-  const eventFlow = (callback: (contract: Contract) => Promise<any>) => {
+  const eventFlow = (
+    callback: (callbackContractParam: Contract) => Promise<any>,
+  ) => {
     const p = new Promise<EventData>((resolve, reject) => {
       eventSubscription = contractInstance.events[eventName](
         options || {},
