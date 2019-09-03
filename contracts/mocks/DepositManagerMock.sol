@@ -25,4 +25,8 @@ contract DepositManagerMock is DepositManager {
     function getInterestIndexFromDaysAgo(address asset, uint term, uint numDaysAgo) public view returns (uint) {
         return super._getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
     }
+
+    function updateDepositMaturity(address asset) public {
+        super._updateDepositMaturity(asset);
+    }
 }

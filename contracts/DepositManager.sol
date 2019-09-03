@@ -309,12 +309,28 @@ contract DepositManager is Ownable, Pausable {
     // Update deposit maturity for each asset
     function updateAllDepositMaturity(address[] calldata assetList) external whenNotPaused onlyOwner {
         for (uint i = 0; i < assetList.length; i++) {
-            updateDepositMaturity(assetList[i]);
+            _updateDepositMaturity(assetList[i]);
         }
     }
 
+    // INTERNAL  --------------------------------------------------------------
+
+    // Add a new interest index
+    function _updateInterestIndexHistory(address asset, uint term, uint interestIndex) internal {
+        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
+
+        // Add a new interest index
+        history.lastDay++;
+        history.interestIndexPerDay[history.lastDay] = interestIndex;
+    }
+
+    function _getInterestIndexFromDaysAgo(address asset, uint term, uint numDaysAgo) internal view returns (uint) {
+        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
+        return history.interestIndexPerDay[history.lastDay.sub(numDaysAgo)];
+    }
+
     // Update deposit maturity for each PoolGroup of an asset
-    function updateDepositMaturity(address asset) public whenNotPaused onlyOwner enabledDepositAsset(asset) {
+    function _updateDepositMaturity(address asset) internal whenNotPaused onlyOwner enabledDepositAsset(asset) {
         uint[] memory loanTerms = _loanManager.getLoanTerms();
 
         for (uint i = 0; i < _allDepositTerms.length; i++) {
@@ -337,19 +353,4 @@ contract DepositManager is Ownable, Pausable {
         }
     }
 
-    // INTERNAL  --------------------------------------------------------------
-
-    // Add a new interest index
-    function _updateInterestIndexHistory(address asset, uint term, uint interestIndex) internal {
-        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
-
-        // Add a new interest index
-        history.lastDay++;
-        history.interestIndexPerDay[history.lastDay] = interestIndex;
-    }
-
-    function _getInterestIndexFromDaysAgo(address asset, uint term, uint numDaysAgo) internal view returns (uint) {
-        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
-        return history.interestIndexPerDay[history.lastDay.sub(numDaysAgo)];
-    }
 }
