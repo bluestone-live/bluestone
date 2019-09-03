@@ -65,22 +65,22 @@ contract("Deposit", ([owner]) => {
       const currInterestIndex = toFixedBN(0.05);
       const {
         "0": withdrewAmount,
-        "1": interestsForShareholders
+        "1": interestsForProtocol
       } = await deposit.withdrawDepositAndInterest.call(currInterestIndex);
 
       const expectedTotalInterests = amount
         .mul(currInterestIndex)
         .div(toFixedBN(1));
-      const expectedInterestsForShareholder = expectedTotalInterests
+      const expectedInterestsForProtocol = expectedTotalInterests
         .mul(profitRatio)
         .div(toFixedBN(1));
       const expectedInterestsForDepositor = expectedTotalInterests.sub(
-        expectedInterestsForShareholder
+        expectedInterestsForProtocol
       );
       const expectedWithdrewAmount = amount.add(expectedInterestsForDepositor);
       expect(withdrewAmount).to.be.bignumber.equal(expectedWithdrewAmount);
-      expect(interestsForShareholders).to.be.bignumber.equal(
-        expectedInterestsForShareholder
+      expect(interestsForProtocol).to.be.bignumber.equal(
+        expectedInterestsForProtocol
       );
     });
   });

@@ -42,7 +42,7 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
     await config.setLoanInterestRate(loanAsset.address, 7, loanInterestRate7)
     await config.setLoanInterestRate(loanAsset.address, 30, loanInterestRate30)
 
-    await config.setShareholderAddress(owner);
+    await config.setProtocolAddress(owner);
   });
 
   describe('calculate deposit interest', () => {

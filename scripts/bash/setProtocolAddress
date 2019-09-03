@@ -6,7 +6,7 @@ source $DIR/utils
 required_args=( network address )
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Set shareholder address."
+  description="Set protocol address."
   show_help_message "$description" $required_args
   exit 1
 fi

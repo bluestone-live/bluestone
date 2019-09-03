@@ -1,10 +1,10 @@
 const Configuration = artifacts.require('Configuration')
-const setShareholderAddress = require('../../scripts/javascript/setShareholderAddress.js')
+const setProtocolAddress = require('../../scripts/javascript/setProtocolAddress.js')
 const { constants } = require('openzeppelin-test-helpers')
 const { expect } = require('chai')
 
 
-describe('script: setShareholderAddress', () => {
+describe('script: setProtocolAddress', () => {
   let config
   const cb = () => {}
   const network = 'development'
@@ -13,18 +13,18 @@ describe('script: setShareholderAddress', () => {
     config = await Configuration.deployed()
   })
 
-  contract('Configuration', function([owner, shareholder]) {
+  contract('Configuration', function([_, protocol]) {
     context('when input is valid', () => {
       it('succeeds', async () => {
-        const asset = await setShareholderAddress(cb, network, shareholder)
+        await setProtocolAddress(cb, network, protocol)
 
-        expect(await config.getShareholderAddress()).to.equal(shareholder)
+        expect(await config.getProtocolAddress()).to.equal(protocol)
       })
     })
 
     context('when input is invalid', () => {
       it('fails', async () => {
-        const succeed = await setShareholderAddress(cb, network, constants.ZERO_ADDRESS)
+        const succeed = await setProtocolAddress(cb, network, constants.ZERO_ADDRESS)
 
         expect(succeed).to.be.false
       })

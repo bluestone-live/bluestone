@@ -136,8 +136,8 @@ module.exports = makeTruffleScript(async network => {
   const account = web3.eth.accounts.create();
   const { address } = account;
 
-  debug(`setShareholderAddress: ${address}`);
-  await config.setShareholderAddress(address);
+  debug(`setProtocolAddress: ${address}`);
+  await config.setProtocolAddress(address);
 
   divider();
 

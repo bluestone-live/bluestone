@@ -13,7 +13,7 @@ contract('DepositManager', ([owner, depositor]) => {
     tokenManager = await TokenManager.deployed()
     config = await Configuration.deployed()
     datetime = await DateTime.new()
-    await config.setShareholderAddress(owner)
+    await config.setProtocolAddress(owner)
   })
 
   describe('deposit flow positive #1', () => {

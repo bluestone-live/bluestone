@@ -24,8 +24,8 @@ contract Configuration is Ownable {
     // The percentage we take from deposit interest as profit
     uint private _profitRatio = 15 * (10 ** 16); // 0.15 (15%)
 
-    // Shareholder address which receives profit
-    address private _shareholderAddress;
+    // Protocol address which receives profit
+    address private _protocolAddress;
 
     // Lock all functionalities related to deposit, loan and liquidating
     bool private _isUserActionsLocked;
@@ -46,8 +46,8 @@ contract Configuration is Ownable {
         return _profitRatio;
     }
 
-    function getShareholderAddress() external view returns (address) {
-        return _shareholderAddress;
+    function getProtocolAddress() external view returns (address) {
+        return _protocolAddress;
     }
 
     function isUserActionsLocked() public view returns (bool) {
@@ -82,10 +82,10 @@ contract Configuration is Ownable {
         _profitRatio = value;
     }
 
-    function setShareholderAddress(address shareholderAddress) public onlyOwner {
-        require(shareholderAddress != address(0), "Invalid shareholder address.");
+    function setProtocolAddress(address protocolAddress) public onlyOwner {
+        require(protocolAddress != address(0), "Invalid protocol address.");
 
-        _shareholderAddress = shareholderAddress;
+        _protocolAddress = protocolAddress;
     }
 
     function lockAllUserActions() external onlyOwner {

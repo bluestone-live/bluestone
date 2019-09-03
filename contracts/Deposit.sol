@@ -94,12 +94,12 @@ contract Deposit {
 
     function withdrawDepositAndInterest(uint currInterestIndex) external returns (uint, uint) {
         uint totalInterests = _amount.mulFixed(currInterestIndex);
-        uint interestsForShareholders = totalInterests.mulFixed(_profitRatio);
-        uint interestsForDepositor = totalInterests.sub(interestsForShareholders);
+        uint interestsForProtocol = totalInterests.mulFixed(_profitRatio);
+        uint interestsForDepositor = totalInterests.sub(interestsForProtocol);
 
         _withdrewAmount = _amount.add(interestsForDepositor);
         _withdrewAt = now;
 
-        return (_withdrewAmount, interestsForShareholders);
+        return (_withdrewAmount, interestsForProtocol);
     }
 }

@@ -165,11 +165,11 @@ contract DepositManager is Ownable, Pausable {
         // Depositor receives principle plus interest
         uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
         uint interestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
-        (uint withdrewAmount, uint interestsForShareholders) = currDeposit.withdrawDepositAndInterest(interestIndex);
-        address shareholder = _config.getShareholderAddress();
+        (uint withdrewAmount, uint interestsForProtocol) = currDeposit.withdrawDepositAndInterest(interestIndex);
+        address protocol = _config.getProtocolAddress();
 
         _tokenManager.sendTo(user, asset, withdrewAmount);
-        _tokenManager.sendTo(shareholder, asset, interestsForShareholders);
+        _tokenManager.sendTo(protocol, asset, interestsForProtocol);
 
         emit WithdrawDepositSuccessful(user, currDeposit);
         return withdrewAmount;
