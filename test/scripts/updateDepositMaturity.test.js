@@ -20,9 +20,7 @@ describe("script: updateDepositMaturity", () => {
     });
 
     it("succeeds", async () => {
-      await setUserActionsLock(cb, network, "1");
       const res = await updateDepositMaturity(cb, network);
-      await setUserActionsLock(cb, network, "0");
       expect(res).to.be.true;
     });
   });
