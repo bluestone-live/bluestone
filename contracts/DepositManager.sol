@@ -57,8 +57,11 @@ contract DepositManager is Ownable, Pausable {
         uint lastDay;
     }
 
-    // Includes enabled deposit asset addresses.
-    address[] private _depositAssetAddresses;
+    /// Include enabled and disabled deposit assets.
+    /// We need to keep disabled deposit assets for deposit maturity update.
+    address[] private _allDepositAssetAddresses;
+
+    address[] private _enabledDepositAssetAddresses;
 
     /// Includes enabled and disabled desposit terms.
     /// We need to keep disabled deposit terms for deposit maturity update.
@@ -209,7 +212,7 @@ contract DepositManager is Ownable, Pausable {
     }
 
     function getDepositAssets() external view returns (address[] memory) {
-        return _depositAssetAddresses;
+        return _enabledDepositAssetAddresses;
     }
 
     // ADMIN --------------------------------------------------------------
@@ -248,8 +251,8 @@ contract DepositManager is Ownable, Pausable {
 
         /// Initialize pool group and interest index history for each existing asset
         /// if they haven't been initialized
-        for (uint i = 0; i < _depositAssetAddresses.length; i++) {
-            address asset = _depositAssetAddresses[i];
+        for (uint i = 0; i < _enabledDepositAssetAddresses.length; i++) {
+            address asset = _enabledDepositAssetAddresses[i];
             _liquidityPools.initPoolGroupIfNeeded(asset, term);
         }
     }
@@ -277,7 +280,8 @@ contract DepositManager is Ownable, Pausable {
         require(!depositAsset.isEnabled, "Asset is enabled already.");
 
         depositAsset.isEnabled = true;
-        _depositAssetAddresses.push(asset);
+        _allDepositAssetAddresses.push(asset);
+        _enabledDepositAssetAddresses.push(asset);
 
         // Initialize pool group and interest index history if they haven't been initialized
         for (uint i = 0; i < _enabledDepositTerms.length; i++) {
@@ -293,13 +297,13 @@ contract DepositManager is Ownable, Pausable {
 
         depositAsset.isEnabled = false;
         
-        // Remove asset from _depositAssetAddresses
-        for (uint i = 0; i < _depositAssetAddresses.length; i++) {
-            if (_depositAssetAddresses[i] == asset) {
+        // Remove asset from _enabledDepositAssetAddresses
+        for (uint i = 0; i < _enabledDepositAssetAddresses.length; i++) {
+            if (_enabledDepositAssetAddresses[i] == asset) {
                 // Overwrite current asset with the last asset and shrink array size
-                _depositAssetAddresses[i] = _depositAssetAddresses[_depositAssetAddresses.length - 1];
-                delete _depositAssetAddresses[_depositAssetAddresses.length - 1];
-                _depositAssetAddresses.length--;
+                _enabledDepositAssetAddresses[i] = _enabledDepositAssetAddresses[_enabledDepositAssetAddresses.length - 1];
+                delete _enabledDepositAssetAddresses[_enabledDepositAssetAddresses.length - 1];
+                _enabledDepositAssetAddresses.length--;
             }
         }
     }
@@ -307,9 +311,9 @@ contract DepositManager is Ownable, Pausable {
     // NOTE: The following admin functions are to be executed by backend jobs everyday at midnight
 
     // Update deposit maturity for each asset
-    function updateAllDepositMaturity(address[] calldata assetList) external whenNotPaused onlyOwner {
-        for (uint i = 0; i < assetList.length; i++) {
-            _updateDepositMaturity(assetList[i]);
+    function updateAllDepositMaturity() external whenNotPaused onlyOwner {
+        for (uint i = 0; i < _allDepositAssetAddresses.length; i++) {
+            _updateDepositMaturity(_allDepositAssetAddresses[i]);
         }
     }
 
@@ -330,7 +334,7 @@ contract DepositManager is Ownable, Pausable {
     }
 
     // Update deposit maturity for each PoolGroup of an asset
-    function _updateDepositMaturity(address asset) internal whenNotPaused onlyOwner enabledDepositAsset(asset) {
+    function _updateDepositMaturity(address asset) internal whenNotPaused onlyOwner {
         uint[] memory loanTerms = _loanManager.getLoanTerms();
 
         for (uint i = 0; i < _allDepositTerms.length; i++) {
@@ -352,5 +356,4 @@ contract DepositManager is Ownable, Pausable {
             _liquidityPools.updatePoolGroupDepositMaturity(asset, depositTerm, loanTerms);
         }
     }
-
 }

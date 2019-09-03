@@ -13,26 +13,17 @@ describe("script: updateDepositMaturity", () => {
   });
 
   contract("DepositManager", () => {
-    context("when no deposit asset is enabled", () => {
-      it("fails", async () => {
-        const res = await updateDepositMaturity(cb, network);
-        expect(res).to.be.false;
-      });
+    before(async () => {
+      await enableDepositAsset(cb, network, "ETH");
+      await enableDepositAsset(cb, network, "DAI");
+      await enableDepositAsset(cb, network, "USDT");
     });
 
-    context("when deposit assets are enabled", () => {
-      before(async () => {
-        await enableDepositAsset(cb, network, "ETH");
-        await enableDepositAsset(cb, network, "DAI");
-        await enableDepositAsset(cb, network, "USDT");
-      });
-
-      it("succeeds", async () => {
-        await setUserActionsLock(cb, network, "1");
-        const res = await updateDepositMaturity(cb, network);
-        await setUserActionsLock(cb, network, "0");
-        expect(res.length).to.equal(3);
-      });
+    it("succeeds", async () => {
+      await setUserActionsLock(cb, network, "1");
+      const res = await updateDepositMaturity(cb, network);
+      await setUserActionsLock(cb, network, "0");
+      expect(res).to.be.true;
     });
   });
 });
