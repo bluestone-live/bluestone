@@ -12,6 +12,7 @@ import "./PoolGroup.sol";
 import "./FixedMath.sol";
 import "./Deposit.sol";
 import "./AccountManager.sol";
+import "./DateTime.sol";
 
 
 /// The main contract which handles everything related to deposit.
@@ -88,6 +89,9 @@ contract DepositManager is Ownable, Pausable {
 
     // How many days of interest index we want to keep in InterestIndexHistory
     uint constant private DAYS_OF_INTEREST_INDEX_TO_KEEP = 30;
+
+    // When was the last time deposit maturity updated
+    uint private _lastDepositMaturityUpdatedAt;
 
     modifier enabledDepositAsset(address asset) {
         require(_depositAssets[asset].isEnabled, "Deposit asset must be enabled.");
@@ -312,9 +316,20 @@ contract DepositManager is Ownable, Pausable {
 
     // Update deposit maturity for each asset
     function updateAllDepositMaturity() external whenNotPaused onlyOwner {
+        require(_config.isUserActionsLocked(), "User actions must be locked before proceeding.");
+
+        /// Ensure deposit maturity update only triggers once in a day by checking current timestamp
+        /// is greater than the timestamp of last update (in day unit).
+        require(
+            DateTime.toDays(now) > DateTime.toDays(_lastDepositMaturityUpdatedAt),
+            "Cannot update multiple times within the same day."
+        );
+
         for (uint i = 0; i < _allDepositAssetAddresses.length; i++) {
             _updateDepositMaturity(_allDepositAssetAddresses[i]);
         }
+
+        _lastDepositMaturityUpdatedAt = now;
     }
 
     // INTERNAL  --------------------------------------------------------------

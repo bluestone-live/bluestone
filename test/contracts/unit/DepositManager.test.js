@@ -1,20 +1,22 @@
 const TokenManager = artifacts.require("TokenManager");
+const Configuration = artifacts.require("Configuration");
 const DepositManager = artifacts.require("DepositManagerMock");
 const LiquidityPools = artifacts.require("LiquidityPools");
 const PoolGroup = artifacts.require("PoolGroup");
+const DateTime = artifacts.require("DateTime");
 const {
   toFixedBN,
   createERC20Token,
-  printLogs
 } = require("../../utils/index.js");
-const { constants, expectRevert } = require("openzeppelin-test-helpers");
+const { constants, expectRevert, time } = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
 
 contract("DepositManager", ([owner, depositor]) => {
   const initialSupply = toFixedBN(1000);
-  let depositManager, tokenManager, liquidityPools, asset, term;
+  let config, depositManager, tokenManager, liquidityPools, asset, term;
 
   before(async () => {
+    config = await Configuration.deployed();
     depositManager = await DepositManager.deployed();
     term = (await depositManager.getDepositTerms())[0];
     tokenManager = await TokenManager.deployed();
@@ -96,6 +98,57 @@ contract("DepositManager", ([owner, depositor]) => {
       const currTerms = await depositManager.getDepositTerms();
       expect(currTerms.length).to.equal(prevTerms.length - 1);
       expect(currTerms.map(term => term.toNumber())).to.not.contain(term);
+    });
+  });
+
+  describe("#updateAllDepositMaturity", () => {
+    let datetime;
+
+    before(async () => {
+      datetime = await DateTime.new();
+    });
+
+    context("when user actions are not locked", () => {
+      it("reverts", async () => {
+        await expectRevert(
+          depositManager.updateAllDepositMaturity(),
+          "User actions must be locked before proceeding."
+        );
+      });
+    });
+    
+    context("when user actions are locked", () => {
+      it("succeeds", async () => {
+        await config.lockAllUserActions();
+        await depositManager.updateAllDepositMaturity();
+        await config.unlockAllUserActions();
+      });
+    });
+
+    context("when update within the same day right before midnight", () => {
+      it("reverts", async () => {
+        const now = await time.latest();
+        const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
+
+        await time.increase(time.duration.seconds(secondsUntilMidnight - 10));
+        await config.lockAllUserActions();
+
+        await expectRevert(
+          depositManager.updateAllDepositMaturity(), 
+          "Cannot update multiple times within the same day."
+        );
+
+        await config.unlockAllUserActions();
+      });
+    });
+
+    context("when update on the next day right after midnight", () => {
+      it("succeeds", async () => {
+        await time.increase(time.duration.seconds(20));
+        await config.lockAllUserActions();
+        await depositManager.updateAllDepositMaturity();
+        await config.unlockAllUserActions();
+      });
     });
   });
 
