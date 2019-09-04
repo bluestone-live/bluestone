@@ -127,8 +127,6 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       expect(loanSuccessfulLogs.length).to.be.equal(1);
     });
 
-    let poolGroup;
-
     it("loans from the correct pool", async () => {
       const poolGroupAddress = await liquidityPools.poolGroups(
         loanAsset.address,
