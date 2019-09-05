@@ -14,7 +14,7 @@ const { expect } = require("chai");
 contract("LoanManager", ([owner, depositor, loaner]) => {
   const initialSupply = toFixedBN(1000);
   const interestRate = toFixedBN(0.15);
-  const profitRatio = toFixedBN(0.1);
+  const protocolReserveRatio = toFixedBN(0.1);
   let priceOracle, tokenManager, depositManager, loanManager, liquidityPools;
 
   before(async () => {
@@ -36,7 +36,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       loanAsset = await createERC20Token(depositor, initialSupply);
       collateralAsset = await createERC20Token(loaner, initialSupply);
 
-      await config.setProfitRatio(profitRatio);
+      await config.setProtocolReserveRatio(protocolReserveRatio);
 
       await config.setLoanInterestRate(loanAsset.address, term, interestRate, {
         from: owner
@@ -183,7 +183,7 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       });
 
       const expectedInterestIndex = pool.loanInterest
-        .sub(pool.loanInterest.mul(profitRatio).div(toFixedBN(1)))
+        .sub(pool.loanInterest.mul(protocolReserveRatio).div(toFixedBN(1)))
         .mul(toFixedBN(1))
         .div(pool.deposit);
       expect(interestIndex).to.bignumber.equal(expectedInterestIndex);

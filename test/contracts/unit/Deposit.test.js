@@ -6,7 +6,7 @@ const { expect } = require("chai");
 
 contract("Deposit", ([owner]) => {
   const amount = toFixedBN(100);
-  const profitRatio = toFixedBN(0.15);
+  const protocolReserveRatio = toFixedBN(0.15);
   const poolId = toFixedBN(0);
   let asset;
 
@@ -24,7 +24,7 @@ contract("Deposit", ([owner]) => {
         owner,
         term,
         amount,
-        profitRatio,
+        protocolReserveRatio,
         poolId
       );
       now = await time.latest();
@@ -56,7 +56,7 @@ contract("Deposit", ([owner]) => {
         owner,
         term,
         amount,
-        profitRatio,
+        protocolReserveRatio,
         poolId
       );
     });
@@ -72,7 +72,7 @@ contract("Deposit", ([owner]) => {
         .mul(currInterestIndex)
         .div(toFixedBN(1));
       const expectedInterestsForProtocol = expectedTotalInterests
-        .mul(profitRatio)
+        .mul(protocolReserveRatio)
         .div(toFixedBN(1));
       const expectedInterestsForDepositor = expectedTotalInterests.sub(
         expectedInterestsForProtocol

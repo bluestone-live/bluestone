@@ -11,7 +11,7 @@ contract("LiquidityPools", ([owner, account]) => {
   let liquidityPools, loanAsset, collateralAsset, deposit, poolGroup, pool;
   const depositTerm = 30;
   const amount = toFixedBN(100);
-  const profitRatio = toFixedBN(0.1);
+  const protocolReserveRatio = toFixedBN(0.1);
   const loanAmount = toFixedBN(50);
   const collateralAmount = toFixedBN(300);
 
@@ -75,7 +75,7 @@ contract("LiquidityPools", ([owner, account]) => {
         owner,
         depositTerm,
         amount,
-        profitRatio,
+        protocolReserveRatio,
         poolId
       );
     });

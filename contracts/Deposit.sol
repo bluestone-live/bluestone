@@ -13,7 +13,7 @@ contract Deposit {
     address private _owner;
     uint private _term;
     uint private _amount;
-    uint private _profitRatio;
+    uint private _protocolReserveRatio;
     uint private _withdrewAmount;
     uint private _createdAt;
     uint private _maturedAt;
@@ -27,7 +27,7 @@ contract Deposit {
         address owner, 
         uint term, 
         uint amount, 
-        uint profitRatio,
+        uint protocolReserveRatio,
         uint poolId
     ) public {
         require(amount > 0);
@@ -36,7 +36,7 @@ contract Deposit {
         _owner = owner;
         _term = term;
         _amount = amount;
-        _profitRatio = profitRatio;
+        _protocolReserveRatio = protocolReserveRatio;
         _poolId = poolId;
         _withdrewAmount = 0;
         _createdAt = now;
@@ -84,8 +84,8 @@ contract Deposit {
         return _maturedAt;
     }
 
-    function profitRatio() external view returns (uint) {
-        return _profitRatio;
+    function protocolReserveRatio() external view returns (uint) {
+        return _protocolReserveRatio;
     }
 
     function poolId() external view returns (uint) {
@@ -94,7 +94,7 @@ contract Deposit {
 
     function withdrawDepositAndInterest(uint currInterestIndex) external returns (uint, uint) {
         uint totalInterests = _amount.mulFixed(currInterestIndex);
-        uint interestsForProtocol = totalInterests.mulFixed(_profitRatio);
+        uint interestsForProtocol = totalInterests.mulFixed(_protocolReserveRatio);
         uint interestsForDepositor = totalInterests.sub(interestsForProtocol);
 
         _withdrewAmount = _amount.add(interestsForDepositor);

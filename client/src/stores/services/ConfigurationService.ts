@@ -3,9 +3,9 @@ import { BigNumber } from '../../utils/BigNumber';
 import { EventName } from '../../constants/Event';
 import { EventData } from 'web3-eth-contract';
 
-export const getProfitRatio = async () => {
+export const getProtocolReserveRatio = async () => {
   const contract = await getContracts();
-  return contract.Configuration.methods.getProfitRatio().call();
+  return contract.Configuration.methods.getProtocolReserveRatio().call();
 };
 
 export const getLoanInterestRate = async (

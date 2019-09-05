@@ -49,7 +49,7 @@ contract DepositManager is Ownable, Pausable {
         /// Each interest index corresponds to a snapshot of a particular pool state
         /// before updating deposit maturity of a PoolGroup. 
         ///
-        /// depositInterest = loanInterest * (deposit / totalDeposit) * (1 - profitRatio)
+        /// depositInterest = loanInterest * (deposit / totalDeposit) * (1 - protocolReserveRatio)
         /// And interestIndex here refers to `loanInterest / totalDeposit`.
         ///
         /// TODO: I couldn't find a meaningful variable name, so I kept "interestIndex",
@@ -115,7 +115,7 @@ contract DepositManager is Ownable, Pausable {
         require(_isDepositTermEnabled[depositTerm], "Invalid deposit term.");
 
         address user = msg.sender;
-        uint profitRatio = _config.getProfitRatio();
+        uint protocolReserveRatio = _config.getProtocolReserveRatio();
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
         uint poolId = poolGroup.poolIds(depositTerm - 1);
 
@@ -124,7 +124,7 @@ contract DepositManager is Ownable, Pausable {
             user,
             depositTerm,
             amount,
-            profitRatio,
+            protocolReserveRatio,
             poolId
         );
 
@@ -184,13 +184,13 @@ contract DepositManager is Ownable, Pausable {
         bool isMatured = currDeposit.isMatured();
         address asset = currDeposit.asset();
         uint term = currDeposit.term();
-        uint profitRatio = currDeposit.profitRatio();
+        uint protocolReserveRatio = currDeposit.protocolReserveRatio();
         uint poolId = currDeposit.poolId();
 
         if (isMatured) {
             uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
             uint originalInterestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
-            return originalInterestIndex.sub(originalInterestIndex.mulFixed(profitRatio));
+            return originalInterestIndex.sub(originalInterestIndex.mulFixed(protocolReserveRatio));
         }
 
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
@@ -202,7 +202,7 @@ contract DepositManager is Ownable, Pausable {
 
         uint loanInterest = poolGroup.getLoanInterestByPoolId(poolId);
 
-        return loanInterest.sub(loanInterest.mulFixed(profitRatio)).divFixed(totalDeposit);
+        return loanInterest.sub(loanInterest.mulFixed(protocolReserveRatio)).divFixed(totalDeposit);
     }
 
     function getDepositsByUser(address user) external whenNotPaused view returns (Deposit[] memory) {

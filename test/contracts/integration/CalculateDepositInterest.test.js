@@ -94,12 +94,12 @@ contract('DepositManager', ([owner, depositor, loaner]) => {
 
         // There are 2 deposits in total
         const totalDeposit = depositAmount.add(depositAmount);
-        const profitRatio = toFixedBN(0.15);
+        const protocolReserveRatio = toFixedBN(0.15);
 
         const totalInterest = loanInterest.mul(depositAmount).div(totalDeposit);
 
-        const profitInterest = totalInterest.mul(profitRatio).div(toFixedBN(1));
-        const depositInterest = totalInterest.sub(profitInterest);
+        const protocolInterest = totalInterest.mul(protocolReserveRatio).div(toFixedBN(1));
+        const depositInterest = totalInterest.sub(protocolInterest);
 
         // It seems Solidity and bn.js handles rounding decimals differently,
         // so there is a very tiny difference on the result.

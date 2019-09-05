@@ -7,7 +7,7 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 contract Configuration is Ownable {
     uint private constant MIN_COLLATERAL_RATIO = 12 * (10 ** 17); // 1.2 (120%)
     uint private constant MAX_LIQUIDATION_DISCOUNT = 5 * (10 ** 16); // 0.05 (5%)
-    uint private constant MAX_PROFIT_RATIO = 3 * (10 ** 17); // 0.3 (30%)
+    uint private constant MAX_PROTOCOL_RESERVE_RATIO = 3 * (10 ** 17); // 0.3 (30%)
 
     event LockUserActions();
     event UnlockUserActions();
@@ -21,8 +21,8 @@ contract Configuration is Ownable {
     // loan asset address -> loan term -> loan annual interest rate
     mapping(address => mapping(uint => uint)) private _loanInterestRates;
 
-    // The percentage we take from deposit interest as profit
-    uint private _profitRatio = 15 * (10 ** 16); // 0.15 (15%)
+    // The percentage protocol takes from deposit interest as reserve
+    uint private _protocolReserveRatio = 15 * (10 ** 16); // 0.15 (15%)
 
     // Protocol address which receives profit
     address private _protocolAddress;
@@ -42,8 +42,8 @@ contract Configuration is Ownable {
         return _loanInterestRates[asset][loanTerm];
     }
 
-    function getProfitRatio() external view returns (uint) {
-        return _profitRatio;
+    function getProtocolReserveRatio() external view returns (uint) {
+        return _protocolReserveRatio;
     }
 
     function getProtocolAddress() external view returns (address) {
@@ -76,10 +76,10 @@ contract Configuration is Ownable {
         _loanInterestRates[asset][loanTerm] = value;
     }
 
-    function setProfitRatio(uint value) public onlyOwner {
-        require(value <= MAX_PROFIT_RATIO, "Invalid profit ratio.");
+    function setProtocolReserveRatio(uint value) public onlyOwner {
+        require(value <= MAX_PROTOCOL_RESERVE_RATIO, "Invalid protocol reserve ratio.");
 
-        _profitRatio = value;
+        _protocolReserveRatio = value;
     }
 
     function setProtocolAddress(address protocolAddress) public onlyOwner {

@@ -1,9 +1,9 @@
 const Configuration = artifacts.require('Configuration')
-const setProfitRatio = require('../../scripts/javascript/setProfitRatio.js')
+const setProtocolReserveRatio = require('../../scripts/javascript/setProtocolReserveRatio.js')
 const { toFixedBN } = require('../utils/index.js')
 const { expect } = require('chai')
 
-describe('script: setProfitRatio', () => {
+describe('script: setProtocolReserveRatio', () => {
   let config
   const cb = () => {}
   const network = 'development'
@@ -16,16 +16,16 @@ describe('script: setProfitRatio', () => {
     context('when input is valid', () => {
       it('succeeds', async () => {
         const value = 0.1
-        await setProfitRatio(cb, network, value)
+        await setProtocolReserveRatio(cb, network, value)
 
-        expect(await config.getProfitRatio()).to.be.bignumber.equal(toFixedBN(value))
+        expect(await config.getProtocolReserveRatio()).to.be.bignumber.equal(toFixedBN(value))
       })
     })
 
     context('when input is invalid', () => {
       it('fails', async () => {
         const value = 0.31
-        const succeed = await setProfitRatio(cb, network, value)
+        const succeed = await setProtocolReserveRatio(cb, network, value)
 
         expect(succeed).to.be.false
       })
