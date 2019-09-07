@@ -67,10 +67,12 @@ export class RecordStore {
 
   @action.bound
   async getDepositRecords() {
+    // just for online debugging
     const depositAddresses = (await getDepositRecords()) || [];
+
     return this.saveOrUpdateDepositRecords(
       await Promise.all(
-        depositAddresses.map((depositRecordAddress: string) =>
+        depositAddresses.map(async (depositRecordAddress: string) =>
           getDeposit(depositRecordAddress, depositManagerStore.depositTerms),
         ),
       ),
@@ -138,9 +140,10 @@ export class RecordStore {
   @action.bound
   async getLoanRecords() {
     const loanRecords = (await getLoanRecords()) || [];
+
     return this.saveOrUpdateLoanRecords(
       await Promise.all(
-        loanRecords.map((loanRecordAddress: string) =>
+        loanRecords.map(async (loanRecordAddress: string) =>
           getLoan(loanRecordAddress, loanManagerStore.loanTerms),
         ),
       ),

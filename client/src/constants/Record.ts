@@ -27,7 +27,6 @@ export enum RecordStatus {
   Lock = -1,
   DepositNormal = 10,
   DepositMatured = 12,
-  DepositOverDue = 13,
   DepositClose = 14,
   LoanNormal = 20,
   LoanLiquidating = 21,
@@ -36,13 +35,10 @@ export enum RecordStatus {
 
 export const getDepositRecordStatus = async (depositInstance: Contract) => {
   // TODO: find out when will get lock status
-  const isOverDue = await depositInstance.methods.isOverDue().call();
   const isWithdrawn = await depositInstance.methods.isWithdrawn().call();
   const isMatured = await depositInstance.methods.isMatured().call();
   if (isWithdrawn) {
     return RecordStatus.DepositClose;
-  } else if (isOverDue) {
-    return RecordStatus.DepositOverDue;
   } else if (isMatured) {
     return RecordStatus.DepositMatured;
   }

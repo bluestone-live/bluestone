@@ -44,6 +44,7 @@ const networkFilesCache = new Map();
 // Get network file which stores deployed contract addresses
 export const getNetworkFile = async () => {
   const networkType = await web3.eth.net.getNetworkType();
+
   let currNetwork;
 
   // Map web3 network type to that in network.json
@@ -73,6 +74,7 @@ export const getNetworkFile = async () => {
 const deployedContractInstanceFactory = async (contract: any) => {
   const networkFile = await getNetworkFile();
   const contractAddress = networkFile.contracts[contract.contractName];
+
   const instance = new web3.eth.Contract(
     contract.abi as AbiItem[],
     contractAddress,

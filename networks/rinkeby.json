@@ -1,0 +1,32 @@
+{
+    "contracts": {
+        "Configuration": "0x6734c7a6A0Ad32D4A22CBf003b3ecbdc86069f03",
+        "PriceOracle": "0x8F099c3C61561822a6d3eF7FfA875ec8821fb6b0",
+        "TokenManager": "0xA1B3C4e6946B3Bee8C93795264207fC8CfD83A6c",
+        "AccountManager": "0xa7EBbf82E022CdFa3A10Fc22106fa1A3a8713584",
+        "DepositManager": "0xd7738C040C75E1CFD61f746B3E5aDEab1564d929",
+        "LoanManager": "0x1F7762C104a6146684Ef2dc5A2a8CeF85282a68F"
+    },
+    "tokens": {
+        "ETH": {
+            "name": "Ether",
+            "symbol": "ETH",
+            "address": "0x2A7872cC24cC96B33e2A77A7A86F1800cc375279"
+        },
+        "DAI": {
+            "name": "Dai",
+            "symbol": "DAI",
+            "address": "0xe9EA5b2fd95FF1118CbCe243BB7123801750fe10"
+        },
+        "USDT": {
+            "name": "Tether",
+            "symbol": "USDT",
+            "address": "0xb561DB6A7ac8ffE7C5C0317b5c068a381B3b2607"
+        },
+        "WETH": {
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "address": "0x424fc3A21920bEa06f8751b4D6C0B713e5b26435"
+        }
+    }
+}
