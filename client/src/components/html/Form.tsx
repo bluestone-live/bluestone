@@ -32,6 +32,7 @@ interface IFromItemProps {
 const StyledFormItem = styled.div`
   margin: ${(props: ThemedProps) => props.theme.gap.medium};
   display: flex;
+  flex: 1;
   padding: ${(props: ThemedProps) => props.theme.gap.small};
   justify-content: flex-end;
   & > * {

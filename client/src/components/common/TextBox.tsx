@@ -4,7 +4,7 @@ const StyledTextBox = styled.span`
   display: block;
   width: 100%;
   font-size: 14px;
-  padding: 0 7px;
+  padding: 0 10px;
   line-height: 35px;
   height: 35px;
 `;

@@ -360,12 +360,13 @@ class LoanForm extends React.Component<IProps, IState> {
                     {t('collateral_ratio')}:
                   </label>
                 </Cell>
-                <Cell scale={3}>
+                <Cell>
                   <StyledTextBox id="collateralRatio">
                     {currCollateralRatio} % / {minCollateralRatio}
                   </StyledTextBox>
                 </Cell>
               </Form.Item>
+              <Form.Item>&nbsp;</Form.Item>
             </Row>
             {couldUseFreedCollateral &&
               this.renderFreedCollateral(freedCollateral)}
