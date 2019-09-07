@@ -46,6 +46,8 @@
     "transaction_list_RepayLoanSuccessful": "Repay {{amount}} {{symbol}}",
     "transaction_list_AddCollateralSuccessful": "Add {{amount}} {{symbol}} to collateral",
     "transaction_list_DepositSuccessful": "Deposit {{amount}} {{symbol}}",
-    "transaction_list_WithdrawDepositSuccessful": "Withdraw {{amount}} {{symbol}}"
+    "transaction_list_WithdrawDepositSuccessful": "Withdraw {{amount}} {{symbol}}",
+    "portal_page_deposit": "DEPOSIT",
+    "portal_page_borrow": "BORROW"
   }
 }

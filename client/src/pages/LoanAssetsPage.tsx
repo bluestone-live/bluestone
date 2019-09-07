@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { TokenStore, AccountStore, DepositManagerStore } from '../stores';
+import { TokenStore, AccountStore, LoanManagerStore } from '../stores';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import {
@@ -65,18 +65,20 @@ const StyledButton = styled(Button)`
 interface IProps extends WithTranslation, RouteComponentProps {
   tokenStore: TokenStore;
   accountStore: AccountStore;
-  depositManagerStore: DepositManagerStore;
+  loanManagerStore: LoanManagerStore;
 }
 
 interface IState {
   selectedTerm: ITerm;
+  loading: boolean;
 }
 
-@inject('tokenStore', 'accountStore', 'depositManagerStore')
+@inject('tokenStore', 'accountStore', 'loanManagerStore')
 @observer
-class HomePage extends React.Component<IProps, IState> {
+class LoanAssetsPage extends React.Component<IProps, IState> {
   state = {
-    selectedTerm: this.props.depositManagerStore.depositTerms[0],
+    selectedTerm: this.props.loanManagerStore.loanTerms[0],
+    loading: false,
   };
 
   onTermSelect = (value: number) => {
@@ -110,9 +112,6 @@ class HomePage extends React.Component<IProps, IState> {
 
       return (
         <React.Fragment>
-          <StyledButton onClick={this.goTo(`/deposit/${token.symbol}`)}>
-            {t('deposit')}
-          </StyledButton>
           <StyledButton
             primary
             onClick={this.goTo(
@@ -139,7 +138,7 @@ class HomePage extends React.Component<IProps, IState> {
     const {
       t,
       tokenStore: { validTokens },
-      depositManagerStore: { depositTerms },
+      loanManagerStore: { loanTerms },
     } = this.props;
     const { selectedTerm } = this.state;
 
@@ -153,7 +152,7 @@ class HomePage extends React.Component<IProps, IState> {
                 name="term"
                 onChange={this.onTermSelect}
                 selectedOption={selectedTerm}
-                options={depositTerms}
+                options={loanTerms}
               />
             </StyledTermSelector>
           </StyledActionBar>
@@ -197,4 +196,4 @@ class HomePage extends React.Component<IProps, IState> {
   }
 }
 
-export default withTranslation()(withRouter(HomePage));
+export default withTranslation()(withRouter(LoanAssetsPage));

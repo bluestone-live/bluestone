@@ -5,9 +5,24 @@ const routes = [
   {
     name: 'index',
     path: '/',
-    private: true,
     component: Loadable({
-      loader: () => import('../pages/HomePage'),
+      loader: () => import('../pages/FrontPage'),
+      loading: Loading,
+    }),
+  },
+  {
+    name: 'index',
+    path: '/deposit-assets',
+    component: Loadable({
+      loader: () => import('../pages/DepositAssetsPage'),
+      loading: Loading,
+    }),
+  },
+  {
+    name: 'index',
+    path: '/loan-assets',
+    component: Loadable({
+      loader: () => import('../pages/LoanAssetsPage'),
       loading: Loading,
     }),
   },
