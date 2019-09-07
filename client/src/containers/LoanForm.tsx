@@ -49,6 +49,7 @@ interface IState {
   loanAmount: number;
   collateralAmount: number;
   useFreedCollateral: boolean;
+  loading: boolean;
 }
 
 @inject(
@@ -60,7 +61,12 @@ interface IState {
 )
 @observer
 class LoanForm extends React.Component<IProps, IState> {
-  state = { loanAmount: 0, collateralAmount: 0, useFreedCollateral: false };
+  state = {
+    loanAmount: 0,
+    collateralAmount: 0,
+    useFreedCollateral: false,
+    loading: false,
+  };
 
   async componentDidMount() {
     await this.getFreedCollateral();
@@ -85,6 +91,10 @@ class LoanForm extends React.Component<IProps, IState> {
     const loanToken = tokenStore!.getToken(loanTokenSymbol || '');
     const collateralToken = tokenStore!.getToken(collateralTokenSymbol || '');
 
+    this.setState({
+      loading: true,
+    });
+
     if (!loanToken || !collateralToken || !term) {
       // TODO: show error messages
       return;
@@ -101,6 +111,10 @@ class LoanForm extends React.Component<IProps, IState> {
     );
 
     history.push(`/records/loan?currentToken=${loanToken.address}`);
+
+    this.setState({
+      loading: false,
+    });
   };
 
   renderOption(key: string, value: any, text?: string) {
@@ -178,7 +192,7 @@ class LoanForm extends React.Component<IProps, IState> {
       collateralTokenSymbol,
       onSelectChange,
     } = this.props;
-    const { loanAmount, collateralAmount } = this.state;
+    const { loanAmount, collateralAmount, loading } = this.state;
 
     const tokenSymbolList = tokenStore!.validTokens.map(
       (token: IToken) => token.symbol,
@@ -395,6 +409,7 @@ class LoanForm extends React.Component<IProps, IState> {
                     disabled={configurationStore!.isUserActionsLocked}
                     primary
                     fullWidth
+                    loading={loading}
                   >
                     {t('loan')}
                   </Button>

@@ -18,6 +18,7 @@ interface IProps
 
 interface IState {
   amount: number;
+  loading: boolean;
 }
 
 @inject('accountStore', 'configurationStore')
@@ -25,6 +26,7 @@ interface IState {
 class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
   state = {
     amount: 0,
+    loading: false,
   };
 
   onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -34,6 +36,9 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
 
   onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    this.setState({
+      loading: true,
+    });
 
     const { accountStore, match } = this.props;
     const { amount } = this.state;
@@ -42,11 +47,15 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
       match.params.tokenAddress,
       convertDecimalToWei(amount),
     );
+
+    this.setState({
+      loading: false,
+    });
   };
 
   render() {
     const { t, match, accountStore, configurationStore } = this.props;
-    const { amount } = this.state;
+    const { amount, loading } = this.state;
     const availableAmount = accountStore.getFreedCollateralByAddress(
       match.params.tokenAddress,
     );
@@ -73,7 +82,11 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
           </Form.Item>
           <Form.Item>
             <label />
-            <Button primary disabled={configurationStore.isUserActionsLocked}>
+            <Button
+              primary
+              loading={loading}
+              disabled={configurationStore.isUserActionsLocked}
+            >
               {t('submit')}
             </Button>
           </Form.Item>

@@ -31,6 +31,7 @@ interface IProps
 interface IState {
   amount: number;
   useFreedCollateral: boolean;
+  formSubmitting: boolean;
 }
 
 @inject('accountStore', 'recordStore', 'configurationStore')
@@ -39,6 +40,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
   state = {
     amount: 0,
     useFreedCollateral: false,
+    formSubmitting: false,
   };
 
   async componentDidMount() {
@@ -66,6 +68,10 @@ class AddCollateralForm extends React.Component<IProps, IState> {
     const { recordStore, match, history } = this.props;
     const { amount, useFreedCollateral } = this.state;
 
+    this.setState({
+      formSubmitting: true,
+    });
+
     await recordStore!.addCollateral(
       match.params.recordAddress,
       convertDecimalToWei(amount),
@@ -75,6 +81,10 @@ class AddCollateralForm extends React.Component<IProps, IState> {
     const record = recordStore!.getLoanRecordByAddress(
       match.params.recordAddress,
     )!;
+
+    this.setState({
+      formSubmitting: false,
+    });
 
     history.push({
       pathname: '/records/loan',
@@ -232,6 +242,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
                 <Button
                   primary
                   disabled={configurationStore!.isUserActionsLocked}
+                  loading={this.state.formSubmitting}
                 >
                   {t('add_collateral')}
                 </Button>

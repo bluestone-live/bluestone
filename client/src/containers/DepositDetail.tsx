@@ -4,12 +4,13 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import Form from '../components/html/Form';
 import TextBox from '../components/common/TextBox';
 import Button from '../components/html/Button';
-import { RecordStore } from '../stores';
+import { RecordStore, ConfigurationStore } from '../stores';
 import { observer } from 'mobx-react';
 import { ITransaction } from '../constants/Transaction';
 import TransactionList from './TransactionList';
 
 interface IProps extends WithTranslation {
+  configurationStore: ConfigurationStore;
   depositRecord: IDepositRecord;
   recordStore: RecordStore;
   transactionsForRecord?: ITransaction[];
@@ -39,7 +40,12 @@ class DepositDetail extends React.Component<IProps, IState> {
   };
 
   render() {
-    const { t, depositRecord, transactionsForRecord } = this.props;
+    const {
+      t,
+      depositRecord,
+      transactionsForRecord,
+      configurationStore,
+    } = this.props;
     const { loading } = this.state;
 
     return (
@@ -55,7 +61,12 @@ class DepositDetail extends React.Component<IProps, IState> {
         {depositRecord.status === RecordStatus.DepositMatured && (
           <Form.Item>
             <Button.Group>
-              <Button primary onClick={this.withdraw} disabled={loading}>
+              <Button
+                primary
+                onClick={this.withdraw}
+                disabled={configurationStore!.isUserActionsLocked}
+                loading={loading}
+              >
                 {t('withdraw')}
               </Button>
             </Button.Group>

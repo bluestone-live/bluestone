@@ -69,6 +69,10 @@ class RepayForm extends React.Component<IProps, IState> {
     const { recordStore, match, history } = this.props;
     const { amount } = this.state;
 
+    this.setState({
+      loading: true,
+    });
+
     await recordStore!.repay(
       match.params.recordAddress,
       convertDecimalToWei(amount),
@@ -84,11 +88,15 @@ class RepayForm extends React.Component<IProps, IState> {
         recordAddress: record.recordAddress,
       }),
     });
+
+    this.setState({
+      loading: false,
+    });
   };
 
   render() {
     const { t, recordStore, configurationStore, match } = this.props;
-    const { amount } = this.state;
+    const { amount, loading } = this.state;
     const record = recordStore!.getLoanRecordByAddress(
       match.params.recordAddress,
     );
@@ -139,7 +147,11 @@ class RepayForm extends React.Component<IProps, IState> {
             />
           </Form.Item>
           <Form.Item>
-            <Button primary disabled={configurationStore!.isUserActionsLocked}>
+            <Button
+              primary
+              disabled={configurationStore!.isUserActionsLocked}
+              loading={loading}
+            >
               {t('repay')}
             </Button>
           </Form.Item>

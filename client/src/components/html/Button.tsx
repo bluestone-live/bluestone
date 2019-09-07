@@ -15,6 +15,7 @@ interface IProps {
   fullWidth?: boolean;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
+  loading?: boolean;
 }
 
 const StyledButton = styled.button`
@@ -59,6 +60,26 @@ const StyledButton = styled.button`
         background: ${p => p.theme.backgroundColor.secondary};
       }
     `};
+
+  & .btn-loading {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    position: absolute;
+    margin-left: -3em;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    border-color: #fff transparent #fff #fff;
+    animation: spin 1.2s linear infinite;
+  }
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 `;
 
 const StyledButtonGroup = styled.div`
@@ -89,7 +110,12 @@ const StyledButtonGroup = styled.div`
 const Button = (props: IProps) => {
   const { children } = props;
 
-  return <StyledButton {...props}>{children}</StyledButton>;
+  return (
+    <StyledButton {...props} disabled={props.disabled || props.loading}>
+      {props.loading && <div className="btn-loading" />}
+      {children}
+    </StyledButton>
+  );
 };
 
 Button.Group = (props: {
