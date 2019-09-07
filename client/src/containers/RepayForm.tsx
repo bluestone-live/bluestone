@@ -126,14 +126,20 @@ class RepayForm extends React.Component<IProps, IState> {
           </Form.Item>
           <Form.Item>
             <label>{t('remaining')}</label>
-            <Input type="text" disabled value={`${record.remainingDebt}`} />
+            <Input
+              type="text"
+              disabled
+              value={`${record.remainingDebt}`}
+              suffix={record.loanToken.symbol}
+            />
           </Form.Item>
           <Form.Item>
             <label>{t('interest')}</label>
             <Input
               type="text"
               disabled
-              value={`${record.interest} ${record.loanToken.symbol}`}
+              value={record.interest}
+              suffix={record.loanToken.symbol}
             />
           </Form.Item>
           <Form.Item>

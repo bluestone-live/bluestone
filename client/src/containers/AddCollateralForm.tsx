@@ -184,7 +184,8 @@ class AddCollateralForm extends React.Component<IProps, IState> {
                 <Input
                   type="text"
                   disabled
-                  value={`${record.collateralAmount} ${record.collateralToken.symbol}`}
+                  value={record.collateralAmount}
+                  suffix={record.collateralToken.symbol}
                 />
               </Cell>
             </Row>
@@ -201,6 +202,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
                   step={1e-18}
                   min={1e-18}
                   onChange={this.onAmountChange}
+                  suffix={record.collateralToken.symbol}
                 />
               </Cell>
             </Row>

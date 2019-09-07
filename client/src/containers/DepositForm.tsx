@@ -110,6 +110,7 @@ class DepositForm extends React.Component<IProps, IState> {
                   step={1e-18}
                   min={1e-18}
                   onChange={this.onAmountChange}
+                  suffix={currentToken!.symbol}
                 />
               </Cell>
             </Row>

@@ -29,9 +29,33 @@ const StyledInputGroup = styled.div`
       margin-right: -1px;
 
       & ~ input {
+        border-radius: 0
+          ${(props: ThemedProps) => props.theme.borderRadius.medium}
+          ${(props: ThemedProps) => props.theme.borderRadius.medium} 0;
+      }
+    }
+
+    &.text {
+      display: block;
+      width: 100%;
+      font-size: 14px;
+      padding: 10px;
+      height: 100%;
+      border: 1px solid
+        ${(props: ThemedProps) => props.theme.borderColor.secondary};
+      background-color: ${(props: ThemedProps) =>
+        props.theme.backgroundColor.secondary};
+
+      &:last-child {
+        border-radius: 0
+          ${(props: ThemedProps) => props.theme.borderRadius.medium}
+          ${(props: ThemedProps) => props.theme.borderRadius.medium} 0;
+      }
+
+      &:first-child {
         border-radius: ${(props: ThemedProps) =>
             props.theme.borderRadius.medium}
-          ${(props: ThemedProps) => props.theme.borderRadius.medium} 0 0;
+          0 0 ${(props: ThemedProps) => props.theme.borderRadius.medium};
       }
     }
   }
@@ -60,7 +84,11 @@ const StyledInput = styled.input`
 `;
 
 const renderAddon = (content: React.ReactNode) => {
-  return <div className="addon">{content}</div>;
+  if (typeof content === 'string') {
+    return <div className="addon text">{content}</div>;
+  } else {
+    return <div className="addon">{content}</div>;
+  }
 };
 
 const Input = (props: IProps) => {
