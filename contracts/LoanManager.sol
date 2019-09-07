@@ -27,9 +27,9 @@ contract LoanManager is Ownable, Pausable {
     DepositManager private _depositManager;
     AccountManager private _accountManager;
 
-    event LoanSuccessful(address indexed user, Loan loan);
-    event RepayLoanSuccessful(address indexed user, Loan loan);
-    event AddCollateralSuccessful(address indexed user, Loan loan);
+    event LoanSuccessful(address indexed user, Loan loan, uint amount);
+    event RepayLoanSuccessful(address indexed user, Loan loan, uint amount);
+    event AddCollateralSuccessful(address indexed user, Loan loan, uint amount);
 
     uint[] private _loanTerms;
 
@@ -142,7 +142,7 @@ contract LoanManager is Ownable, Pausable {
         _accountManager.incrementAssetStat(loaner, loanAsset, "totalLoans", 1);
         _accountManager.incrementAssetStat(loaner, loanAsset, "totalLoanAmount", loanAmount);
 
-        emit LoanSuccessful(loaner, currLoan);
+        emit LoanSuccessful(loaner, currLoan, loanAmount);
 
         return currLoan;
     }
@@ -167,7 +167,7 @@ contract LoanManager is Ownable, Pausable {
 
         _tokenManager.receiveFrom(loaner, loanAsset, totalRepayAmount);
 
-        emit RepayLoanSuccessful(loaner, currLoan);
+        emit RepayLoanSuccessful(loaner, currLoan, amount);
 
         return totalRepayAmount;
     }
@@ -245,7 +245,7 @@ contract LoanManager is Ownable, Pausable {
 
         _tokenManager.receiveFrom(loaner, collateralAsset, remainingCollateralAmount);
 
-        emit AddCollateralSuccessful(loaner, currLoan);
+        emit AddCollateralSuccessful(loaner, currLoan, collateralAmount);
 
         return collateralAmount;
     }

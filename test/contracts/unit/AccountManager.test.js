@@ -1,7 +1,7 @@
 const AccountManager = artifacts.require("AccountManager");
 const TokenManager = artifacts.require("TokenManager");
 const { createERC20Token, toFixedBN } = require("../../utils/index.js");
-const { BN } = require("openzeppelin-test-helpers");
+const { BN, expectEvent } = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
 
 contract("AccountManager", ([owner]) => {
@@ -24,37 +24,55 @@ contract("AccountManager", ([owner]) => {
         const key = "totalDeposits";
 
         await accountManager.setGeneralStat(owner, key, totalDeposits);
-        expect(await accountManager.getGeneralStat(owner, key)).to.bignumber.equal(totalDeposits);
-      })
-    })
+        expect(
+          await accountManager.getGeneralStat(owner, key)
+        ).to.bignumber.equal(totalDeposits);
+      });
+    });
 
     describe("#incrementGeneralStat", () => {
       it("succeeds", async () => {
         const key = "totalDeposits";
 
         await accountManager.incrementGeneralStat(owner, key, new BN(1));
-        expect(await accountManager.getGeneralStat(owner, key)).to.bignumber.equal(totalDeposits.add(new BN(1)));
-      })
-    })
+        expect(
+          await accountManager.getGeneralStat(owner, key)
+        ).to.bignumber.equal(totalDeposits.add(new BN(1)));
+      });
+    });
 
     describe("#setAssetStat", () => {
       it("succeeds", async () => {
         const key = "totalDepositAmount";
 
-        await accountManager.setAssetStat(owner, token.address, key, totalDepositAmount);
-        expect(await accountManager.getAssetStat(owner, token.address, key)).to.bignumber.equal(totalDepositAmount);
-      })
-    })
+        await accountManager.setAssetStat(
+          owner,
+          token.address,
+          key,
+          totalDepositAmount
+        );
+        expect(
+          await accountManager.getAssetStat(owner, token.address, key)
+        ).to.bignumber.equal(totalDepositAmount);
+      });
+    });
 
     describe("#incrementAssetStat", () => {
       it("succeeds", async () => {
         const key = "totalDepositAmount";
 
-        await accountManager.incrementAssetStat(owner, token.address, key, new BN(100));
-        expect(await accountManager.getAssetStat(owner, token.address, key)).to.bignumber.equal(totalDepositAmount.add(new BN(100)));
-      })
-    })
-  })
+        await accountManager.incrementAssetStat(
+          owner,
+          token.address,
+          key,
+          new BN(100)
+        );
+        expect(
+          await accountManager.getAssetStat(owner, token.address, key)
+        ).to.bignumber.equal(totalDepositAmount.add(new BN(100)));
+      });
+    });
+  });
 
   describe("#getFreedCollateral", () => {
     it("succeeds", async () => {
@@ -128,14 +146,19 @@ contract("AccountManager", ([owner]) => {
       );
     });
 
-    it("succeeds", async () => {
-      await accountManager.withdrawFreedCollateral(
+    it("succeeds and emit WithdrawFreedCollateralSuccessful event", async () => {
+      const { logs } = await accountManager.withdrawFreedCollateral(
         token.address,
         decreaseAmount,
         {
           from: owner
         }
       );
+
+      expectEvent.inLogs(logs, "WithdrawFreedCollateralSuccessful", {
+        user: owner,
+        amount: decreaseAmount
+      });
     });
 
     it("reduced freed collateral", async () => {

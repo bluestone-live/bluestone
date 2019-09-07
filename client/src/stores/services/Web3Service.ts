@@ -199,13 +199,16 @@ export const getPastEvents = async (
   } else {
     contractInstance = contract;
   }
-  const res = contractInstance.getPastEvents(eventName, {
+  return contractInstance.getPastEvents(eventName, {
     filter: {
       user: accountStore.defaultAccount,
     },
     fromBlock: 0,
     toBlock: 'latest',
   });
+};
 
-  return res;
+export const getTimestampByBlockHash = async (blockHash: string) => {
+  const block = await web3.eth.getBlock(blockHash);
+  return block.timestamp;
 };

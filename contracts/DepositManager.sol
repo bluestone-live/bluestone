@@ -28,8 +28,8 @@ contract DepositManager is Ownable, Pausable {
     AccountManager private _accountManager;
 
     // Notice that event filter only can filter indexed property
-    event DepositSuccessful(address indexed user, Deposit deposit);
-    event WithdrawDepositSuccessful(address indexed user, Deposit deposit);
+    event DepositSuccessful(address indexed user, Deposit deposit, uint amount);
+    event WithdrawDepositSuccessful(address indexed user, Deposit deposit, uint amount);
 
     // Hold relavent information about a deposit asset
     struct DepositAsset {
@@ -144,7 +144,7 @@ contract DepositManager is Ownable, Pausable {
         _accountManager.incrementAssetStat(user, asset, "totalDeposits", 1);
         _accountManager.incrementAssetStat(user, asset, "totalDepositAmount", amount);
 
-        emit DepositSuccessful(user, currDeposit);
+        emit DepositSuccessful(user, currDeposit, amount);
 
         return currDeposit;
     }

@@ -5,7 +5,7 @@ import {
   ILoanRecord,
   getLoanRecordStatus,
 } from '../../constants/Record';
-import { convertWeiToDecimal, BigNumber } from '../../utils/BigNumber';
+import { convertWeiToDecimal } from '../../utils/BigNumber';
 import { formatSolidityTime } from '../../utils/formatSolidityTime';
 import { ITerm } from '../../constants/Term';
 

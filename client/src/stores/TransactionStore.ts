@@ -10,6 +10,9 @@ import {
 import { ITransaction } from '../constants/Transaction';
 import { EventData } from 'web3-eth-contract';
 import { uniqBy } from 'lodash';
+import { EventName } from '../constants/Event';
+import { convertWeiToDecimal } from '../utils/BigNumber';
+import { getTimestampByBlockHash } from './services/Web3Service';
 
 export class TransactionStore {
   @observable loanTransactionMap: Map<string, ITransaction[]> = new Map<
@@ -38,39 +41,32 @@ export class TransactionStore {
       getWithdrawDepositSuccessfulEvents(),
     ]);
     this.setDepositTransactions(
-      res.reduce<any[]>((flapArray, events) => [...flapArray, ...events], []),
+      await Promise.all(
+        res
+          .reduce<any[]>((flapArray, events) => [...flapArray, ...events], [])
+          .map(async event => this.formatTransaction('deposit', event)),
+      ),
     );
   }
 
   @action.bound
-  async setDepositTransactions(events: EventData[]) {
-    events.forEach(event => {
-      const recordAddress = event.returnValues.deposit;
+  async setDepositTransactions(transactions: ITransaction[]) {
+    transactions.forEach(transaction => {
+      const recordAddress = transaction.recordAddress;
 
       if (this.depositTransactionMap.has(recordAddress)) {
-        const transactions = this.depositTransactionMap.get(recordAddress);
+        const originalTransactions = this.depositTransactionMap.get(
+          recordAddress,
+        );
         this.depositTransactionMap.set(
           recordAddress,
           uniqBy(
-            [
-              ...transactions!,
-              {
-                transactionHash: event.transactionHash,
-                event: event.event,
-                recordAddress,
-              },
-            ],
+            [...(originalTransactions || []), transaction],
             'transactionHash',
           ),
         );
       } else {
-        this.depositTransactionMap.set(recordAddress, [
-          {
-            transactionHash: event.transactionHash,
-            event: event.event,
-            recordAddress,
-          },
-        ]);
+        this.depositTransactionMap.set(recordAddress, [transaction]);
       }
     });
   }
@@ -84,38 +80,46 @@ export class TransactionStore {
       getWithdrawFreedCollatteralSuccessfulEvents(),
     ]);
     this.setLoanTransactions(
-      res.reduce<any[]>((flapArray, events) => [...flapArray, ...events], []),
+      await Promise.all(
+        res
+          .reduce<any[]>((flapArray, events) => [...flapArray, ...events], [])
+          .map(async event => this.formatTransaction('loan', event)),
+      ),
     );
   }
 
   @action.bound
-  setLoanTransactions(events: EventData[]) {
-    events.forEach(event => {
-      const recordAddress = event.returnValues.loan;
+  async formatTransaction(recordType: 'loan' | 'deposit', event: EventData) {
+    const time = await getTimestampByBlockHash(event.blockHash);
+
+    return {
+      transactionHash: event.transactionHash,
+      event: event.event as EventName,
+      recordAddress:
+        recordType === 'loan'
+          ? event.returnValues.loan
+          : event.returnValues.deposit,
+      amount: convertWeiToDecimal(event.returnValues.amount),
+      time: Number.parseInt(time.toString(), 10) * 1000,
+    };
+  }
+
+  @action.bound
+  setLoanTransactions(transactions: ITransaction[]) {
+    transactions.forEach(transaction => {
+      const recordAddress = transaction.recordAddress;
+
       if (this.loanTransactionMap.has(recordAddress)) {
-        const transactions = this.loanTransactionMap.get(recordAddress);
+        const originalTransactions = this.loanTransactionMap.get(recordAddress);
         this.loanTransactionMap.set(
           recordAddress,
           uniqBy(
-            [
-              ...transactions!,
-              {
-                transactionHash: event.transactionHash,
-                event: event.event,
-                recordAddress,
-              },
-            ],
+            [...(originalTransactions || []), transaction],
             'transactionHash',
           ),
         );
       } else {
-        this.loanTransactionMap.set(recordAddress, [
-          {
-            transactionHash: event.transactionHash,
-            event: event.event,
-            recordAddress,
-          },
-        ]);
+        this.loanTransactionMap.set(recordAddress, [transaction]);
       }
     });
   }

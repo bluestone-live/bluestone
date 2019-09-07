@@ -113,7 +113,10 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
         expect(await collateralAsset.balanceOf(loaner)).to.be.bignumber.equal(
           prevCollateralAssetBalance.sub(collateralAmount)
         );
-        expectEvent.inLogs(logs, "AddCollateralSuccessful");
+        expectEvent.inLogs(logs, "AddCollateralSuccessful", {
+          user: loaner,
+          amount: collateralAmount
+        });
       });
     });
 
@@ -139,7 +142,10 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
           { from: loaner }
         );
 
-        expectEvent.inLogs(logs, "AddCollateralSuccessful");
+        expectEvent.inLogs(logs, "AddCollateralSuccessful", {
+          user: loaner,
+          amount: collateralAmount
+        });
       });
 
       it("didn't use account balance", async () => {
@@ -179,26 +185,42 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       const loanInstance = await Loan.at(loanAddress);
       const loanAmount = await loanInstance.loanAmount();
       const wantToPayAmount = loanAmount.sub(toFixedBN(1));
-      await loanManager.repayLoan(loanAddress, wantToPayAmount, {
-        from: loaner
-      });
+      const { logs } = await loanManager.repayLoan(
+        loanAddress,
+        wantToPayAmount,
+        {
+          from: loaner
+        }
+      );
       const alreadyPaidAmount = await loanInstance.alreadyPaidAmount();
       const isClosed = await loanInstance.isClosed();
       expect(alreadyPaidAmount).to.be.bignumber.equal(wantToPayAmount);
       expect(isClosed).to.be.equal(false);
+      expectEvent.inLogs(logs, "RepayLoanSuccessful", {
+        user: loaner,
+        amount: wantToPayAmount
+      });
     });
 
     it("repays fully", async () => {
       const loanAddress = await loanManager.loans.call(2);
       const loanInstance = await Loan.at(loanAddress);
       const oldRemainingDebt = await loanInstance.remainingDebt();
-      await loanManager.repayLoan(loanAddress, oldRemainingDebt, {
-        from: loaner
-      });
+      const { logs } = await loanManager.repayLoan(
+        loanAddress,
+        oldRemainingDebt,
+        {
+          from: loaner
+        }
+      );
       const remainingDebtAfterRepay = await loanInstance.remainingDebt();
       const isClosed = await loanInstance.isClosed();
       expect(remainingDebtAfterRepay).to.be.bignumber.equal(toFixedBN(0));
       expect(isClosed).to.be.equal(true);
+      expectEvent.inLogs(logs, "RepayLoanSuccessful", {
+        user: loaner,
+        amount: oldRemainingDebt
+      });
     });
 
     context("when Loan address is invalid", () => {

@@ -26,7 +26,7 @@ contract AccountManager is Pausable {
     /// becomes "free" and can be withdrawn or be used for new loan
     mapping(address => mapping(address => uint)) private _freedCollaterals;
 
-    event WithdrawFreedCollateralSuccessful(address indexed user);
+    event WithdrawFreedCollateralSuccessful(address indexed user, uint amount);
 
     constructor(
         TokenManager tokenManager
@@ -73,7 +73,7 @@ contract AccountManager is Pausable {
         address user = msg.sender;
         uint availableFreedCollateral = decreaseFreedCollateral(asset, user, amount);
         _tokenManager.sendTo(user, asset, availableFreedCollateral);
-        emit WithdrawFreedCollateralSuccessful(user);
+        emit WithdrawFreedCollateralSuccessful(user, amount);
     }
 
     // only can call by other contract
