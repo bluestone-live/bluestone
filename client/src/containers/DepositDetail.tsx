@@ -13,6 +13,7 @@ interface IProps extends WithTranslation {
   configurationStore: ConfigurationStore;
   depositRecord: IDepositRecord;
   recordStore: RecordStore;
+  configurationStore: ConfigurationStore;
   transactionsForRecord?: ITransaction[];
 }
 
@@ -73,7 +74,10 @@ class DepositDetail extends React.Component<IProps, IState> {
           </Form.Item>
         )}
         {transactionsForRecord && (
-          <TransactionList transactions={transactionsForRecord} />
+          <TransactionList
+            record={depositRecord}
+            transactions={transactionsForRecord}
+          />
         )}
       </div>
     );

@@ -108,7 +108,10 @@ const LoanDetail = (props: IProps) => {
       </Form.Item>
       {showActions(props)}
       {transactionsForRecord && (
-        <TransactionList transactions={transactionsForRecord} />
+        <TransactionList
+          transactions={transactionsForRecord}
+          record={loanRecord}
+        />
       )}
     </div>
   );

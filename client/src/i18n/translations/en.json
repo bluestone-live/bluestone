@@ -41,6 +41,11 @@
     "record_status": "Record Status",
     "actions": "Actions",
     "available_amount": "Available Amount",
-    "asset": "Asset"
+    "asset": "Asset",
+    "transaction_list_LoanSuccessful": "Borrow {{amount}} {{symbol}}",
+    "transaction_list_RepayLoanSuccessful": "Repay {{amount}} {{symbol}}",
+    "transaction_list_AddCollateralSuccessful": "Add {{amount}} {{symbol}} to collateral",
+    "transaction_list_DepositSuccessful": "Deposit {{amount}} {{symbol}}",
+    "transaction_list_WithdrawDepositSuccessful": "Withdraw {{amount}} {{symbol}}"
   }
 }

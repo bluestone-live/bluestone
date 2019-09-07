@@ -41,6 +41,11 @@
     "record_status": "",
     "actions": "",
     "available_amount": "",
-    "asset": ""
+    "asset": "",
+    "transaction_list_LoanSuccessful": "",
+    "transaction_list_RepayLoanSuccessful": "",
+    "transaction_list_AddCollateralSuccessful": "",
+    "transaction_list_DepositSuccessful": "",
+    "transaction_list_WithdrawDepositSuccessful": ""
   }
 }
