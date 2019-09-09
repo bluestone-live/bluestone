@@ -10,7 +10,7 @@
     "submit": "SUBMIT",
     "recordAddress_is_invalid": "Record Address is Invalid",
     "please_click_connect": "Please Client Connect",
-    "deposit_amount": "Deposit Amount",
+    "deposit_amount": "DEPOSIT",
     "select_term": "Select Term",
     "actual_income": "Actual Income",
     "is_auto_renewal": "Is Auto Renewal",
@@ -48,6 +48,7 @@
     "transaction_list_DepositSuccessful": "Deposit {{amount}} {{symbol}}",
     "transaction_list_WithdrawDepositSuccessful": "Withdraw {{amount}} {{symbol}}",
     "portal_page_deposit": "DEPOSIT",
-    "portal_page_borrow": "BORROW"
+    "portal_page_borrow": "BORROW",
+    "interest_earned": "Interest earned"
   }
 }

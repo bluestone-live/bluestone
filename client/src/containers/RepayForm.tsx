@@ -44,9 +44,6 @@ class RepayForm extends React.Component<IProps, IState> {
   async componentDidMount() {
     const { recordStore, match } = this.props;
     await recordStore!.updateLoanRecordByAddress(match.params.recordAddress);
-    this.setState({
-      loading: true,
-    });
   }
 
   onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
