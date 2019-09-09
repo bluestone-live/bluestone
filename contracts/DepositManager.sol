@@ -171,7 +171,7 @@ contract DepositManager is Ownable, Pausable {
         _tokenManager.sendTo(user, asset, withdrewAmount);
         _tokenManager.sendTo(protocol, asset, interestsForProtocol);
 
-        emit WithdrawDepositSuccessful(user, currDeposit);
+        emit WithdrawDepositSuccessful(user, currDeposit, withdrewAmount);
         return withdrewAmount;
     }
 
