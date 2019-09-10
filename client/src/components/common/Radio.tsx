@@ -24,7 +24,7 @@ const StyledRadio = styled.div`
 const StyledRadioOption = styled.div`
   display: flex;
   align-items: center;
-  margin: 0 ${(props: ThemedProps) => props.theme.gap.small};
+  margin-right: ${(props: ThemedProps) => props.theme.gap.small};
 `;
 
 const StyledRadioInput = styled(Input)`
