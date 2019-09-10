@@ -65,14 +65,19 @@ export class LoanManagerStore {
   }
 
   @action.bound
-  async initLoanTerms() {
-    const loanTerms = await getLoanTerms();
+  setLoanTerms(loanTerms: BigNumber[]) {
     this.loanTerms = loanTerms
       .map(term => Number.parseFloat(term.toString()))
       .sort((a, b) => a - b)
       .map(term => {
         return { text: `${term}-Day`, value: term };
       });
+  }
+
+  @action.bound
+  async initLoanTerms() {
+    const loanTerms = await getLoanTerms();
+    this.setLoanTerms(loanTerms);
   }
 
   @action.bound

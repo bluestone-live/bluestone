@@ -7,13 +7,18 @@ export class DepositManagerStore {
   @observable depositTerms: ITerm[] = [];
 
   @action.bound
-  async init() {
-    const depositTerms = await getDepositTerms();
+  setDepositTerms(depositTerms: BigNumber[]) {
     this.depositTerms = depositTerms
       .map((term: BigNumber) => Number.parseFloat(term.toString()))
       .sort((a, b) => a - b)
       .map(term => {
         return { text: `${term}-Day`, value: term };
       });
+  }
+
+  @action.bound
+  async init() {
+    const depositTerms = await getDepositTerms();
+    this.setDepositTerms(depositTerms);
   }
 }

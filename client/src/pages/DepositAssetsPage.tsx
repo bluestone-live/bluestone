@@ -104,7 +104,7 @@ class DepositAssetsPage extends React.Component<IProps, IState> {
     if (accountStore.hasAllowance(token.symbol)) {
       return (
         <React.Fragment>
-          <StyledButton onClick={this.goTo(`/deposit/${token.symbol}`)}>
+          <StyledButton primary onClick={this.goTo(`/deposit/${token.symbol}`)}>
             {t('deposit')}
           </StyledButton>
         </React.Fragment>

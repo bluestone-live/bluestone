@@ -12,8 +12,22 @@ const Portal = styled.div`
 
 const StyledEntry = styled(Card)`
   flex: 1;
-  text-align: center;
-  padding: ${(props: ThemedProps) => props.theme.gap.largest};
+  min-height: 400px;
+  padding: 0;
+  display: flex;
+
+  & > a {
+    display: flex;
+    padding: ${(props: ThemedProps) => props.theme.gap.largest};
+    height: 100%;
+    width: 100%;
+
+    & > * {
+      flex: 1;
+      align-self: center;
+      text-align: center;
+    }
+  }
 
   &:first-child {
     margin-right: ${(props: ThemedProps) => props.theme.gap.small};

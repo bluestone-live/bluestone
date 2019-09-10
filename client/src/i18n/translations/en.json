@@ -49,6 +49,6 @@
     "transaction_list_WithdrawDepositSuccessful": "Withdraw {{amount}} {{symbol}}",
     "portal_page_deposit": "DEPOSIT",
     "portal_page_borrow": "BORROW",
-    "interest_earned": "Interest earned"
+    "interest_earned": "Interest Earned"
   }
 }
