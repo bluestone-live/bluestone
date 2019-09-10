@@ -24,7 +24,8 @@ const StyledMessageBox = styled.div`
   transform: translate(-50%, 0);
   margin: 0 auto;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  background-color: ${DefaultTheme.backgroundColor.primary};
+  background-color: ${DefaultTheme.backgroundColor.inverted};
+  color: ${DefaultTheme.fontColors.inverted};
   border-radius: ${DefaultTheme.borderRadius.small};
   padding: ${`${DefaultTheme.gap.small} 40px ${DefaultTheme.gap.small} ${DefaultTheme.gap.small}`};
   box-sizing: border-box;
@@ -35,6 +36,7 @@ const StyledMessageBox = styled.div`
   & .close-btn {
     position: absolute;
     right: ${DefaultTheme.gap.small};
+    color: ${DefaultTheme.fontColors.inverted};
     top: 0;
   }
 

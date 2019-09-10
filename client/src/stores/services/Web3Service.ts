@@ -3,6 +3,8 @@ import { AbiItem } from 'web3-utils';
 import { EventData, Contract, EventOptions } from 'web3-eth-contract';
 import { accountStore } from '..';
 import { EventName } from '../../constants/Event';
+import Message from '../../components/common/Message';
+import i18n from '../../i18n';
 
 const requireContract = (contractName: string) =>
   require(`../../contracts/${contractName}.json`);
@@ -177,12 +179,15 @@ export const getContractEventFlow = async (
           eventSubscription.unsubscribe();
         },
       );
-    });
-    callback(contractInstance).catch(e => {
-      // TODO format and show error message from contract here.
-      // tslint:disable-next-line:no-console
-      console.error(e);
-      eventSubscription.unsubscribe();
+      callback(contractInstance).catch(e => {
+        // TODO format and show error message from contract here.
+        if (e.stack.indexOf('User denied transaction signature') >= 0) {
+          Message.error(i18n.t('user_denied'));
+        } else {
+          Message.error(e.message);
+        }
+        reject(e);
+      });
     });
     return p;
   };

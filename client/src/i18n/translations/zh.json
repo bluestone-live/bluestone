@@ -54,6 +54,9 @@
     "freed_collateral": "",
     "interest": "",
     "transactions": "",
-    "max": ""
+    "max": "",
+    "use_freed_collateral": "",
+    "freed_collateral_amount": "",
+    "user_denied": ""
   }
 }

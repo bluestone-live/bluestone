@@ -101,25 +101,31 @@ class LoanForm extends React.Component<IProps, IState> {
       return;
     }
 
-    const record = await recordStore!.loan(
-      new BigNumber(term),
-      loanToken,
-      collateralToken,
-      convertDecimalToWei(loanAmount),
-      convertDecimalToWei(collateralAmount),
-      useFreedCollateral,
-    );
-    this.setState({
-      loading: false,
-    });
+    try {
+      const record = await recordStore!.loan(
+        new BigNumber(term),
+        loanToken,
+        collateralToken,
+        convertDecimalToWei(loanAmount),
+        convertDecimalToWei(collateralAmount),
+        useFreedCollateral,
+      );
+      this.setState({
+        loading: false,
+      });
 
-    history.push({
-      pathname: '/records/loan',
-      search: stringify({
-        currentToken: loanToken.address,
-        recordAddress: record!.recordAddress,
-      }),
-    });
+      history.push({
+        pathname: '/records/loan',
+        search: stringify({
+          currentToken: loanToken.address,
+          recordAddress: record!.recordAddress,
+        }),
+      });
+    } catch (e) {
+      this.setState({
+        loading: false,
+      });
+    }
   };
 
   renderOption(key: string, value: any, text?: string) {

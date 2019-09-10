@@ -80,23 +80,29 @@ class DepositForm extends React.Component<IProps, IState> {
       loading: true,
     });
 
-    const record = await recordStore!.deposit(
-      currentToken!,
-      new BigNumber(selectedTerm.value),
-      convertDecimalToWei(amount),
-    );
+    try {
+      const record = await recordStore!.deposit(
+        currentToken!,
+        new BigNumber(selectedTerm.value),
+        convertDecimalToWei(amount),
+      );
 
-    this.setState({
-      loading: false,
-    });
+      this.setState({
+        loading: false,
+      });
 
-    history.push({
-      pathname: '/records/deposit',
-      search: stringify({
-        currentToken: currentToken!.address,
-        recordAddress: record!.recordAddress,
-      }),
-    });
+      history.push({
+        pathname: '/records/deposit',
+        search: stringify({
+          currentToken: currentToken!.address,
+          recordAddress: record!.recordAddress,
+        }),
+      });
+    } catch (e) {
+      this.setState({
+        loading: false,
+      });
+    }
   };
 
   render() {

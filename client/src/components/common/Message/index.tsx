@@ -49,27 +49,35 @@ export default class Message {
    * @param message: string or custom react element
    * @param duration: the message won't disappear until click the close button when duration is <= 0;
    */
-  static info = (children: string | React.ReactElement, duration?: number) =>
-    Message.show(children, MessageType.Info, duration);
+  static info = (
+    children: string | React.ReactElement,
+    duration: number = 3000,
+  ) => Message.show(children, MessageType.Info, duration);
   /**
    * Show success message
    * @param message: string or custom react element
    * @param duration: the message won't disappear until click the close button when duration is <= 0;
    */
-  static success = (children: string | React.ReactElement, duration?: number) =>
-    Message.show(children, MessageType.Success, duration);
+  static success = (
+    children: string | React.ReactElement,
+    duration: number = 3000,
+  ) => Message.show(children, MessageType.Success, duration);
   /**
    * Show warning message
    * @param message: string or custom react element
    * @param duration: the message won't disappear until click the close button when duration is <= 0;
    */
-  static warning = (children: string | React.ReactElement, duration?: number) =>
-    Message.show(children, MessageType.Warning, duration);
+  static warning = (
+    children: string | React.ReactElement,
+    duration: number = 3000,
+  ) => Message.show(children, MessageType.Warning, duration);
   /**
    * Show error message
    * @param message: string or custom react element
    * @param duration: the message won't disappear until click the close button when duration is <= 0;
    */
-  static error = (children: string | React.ReactElement, duration?: number) =>
-    Message.show(children, MessageType.Error, duration);
+  static error = (
+    children: string | React.ReactElement,
+    duration: number = 3000,
+  ) => Message.show(children, MessageType.Error, duration);
 }

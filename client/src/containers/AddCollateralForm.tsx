@@ -72,26 +72,32 @@ class AddCollateralForm extends React.Component<IProps, IState> {
       formSubmitting: true,
     });
 
-    await recordStore!.addCollateral(
-      match.params.recordAddress,
-      convertDecimalToWei(amount),
-      useFreedCollateral,
-    );
-    await recordStore!.updateLoanRecordByAddress(match.params.recordAddress);
-    const record = recordStore!.getLoanRecordByAddress(
-      match.params.recordAddress,
-    )!;
-    this.setState({
-      formSubmitting: false,
-    });
+    try {
+      await recordStore!.addCollateral(
+        match.params.recordAddress,
+        convertDecimalToWei(amount),
+        useFreedCollateral,
+      );
+      await recordStore!.updateLoanRecordByAddress(match.params.recordAddress);
+      const record = recordStore!.getLoanRecordByAddress(
+        match.params.recordAddress,
+      )!;
+      this.setState({
+        formSubmitting: false,
+      });
 
-    history.push({
-      pathname: '/records/loan',
-      search: stringify({
-        currentToken: record.loanToken.address,
-        recordAddress: record.recordAddress,
-      }),
-    });
+      history.push({
+        pathname: '/records/loan',
+        search: stringify({
+          currentToken: record.loanToken.address,
+          recordAddress: record.recordAddress,
+        }),
+      });
+    } catch (e) {
+      this.setState({
+        formSubmitting: false,
+      });
+    }
   };
 
   getCollateralRatio = (record: ILoanRecord) => {

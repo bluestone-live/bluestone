@@ -54,6 +54,9 @@
     "freed_collateral": "Freed Collateral",
     "interest": "Interest",
     "transactions": "Transactions",
-    "max": "MAX"
+    "max": "MAX",
+    "use_freed_collateral": "Use Freed Collateral",
+    "freed_collateral_amount": "Freed Collateral Amount",
+    "user_denied": "User denied transaction signature"
   }
 }

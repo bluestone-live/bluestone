@@ -72,25 +72,31 @@ class RepayForm extends React.Component<IProps, IState> {
       loading: true,
     });
 
-    await recordStore!.repay(
-      match.params.recordAddress,
-      convertDecimalToWei(amount),
-    );
-    const record = recordStore!.getLoanRecordByAddress(
-      match.params.recordAddress,
-    )!;
+    try {
+      await recordStore!.repay(
+        match.params.recordAddress,
+        convertDecimalToWei(amount),
+      );
+      const record = recordStore!.getLoanRecordByAddress(
+        match.params.recordAddress,
+      )!;
 
-    this.setState({
-      loading: false,
-    });
+      this.setState({
+        loading: false,
+      });
 
-    history.push({
-      pathname: '/records/loan',
-      search: stringify({
-        currentToken: record.loanToken.address,
-        recordAddress: record.recordAddress,
-      }),
-    });
+      history.push({
+        pathname: '/records/loan',
+        search: stringify({
+          currentToken: record.loanToken.address,
+          recordAddress: record.recordAddress,
+        }),
+      });
+    } catch (e) {
+      this.setState({
+        loading: false,
+      });
+    }
   };
 
   render() {

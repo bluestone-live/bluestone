@@ -16,6 +16,8 @@ const StyledToggle = styled.div`
   position: relative;
   transition: 300ms;
   cursor: pointer;
+  background-color: ${(props: ThemedProps) =>
+    props.theme.backgroundColor.inverted};
 
   &.disabled {
     cursor: pointer;
@@ -23,20 +25,22 @@ const StyledToggle = styled.div`
 `;
 
 const Slider = styled.div`
-  border: 1px solid ${(props: ThemedProps) => props.theme.borderColor.secondary};
   height: 32px;
   width: 32px;
   border-radius: 16px;
-  background-color: ${(props: ThemedProps) => props.theme.colors.primary};
   position: relative;
   top: 1px;
   left: 1px;
   transition: 300ms;
+  border: 1px solid ${(props: ThemedProps) => props.theme.colors.primary};
+  background-color: ${(props: ThemedProps) => props.theme.colors.primary};
 
   &.off {
     left: 37px;
+    border: 1px solid
+      ${(props: ThemedProps) => props.theme.borderColor.secondary};
     background-color: ${(props: ThemedProps) =>
-      props.theme.backgroundColor.secondary};
+      props.theme.backgroundColor.inverted};
   }
 `;
 

@@ -8,6 +8,7 @@ import Button from '../components/html/Button';
 import Form from '../components/html/Form';
 import { AccountStore, ConfigurationStore } from '../stores';
 import { convertDecimalToWei } from '../utils/BigNumber';
+import { Cell } from '../components/common/Layout';
 
 interface IProps
   extends WithTranslation,
@@ -34,23 +35,28 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
       amount: Number.parseFloat(e.currentTarget.value),
     });
 
-  onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    this.setState({
-      loading: true,
-    });
-
     const { accountStore, match } = this.props;
     const { amount } = this.state;
 
-    accountStore.withdrawFreedCollateral(
-      match.params.tokenAddress,
-      convertDecimalToWei(amount),
-    );
+    try {
+      this.setState({
+        loading: true,
+      });
 
-    this.setState({
-      loading: false,
-    });
+      await accountStore.withdrawFreedCollateral(
+        match.params.tokenAddress,
+        convertDecimalToWei(amount),
+      );
+      this.setState({
+        loading: false,
+      });
+    } catch (e) {
+      this.setState({
+        loading: false,
+      });
+    }
   };
 
   render() {
@@ -64,31 +70,44 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
       <Card>
         <Form onSubmit={this.onSubmit}>
           <Form.Item>
-            <label htmlFor="amount">{t('collateral_amount')}</label>
-            <Input
-              id="amount"
-              type="number"
-              value={amount}
-              onChange={this.onAmountChange}
-            />
+            <Cell>
+              <label htmlFor="amount">{t('collateral_amount')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <Input
+                id="amount"
+                type="number"
+                value={amount}
+                onChange={this.onAmountChange}
+              />
+            </Cell>
           </Form.Item>
           <Form.Item>
-            <label>{t('available_amount')}</label>
-            <Input
-              type="text"
-              disabled
-              value={availableAmount ? availableAmount.toString() : 0}
-            />
+            <Cell>
+              <label>{t('available_amount')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <Input
+                type="text"
+                disabled
+                value={availableAmount ? availableAmount.toString() : 0}
+              />
+            </Cell>
           </Form.Item>
           <Form.Item>
-            <label />
-            <Button
-              primary
-              loading={loading}
-              disabled={configurationStore.isUserActionsLocked}
-            >
-              {t('submit')}
-            </Button>
+            <Cell>
+              <label />
+            </Cell>
+            <Cell scale={4}>
+              <Button
+                primary
+                fullWidth
+                loading={loading}
+                disabled={configurationStore.isUserActionsLocked}
+              >
+                {t('withdraw')}
+              </Button>
+            </Cell>
           </Form.Item>
         </Form>
       </Card>

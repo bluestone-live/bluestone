@@ -1,5 +1,5 @@
 import adjustColor from './adjustColor';
-import { black, blue, white, red, grey2 } from './colors';
+import { black, blue, white, red, grey2, grey4, grey3 } from './colors';
 
 export const DefaultTheme = {
   fontFamily: 'Helvetica, Arial, sans-serif',
@@ -23,11 +23,12 @@ export const DefaultTheme = {
     body: grey2,
     primary: grey2,
     secondary: grey2,
+    inverted: grey4,
     hover: grey2,
   },
   borderColor: {
     primary: black,
-    secondary: black,
+    secondary: grey2,
     warning: red,
   },
   borderRadius: {
