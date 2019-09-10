@@ -31,7 +31,7 @@ const StyledRow = styled(Row)`
 
 const StyledListWrapper = styled(Cell)`
   border-right: 1px solid
-    ${(props: ThemedProps) => props.theme.borderColor.secondary};
+    ${(props: ThemedProps) => props.theme.borderColor.primary};
 `;
 
 const StyledDropDown = styled(DropDown)`

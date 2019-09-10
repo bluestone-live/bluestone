@@ -83,7 +83,7 @@ const LoanDetail = (props: IProps) => {
   return (
     <div>
       <Form.Item>
-        <label htmlFor="loanTokenSymbol">{t('borrow')}:</label>
+        <label htmlFor="loanTokenSymbol">{t('borrow')}: </label>
         <TextBox>
           {loanRecord.loanAmount} {loanToken.symbol}
         </TextBox>
@@ -94,7 +94,7 @@ const LoanDetail = (props: IProps) => {
       </Form.Item>
       <Form.Item>
         <label htmlFor="apr">{t('apr')}:</label>{' '}
-        <TextBox id="apr">{annualPercentageRate}%</TextBox>
+        <TextBox id="apr">{annualPercentageRate} %</TextBox>
       </Form.Item>
       <Form.Item>
         <label htmlFor="collateralTokenSymbol">{t('collateral')}:</label>

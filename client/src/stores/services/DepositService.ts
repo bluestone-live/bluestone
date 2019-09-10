@@ -24,9 +24,10 @@ export const getDeposit = async (
   );
   const token = tokenStore.getTokenByAddress(tokenAddress);
   const term = terms.find(t => t.value === termValue);
-  const interestIndex = convertWeiToDecimal(
-    await getInterestIndex(depositAddress),
-  );
+  // const interestIndex = convertWeiToDecimal(
+  //   await getInterestIndex(depositAddress),
+  // );
+  const interestIndex = '0';
 
   const depositAmount = convertWeiToDecimal(
     await depositContractInstance.methods.amount().call(),
