@@ -49,6 +49,11 @@
     "transaction_list_WithdrawDepositSuccessful": "",
     "portal_page_deposit": "",
     "portal_page_borrow": "",
-    "interest_earned": ""
+    "interest_earned": "",
+    "collateral_amount": "",
+    "freed_collateral": "",
+    "interest": "",
+    "transactions": "",
+    "max": ""
   }
 }

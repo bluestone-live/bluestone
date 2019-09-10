@@ -410,6 +410,9 @@ class LoanForm extends React.Component<IProps, IState> {
             <Row>
               <Form.Item>
                 <Cell>
+                  <label />
+                </Cell>
+                <Cell scale={3}>
                   <Button
                     disabled={configurationStore!.isUserActionsLocked}
                     primary

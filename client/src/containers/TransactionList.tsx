@@ -2,7 +2,6 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { ITransaction } from '../constants/Transaction';
 import { Row, Cell } from '../components/common/Layout';
-import TextBox from '../components/common/TextBox';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import dayjs from 'dayjs';
@@ -15,7 +14,6 @@ interface IProps extends WithTranslation {
 }
 
 const StyledTransactionList = styled.div`
-  margin-top: ${(props: ThemedProps) => props.theme.gap.large};
   border-top: 1px solid
     ${(props: ThemedProps) => props.theme.borderColor.secondary};
   max-height: ${6 * 35}px;

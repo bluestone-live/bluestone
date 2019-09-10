@@ -35,6 +35,7 @@ const StyledOptionsContainer = styled.div`
 const StyledOption = styled.div`
   width: 100%;
   height: 44px;
+  color: ${(props: ThemedProps) => props.theme.fontColors.inverted};
   border-bottom: 1px solid
     ${(props: ThemedProps) => props.theme.borderColor.secondary};
   cursor: pointer;

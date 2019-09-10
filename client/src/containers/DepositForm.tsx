@@ -15,7 +15,7 @@ import { ITerm } from '../constants/Term';
 import Button from '../components/html/Button';
 import { convertDecimalToWei, BigNumber } from '../utils/BigNumber';
 import Form from '../components/html/Form';
-import { Row, Cell } from '../components/common/Layout';
+import { Cell } from '../components/common/Layout';
 import { stringify } from 'querystring';
 
 interface IProps
@@ -114,22 +114,20 @@ class DepositForm extends React.Component<IProps, IState> {
       <Card>
         <Form onSubmit={this.onSubmit}>
           <Form.Item>
-            <Row>
-              <Cell>
-                <label htmlFor="amount">{t('deposit_amount')}</label>
-              </Cell>
-              <Cell scale={4}>
-                <Input
-                  fullWidth
-                  id="amount"
-                  type="number"
-                  step={1e-18}
-                  min={1e-18}
-                  onChange={this.onAmountChange}
-                  suffix={currentToken!.symbol}
-                />
-              </Cell>
-            </Row>
+            <Cell>
+              <label htmlFor="amount">{t('deposit_amount')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <Input
+                fullWidth
+                id="amount"
+                type="number"
+                step={1e-18}
+                min={1e-18}
+                onChange={this.onAmountChange}
+                suffix={currentToken!.symbol}
+              />
+            </Cell>
           </Form.Item>
           <Form.Item>
             <Cell>
@@ -145,14 +143,19 @@ class DepositForm extends React.Component<IProps, IState> {
             </Cell>
           </Form.Item>
           <Form.Item>
-            <Button
-              primary
-              fullWidth
-              disabled={configurationStore!.isUserActionsLocked}
-              loading={loading}
-            >
-              {t('submit')}
-            </Button>
+            <Cell>
+              <label />
+            </Cell>
+            <Cell scale={4}>
+              <Button
+                primary
+                fullWidth
+                disabled={configurationStore!.isUserActionsLocked}
+                loading={loading}
+              >
+                {t('submit')}
+              </Button>
+            </Cell>
           </Form.Item>
         </Form>
       </Card>

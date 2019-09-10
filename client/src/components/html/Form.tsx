@@ -12,6 +12,7 @@ const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
   margin: ${(props: ThemedProps) => props.theme.gap.medium} auto;
+  padding: 0 10%;
 
   ${(props: ThemedProps<IFormProps>) =>
     props.horizontal &&

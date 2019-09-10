@@ -245,7 +245,10 @@ class RecordPage extends React.Component<IProps, IState> {
           {recordType === 'loan' && (
             <StyledBox>
               {t('freed_collateral')}:{convertWeiToDecimal(freedCollateral)}
-              <StyledButton onClick={this.goTo(`/withdraw/${currentToken}`)}>
+              <StyledButton
+                primary
+                onClick={this.goTo(`/withdraw/${currentToken}`)}
+              >
                 {t('withdraw')}
               </StyledButton>
             </StyledBox>

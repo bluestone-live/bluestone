@@ -13,6 +13,7 @@ import { convertDecimalToWei } from '../utils/BigNumber';
 import { stringify } from 'querystring';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
+import { Cell } from '../components/common/Layout';
 
 interface IProps
   extends WithTranslation,
@@ -27,6 +28,7 @@ interface IState {
 }
 
 const StyledSuffixButton = styled(Button)`
+  width: 100%;
   border-radius: 0 ${(props: ThemedProps) => props.theme.borderRadius.medium}
     ${(props: ThemedProps) => props.theme.borderRadius.medium} 0;
 
@@ -102,61 +104,83 @@ class RepayForm extends React.Component<IProps, IState> {
       <Card>
         <Form onSubmit={this.onSubmit}>
           <Form.Item>
-            <label htmlFor="amount">{t('repay')}</label>
-            <Input
-              id="amount"
-              type="number"
-              step={1e-18}
-              min={1e-18}
-              max={record.remainingDebt}
-              value={amount}
-              onChange={this.onAmountChange}
-              suffix={
-                <StyledSuffixButton
-                  primary
-                  onClick={this.onMaxButtonClick(record.remainingDebt)}
-                >
-                  {t('max')}
-                </StyledSuffixButton>
-              }
-            />
+            <Cell>
+              <label htmlFor="amount">{t('repay')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <Input
+                id="amount"
+                type="number"
+                step={1e-18}
+                min={1e-18}
+                max={record.remainingDebt}
+                value={amount}
+                onChange={this.onAmountChange}
+                suffix={
+                  <StyledSuffixButton
+                    primary
+                    onClick={this.onMaxButtonClick(record.remainingDebt)}
+                  >
+                    {t('max')}
+                  </StyledSuffixButton>
+                }
+              />
+            </Cell>
           </Form.Item>
           <Form.Item>
-            <label>{t('remaining')}</label>
-            <Input
-              type="text"
-              disabled
-              value={`${record.remainingDebt}`}
-              suffix={record.loanToken.symbol}
-            />
+            <Cell>
+              <label>{t('remaining')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <Input
+                type="text"
+                disabled
+                value={`${record.remainingDebt}`}
+                suffix={record.loanToken.symbol}
+              />
+            </Cell>
           </Form.Item>
           <Form.Item>
-            <label>{t('interest')}</label>
-            <Input
-              type="text"
-              disabled
-              value={record.interest}
-              suffix={record.loanToken.symbol}
-            />
+            <Cell>
+              <label>{t('interest')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <Input
+                type="text"
+                disabled
+                value={record.interest}
+                suffix={record.loanToken.symbol}
+              />
+            </Cell>
           </Form.Item>
           <Form.Item>
-            <label>{t('expire_date')}</label>
-            <Input
-              type="text"
-              disabled
-              value={dayjs(record.createdAt)
-                .add(record.term.value, 'day')
-                .format('YYYY-MM-DD')}
-            />
+            <Cell>
+              <label>{t('expire_date')}</label>
+            </Cell>
+            <Cell scale={4}>
+              <Input
+                type="text"
+                disabled
+                value={dayjs(record.createdAt)
+                  .add(record.term.value, 'day')
+                  .format('YYYY-MM-DD')}
+              />
+            </Cell>
           </Form.Item>
           <Form.Item>
-            <Button
-              primary
-              disabled={configurationStore!.isUserActionsLocked}
-              loading={loading}
-            >
-              {t('repay')}
-            </Button>
+            <Cell>
+              <label />
+            </Cell>
+            <Cell scale={4}>
+              <Button
+                primary
+                fullWidth
+                disabled={configurationStore!.isUserActionsLocked}
+                loading={loading}
+              >
+                {t('repay')}
+              </Button>
+            </Cell>
           </Form.Item>
         </Form>
       </Card>

@@ -242,6 +242,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
               <Cell scale={3}>
                 <Button
                   primary
+                  fullWidth
                   disabled={configurationStore!.isUserActionsLocked}
                   loading={this.state.formSubmitting}
                 >

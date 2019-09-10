@@ -15,6 +15,7 @@ const StyledInputGroup = styled.div`
 
   > input {
     flex: 1;
+    color: ${(props: ThemedProps) => props.theme.fontColors.inverted};
 
     &:not(:last-child) {
       border-radius: ${(props: ThemedProps) => props.theme.borderRadius.medium}
@@ -25,6 +26,8 @@ const StyledInputGroup = styled.div`
 
   > .addon {
     flex: 0;
+    min-width: 70px;
+    text-align: center;
     &:first-child {
       margin-right: -1px;
 

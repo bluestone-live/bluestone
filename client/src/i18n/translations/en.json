@@ -23,7 +23,7 @@
     "matured_at": "Matured At",
     "record_liquidating": "Record Liquidating",
     "withdraw_collateral": "Withdraw Collateral",
-    "add_collateral": "Add Collateral",
+    "add_collateral": "ADD COLLATERAL",
     "repay": "REPAY",
     "borrow": "BORROW",
     "apr": "APR",
@@ -49,6 +49,11 @@
     "transaction_list_WithdrawDepositSuccessful": "Withdraw {{amount}} {{symbol}}",
     "portal_page_deposit": "DEPOSIT",
     "portal_page_borrow": "BORROW",
-    "interest_earned": "Interest Earned"
+    "interest_earned": "Interest Earned",
+    "collateral_amount": "Collateral Amount",
+    "freed_collateral": "Freed Collateral",
+    "interest": "Interest",
+    "transactions": "Transactions",
+    "max": "MAX"
   }
 }
