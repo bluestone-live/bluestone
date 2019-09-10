@@ -62,7 +62,9 @@ export class RecordStore {
       depositAddress,
       depositManagerStore.depositTerms,
     );
-    return this.saveOrUpdateDepositRecords([depositRecord]);
+    this.saveOrUpdateDepositRecords([depositRecord]);
+
+    return depositRecord;
   }
 
   @action.bound
@@ -135,6 +137,7 @@ export class RecordStore {
       loanManagerStore.loanTerms,
     );
     this.saveOrUpdateLoanRecords([loanRecord]);
+    return loanRecord;
   }
 
   @action.bound

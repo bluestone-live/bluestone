@@ -13,7 +13,6 @@ interface IProps extends WithTranslation {
   configurationStore: ConfigurationStore;
   depositRecord: IDepositRecord;
   recordStore: RecordStore;
-  configurationStore: ConfigurationStore;
   transactionsForRecord?: ITransaction[];
 }
 

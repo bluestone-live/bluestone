@@ -29,6 +29,7 @@ import {
   AccountStore,
 } from '../stores';
 import Toggle from '../components/common/Toggle';
+import { stringify } from 'querystring';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountStore?: AccountStore;
@@ -100,8 +101,7 @@ class LoanForm extends React.Component<IProps, IState> {
       return;
     }
 
-    // TODO: add input/checkbox field to use freed collateral
-    await recordStore!.loan(
+    const record = await recordStore!.loan(
       new BigNumber(term),
       loanToken,
       collateralToken,
@@ -109,11 +109,16 @@ class LoanForm extends React.Component<IProps, IState> {
       convertDecimalToWei(collateralAmount),
       useFreedCollateral,
     );
-
-    history.push(`/records/loan?currentToken=${loanToken.address}`);
-
     this.setState({
       loading: false,
+    });
+
+    history.push({
+      pathname: '/records/loan',
+      search: stringify({
+        currentToken: loanToken.address,
+        recordAddress: record!.recordAddress,
+      }),
     });
   };
 
@@ -393,7 +398,7 @@ class LoanForm extends React.Component<IProps, IState> {
                       {this.estimateRepayAmount(
                         Number.parseInt(annualPercentageRate, 10),
                       )}{' '}
-                      {loanTokenSymbol} in estimation before
+                      {loanTokenSymbol} in estimation before{' '}
                       {estimatedRepayDate}.
                     </StyledTextBox>
                   </Form.Item>

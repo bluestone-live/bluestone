@@ -78,16 +78,16 @@ class RepayForm extends React.Component<IProps, IState> {
       match.params.recordAddress,
     )!;
 
+    this.setState({
+      loading: false,
+    });
+
     history.push({
       pathname: '/records/loan',
       search: stringify({
-        tokenSymbol: record.loanToken.symbol,
+        currentToken: record.loanToken.address,
         recordAddress: record.recordAddress,
       }),
-    });
-
-    this.setState({
-      loading: false,
     });
   };
 

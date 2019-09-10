@@ -81,7 +81,6 @@ class AddCollateralForm extends React.Component<IProps, IState> {
     const record = recordStore!.getLoanRecordByAddress(
       match.params.recordAddress,
     )!;
-
     this.setState({
       formSubmitting: false,
     });
@@ -89,7 +88,7 @@ class AddCollateralForm extends React.Component<IProps, IState> {
     history.push({
       pathname: '/records/loan',
       search: stringify({
-        tokenSymbol: record.loanToken.symbol,
+        currentToken: record.loanToken.address,
         recordAddress: record.recordAddress,
       }),
     });

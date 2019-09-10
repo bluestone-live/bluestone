@@ -16,6 +16,7 @@ import Button from '../components/html/Button';
 import { convertDecimalToWei, BigNumber } from '../utils/BigNumber';
 import Form from '../components/html/Form';
 import { Row, Cell } from '../components/common/Layout';
+import { stringify } from 'querystring';
 
 interface IProps
   extends WithTranslation,
@@ -29,6 +30,7 @@ interface IProps
 interface IState {
   selectedTerm: ITerm;
   amount: number;
+  loading: boolean;
 }
 
 @inject(
@@ -42,6 +44,7 @@ class DepositForm extends React.Component<IProps, IState> {
   state = {
     selectedTerm: this.props.depositManagerStore!.depositTerms[0],
     amount: 0,
+    loading: false,
   };
 
   componentDidMount() {
@@ -73,13 +76,27 @@ class DepositForm extends React.Component<IProps, IState> {
     const currentToken = tokenStore!.getToken(match.params.tokenSymbol);
     const { selectedTerm, amount } = this.state;
 
-    await recordStore!.deposit(
+    this.setState({
+      loading: true,
+    });
+
+    const record = await recordStore!.deposit(
       currentToken!,
       new BigNumber(selectedTerm.value),
       convertDecimalToWei(amount),
     );
 
-    history.push(`/records/deposit?tokenSymbol=${match.params.tokenSymbol}`);
+    this.setState({
+      loading: false,
+    });
+
+    history.push({
+      pathname: '/records/deposit',
+      search: stringify({
+        currentToken: currentToken!.address,
+        recordAddress: record!.recordAddress,
+      }),
+    });
   };
 
   render() {
@@ -91,12 +108,11 @@ class DepositForm extends React.Component<IProps, IState> {
       t,
     } = this.props;
     const currentToken = tokenStore!.getToken(match.params.tokenSymbol);
-    const { selectedTerm } = this.state;
+    const { selectedTerm, loading } = this.state;
 
     return (
       <Card>
         <Form onSubmit={this.onSubmit}>
-          <h3>{currentToken ? currentToken.symbol : null}</h3>
           <Form.Item>
             <Row>
               <Cell>
@@ -129,8 +145,12 @@ class DepositForm extends React.Component<IProps, IState> {
             </Cell>
           </Form.Item>
           <Form.Item>
-            <label />
-            <Button primary disabled={configurationStore!.isUserActionsLocked}>
+            <Button
+              primary
+              fullWidth
+              disabled={configurationStore!.isUserActionsLocked}
+              loading={loading}
+            >
               {t('submit')}
             </Button>
           </Form.Item>

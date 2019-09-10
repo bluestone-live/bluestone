@@ -69,7 +69,7 @@ interface IProps extends WithTranslation, RouteComponentProps {
 }
 
 interface IState {
-  selectedTerm: ITerm;
+  selectedTerm?: ITerm;
   loading: boolean;
 }
 
@@ -142,7 +142,7 @@ class LoanAssetsPage extends React.Component<IProps, IState> {
     } = this.props;
     const { selectedTerm } = this.state;
 
-    return (
+    return selectedTerm ? (
       <div>
         <Card>
           <StyledActionBar>
@@ -169,7 +169,7 @@ class LoanAssetsPage extends React.Component<IProps, IState> {
                 <StyledTokenListRow
                   key={token.symbol}
                   onClick={this.goTo(
-                    `/records/deposit?currentToken=${token.address}`,
+                    `/records/loan?currentToken=${token.address}`,
                   )}
                 >
                   <td>
@@ -192,7 +192,7 @@ class LoanAssetsPage extends React.Component<IProps, IState> {
           </StyledTokenList>
         </Card>
       </div>
-    );
+    ) : null;
   }
 }
 
