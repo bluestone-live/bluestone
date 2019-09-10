@@ -1,0 +1,10 @@
+{
+  "contracts": {
+    "Configuration": "0x6881876672994404278ecDB2f2ce3eC57a03C06d",
+    "PriceOracle": "0x9F65e80D08cf6032Cb9cE5Da6280B9b28Ccf3111",
+    "TokenManager": "0xB5BE0Cf7ccbE85929b769cC7ccc50bBad3D81A91",
+    "AccountManager": "0x0ba6d01377D4E8664Ba5D0d29265B53fD6e4C83d",
+    "DepositManager": "0xDe7Eff64fec898Dc043bb44E9a63d0bD5F0c428a",
+    "LoanManager": "0x478D1a93E16f59a224EaC1f9889e5b84aB33f89A"
+  }
+}
