@@ -26,12 +26,16 @@ export class TransactionStore {
 
   @action.bound
   getLoanTransactionByRecordAddress(recordAddress: string) {
-    return this.loanTransactionMap.get(recordAddress);
+    return (this.loanTransactionMap.get(recordAddress) || [])
+      .slice()
+      .sort((a, b) => b.time - a.time);
   }
 
   @action.bound
   getDepositTransactionByRecordAddress(recordAddress: string) {
-    return this.depositTransactionMap.get(recordAddress);
+    return (this.depositTransactionMap.get(recordAddress) || [])
+      .slice()
+      .sort((a, b) => b.time - a.time);
   }
 
   @action.bound
