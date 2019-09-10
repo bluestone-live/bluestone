@@ -253,7 +253,7 @@ class LoanForm extends React.Component<IProps, IState> {
                 ) /
                 Number.parseFloat(convertWeiToDecimal(loanToken!.price!))) *
               100
-            ).toFixed(2)}%`;
+            ).toFixed(2)}`;
 
       minCollateralRatio = `${(
         Number.parseFloat(
