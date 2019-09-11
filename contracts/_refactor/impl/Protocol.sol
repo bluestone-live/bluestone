@@ -16,35 +16,25 @@ contract Protocol is Ownable, Pausable {
 
     /// --- Deposit ---
 
-    /// @notice Get enabled deposit terms
-    /// @return A list of enabled deposit terms
-    function getDepositTerms() external whenNotPaused view returns (uint[] memory) {
-        return _depositManager.enabledDepositTerms;
-    }
-
-    /// @notice Enable a deposit term
-    /// @param term Deposit term to enable
     function enableDepositTerm(uint term) external whenNotPaused onlyOwner {
         _depositManager.enableDepositTerm(term);
     }
 
-    /// @notice Disable a deposit term
-    /// @param term Deposit term to disable
     function disableDepositTerm(uint term) external whenNotPaused onlyOwner {
         _depositManager.disableDepositTerm(term);
     }
 
-    /// --- Configuration ---
-
-    /// @notice Get protocol address
-    /// @return protocol address
-    function getProtocolAddress() external whenNotPaused view returns (address) {
-        return _configuration.protocolAddress;
+    function getDepositTerms() external whenNotPaused view returns (uint[] memory depositTerms) {
+        return _depositManager.enabledDepositTerms;
     }
 
-    /// @notice Set protocol address
-    /// @param protocolAddress The address for protocol
+    /// --- Configuration ---
+
     function setProtocolAddress(address protocolAddress) external whenNotPaused onlyOwner {
         _configuration.setProtocolAddress(protocolAddress);
+    }
+
+    function getProtocolAddress() external whenNotPaused view returns (address protocolAddress) {
+        return _configuration.protocolAddress;
     }
 }
