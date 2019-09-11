@@ -12,6 +12,7 @@ import Button from '../components/html/Button';
 import { ITransaction } from '../constants/Transaction';
 import TransactionList from './TransactionList';
 import { convertWeiToDecimal } from '../utils/BigNumber';
+import { calcCollateralRatio } from '../utils/calcCollateralRatio';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   loanRecord: ILoanRecord;
@@ -69,16 +70,12 @@ const LoanDetail = (props: IProps) => {
       : '0'
     : '0';
 
-  const collateralRatio = (loanRecord.loanAmount === '0'
-    ? 0
-    : ((Number.parseFloat(loanRecord.collateralAmount) *
-        Number.parseFloat(
-          convertWeiToDecimal(loanRecord.collateralToken.price!),
-        )) /
-        Number.parseFloat(loanRecord.loanAmount) /
-        Number.parseFloat(convertWeiToDecimal(loanRecord.loanToken.price!))) *
-      100
-  ).toFixed(2);
+  const collateralRatio = calcCollateralRatio(
+    loanRecord.collateralAmount,
+    loanRecord.remainingDebt,
+    loanRecord.collateralToken.price,
+    loanRecord.loanToken.price,
+  );
 
   return (
     <div>

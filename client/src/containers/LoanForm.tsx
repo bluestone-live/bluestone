@@ -30,6 +30,7 @@ import {
 } from '../stores';
 import Toggle from '../components/common/Toggle';
 import { stringify } from 'querystring';
+import { calcCollateralRatio } from '../utils/calcCollateralRatio';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountStore?: AccountStore;
@@ -240,26 +241,20 @@ class LoanForm extends React.Component<IProps, IState> {
     let minCollateralRatio = '0';
 
     if (loanAssetPair) {
-      currCollateralRatio =
-        loanAmount === 0
-          ? '0'
-          : `${(
-              ((collateralAmount *
-                Number.parseFloat(
-                  convertWeiToDecimal(collateralToken!.price!),
-                )) /
-                this.estimateRepayAmount(
-                  Number.parseInt(annualPercentageRate, 10),
-                ) /
-                Number.parseFloat(convertWeiToDecimal(loanToken!.price!))) *
-              100
-            ).toFixed(2)}`;
+      currCollateralRatio = calcCollateralRatio(
+        collateralAmount.toString(),
+        this.estimateRepayAmount(
+          Number.parseInt(annualPercentageRate, 10),
+        ).toString(),
+        collateralToken!.price,
+        loanToken!.price,
+      );
 
       minCollateralRatio = `${(
         Number.parseFloat(
           convertWeiToDecimal(loanAssetPair.collateralRatio, 2),
         ) * 100
-      ).toFixed(2)}%`;
+      ).toFixed(2)}`;
     }
 
     const estimatedRepayDate = dayjs()
@@ -338,7 +333,7 @@ class LoanForm extends React.Component<IProps, IState> {
                 </Cell>
                 <Cell>
                   <StyledTextBox id="apr">
-                    {annualPercentageRate}%
+                    {annualPercentageRate} %
                   </StyledTextBox>
                 </Cell>
               </Form.Item>
@@ -387,7 +382,7 @@ class LoanForm extends React.Component<IProps, IState> {
                 </Cell>
                 <Cell>
                   <StyledTextBox id="collateralRatio">
-                    {currCollateralRatio} % / {minCollateralRatio}
+                    {currCollateralRatio} % / {minCollateralRatio} %
                   </StyledTextBox>
                 </Cell>
               </Form.Item>

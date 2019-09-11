@@ -5,6 +5,7 @@ import Anchor from '../components/html/Anchor';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import dayjs from 'dayjs';
+import { calcCollateralRatio } from '../utils/calcCollateralRatio';
 
 interface IProps {
   loanRecord: ILoanRecord;
@@ -39,13 +40,12 @@ class LoanRecordItem extends React.Component<IProps> {
   render() {
     const { loanRecord, selectedRecordAddress } = this.props;
 
-    const collateralRatio = (loanRecord.loanAmount === 0
-      ? 0
-      : ((loanRecord.collateralAmount * loanRecord.collateralToken.price!) /
-          loanRecord.loanAmount /
-          loanRecord.loanToken.price!) *
-        100
-    ).toFixed(2);
+    const collateralRatio = calcCollateralRatio(
+      loanRecord.collateralAmount,
+      loanRecord.remainingDebt,
+      loanRecord.collateralToken.price,
+      loanRecord.loanToken.price,
+    );
 
     return (
       <StyledRow
@@ -63,7 +63,7 @@ class LoanRecordItem extends React.Component<IProps> {
         <StyledItemCell>
           {loanRecord.collateralAmount} {loanRecord.collateralToken.symbol}
         </StyledItemCell>
-        <StyledItemCell>{collateralRatio}</StyledItemCell>
+        <StyledItemCell>{collateralRatio} %</StyledItemCell>
         <StyledItemCell>
           {dayjs(loanRecord.createdAt)
             .add(loanRecord.term.value, 'day')

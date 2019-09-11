@@ -7,7 +7,7 @@ import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
-import { RecordType, ILoanRecord } from '../constants/Record';
+import { RecordType } from '../constants/Record';
 import { toJS } from 'mobx';
 import dayjs from 'dayjs';
 import {
@@ -19,6 +19,7 @@ import { stringify } from 'querystring';
 import Toggle from '../components/common/Toggle';
 import { Row, Cell } from '../components/common/Layout';
 import TextBox from '../components/common/TextBox';
+import { calcCollateralRatio } from '../utils/calcCollateralRatio';
 
 interface IProps
   extends WithTranslation,
@@ -98,20 +99,6 @@ class AddCollateralForm extends React.Component<IProps, IState> {
         formSubmitting: false,
       });
     }
-  };
-
-  getCollateralRatio = (record: ILoanRecord) => {
-    if (!record.loanToken.price || !record.collateralToken.price) {
-      return 'calculate error';
-    }
-    return (
-      ((Number.parseFloat(record.collateralAmount) *
-        (Number.parseFloat(convertWeiToDecimal(record.collateralToken.price)) ||
-          0)) /
-        (Number.parseFloat(convertWeiToDecimal(record.loanToken.price)) || 1) /
-        Number.parseFloat(record.loanAmount)) *
-      100
-    ).toFixed(2);
   };
 
   onUseFreedCollateralChange = (useFreedCollateral: boolean) =>
@@ -218,7 +205,12 @@ class AddCollateralForm extends React.Component<IProps, IState> {
                 <label>{t('collateral_ratio')}</label>
               </Cell>
               <Cell scale={3}>
-                <TextBox>{`${this.getCollateralRatio(record)} %`}</TextBox>
+                <TextBox>{`${calcCollateralRatio(
+                  record.collateralAmount,
+                  record.remainingDebt,
+                  record.collateralToken.price,
+                  record.loanToken.price,
+                )} %`}</TextBox>
               </Cell>
             </Row>
           </Form.Item>

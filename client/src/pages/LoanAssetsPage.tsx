@@ -181,8 +181,8 @@ class LoanAssetsPage extends React.Component<IProps, IState> {
                       ? `${calculateRate(
                           token.loanAnnualPercentageRates[selectedTerm.value],
                           RatePeriod.Annual,
-                        )}%`
-                      : '0%'}
+                        )} %`
+                      : '0 %'}
                   </td>
                   <td>{this.renderActions(token)}</td>
                 </StyledTokenListRow>
