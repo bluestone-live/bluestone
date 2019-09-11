@@ -45,7 +45,7 @@ const StyledInputGroup = styled.div`
       padding: 10px;
       height: 100%;
       border: 1px solid
-        ${(props: ThemedProps) => props.theme.borderColor.secondary};
+        ${(props: ThemedProps) => props.theme.borderColor.primary};
       background-color: ${(props: ThemedProps) =>
         props.theme.backgroundColor.secondary};
 

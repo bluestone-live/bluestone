@@ -6,15 +6,17 @@ import Input from '../components/html/Input';
 import { RouteComponentProps } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
-import { AccountStore, ConfigurationStore } from '../stores';
+import { AccountStore, ConfigurationStore, TokenStore } from '../stores';
 import { convertDecimalToWei } from '../utils/BigNumber';
 import { Cell } from '../components/common/Layout';
+import StyledTextBox from '../components/common/TextBox';
 
 interface IProps
   extends WithTranslation,
     RouteComponentProps<{ tokenAddress: string }> {
   accountStore: AccountStore;
   configurationStore: ConfigurationStore;
+  tokenStore: TokenStore;
 }
 
 interface IState {
@@ -22,7 +24,7 @@ interface IState {
   loading: boolean;
 }
 
-@inject('accountStore', 'configurationStore')
+@inject('accountStore', 'configurationStore', 'tokenStore')
 @observer
 class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
   state = {
@@ -60,11 +62,18 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
   };
 
   render() {
-    const { t, match, accountStore, configurationStore } = this.props;
+    const {
+      t,
+      match,
+      accountStore,
+      configurationStore,
+      tokenStore,
+    } = this.props;
     const { amount, loading } = this.state;
     const availableAmount = accountStore.getFreedCollateralByAddress(
       match.params.tokenAddress,
     );
+    const token = tokenStore.getTokenByAddress(match.params.tokenAddress);
 
     return (
       <Card>
@@ -79,6 +88,7 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
                 type="number"
                 value={amount}
                 onChange={this.onAmountChange}
+                suffix={token!.symbol}
               />
             </Cell>
           </Form.Item>
@@ -87,11 +97,10 @@ class WithdrawFreedCollateralPage extends React.Component<IProps, IState> {
               <label>{t('available_amount')}</label>
             </Cell>
             <Cell scale={4}>
-              <Input
-                type="text"
-                disabled
-                value={availableAmount ? availableAmount.toString() : 0}
-              />
+              <StyledTextBox>
+                {availableAmount ? availableAmount.toString() : 0}{' '}
+                {token!.symbol}
+              </StyledTextBox>
             </Cell>
           </Form.Item>
           <Form.Item>
