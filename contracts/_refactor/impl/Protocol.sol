@@ -24,8 +24,28 @@ contract Protocol is Ownable, Pausable {
         _depositManager.disableDepositTerm(term);
     }
 
-    function getDepositTerms() external whenNotPaused view returns (uint[] memory depositTerms) {
-        return _depositManager.enabledDepositTerms;
+    function enableDepositToken(address tokenAddress) external whenNotPaused onlyOwner {
+        _depositManager.enableDepositToken(tokenAddress);
+    }
+
+    function disableDepositToken(address tokenAddress) external whenNotPaused onlyOwner {
+        _depositManager.disableDepositToken(tokenAddress);
+    }
+
+    function getDepositTerms() external whenNotPaused view returns (uint[] memory depositTermList) {
+        return _depositManager.enabledDepositTermList;
+    }
+
+    function getDepositTokens()
+        external
+        whenNotPaused
+        view
+        returns (
+            address[] memory depositTokenAddressList,
+            bool[] memory isEnabledList
+        )
+    {
+        return _depositManager.getDepositTokens();
     }
 
     /// --- Configuration ---
