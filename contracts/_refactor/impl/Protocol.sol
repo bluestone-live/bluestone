@@ -4,15 +4,18 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "./lib/_Configuration.sol";
 import "./lib/_DepositManager.sol";
+import "./lib/_LoanManager.sol";
 
 
 /// @title Main contract
 contract Protocol is Ownable, Pausable {
     using _Configuration for _Configuration.State;
     using _DepositManager for _DepositManager.State;
+    using _LoanManager for _LoanManager.State;
 
     _Configuration.State private _configuration;
     _DepositManager.State private _depositManager;
+    _LoanManager.State private _loanManager;
 
     /// --- Deposit ---
 
@@ -46,6 +49,20 @@ contract Protocol is Ownable, Pausable {
         )
     {
         return _depositManager.getDepositTokens();
+    }
+
+    /// --- Loan
+
+    function addLoanTerm(uint loanTerm) external whenNotPaused onlyOwner {
+        _loanManager.addLoanTerm(loanTerm);
+    }
+
+    function removeLoanTerm(uint loanTerm) external whenNotPaused onlyOwner {
+        _loanManager.removeLoanTerm(loanTerm);
+    }
+
+    function getLoanTerms() external whenNotPaused view returns (uint[] memory loanTermList) {
+        return _loanManager.loanTermList;
     }
 
     /// --- Configuration ---

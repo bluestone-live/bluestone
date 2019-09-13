@@ -1,6 +1,7 @@
 const Protocol = artifacts.require("Protocol");
 const Configuration = artifacts.require("_Configuration");
 const DepositManager = artifacts.require("_DepositManager");
+const LoanManager = artifacts.require("_LoanManager");
 
 module.exports = async function(deployer, network) {
   // TODO(desmond): remove it once contract refactor is complete
@@ -8,9 +9,10 @@ module.exports = async function(deployer, network) {
     return;
   }
 
-  await deployer.deploy(Configuration);
-  await deployer.deploy(DepositManager);
+  const libs = [Configuration, DepositManager, LoanManager];
 
-  await deployer.link(Configuration, Protocol);
-  await deployer.link(DepositManager, Protocol);
+  for (lib of libs) {
+    await deployer.deploy(lib);
+    await deployer.link(lib, Protocol);
+  }
 };
