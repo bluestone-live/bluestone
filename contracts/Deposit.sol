@@ -46,7 +46,7 @@ contract Deposit {
         _maturedAt = _createdAt + 
             DateTime.secondsUntilMidnight(_createdAt) +
             _term * DAY_IN_SECONDS;
-    } 
+    }
 
     function isWithdrawn() public view returns (bool) {
         return _withdrewAt != 0;
@@ -101,5 +101,12 @@ contract Deposit {
         _withdrewAt = now;
 
         return (_withdrewAmount, interestsForProtocol);
+    }
+
+    function withdrawDeposit() external returns (uint) {
+        _withdrewAmount = _amount;
+        _withdrewAt = now;
+
+        return _withdrewAmount;
     }
 }

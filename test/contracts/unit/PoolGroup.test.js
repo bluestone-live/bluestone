@@ -30,6 +30,30 @@ contract("PoolGroup", () => {
     });
   });
 
+  describe("#subDepositFromPool", () => {
+    const halfAmount = toFixedBN(50);
+    const doubleAmount = toFixedBN(200);
+    before(async () => {
+      poolGroup = await PoolGroup.new(term);
+      await poolGroup.addDepositToPool(poolIndex, amount);
+    });
+
+    it("updates deposit", async () => {
+      await poolGroup.subDepositFromPool(poolIndex, halfAmount);
+      const poolId = await poolGroup.poolIds(poolIndex);
+      pool = await poolGroup.poolsById(poolId);
+      expect(pool.deposit).to.be.bignumber.equal(amount.sub(halfAmount));
+    });
+
+    it("updates totalDeposit", async () => {
+      expect(await poolGroup.totalDeposit()).to.be.bignumber.equal(amount.sub(halfAmount));
+    });
+
+    it("updates revert", async () => {
+        await expectRevert.unspecified(poolGroup.subDepositFromPool(poolIndex, doubleAmount));
+    });
+  });
+
   describe("#loanFromPool", () => {
     const loanTerm = 1;
 
@@ -180,5 +204,38 @@ contract("PoolGroup", () => {
         );
       }
     });
+  });
+
+  describe("#getDaysAfterDepositCreation", () => {
+    const afterZeroDay = 0;
+    const afterTwoDays = 2;
+    const afterTermDays = 0;
+    const poolId = term - 1;
+
+    before(async () => {
+      poolGroup = await PoolGroup.new(term);
+    });
+
+    it("updates pool ids after zero time", async () => {
+      expect(await poolGroup.getDaysAfterDepositCreation(poolId)).to.be.bignumber.equal(new BN(afterZeroDay));
+    });
+
+    it("updates pool ids after two times", async () => {
+      for (let i = 0; i < afterTwoDays; i++) {
+        await poolGroup.updatePoolIds();
+      }
+      expect(await poolGroup.getDaysAfterDepositCreation(poolId)).to.be.bignumber.equal(new BN(afterTwoDays));
+    });
+
+    it("updates pool ids after term(30) times", async () => {
+      for (let i = 0; i < term - afterTwoDays; i++) {
+        await poolGroup.updatePoolIds();
+      }
+      expect(await poolGroup.getDaysAfterDepositCreation(poolId)).to.be.bignumber.equal(new BN(afterTermDays));
+    });
+
+    it("lookup a invalid id", async () => {
+      expect(await poolGroup.getDaysAfterDepositCreation(term)).to.be.bignumber.equal(new BN(term));
+    })
   });
 });

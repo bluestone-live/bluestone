@@ -148,7 +148,7 @@ contract DepositManager is Ownable, Pausable {
 
         return currDeposit;
     }
-    
+
     function withdraw(Deposit currDeposit) external whenNotPaused validDeposit(currDeposit) returns (uint) {
         require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
 
@@ -170,6 +170,37 @@ contract DepositManager is Ownable, Pausable {
 
         _tokenManager.sendTo(user, asset, withdrewAmount);
         _tokenManager.sendTo(protocol, asset, interestsForProtocol);
+
+        emit WithdrawDepositSuccessful(user, currDeposit, withdrewAmount);
+        return withdrewAmount;
+    }
+
+    function isEarlyWithdrawable(Deposit currDeposit) public view returns (bool) {
+        if (currDeposit.isMatured()) {
+            return false;
+        }
+
+        PoolGroup poolGroup = _liquidityPools.poolGroups(currDeposit.asset(), currDeposit.term());
+        uint loanableAmount = poolGroup.getLoanableAmountFromPoolByPoolId(currDeposit.poolId());
+        return loanableAmount >= currDeposit.amount();
+    }
+
+    function earlyWithdraw(Deposit currDeposit) external whenNotPaused validDeposit(currDeposit) returns (uint) {
+        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
+
+        address asset = currDeposit.asset();
+        address user = msg.sender;
+
+        require(_depositAssets[asset].isEnabled, "Deposit Asset must be enabled.");
+        require(user == currDeposit.owner(), "Must be owner.");
+        require(!currDeposit.isWithdrawn(), "Deposit must not be withdrawn already.");
+        require(isEarlyWithdrawable(currDeposit), "Deposit must be early withdrawable");
+
+        uint[] memory loanTerms = _loanManager.getLoanTerms();
+        uint withdrewAmount = currDeposit.withdrawDeposit();
+
+        _liquidityPools.subDepositFromPoolGroup(currDeposit, loanTerms);
+        _tokenManager.sendTo(user, asset, withdrewAmount);
 
         emit WithdrawDepositSuccessful(user, currDeposit, withdrewAmount);
         return withdrewAmount;

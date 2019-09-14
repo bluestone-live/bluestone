@@ -14,6 +14,7 @@ contract("LiquidityPools", ([owner, account]) => {
   const protocolReserveRatio = toFixedBN(0.1);
   const loanAmount = toFixedBN(50);
   const collateralAmount = toFixedBN(300);
+  const loanTerms = [7, 30];
 
   before(async () => {
     config = await Configuration.deployed();
@@ -89,6 +90,44 @@ contract("LiquidityPools", ([owner, account]) => {
     });
 
     it("increase pool's deposit and loanable amount", async () => {
+      const poolId = await poolGroup.poolIds(depositTerm - 1);
+      pool = await poolGroup.poolsById(poolId);
+      expect(pool.deposit).to.bignumber.equal(amount);
+      expect(pool.loanableAmount).to.bignumber.equal(amount);
+    });
+  });
+
+  describe("#subDepositFromPoolGroup", () => {
+    before(async () => {
+      const poolGroupAddress = await liquidityPools.poolGroups(
+        loanAsset.address,
+        depositTerm
+      );
+      poolGroup = await PoolGroup.at(poolGroupAddress);
+      const poolId = await poolGroup.poolIds(depositTerm - 1);
+      pool = await poolGroup.poolsById(poolId);
+      deposit = await Deposit.new(
+        loanAsset.address,
+        owner,
+        depositTerm,
+        amount,
+        protocolReserveRatio,
+        poolId
+      );
+    });
+
+    it("succeed to add deposit", async () => {
+      await liquidityPools.addDepositToPoolGroup(deposit.address, loanTerms);
+      expect(await poolGroup.totalDeposit()).to.bignumber.equal(amount.mul(new BN(2)));
+    });
+
+    it("succeed to sub deposit", async () => {
+      await liquidityPools.subDepositFromPoolGroup(deposit.address, loanTerms)
+      expect(await poolGroup.totalDeposit()).to.bignumber.equal(amount);
+      expect(await poolGroup.totalLoanableAmount()).to.bignumber.equal(amount);
+    })
+
+    it("updates pool's deposit and loanable amount", async () => {
       const poolId = await poolGroup.poolIds(depositTerm - 1);
       pool = await poolGroup.poolsById(poolId);
       expect(pool.deposit).to.bignumber.equal(amount);

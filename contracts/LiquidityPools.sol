@@ -57,6 +57,23 @@ contract LiquidityPools {
         }
     }
 
+    function subDepositFromPoolGroup(Deposit currDeposit, uint[] calldata loanTerms) external {
+        address asset = currDeposit.asset();
+        uint depositTerm = currDeposit.term();
+        uint amount = currDeposit.amount();
+        uint poolId = currDeposit.poolId();
+
+        PoolGroup poolGroup = poolGroups[asset][depositTerm];
+        uint daysBeforeMaturity = depositTerm - poolGroup.getDaysAfterDepositCreation(poolId);
+        poolGroup.subDepositFromPool(currDeposit.poolId(), amount);
+
+        for (uint i = 0; i < loanTerms.length; i++) {
+            if (loanTerms[i] <= daysBeforeMaturity) {
+                poolGroup.subtractTotalLoanableAmountPerTerm(loanTerms[i], amount);
+            }
+        }
+    }
+
     function loanFromPoolGroups(Loan currLoan, uint[] calldata depositTerms, uint[] calldata loanTerms) external {
         LoanFromPoolGroupsLocalVars memory localVars;
         localVars.loanTerm = currLoan.term();

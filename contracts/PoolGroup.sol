@@ -117,6 +117,10 @@ contract PoolGroup {
         return poolsById[poolId].loanableAmount;
     }
 
+    function getLoanableAmountFromPoolByPoolId(uint poolId) external view returns (uint) {
+        return poolsById[poolId].loanableAmount;
+    }
+
     function getLoanInterestFromPool(uint index) external view returns (uint) {
         uint poolId = poolIds[index];
         return getLoanInterestByPoolId(poolId);
@@ -126,13 +130,47 @@ contract PoolGroup {
         return poolsById[poolId].loanInterest;
     }
 
+    /// getDaysAfterDepositCreation computes how many days past after deposit being created by counting how many step the poolId shift.
+    ///
+    /// 1st day: [0, 1, 2, ..., 27, 28, 29], deposit created on this day, so `getDaysAfterDepositCreation` returns 0
+    /// because 0 day past after creation
+    /// 2nd day: [1, 2, 3, ..., 28, 29, 0], `getDaysAfterDepositCreation` returns 1
+    /// because 1 day past after creation.
+    /// 3rd day: [2, 3, 4, ..., 29, 0, 1], `getDaysAfterDepositCreation` returns 2
+    /// because 2 days past after creation.
+    /// ...
+    /// 30th day: [29, 0, 1, ..., 26, 27, 28], `getDaysAfterDepositCreation` returns 29
+    /// because 29 days past after creation.
+    /// If poolId is not in poolIds, getDaysAfterDepositCreation will return term which is 30 in example.
+    function getDaysAfterDepositCreation(uint poolIdOfDeposit) external view returns (uint) {
+        uint depositTerm = poolIds.length;
+        uint daysAfterDepositCreation = 0;
+        uint i = depositTerm - 1;
+        while (i > 0 && poolIds[i] != poolIdOfDeposit) {
+            daysAfterDepositCreation++;
+            i--;
+        }
+        if (i == 0 && poolIds[i] != poolIdOfDeposit) {
+            daysAfterDepositCreation++;
+        }
+        return daysAfterDepositCreation;
+    }
+
     function addDepositToPool(uint index, uint amount) external {
         uint poolId = poolIds[index];
         Pool storage pool = poolsById[poolId];
-        pool.deposit = pool.deposit.add(amount); 
+        pool.deposit = pool.deposit.add(amount);
         pool.loanableAmount = pool.loanableAmount.add(amount);
         totalDeposit = totalDeposit.add(amount);
         totalLoanableAmount = totalLoanableAmount.add(amount);
+    }
+
+    function subDepositFromPool(uint poolId, uint amount) external {
+        Pool storage pool = poolsById[poolId];
+        pool.deposit = pool.deposit.sub(amount);
+        pool.loanableAmount = pool.loanableAmount.sub(amount);
+        totalDeposit = totalDeposit.sub(amount);
+        totalLoanableAmount = totalLoanableAmount.sub(amount);
     }
 
     function loanFromPool(uint index, uint amount, uint interest, uint loanTerm) external {

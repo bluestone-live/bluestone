@@ -84,4 +84,26 @@ contract("Deposit", ([owner]) => {
       );
     });
   });
+
+  describe("#withdrawDeposit", () => {
+    const term = 1;
+    let deposit;
+
+    beforeEach(async () => {
+      deposit = await Deposit.new(
+        asset.address,
+        owner,
+        term,
+        amount,
+        protocolReserveRatio,
+        poolId
+      );
+    });
+
+    it("succeeds", async () => {
+      await deposit.withdrawDeposit();
+      expect(await deposit.isWithdrawn()).to.be.true;
+      expect(await deposit.withdrewAmount()).to.be.bignumber.equal(amount);
+    });
+  });
 });
