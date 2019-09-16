@@ -9,8 +9,9 @@ import Card from '../components/common/Card';
 import Container from '../components/common/Container';
 import { ThemedProps } from '../styles/themes';
 import Message from '../components/common/Message';
+import { RouteComponentProps, withRouter } from 'react-router';
 
-interface IProps extends WithTranslation {
+interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
   accountStore: AccountStore;
   title?: React.ReactChild | React.ReactChild[];
@@ -51,10 +52,10 @@ class Default extends React.Component<IProps> {
     }
   }
 
-  getAccounts = async () => {
-    const { accountStore } = this.props;
+  onAccountClickHandler = async () => {
+    const { accountStore, history } = this.props;
     if (accountStore.defaultAccount) {
-      return;
+      return history.push('/account');
     }
     await accountStore.connectToMetaMask();
     await accountStore.getAccounts();
@@ -69,7 +70,7 @@ class Default extends React.Component<IProps> {
         <StyledHeaderCard>
           <Header
             defaultAccount={accountStore.defaultAccount}
-            onAccountClick={this.getAccounts}
+            onAccountClick={this.onAccountClickHandler}
           />
         </StyledHeaderCard>
         <StyledMain>
@@ -82,4 +83,4 @@ class Default extends React.Component<IProps> {
   }
 }
 
-export default withTranslation()(Default);
+export default withTranslation()(withRouter(Default));

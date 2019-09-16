@@ -11,7 +11,15 @@ const routes = [
     }),
   },
   {
-    name: 'index',
+    name: 'account-manager',
+    path: '/account',
+    component: Loadable({
+      loader: () => import('../pages/AccountManagerPage'),
+      loading: Loading,
+    }),
+  },
+  {
+    name: 'deposit-assets',
     path: '/deposit-assets',
     component: Loadable({
       loader: () => import('../pages/DepositAssetsPage'),
@@ -19,7 +27,7 @@ const routes = [
     }),
   },
   {
-    name: 'index',
+    name: 'loan-assets',
     path: '/loan-assets',
     component: Loadable({
       loader: () => import('../pages/LoanAssetsPage'),

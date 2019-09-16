@@ -25,7 +25,7 @@ export const transactionStore = new TransactionStore();
 
 export const initStore = async () => {
   await configurationStore.getIfUserActionsLocked();
-  await configurationStore.listenUserActionsLockChangeEvent();
+  configurationStore.listenUserActionsLockChangeEvent();
   const tokens = await tokenStore.initTokens();
   await depositManagerStore.init();
   await loanManagerStore.init();
@@ -40,6 +40,9 @@ export const initStore = async () => {
         loanManagerStore.loanTerms,
       );
     }),
+  );
+  await Promise.all(
+    tokens.map(token => accountStore.getFreedCollateral(token)),
   );
 };
 

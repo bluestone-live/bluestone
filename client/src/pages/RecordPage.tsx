@@ -19,7 +19,6 @@ import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
 import { IDropdownOption } from '../components/common/Dropdown';
 import LoanDetailPanel from '../containers/LoanDetailPanel';
-import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
 import Button from '../components/html/Button';
 
 interface IProps
@@ -216,18 +215,12 @@ class RecordPage extends React.Component<IProps, IState> {
         params: { recordType },
       },
       location,
-      accountStore,
-      configurationStore,
-      t,
     } = this.props;
     const selectedOption = this.recordTypeOptions.find(
       option => option.value === recordType,
     );
 
     const { currentToken } = parseQuery(location.search);
-    const freedCollateral =
-      accountStore.getFreedCollateralByAddress(currentToken) ||
-      convertDecimalToWei(0);
 
     if (!currentToken) {
       return null;
@@ -242,18 +235,6 @@ class RecordPage extends React.Component<IProps, IState> {
             options={this.recordTypeOptions}
             selectedOption={selectedOption}
           />
-          {recordType === 'loan' && (
-            <StyledBox>
-              {t('freed_collateral')}:{' '}
-              {` ${convertWeiToDecimal(freedCollateral)}`}
-              <StyledButton
-                primary
-                onClick={this.goTo(`/withdraw/${currentToken}`)}
-              >
-                {t('withdraw')}
-              </StyledButton>
-            </StyledBox>
-          )}
         </StyledCard>
         <StyledCard>{this.showDetailPanel()}</StyledCard>
       </div>
