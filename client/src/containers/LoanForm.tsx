@@ -137,12 +137,10 @@ class LoanForm extends React.Component<IProps, IState> {
     );
   }
 
-  estimateRepayAmount(annualPercentageRate: number) {
+  estimateRepayAmount(loanInterestRate: number) {
     const { loanAmount } = this.state;
-    const { term } = this.props;
-    const termPercentageRate = (annualPercentageRate / 365) * term;
 
-    return loanAmount * (1 + termPercentageRate / 100);
+    return loanAmount * (1 + loanInterestRate / 100);
   }
 
   getFreedCollateral = () => {
@@ -226,11 +224,11 @@ class LoanForm extends React.Component<IProps, IState> {
     const collateralToken = tokenStore!.getToken(collateralTokenSymbol!);
 
     const interestRate = loanToken
-      ? loanToken.loanAnnualPercentageRates
-        ? loanToken!.loanAnnualPercentageRates[term]
+      ? loanToken.loanInterestRates
+        ? loanToken!.loanInterestRates[term]
         : new BigNumber(0)
       : new BigNumber(0);
-    const annualPercentageRate = calculateRate(interestRate, RatePeriod.Annual);
+    const loanInterestRate = calculateRate(interestRate);
 
     const loanAssetPair = loanManagerStore!.getLoanAssetPair(
       loanTokenSymbol,
@@ -244,7 +242,7 @@ class LoanForm extends React.Component<IProps, IState> {
       currCollateralRatio = calcCollateralRatio(
         collateralAmount.toString(),
         this.estimateRepayAmount(
-          Number.parseInt(annualPercentageRate, 10),
+          Number.parseInt(loanInterestRate, 10),
         ).toString(),
         collateralToken!.price,
         loanToken!.price,
@@ -332,9 +330,7 @@ class LoanForm extends React.Component<IProps, IState> {
                   <label htmlFor="apr">{t('apr')}:</label>{' '}
                 </Cell>
                 <Cell>
-                  <StyledTextBox id="apr">
-                    {annualPercentageRate} %
-                  </StyledTextBox>
+                  <StyledTextBox id="apr">{loanInterestRate} %</StyledTextBox>
                 </Cell>
               </Form.Item>
             </Row>
@@ -397,7 +393,7 @@ class LoanForm extends React.Component<IProps, IState> {
                     <StyledTextBox>
                       You need to pay back{' '}
                       {this.estimateRepayAmount(
-                        Number.parseInt(annualPercentageRate, 10),
+                        Number.parseInt(loanInterestRate, 10),
                       )}{' '}
                       {loanTokenSymbol} in estimation before{' '}
                       {estimatedRepayDate}.

@@ -177,10 +177,9 @@ class LoanAssetsPage extends React.Component<IProps, IState> {
                     {token.symbol}
                   </td>
                   <td>
-                    {token.loanAnnualPercentageRates
+                    {token.loanInterestRates
                       ? `${calculateRate(
-                          token.loanAnnualPercentageRates[selectedTerm.value],
-                          RatePeriod.Annual,
+                          token.loanInterestRates[selectedTerm.value],
                         )} %`
                       : '0 %'}
                   </td>

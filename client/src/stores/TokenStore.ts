@@ -4,9 +4,8 @@ import { isDepositAssetEnabled } from './services/DepositManagerService';
 import { getLoanInterestRate } from './services/ConfigurationService';
 import { IToken, SupportToken } from '../constants/Token';
 import { getPrice } from './services/PriceOracleService';
-import { IAnnualPercentageRateValues } from '../constants/Rate';
+import { ILoanInterestRateValues } from '../constants/Rate';
 import { ITerm } from '../constants/Term';
-import { BigNumber } from '../utils/BigNumber';
 
 export class TokenStore {
   @observable tokens = new Map<string, IToken | null>(
@@ -84,17 +83,17 @@ export class TokenStore {
     if (!token) {
       throw new Error(`no such token: ${tokenSymbol}`);
     }
-    const loanAnnualPercentageRates: IAnnualPercentageRateValues = {};
+    const loanInterestRates: ILoanInterestRateValues = {};
     for (const term of terms) {
       const interest = await getLoanInterestRate(token.address, term.value);
 
       // TODO: the interest we get is per second, not per year. Rename it.
-      loanAnnualPercentageRates[term.value] = interest;
+      loanInterestRates[term.value] = interest;
     }
 
     this.updateToken(tokenSymbol, {
       ...token,
-      loanAnnualPercentageRates,
+      loanInterestRates,
     });
   }
 

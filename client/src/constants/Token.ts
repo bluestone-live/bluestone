@@ -1,4 +1,4 @@
-import { IAnnualPercentageRateValues } from './Rate';
+import { ILoanInterestRateValues } from './Rate';
 import { Contract } from 'web3-eth-contract';
 import { BigNumber } from '../utils/BigNumber';
 
@@ -21,7 +21,7 @@ export interface IToken {
   symbol: string;
   address: string;
   defaultLoanPair: string;
-  loanAnnualPercentageRates?: IAnnualPercentageRateValues;
+  loanInterestRates?: ILoanInterestRateValues;
   logo?: string;
   depositEnabled: boolean;
   price?: BigNumber;

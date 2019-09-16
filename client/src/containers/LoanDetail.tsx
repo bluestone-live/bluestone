@@ -61,12 +61,9 @@ const LoanDetail = (props: IProps) => {
   const { loanRecord, t, transactionsForRecord } = props;
   const { loanToken, collateralToken, term } = loanRecord;
 
-  const annualPercentageRate = loanToken
-    ? loanToken.loanAnnualPercentageRates
-      ? calculateRate(
-          loanToken.loanAnnualPercentageRates[term.value],
-          RatePeriod.Annual,
-        )
+  const loanInterestRate = loanToken
+    ? loanToken.loanInterestRates
+      ? calculateRate(loanToken.loanInterestRates[term.value])
       : '0'
     : '0';
 
@@ -91,7 +88,7 @@ const LoanDetail = (props: IProps) => {
       </Form.Item>
       <Form.Item>
         <label htmlFor="apr">{t('apr')}:</label>{' '}
-        <TextBox id="apr">{annualPercentageRate} %</TextBox>
+        <TextBox id="apr">{loanInterestRate} %</TextBox>
       </Form.Item>
       <Form.Item>
         <label htmlFor="collateralTokenSymbol">{t('collateral')}:</label>

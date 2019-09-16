@@ -1,5 +1,5 @@
 import { BigNumber } from '../utils/BigNumber';
 
-export interface IAnnualPercentageRateValues {
+export interface ILoanInterestRateValues {
   [term: number]: BigNumber;
 }
