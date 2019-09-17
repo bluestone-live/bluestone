@@ -3,6 +3,14 @@ import Loading from '../components/common/Loading';
 
 const routes = [
   {
+    name: 'monitor',
+    path: '/monitor',
+    component: Loadable({
+      loader: () => import('../pages/MonitorPage'),
+      loading: Loading,
+    }),
+  },
+  {
     name: 'index',
     path: '/',
     component: Loadable({

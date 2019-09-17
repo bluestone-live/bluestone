@@ -4,10 +4,7 @@ const DepositManager = artifacts.require("DepositManagerMock");
 const LiquidityPools = artifacts.require("LiquidityPools");
 const PoolGroup = artifacts.require("PoolGroup");
 const DateTime = artifacts.require("DateTime");
-const {
-  toFixedBN,
-  createERC20Token,
-} = require("../../utils/index.js");
+const { toFixedBN, createERC20Token } = require("../../utils/index.js");
 const { constants, expectRevert, time } = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
 
@@ -53,8 +50,9 @@ contract("DepositManager", ([owner, depositor]) => {
     it("updates totalLoanableAmountPerTerm for PoolGroup", async () => {
       const poolGroupAddress = await liquidityPools.poolGroups(
         asset.address,
-        term
+        term.toString()
       );
+
       const poolGroup = await PoolGroup.at(poolGroupAddress);
       expect(
         await poolGroup.totalLoanableAmountPerTerm(term)
@@ -65,9 +63,12 @@ contract("DepositManager", ([owner, depositor]) => {
   describe("#withdraw", () => {
     context("when Deposit address is invalid", () => {
       it("reverts", async () => {
-        await expectRevert(depositManager.withdraw(constants.ZERO_ADDRESS), "Invalid deposit.")
+        await expectRevert(
+          depositManager.withdraw(constants.ZERO_ADDRESS),
+          "Invalid deposit."
+        );
       });
-    })
+    });
   });
 
   describe("#getDepositsByUser", () => {
@@ -116,7 +117,7 @@ contract("DepositManager", ([owner, depositor]) => {
         );
       });
     });
-    
+
     context("when user actions are locked", () => {
       it("succeeds", async () => {
         await config.lockAllUserActions();
@@ -134,7 +135,7 @@ contract("DepositManager", ([owner, depositor]) => {
         await config.lockAllUserActions();
 
         await expectRevert(
-          depositManager.updateAllDepositMaturity(), 
+          depositManager.updateAllDepositMaturity(),
           "Cannot update multiple times within the same day."
         );
 

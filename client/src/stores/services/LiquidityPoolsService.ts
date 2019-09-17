@@ -3,12 +3,16 @@ import {
   nonDeployedContractJsonInterface,
   web3,
 } from './Web3Service';
+import { BigNumber } from '../../utils/BigNumber';
 
-export const getPoolGroup = async (tokenAddress: string, term: number) => {
+export const getPoolGroup = async (tokenAddress: string, term: BigNumber) => {
   const { LiquidityPools } = await getContracts();
+
   const poolGroupAddress = await LiquidityPools.methods
-    .poolGroups(tokenAddress, term)
+    .poolGroups(tokenAddress, term.toString())
     .call();
+
+  // TODO(zhangrgk): pool group address is null.
 
   return new web3.eth.Contract(
     nonDeployedContractJsonInterface.PoolGroup.abi,

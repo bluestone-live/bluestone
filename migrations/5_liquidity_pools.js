@@ -4,7 +4,7 @@ const Configuration = artifacts.require("./Configuration.sol");
 const { deploy } = require("../scripts/javascript/utils");
 
 module.exports = async (deployer, network) => {
-  deployer.deploy(LiquidityPools, Configuration.address);
+  await deploy(deployer, network, LiquidityPools, Configuration.address);
 
   if (network === "development") {
     await deployer.deploy(LiquidityPoolsMock, Configuration.address);
