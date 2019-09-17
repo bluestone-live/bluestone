@@ -229,10 +229,8 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
 
       it("increase freed collateral amount", async () => {
         const freedCollateral = await accountManager.getFreedCollateral(
-          collateralAsset.address,
-          {
-            from: loaner
-          }
+          loaner,
+          collateralAsset.address
         );
 
         expect(freedCollateral).to.bignumber.equal(collateralAmount);

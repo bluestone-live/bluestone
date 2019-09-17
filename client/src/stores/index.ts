@@ -31,18 +31,12 @@ export const initStore = async () => {
   await loanManagerStore.init();
   await tokenManagerStore.init();
   await Promise.all(
-    tokens.map(token => accountStore.getFreedCollateral(token)),
-  );
-  await Promise.all(
     tokens.map(token => {
       return tokenStore.getLoanInterestRates(
         token.symbol,
         loanManagerStore.loanTerms,
       );
     }),
-  );
-  await Promise.all(
-    tokens.map(token => accountStore.getFreedCollateral(token)),
   );
 };
 

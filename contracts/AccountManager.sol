@@ -64,8 +64,8 @@ contract AccountManager is Pausable {
         setAssetStat(account, asset, key, prevStat.add(value));
     }
 
-    function getFreedCollateral(address asset) external whenNotPaused view returns (uint) {
-        return _freedCollaterals[msg.sender][asset];
+    function getFreedCollateral(address user, address asset) external whenNotPaused view returns (uint) {
+        return _freedCollaterals[user][asset];
     }
 
     // only can call by user

@@ -49,6 +49,11 @@ const StyledActionCell = styled(Cell)`
 @inject('accountStore', 'tokenStore')
 @observer
 class FreedCollateralList extends React.Component<IProps> {
+  componentDidMount() {
+    const { accountStore, tokenStore } = this.props;
+    tokenStore!.validTokens.forEach(accountStore!.getFreedCollateral);
+  }
+
   goTo = (token: IToken) => () =>
     this.props.history.push(`/withdraw/${token.address}`);
 

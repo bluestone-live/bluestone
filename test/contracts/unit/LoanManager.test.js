@@ -5,7 +5,11 @@ const DepositManager = artifacts.require("DepositManagerMock");
 const LoanManager = artifacts.require("LoanManagerMock");
 const Loan = artifacts.require("Loan");
 const { toFixedBN, createERC20Token } = require("../../utils/index.js");
-const { expectEvent, expectRevert, constants } = require("openzeppelin-test-helpers");
+const {
+  expectEvent,
+  expectRevert,
+  constants
+} = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
 
 contract("LoanManager", ([owner, depositor, loaner]) => {
@@ -127,8 +131,8 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
       before(async () => {
         prevCollateralAssetBalance = await collateralAsset.balanceOf(loaner);
         prevFreedCollateralAmount = await accountManager.getFreedCollateral(
-          collateralAsset.address,
-          { from: loaner }
+          loaner,
+          collateralAsset.address
         );
       });
 
@@ -156,8 +160,8 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
 
       it("reduce freed collateral amount", async () => {
         const freedCollateralAmount = await accountManager.getFreedCollateral(
-          collateralAsset.address,
-          { from: loaner }
+          loaner,
+          collateralAsset.address
         );
 
         expect(freedCollateralAmount).to.bignumber.equal(
@@ -168,9 +172,16 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
 
     context("when Loan address is invalid", () => {
       it("reverts", async () => {
-        await expectRevert(loanManager.addCollateral(constants.ZERO_ADDRESS, toFixedBN(1), false), "Invalid loan.")
+        await expectRevert(
+          loanManager.addCollateral(
+            constants.ZERO_ADDRESS,
+            toFixedBN(1),
+            false
+          ),
+          "Invalid loan."
+        );
       });
-    })
+    });
   });
 
   describe("#repayLoan", () => {
@@ -225,18 +236,24 @@ contract("LoanManager", ([owner, depositor, loaner]) => {
 
     context("when Loan address is invalid", () => {
       it("reverts", async () => {
-        await expectRevert(loanManager.repayLoan(constants.ZERO_ADDRESS, toFixedBN(1)), "Invalid loan.")
+        await expectRevert(
+          loanManager.repayLoan(constants.ZERO_ADDRESS, toFixedBN(1)),
+          "Invalid loan."
+        );
       });
-    })
+    });
   });
 
   describe("#liquidateLoan", () => {
     context("when Loan address is invalid", () => {
       it("reverts", async () => {
-        await expectRevert(loanManager.liquidateLoan(constants.ZERO_ADDRESS, toFixedBN(1)), "Invalid loan.")
+        await expectRevert(
+          loanManager.liquidateLoan(constants.ZERO_ADDRESS, toFixedBN(1)),
+          "Invalid loan."
+        );
       });
-    })
-  })
+    });
+  });
 
   describe("#addLoanTerm", () => {
     it("succeeds", async () => {

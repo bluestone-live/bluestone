@@ -138,6 +138,9 @@ export class AccountStore {
 
   @action.bound
   async getFreedCollateral(token: IToken) {
+    if (!this.defaultAccount) {
+      return;
+    }
     const freedCollateral = await getFreedCollateral(token.address);
 
     this.setFreedCollateral(token.address, freedCollateral);

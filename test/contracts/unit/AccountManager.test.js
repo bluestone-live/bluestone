@@ -76,9 +76,10 @@ contract("AccountManager", ([owner]) => {
 
   describe("#getFreedCollateral", () => {
     it("succeeds", async () => {
-      const amount = await accountManager.getFreedCollateral(token.address, {
-        from: owner
-      });
+      const amount = await accountManager.getFreedCollateral(
+        owner,
+        token.address
+      );
       expect(amount).to.be.bignumber.equal(toFixedBN(0));
     });
   });
@@ -90,9 +91,10 @@ contract("AccountManager", ([owner]) => {
         owner,
         increaseAmount
       );
-      const amount = await accountManager.getFreedCollateral(token.address, {
-        from: owner
-      });
+      const amount = await accountManager.getFreedCollateral(
+        owner,
+        token.address
+      );
       expect(amount).to.be.bignumber.equal(increaseAmount);
     });
 
@@ -119,9 +121,10 @@ contract("AccountManager", ([owner]) => {
         decreaseAmount
       );
 
-      const amount = await accountManager.getFreedCollateral(token.address, {
-        from: owner
-      });
+      const amount = await accountManager.getFreedCollateral(
+        owner,
+        token.address
+      );
 
       expect(amount).to.be.bignumber.equal(increaseAmount.sub(decreaseAmount));
     });
@@ -139,10 +142,8 @@ contract("AccountManager", ([owner]) => {
         increaseAmount
       );
       freedCollateralAmount = await accountManager.getFreedCollateral(
-        token.address,
-        {
-          from: owner
-        }
+        owner,
+        token.address
       );
     });
 
@@ -162,9 +163,10 @@ contract("AccountManager", ([owner]) => {
     });
 
     it("reduced freed collateral", async () => {
-      const amount = await accountManager.getFreedCollateral(token.address, {
-        from: owner
-      });
+      const amount = await accountManager.getFreedCollateral(
+        owner,
+        token.address
+      );
       expect(amount).to.be.bignumber.equal(
         freedCollateralAmount.sub(decreaseAmount)
       );

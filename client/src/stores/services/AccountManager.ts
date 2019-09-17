@@ -6,7 +6,9 @@ import { accountStore } from '..';
 export const getFreedCollateral = async (tokenAddress: string) => {
   const { AccountManager } = await getContracts();
 
-  return AccountManager.methods.getFreedCollateral(tokenAddress).call();
+  return AccountManager.methods
+    .getFreedCollateral(accountStore.defaultAccount, tokenAddress)
+    .call();
 };
 
 export const withdrawFreedCollateral = async (
