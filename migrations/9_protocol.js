@@ -1,5 +1,6 @@
 const Protocol = artifacts.require("Protocol");
 const Configuration = artifacts.require("_Configuration");
+const LiquidityPools = artifacts.require("_LiquidityPools");
 const DepositManager = artifacts.require("_DepositManager");
 const LoanManager = artifacts.require("_LoanManager");
 
@@ -9,10 +10,14 @@ module.exports = async function(deployer, network) {
     return;
   }
 
-  const libs = [Configuration, DepositManager, LoanManager];
+  await deployer.deploy(Configuration);
+  await deployer.deploy(LiquidityPools);
+  await deployer.deploy(LoanManager);
 
-  for (lib of libs) {
-    await deployer.deploy(lib);
-    await deployer.link(lib, Protocol);
-  }
+  await deployer.link(LiquidityPools, [DepositManager, Protocol]);
+  await deployer.deploy(DepositManager);
+
+  await deployer.link(Configuration, Protocol);
+  await deployer.link(DepositManager, Protocol);
+  await deployer.link(LoanManager, Protocol);
 };

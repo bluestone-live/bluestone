@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "./lib/_Configuration.sol";
+import "./lib/_LiquidityPools.sol";
 import "./lib/_DepositManager.sol";
 import "./lib/_LoanManager.sol";
 
@@ -10,10 +11,12 @@ import "./lib/_LoanManager.sol";
 /// @title Main contract
 contract Protocol is Ownable, Pausable {
     using _Configuration for _Configuration.State;
+    using _LiquidityPools for _LiquidityPools.State;
     using _DepositManager for _DepositManager.State;
     using _LoanManager for _LoanManager.State;
 
     _Configuration.State private _configuration;
+    _LiquidityPools.State _liquidityPools;
     _DepositManager.State private _depositManager;
     _LoanManager.State private _loanManager;
 
@@ -23,7 +26,7 @@ contract Protocol is Ownable, Pausable {
     /// --- Deposit ---
 
     function enableDepositTerm(uint term) external whenNotPaused onlyOwner {
-        _depositManager.enableDepositTerm(term);
+        _depositManager.enableDepositTerm(_liquidityPools, term);
     }
 
     function disableDepositTerm(uint term) external whenNotPaused onlyOwner {
@@ -31,7 +34,7 @@ contract Protocol is Ownable, Pausable {
     }
 
     function enableDepositToken(address tokenAddress) external whenNotPaused onlyOwner {
-        _depositManager.enableDepositToken(tokenAddress);
+        _depositManager.enableDepositToken(_liquidityPools, tokenAddress);
     }
 
     function disableDepositToken(address tokenAddress) external whenNotPaused onlyOwner {

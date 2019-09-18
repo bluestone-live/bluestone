@@ -1,7 +1,12 @@
 pragma solidity ^0.5.0;
 
+import "./_LiquidityPools.sol";
+
+
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _DepositManager {
+    using _LiquidityPools for _LiquidityPools.State;
+
     struct State {
         /// Includes enabled and disabled desposit terms.
         /// We need to keep disabled deposit terms for deposit maturity update.
@@ -45,7 +50,13 @@ library _DepositManager {
         uint lastDay;
     }
 
-    function enableDepositTerm(State storage self, uint term) external {
+    function enableDepositTerm(
+        State storage self,
+        _LiquidityPools.State storage liquidityPools,
+        uint term
+    )
+        external
+    {
         require(!self.isDepositTermEnabled[term], "DepositManager: term already enabled");
 
         self.isDepositTermEnabled[term] = true;
@@ -57,8 +68,11 @@ library _DepositManager {
             self.isDepositTermInitialized[term] = true;
         }
 
-        /// TODO(desmond): Initialize pool group for each existing token
-        /// if they haven't been initialized
+        // Initialize pool group for each existing token if they haven't been initialized
+        for (uint i = 0; i < self.enabledDepositTokenAddressList.length; i++) {
+            address tokenAddress = self.enabledDepositTokenAddressList[i];
+            liquidityPools.initPoolGroupIfNeeded(tokenAddress, term);
+        }
     }
 
     function disableDepositTerm(State storage self, uint term) external {
@@ -82,7 +96,13 @@ library _DepositManager {
         }
     }
 
-    function enableDepositToken(State storage self, address tokenAddress) external {
+    function enableDepositToken(
+        State storage self,
+        _LiquidityPools.State storage liquidityPools,
+        address tokenAddress
+    )
+        external
+    {
         DepositToken storage depositToken = self.depositTokenByAddress[tokenAddress];
 
         require(!depositToken.isEnabled, "DepositManager: token already enabled");
@@ -91,7 +111,11 @@ library _DepositManager {
         self.allDepositTokenAddressList.push(tokenAddress);
         self.enabledDepositTokenAddressList.push(tokenAddress);
 
-        // TODO(desmond): Initialize pool groups if they haven't been initialized
+        // Initialize pool groups if they haven't been initialized
+        for (uint i = 0; i < self.enabledDepositTermList.length; i++) {
+            uint depositTerm = self.enabledDepositTermList[i];
+            liquidityPools.initPoolGroupIfNeeded(tokenAddress, depositTerm);
+        }
     }
 
     function disableDepositToken(State storage self, address tokenAddress) external {
