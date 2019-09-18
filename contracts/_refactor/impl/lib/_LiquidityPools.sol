@@ -20,8 +20,8 @@ library _LiquidityPools {
         // pool id -> Pool
         mapping(uint => Pool) poolsById;
 
-        // loan term -> total loanable amount
-        mapping(uint => uint) totalLoanableAmountByTerm;
+        // loan term -> available amount to borrow
+        mapping(uint => uint) availableAmountByTerm;
     }
 
     struct Pool {
@@ -56,5 +56,62 @@ library _LiquidityPools {
                 lastPoolId: depositTerm
             });
         }
+    }
+
+    function updatePoolGroupDepositMaturity(
+        State storage self,
+        address tokenAddress,
+        uint depositTerm,
+        uint[] calldata loanTermList
+    )
+        external
+    {
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress][depositTerm];
+
+        /// For every loan term N <= current deposit term, subtract N-th pool's availableAmount from
+        /// availableAmountByTerm since that amount will not be available after shifting pools.
+        for (uint i = 0; i < loanTermList.length; i++) {
+            if (loanTermList[i] <= depositTerm) {
+                uint loanTerm = loanTermList[i];
+                uint poolId = poolGroup.firstPoolId + loanTerm;
+                uint availableAmountOfPool = poolGroup.poolsById[poolId].availableAmount;
+                poolGroup.availableAmountByTerm[loanTerm] = poolGroup
+                    .availableAmountByTerm[loanTerm]
+                    .sub(availableAmountOfPool);
+            }
+        }
+
+        // Free storage of pool to be removed and get some gas refund
+        delete poolGroup.poolsById[poolGroup.firstPoolId];
+
+        // Increment pool IDs to reflect the deposit maturity change
+        poolGroup.firstPoolId++;
+        poolGroup.lastPoolId++;
+    }
+
+    function getPool(
+        State storage self,
+        address tokenAddress,
+        uint depositTerm,
+        uint poolIndex
+    )
+        external
+        view
+        returns (
+            uint depositAmount,
+            uint borrowedAmount,
+            uint availableAmount,
+            uint loanInterest
+        )
+    {
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress][depositTerm];
+        Pool storage pool = poolGroup.poolsById[poolGroup.firstPoolId + poolIndex];
+
+        return (
+            pool.depositAmount,
+            pool.borrowedAmount,
+            pool.availableAmount,
+            pool.loanInterest
+        );
     }
 }

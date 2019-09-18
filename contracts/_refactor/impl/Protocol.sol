@@ -15,10 +15,10 @@ contract Protocol is Ownable, Pausable {
     using _DepositManager for _DepositManager.State;
     using _LoanManager for _LoanManager.State;
 
-    _Configuration.State private _configuration;
+    _Configuration.State _configuration;
     _LiquidityPools.State _liquidityPools;
-    _DepositManager.State private _depositManager;
-    _LoanManager.State private _loanManager;
+    _DepositManager.State _depositManager;
+    _LoanManager.State _loanManager;
 
     event LockUserActions();
     event UnlockUserActions();
@@ -39,6 +39,10 @@ contract Protocol is Ownable, Pausable {
 
     function disableDepositToken(address tokenAddress) external whenNotPaused onlyOwner {
         _depositManager.disableDepositToken(tokenAddress);
+    }
+
+    function updateDepositMaturity() external whenNotPaused onlyOwner {
+        _depositManager.updateDepositMaturity(_liquidityPools, _loanManager);
     }
 
     function getDepositTerms() external whenNotPaused view returns (uint[] memory depositTermList) {

@@ -1,12 +1,15 @@
-const Protocol = artifacts.require("Protocol");
-const { expectRevert } = require("openzeppelin-test-helpers");
+const Protocol = artifacts.require("ProtocolMock");
+const DateTime = artifacts.require("DateTime");
+const { expectRevert, BN, time } = require("openzeppelin-test-helpers");
 const { expect } = require("chai");
+const { createERC20Token } = require("../../utils/index");
 
-contract("Protocol", function() {
-  let protocol;
+contract("Protocol", function([owner]) {
+  let protocol, datetime;
 
   beforeEach(async () => {
     protocol = await Protocol.new();
+    datetime = await DateTime.new();
   });
 
   describe("#enableDepositTerm", () => {
@@ -120,6 +123,76 @@ contract("Protocol", function() {
           protocol.disableDepositToken(tokenAddress),
           "DepositManager: token already disabled"
         );
+      });
+    });
+  });
+
+  describe("#updateDepositMaturity", () => {
+    context("when update once within one day", () => {
+      const depositTerm = 30;
+      let token;
+
+      beforeEach(async () => {
+        token = await createERC20Token(owner);
+        await protocol.enableDepositToken(token.address);
+        await protocol.enableDepositTerm(depositTerm);
+        await protocol.addLoanTerm(7);
+        await protocol.addLoanTerm(30);
+      });
+
+      it("succeeds", async () => {
+        const prevPoolGroup = await protocol.getPoolGroup(
+          token.address,
+          depositTerm
+        );
+
+        await protocol.updateDepositMaturity();
+
+        const currPoolGroup = await protocol.getPoolGroup(
+          token.address,
+          depositTerm
+        );
+
+        expect(currPoolGroup.firstPoolId).to.bignumber.equal(
+          prevPoolGroup.firstPoolId.add(new BN(1))
+        );
+
+        expect(currPoolGroup.lastPoolId).to.bignumber.equal(
+          prevPoolGroup.lastPoolId.add(new BN(1))
+        );
+      });
+    });
+
+    context(
+      "when update twice within the same day right before midnight",
+      () => {
+        beforeEach(async () => {
+          await protocol.updateDepositMaturity();
+        });
+
+        it("reverts", async () => {
+          const now = await time.latest();
+          const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
+          await time.increase(time.duration.seconds(secondsUntilMidnight - 10));
+
+          await expectRevert(
+            protocol.updateDepositMaturity(),
+            "Cannot update multiple times within the same day."
+          );
+        });
+      }
+    );
+
+    context("when update on the next day right after midnight", () => {
+      beforeEach(async () => {
+        await protocol.updateDepositMaturity();
+      });
+
+      it("succeeds", async () => {
+        const now = await time.latest();
+        const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
+        await time.increase(time.duration.seconds(secondsUntilMidnight + 10));
+        await protocol.updateDepositMaturity();
       });
     });
   });

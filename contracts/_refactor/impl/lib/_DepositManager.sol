@@ -1,11 +1,15 @@
 pragma solidity ^0.5.0;
 
 import "./_LiquidityPools.sol";
-
+import "./_LoanManager.sol";
+import "../../lib/DateTime.sol";
+import "../../lib/FixedMath.sol";
 
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _DepositManager {
     using _LiquidityPools for _LiquidityPools.State;
+    using _LoanManager for _LoanManager.State;
+    using FixedMath for uint;
 
     struct State {
         /// Includes enabled and disabled desposit terms.
@@ -28,6 +32,9 @@ library _DepositManager {
 
         // Token address -> DepositToken
         mapping(address => DepositToken) depositTokenByAddress;
+
+        // When was the last time deposit maturity updated
+        uint lastDepositMaturityUpdatedAt;
     }
 
     // Hold relavent information about a deposit token
@@ -44,9 +51,9 @@ library _DepositManager {
         /// Each interest index corresponds to a snapshot of a particular pool state
         /// before updating deposit maturity of a PoolGroup.
         ///
-        /// depositInterest = loanInterest * (deposit / totalDeposit) * (1 - protocolReserveRatio)
-        /// And interestIndex here refers to `loanInterest / totalDeposit`.
-        mapping(uint => uint) interestIndexPerDay;
+        /// depositInterest = loanInterest * (deposit / depositAmount) * (1 - protocolReserveRatio)
+        /// And interestIndex here refers to `loanInterest / depositAmount`.
+        mapping(uint => uint) interestIndexByDay;
         uint lastDay;
     }
 
@@ -139,6 +146,60 @@ library _DepositManager {
                 self.enabledDepositTokenAddressList.length--;
             }
         }
+    }
+
+    function updateDepositMaturity(
+        State storage self,
+        _LiquidityPools.State storage liquidityPools,
+        _LoanManager.State storage loanManager
+    )
+        external
+    {
+        // TODO(desmond): verify user actions are locked after the method is implemented
+
+        /// Ensure deposit maturity update only triggers once in a day by checking current
+        /// timestamp is greater than the timestamp of last update (in day unit).
+        require(
+            DateTime.toDays(now) > DateTime.toDays(self.lastDepositMaturityUpdatedAt),
+            "Cannot update multiple times within the same day."
+        );
+
+        uint[] memory loanTermList = loanManager.loanTermList;
+
+        for (uint i = 0; i < self.allDepositTokenAddressList.length; i++) {
+            address tokenAddress = self.allDepositTokenAddressList[i];
+
+            for (uint j = 0; j < self.allDepositTermList.length; j++) {
+                uint depositTerm = self.allDepositTermList[j];
+                uint poolIndex = 0;
+
+                (uint depositAmount, , , uint loanInterest) = liquidityPools.getPool(
+                    tokenAddress,
+                    depositTerm,
+                    poolIndex
+                );
+
+                InterestIndexHistory storage history = self
+                    .depositTokenByAddress[tokenAddress]
+                    .interestIndexHistoryByTerm[depositTerm];
+
+                uint interestIndex;
+
+                if (depositAmount > 0) {
+                    interestIndex = loanInterest.divFixed(depositAmount);
+                } else {
+                    interestIndex = 0;
+                }
+
+                // Add a new interest index
+                history.lastDay++;
+                history.interestIndexByDay[history.lastDay] = interestIndex;
+
+                liquidityPools.updatePoolGroupDepositMaturity(tokenAddress, depositTerm, loanTermList);
+            }
+        }
+
+        self.lastDepositMaturityUpdatedAt = now;
     }
 
     function getDepositTokens(
