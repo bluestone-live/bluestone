@@ -1,6 +1,8 @@
 pragma solidity ^0.5.0;
 
+
 /// @title Interface for main protocol
+/// TODO (ZhangRGK): change to interface after all method implement
 contract IProtocol {
     /// --- Deposit ---
 
@@ -74,7 +76,9 @@ contract IProtocol {
     /// @return withdrewAt
     /// @return isMatured
     /// @return isWithdrawn
-    function getDeposit(bytes32 depositId)
+    function getDepositRecordById(
+        bytes32 depositId
+    )
         external
         view
         returns (
@@ -106,7 +110,7 @@ contract IProtocol {
     /// @return withdrewAtList
     /// @return isMaturedList
     /// @return isWithdrawnList
-    function getDeposits()
+    function getDepositRecordsByAccount(address accountAddress)
         external
         view
         returns (
@@ -171,15 +175,15 @@ contract IProtocol {
         uint256[] calldata liquidationDiscountList
     ) external;
 
-    /// @notice Set loan interest rate for each token and loan term
-    /// @param tokenAddressList A list of token addresses
+    /// @notice Set loan interest rate for each loan term for specific token
     /// @param loanTerms A list of loan terms
     /// @param loanInterestRateList A list of loan interest rates
-    function setLoanInterestRates(
-        address[] calldata tokenAddressList,
-        uint256[] calldata loanTerms,
-        uint256[] calldata loanInterestRateList
-    ) external;
+    function setLoanInterestRatesForToken(
+        address tokenAddress,
+        uint[] calldata loanTerms,
+        uint[] calldata loanInterestRateList
+    )
+        external;
 
     /// @notice Borrow token in a specific term
     /// @param loanTokenAddress token to borrow
@@ -201,17 +205,22 @@ contract IProtocol {
     /// @notice Pay back a specific amount of loan
     /// @param loanId ID that identifies the loan
     /// @param repayAmount Amount to repay
-    function repayLoan(bytes32 loanId, uint256 repayAmount) external;
+    /// @return remainingDebt remaining debt of the loan
+    function repayLoan(bytes32 loanId, uint repayAmount) external returns (uint remainingDebt);
 
     /// @notice Liquidate a loan that is under-collateralized or defaulted
     /// @param loanId ID that identifies the loan
     /// @param liquidateAmount The amount requested to liquidate. If the amount
     ///        is greater than the remaining debt of the loan, it will
     ///        liquidate the full remaining debt.
-    /// @return liquidatedAmount The amount actually get liqudiated
-    function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
+    /// @return remainingCollateral The remaining amount of collateral after liquidation
+    /// @return liuquidatedAmount The amount of debt that is liquidated.
+    function liquidateLoan(
+        bytes32 loanId,
+        uint liquidateAmount
+    )
         external
-        returns (uint256 liquidatedAmount);
+        returns (uint remainingCollateral, uint liquidatedAmount);
 
     /// @notice Add collateral to a loan
     /// @param loanId ID that identifies the loan
@@ -234,7 +243,7 @@ contract IProtocol {
     /// @notice Return amount of freed collateral for each token in caller's account
     /// @return tokenAddressList A list of token addresses
     /// @return freedCollateralAmountList A list of freed collateral amount for each token
-    function getFreedCollaterals()
+    function getFreedCollateralsByAccount(address accountAddress)
         external
         view
         returns (
@@ -264,7 +273,9 @@ contract IProtocol {
     /// @return isLiquidatable
     /// @return isOverDue
     /// @return isClose
-    function getLoan(bytes32 loanId)
+    function getLoanRecordById(
+        bytes32 loanId
+    )
         external
         view
         returns (
@@ -312,7 +323,7 @@ contract IProtocol {
     /// @return isLiquidatableList
     /// @return isOverDueList
     /// @return isCloseList
-    function getLoans()
+    function getLoanRecordsByAccount(address accountAddress)
         external
         view
         returns (
@@ -363,17 +374,15 @@ contract IProtocol {
             uint256[] memory liquidationDiscountList
         );
 
-    /// @notice Return loan interest rates for each token and loan term
-    /// @return tokenAddressList A list of token addresses
+    /// @notice Return loan interest rates for each loan term for given token
     /// @return loanTerms A list of loan terms
     /// @return loanInterestRates A list of loan interest rates
-    function getLoanInterestRates()
+    function getLoanInterestRateByToken(address tokenAddress)
         external
         view
         returns (
-            address[] memory tokenAddressList,
-            uint256[] memory loanTerms,
-            uint256[] memory loanInterestRates
+            uint[] memory loanTerms,
+            uint[] memory loanInterestRates
         );
 
     /// --- Configuration ---

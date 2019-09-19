@@ -1,13 +1,15 @@
 pragma solidity ^0.5.0;
 
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
-import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
-import './lib/_Configuration.sol';
-import './lib/_LiquidityPools.sol';
-import './lib/_DepositManager.sol';
-import './lib/_LoanManager.sol';
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
+import "../interface/IProtocol.sol";
+import "./lib/_Configuration.sol";
+import "./lib/_LiquidityPools.sol";
+import "./lib/_DepositManager.sol";
+import "./lib/_LoanManager.sol";
 
 /// @title Main contract
+/// TODO(ZhangRGK): add IProtocol to interface implemention after all method implement
 contract Protocol is Ownable, Pausable {
     using _Configuration for _Configuration.State;
     using _LiquidityPools for _LiquidityPools.State;
