@@ -17,6 +17,9 @@ contract Protocol is Ownable, Pausable {
     _DepositManager.State private _depositManager;
     _LoanManager.State private _loanManager;
 
+    event LockUserActions();
+    event UnlockUserActions();
+
     /// --- Deposit ---
 
     function enableDepositTerm(uint term) external whenNotPaused onlyOwner {
@@ -66,12 +69,39 @@ contract Protocol is Ownable, Pausable {
     }
 
     /// --- Configuration ---
+    function setPriceOracleAddress(address priceOracleAddress) external whenNotPaused onlyOwner {
+        _configuration.setPriceOracleAddress(priceOracleAddress);
+    }
 
     function setProtocolAddress(address protocolAddress) external whenNotPaused onlyOwner {
         _configuration.setProtocolAddress(protocolAddress);
     }
 
+    function setProtocolReserveRatio(uint protocolReserveRatio) external whenNotPaused onlyOwner {
+        _configuration.setProtocolReserveRatio(protocolReserveRatio);
+    }
+
+    function lockUserActions() external whenNotPaused onlyOwner {
+        _configuration.lockUserActions();
+    }
+
+    function unlockUserActions() external whenNotPaused onlyOwner {
+        _configuration.unlockUserActions();
+    }
+
+    function getPriceOracleAddress() external whenNotPaused view returns (address priceOracleAddress) {
+        return _configuration.priceOracleAddress;
+    }
+
     function getProtocolAddress() external whenNotPaused view returns (address protocolAddress) {
         return _configuration.protocolAddress;
+    }
+
+    function getProtocolReserveRatio() external whenNotPaused view returns (uint protocolReserveRatio) {
+        return _configuration.protocolReserveRatio;
+    }
+
+    function isUserActionsLocked() external view returns (bool isLocked) {
+        return _configuration.isUserActionsLocked;
     }
 }

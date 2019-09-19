@@ -32,11 +32,11 @@ contract Configuration is Ownable {
 
     function getCollateralRatio(address loanAsset, address collateralAsset) external view returns (uint) {
         return _collateralRatioMap[loanAsset][collateralAsset];
-    } 
+    }
 
     function getLiquidationDiscount(address loanAsset, address collateralAsset) external view returns (uint) {
         return _liquidationDiscountMap[loanAsset][collateralAsset];
-    } 
+    }
 
     function getLoanInterestRate(address asset, uint loanTerm) external view returns (uint) {
         return _loanInterestRates[asset][loanTerm];
