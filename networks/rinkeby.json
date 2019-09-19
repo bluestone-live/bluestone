@@ -1,32 +1,33 @@
 {
   "contracts": {
-    "Configuration": "0xDffe36efd09159789ca366a1045b0D912a6e9Ab1",
-    "PriceOracle": "0x781eafdDdd4585A847770ECC712E91Cac7D6e0DF",
-    "TokenManager": "0x0202eBDa75Ce19a6bB83cc40B18abC969C826db7",
-    "AccountManager": "0x348A71F4D9f57269eb5e0363EE203C1c49393232",
-    "DepositManager": "0xf6E1d0C51C9AA66A411dEAD4865a0F68F8B08034",
-    "LoanManager": "0xc7AE40Bf9d91B9219dAd26508c05D34C6103BCCe"
+    "Configuration": "0x8D37d773Db6aacd50b89851fe091575582828d7c",
+    "PriceOracle": "0x4A183De6Fa285F303DE32F03857D25cb700Ea4eb",
+    "TokenManager": "0x83Ba8c9D48413E4fC49ea2b9F0526078954ac22d",
+    "AccountManager": "0x0D6C90452865821a9cD2128df79F704Be0a0D51c",
+    "DepositManager": "0xCF58d082363A5eca2102211713bEd5eAF33E29C5",
+    "LoanManager": "0xac29521B19B98EA8413E806CA7f2562748F02289",
+    "LiquidityPools": "0xE6CaB933A217Bc7083f0AAd2BEAc455Fb6f68E29"
   },
   "tokens": {
     "ETH": {
       "name": "Ether",
       "symbol": "ETH",
-      "address": "0x99E961a25C17e0523EA0822A709145cFDfece6A9"
+      "address": "0x4b675E84a5fdFE8a2C567B75BE49B2f824a52243"
     },
     "DAI": {
       "name": "Dai",
       "symbol": "DAI",
-      "address": "0x7ABF684A8664Cf133283C8F52813989BBe862f2f"
+      "address": "0xb32DFe7089e51e39cc5d3849356ACf44315959d8"
     },
     "USDT": {
       "name": "Tether",
       "symbol": "USDT",
-      "address": "0x2e2c7c8805343ed2D547012e39B128Cb849D584A"
+      "address": "0xEeB181Cbc4a55B6AeDF509A1682de5d4d28f527F"
     },
     "WETH": {
       "name": "Wrapped Ether",
       "symbol": "WETH",
-      "address": "0x092Cb6BD1009aBEa58f0cbbB525922c50F488418"
+      "address": "0x05426C5d2E04F4d31c6096e6411Ad0e3Fd5fc683"
     }
   }
 }
