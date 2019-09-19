@@ -45,6 +45,24 @@ contract Protocol is Ownable, Pausable {
         _depositManager.updateDepositMaturity(_liquidityPools, _loanManager);
     }
 
+    function deposit(
+        address tokenAddress,
+        uint depositAmount,
+        uint depositTerm
+    )
+        external
+        whenNotPaused
+        returns (bytes32 depositId)
+    {
+        return _depositManager.deposit(
+            _liquidityPools,
+            _loanManager,
+            tokenAddress,
+            depositAmount,
+            depositTerm
+        );
+    }
+
     function getDepositTerms() external whenNotPaused view returns (uint[] memory depositTermList) {
         return _depositManager.enabledDepositTermList;
     }

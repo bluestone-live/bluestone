@@ -26,12 +26,12 @@ contract IProtocol {
 
     /// @notice Deposit token with specific term and amount
     /// @param tokenAddress Token address
-    /// @param amount Deposit amount
+    /// @param depositAmount Deposit amount
     /// @param depositTerm Deposit term
     /// @return depositId ID that identifies the deposit
     function deposit(
         address tokenAddress,
-        uint amount,
+        uint depositAmount,
         uint depositTerm
     )
         external

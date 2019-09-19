@@ -1,10 +1,15 @@
-const Protocol = artifacts.require("ProtocolMock");
-const DateTime = artifacts.require("DateTime");
-const { expectRevert, BN, time } = require("openzeppelin-test-helpers");
-const { expect } = require("chai");
-const { createERC20Token } = require("../../utils/index");
+const Protocol = artifacts.require('ProtocolMock');
+const DateTime = artifacts.require('DateTime');
+const {
+  expectRevert,
+  expectEvent,
+  BN,
+  time,
+} = require('openzeppelin-test-helpers');
+const { expect } = require('chai');
+const { createERC20Token, toFixedBN } = require('../../utils/index');
 
-contract("Protocol", function([owner]) {
+contract('Protocol', function([owner, depositor]) {
   let protocol, datetime;
 
   beforeEach(async () => {
@@ -12,11 +17,11 @@ contract("Protocol", function([owner]) {
     datetime = await DateTime.new();
   });
 
-  describe("#enableDepositTerm", () => {
+  describe('#enableDepositTerm', () => {
     const term = 60;
 
-    context("when term is not enabled", () => {
-      it("succeeds", async () => {
+    context('when term is not enabled', () => {
+      it('succeeds', async () => {
         await protocol.enableDepositTerm(term);
         const currTerms = await protocol.getDepositTerms();
         expect(currTerms.length).to.equal(1);
@@ -24,29 +29,29 @@ contract("Protocol", function([owner]) {
       });
     });
 
-    context("when term is enabled", () => {
+    context('when term is enabled', () => {
       beforeEach(async () => {
         await protocol.enableDepositTerm(term);
       });
 
-      it("reverts", async () => {
+      it('reverts', async () => {
         await expectRevert(
           protocol.enableDepositTerm(term),
-          "DepositManager: term already enabled"
+          'DepositManager: term already enabled',
         );
       });
     });
   });
 
-  describe("#disableDepositTerm", () => {
+  describe('#disableDepositTerm', () => {
     const term = 60;
 
-    context("when term is enabled", () => {
+    context('when term is enabled', () => {
       beforeEach(async () => {
         await protocol.enableDepositTerm(term);
       });
 
-      it("succeeds", async () => {
+      it('succeeds', async () => {
         await protocol.disableDepositTerm(term);
         const currTerms = await protocol.getDepositTerms();
         expect(currTerms.length).to.equal(0);
@@ -54,25 +59,25 @@ contract("Protocol", function([owner]) {
       });
     });
 
-    context("when term is disabled", () => {
-      it("reverts", async () => {
+    context('when term is disabled', () => {
+      it('reverts', async () => {
         await expectRevert(
           protocol.disableDepositTerm(term),
-          "DepositManager: term already disabled"
+          'DepositManager: term already disabled',
         );
       });
     });
   });
 
-  describe("#enableDepositToken", () => {
-    const tokenAddress = "0x0000000000000000000000000000000000000001";
+  describe('#enableDepositToken', () => {
+    const tokenAddress = '0x0000000000000000000000000000000000000001';
 
-    context("when token is not enabled", () => {
-      it("succeeds", async () => {
+    context('when token is not enabled', () => {
+      it('succeeds', async () => {
         await protocol.enableDepositToken(tokenAddress);
         const {
           depositTokenAddressList,
-          isEnabledList
+          isEnabledList,
         } = await protocol.getDepositTokens();
         expect(depositTokenAddressList.length).to.equal(1);
         expect(isEnabledList.length).to.equal(1);
@@ -81,33 +86,33 @@ contract("Protocol", function([owner]) {
       });
     });
 
-    context("when token is enabled", () => {
+    context('when token is enabled', () => {
       beforeEach(async () => {
         await protocol.enableDepositToken(tokenAddress);
       });
 
-      it("reverts", async () => {
+      it('reverts', async () => {
         await expectRevert(
           protocol.enableDepositToken(tokenAddress),
-          "DepositManager: token already enabled"
+          'DepositManager: token already enabled',
         );
       });
     });
   });
 
-  describe("#disableDepositToken", () => {
-    const tokenAddress = "0x0000000000000000000000000000000000000001";
+  describe('#disableDepositToken', () => {
+    const tokenAddress = '0x0000000000000000000000000000000000000001';
 
-    context("when token is enabled", () => {
+    context('when token is enabled', () => {
       beforeEach(async () => {
         await protocol.enableDepositToken(tokenAddress);
       });
 
-      it("succeeds", async () => {
+      it('succeeds', async () => {
         await protocol.disableDepositToken(tokenAddress);
         const {
           depositTokenAddressList,
-          isEnabledList
+          isEnabledList,
         } = await protocol.getDepositTokens();
 
         expect(depositTokenAddressList.length).to.equal(1);
@@ -117,18 +122,18 @@ contract("Protocol", function([owner]) {
       });
     });
 
-    context("when token is disabled", () => {
-      it("reverts", async () => {
+    context('when token is disabled', () => {
+      it('reverts', async () => {
         await expectRevert(
           protocol.disableDepositToken(tokenAddress),
-          "DepositManager: token already disabled"
+          'DepositManager: token already disabled',
         );
       });
     });
   });
 
-  describe("#updateDepositMaturity", () => {
-    context("when update once within one day", () => {
+  describe('#updateDepositMaturity', () => {
+    context('when update once within one day', () => {
       const depositTerm = 30;
       let token;
 
@@ -140,59 +145,122 @@ contract("Protocol", function([owner]) {
         await protocol.addLoanTerm(30);
       });
 
-      it("succeeds", async () => {
+      it('succeeds', async () => {
         const prevPoolGroup = await protocol.getPoolGroup(
           token.address,
-          depositTerm
+          depositTerm,
         );
 
         await protocol.updateDepositMaturity();
 
         const currPoolGroup = await protocol.getPoolGroup(
           token.address,
-          depositTerm
+          depositTerm,
         );
 
         expect(currPoolGroup.firstPoolId).to.bignumber.equal(
-          prevPoolGroup.firstPoolId.add(new BN(1))
+          prevPoolGroup.firstPoolId.add(new BN(1)),
         );
 
         expect(currPoolGroup.lastPoolId).to.bignumber.equal(
-          prevPoolGroup.lastPoolId.add(new BN(1))
+          prevPoolGroup.lastPoolId.add(new BN(1)),
         );
       });
     });
 
     context(
-      "when update twice within the same day right before midnight",
+      'when update twice within the same day right before midnight',
       () => {
         beforeEach(async () => {
           await protocol.updateDepositMaturity();
         });
 
-        it("reverts", async () => {
+        it('reverts', async () => {
           const now = await time.latest();
           const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
           await time.increase(time.duration.seconds(secondsUntilMidnight - 10));
 
           await expectRevert(
             protocol.updateDepositMaturity(),
-            "Cannot update multiple times within the same day."
+            'Cannot update multiple times within the same day.',
           );
         });
-      }
+      },
     );
 
-    context("when update on the next day right after midnight", () => {
+    context('when update on the next day right after midnight', () => {
       beforeEach(async () => {
         await protocol.updateDepositMaturity();
       });
 
-      it("succeeds", async () => {
+      it('succeeds', async () => {
         const now = await time.latest();
         const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
         await time.increase(time.duration.seconds(secondsUntilMidnight + 10));
         await protocol.updateDepositMaturity();
+      });
+    });
+  });
+
+  describe('#deposit', () => {
+    const depositAmount = toFixedBN(10);
+    const depositTerm = 30;
+    let token;
+
+    beforeEach(async () => {
+      token = await createERC20Token(depositor);
+    });
+
+    context('when token is not enabled', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.deposit(token.address, depositAmount, depositTerm, {
+            from: depositor,
+          }),
+          'DepositManager: invalid deposit token',
+        );
+      });
+    });
+
+    context('when token is enabled', () => {
+      beforeEach(async () => {
+        await protocol.enableDepositToken(token.address);
+      });
+
+      context('when term is not enabled', () => {
+        it('reverts', async () => {
+          await expectRevert(
+            protocol.deposit(token.address, depositAmount, depositTerm, {
+              from: depositor,
+            }),
+            'DepositManager: invalid deposit term',
+          );
+        });
+      });
+
+      context('when term is enabled', () => {
+        beforeEach(async () => {
+          await protocol.enableDepositTerm(depositTerm);
+        });
+
+        it('succeeds', async () => {
+          await token.approve(protocol.address, depositAmount, {
+            from: depositor,
+          });
+
+          const { logs } = await protocol.deposit(
+            token.address,
+            depositAmount,
+            depositTerm,
+            {
+              from: depositor,
+            },
+          );
+
+          expectEvent.inLogs(logs, 'DepositSucceed', {
+            accountAddress: depositor,
+          });
+        });
       });
     });
   });

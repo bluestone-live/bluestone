@@ -1,5 +1,7 @@
 pragma solidity ^0.5.0;
 
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./_LiquidityPools.sol";
 import "./_LoanManager.sol";
 import "../../lib/DateTime.sol";
@@ -9,6 +11,7 @@ import "../../lib/FixedMath.sol";
 library _DepositManager {
     using _LiquidityPools for _LiquidityPools.State;
     using _LoanManager for _LoanManager.State;
+    using SafeERC20 for ERC20;
     using FixedMath for uint;
 
     struct State {
@@ -35,6 +38,8 @@ library _DepositManager {
 
         // When was the last time deposit maturity updated
         uint lastDepositMaturityUpdatedAt;
+
+        uint numDeposits;
     }
 
     // Hold relavent information about a deposit token
@@ -56,6 +61,8 @@ library _DepositManager {
         mapping(uint => uint) interestIndexByDay;
         uint lastDay;
     }
+
+    event DepositSucceed(address indexed accountAddress, bytes32 depositId);
 
     function enableDepositTerm(
         State storage self,
@@ -200,6 +207,59 @@ library _DepositManager {
         }
 
         self.lastDepositMaturityUpdatedAt = now;
+    }
+
+    function deposit(
+        State storage self,
+        _LiquidityPools.State storage liquidityPools,
+        _LoanManager.State storage loanManager,
+        address tokenAddress,
+        uint depositAmount,
+        uint depositTerm
+    )
+        external
+        returns (bytes32 depositId)
+    {
+        // TODO(desmond): verify user actions not locked
+
+        require(
+            self.depositTokenByAddress[tokenAddress].isEnabled,
+            "DepositManager: invalid deposit token"
+        );
+
+        require(
+            self.isDepositTermEnabled[depositTerm],
+            "DepositManager: invalid deposit term"
+        );
+
+        address accountAddress = msg.sender;
+
+        uint poolId = liquidityPools.addDepositToPool(
+            tokenAddress,
+            depositAmount,
+            depositTerm,
+            loanManager.loanTermList
+        );
+
+        // TODO(desmond): save deposit record after D378 is done
+
+        self.numDeposits++;
+
+        // Compute a hash as deposit ID
+        bytes32 currDepositId = keccak256(abi.encode(accountAddress, poolId, self.numDeposits));
+
+        // Transfer token from user to protocol (`this` refers to Protocol contract)
+        ERC20(tokenAddress).safeTransferFrom(
+            accountAddress,
+            address(this),
+            depositAmount
+        );
+
+        // TODO(desmond): increment stats
+
+        emit DepositSucceed(accountAddress, currDepositId);
+
+        return currDepositId;
     }
 
     function getDepositTokens(

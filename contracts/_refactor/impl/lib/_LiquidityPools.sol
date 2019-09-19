@@ -89,6 +89,35 @@ library _LiquidityPools {
         poolGroup.lastPoolId++;
     }
 
+    function addDepositToPool(
+        State storage self,
+        address tokenAddress,
+        uint depositAmount,
+        uint depositTerm,
+        uint[] calldata loanTermList
+    )
+        external
+        returns (uint poolId)
+    {
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress][depositTerm];
+        Pool storage pool = poolGroup.poolsById[poolGroup.lastPoolId];
+        pool.depositAmount = pool.depositAmount.add(depositAmount);
+        pool.availableAmount = pool.availableAmount.add(depositAmount);
+
+        // Add deposit amount to availableAmountByTerm for every loan term <= this deposit term
+        for (uint i = 0; i < loanTermList.length; i++) {
+            uint loanTerm = loanTermList[i];
+
+            if (loanTerm <= depositTerm) {
+                poolGroup.availableAmountByTerm[loanTerm] = poolGroup
+                    .availableAmountByTerm[loanTerm]
+                    .add(depositAmount);
+            }
+        }
+
+        return poolGroup.lastPoolId;
+    }
+
     function getPool(
         State storage self,
         address tokenAddress,
