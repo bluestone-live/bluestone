@@ -67,6 +67,14 @@ contract Protocol is Ownable, Pausable {
             );
     }
 
+    function withdraw(bytes32 depositId)
+        external
+        whenNotPaused
+        returns (uint256 withdrewAmount)
+    {
+        return _depositManager.withdraw(_configuration, depositId);
+    }
+
     function getDepositTerms()
         external
         view

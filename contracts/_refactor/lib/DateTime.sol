@@ -7,6 +7,10 @@ library DateTime {
     uint256 constant HOUR_IN_SECONDS = 3600;
     uint256 constant MINUTE_IN_SECONDS = 60;
 
+    function dayInSeconds() public pure returns (uint256) {
+        return 86400;
+    }
+
     function getHour(uint256 timestamp) public pure returns (uint8) {
         return uint8((timestamp / 60 / 60) % 24);
     }

@@ -264,4 +264,48 @@ contract('Protocol', function([owner, depositor]) {
       });
     });
   });
+
+  describe('#withdraw', () => {
+    const depositAmount = toFixedBN(10);
+    const depositTerm = 30;
+    let token;
+
+    beforeEach(async () => {
+      token = await createERC20Token(depositor);
+      await protocol.enableDepositToken(token.address);
+      await protocol.enableDepositTerm(depositTerm);
+
+      await token.approve(protocol.address, depositAmount, {
+        from: depositor,
+      });
+    });
+
+    context('when deposit is valid', () => {
+      let depositId;
+
+      beforeEach(async () => {
+        const { logs } = await protocol.deposit(
+          token.address,
+          depositAmount,
+          depositTerm,
+          {
+            from: depositor,
+          },
+        );
+
+        depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+          .depositId;
+      });
+
+      context('when deposit is matured', () => {
+        beforeEach(async () => {
+          await time.increase(time.duration.days(depositTerm + 1));
+        });
+
+        it('succeeds', async () => {
+          await protocol.withdraw(depositId, { from: depositor });
+        });
+      });
+    });
+  });
 });

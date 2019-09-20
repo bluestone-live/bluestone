@@ -2,6 +2,8 @@ pragma solidity ^0.5.0;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import './_Configuration.sol';
 import './_LiquidityPools.sol';
 import './_LoanManager.sol';
 import '../../lib/DateTime.sol';
@@ -9,9 +11,11 @@ import '../../lib/FixedMath.sol';
 
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _DepositManager {
+    using _Configuration for _Configuration.State;
     using _LiquidityPools for _LiquidityPools.State;
     using _LoanManager for _LoanManager.State;
     using SafeERC20 for ERC20;
+    using SafeMath for uint256;
     using FixedMath for uint256;
 
     struct State {
@@ -29,6 +33,8 @@ library _DepositManager {
         address[] enabledDepositTokenAddressList;
         // Token address -> DepositToken
         mapping(address => DepositToken) depositTokenByAddress;
+        // ID -> DepositRecord
+        mapping(bytes32 => DepositRecord) depositRecordById;
         // When was the last time deposit maturity updated
         uint256 lastDepositMaturityUpdatedAt;
         uint256 numDeposits;
@@ -40,6 +46,20 @@ library _DepositManager {
         bool isEnabled;
         // deposit term -> interest index history
         mapping(uint256 => InterestIndexHistory) interestIndexHistoryByTerm;
+    }
+
+    // TODO(desmond): merge with D378
+    struct DepositRecord {
+        bool isValid;
+        bytes32 depositId;
+        address ownerAddress;
+        address tokenAddress;
+        uint256 depositTerm;
+        uint256 depositAmount;
+        uint256 poolId;
+        uint256 createdAt;
+        uint256 maturedAt;
+        uint256 withdrewAt;
     }
 
     // Record interest index on a daily basis
@@ -54,6 +74,7 @@ library _DepositManager {
     }
 
     event DepositSucceed(address indexed accountAddress, bytes32 depositId);
+    event WithdrawSucceed(address indexed accountAddress, bytes32 depositId);
 
     function enableDepositTerm(
         State storage self,
@@ -255,14 +276,32 @@ library _DepositManager {
             loanManager.loanTermList
         );
 
-        // TODO(desmond): save deposit record after D378 is done
-
         self.numDeposits++;
 
         // Compute a hash as deposit ID
         bytes32 currDepositId = keccak256(
             abi.encode(accountAddress, poolId, self.numDeposits)
         );
+
+        uint256 createdAt = now;
+        uint256 maturedAt = createdAt +
+            DateTime.secondsUntilMidnight(createdAt) +
+            depositTerm *
+            DateTime.dayInSeconds();
+
+        // TODO(desmond): complete deposit record after D378 is done
+        self.depositRecordById[currDepositId] = DepositRecord({
+            isValid: true,
+            depositId: currDepositId,
+            ownerAddress: accountAddress,
+            tokenAddress: tokenAddress,
+            depositTerm: depositTerm,
+            depositAmount: depositAmount,
+            poolId: poolId,
+            createdAt: createdAt,
+            maturedAt: maturedAt,
+            withdrewAt: 0
+        });
 
         // Transfer token from user to protocol (`this` refers to Protocol contract)
         ERC20(tokenAddress).safeTransferFrom(
@@ -276,6 +315,73 @@ library _DepositManager {
         emit DepositSucceed(accountAddress, currDepositId);
 
         return currDepositId;
+    }
+
+    function withdraw(
+        State storage self,
+        _Configuration.State storage configuration,
+        bytes32 depositId
+    ) external returns (uint256 withdrewAmount) {
+        // TODO(desmond): verify user actions are locked
+
+        DepositRecord storage depositRecord = self.depositRecordById[depositId];
+
+        require(depositRecord.isValid, 'DepositManager: invalid deposit ID');
+
+        address tokenAddress = depositRecord.tokenAddress;
+        address accountAddress = msg.sender;
+
+        require(
+            self.depositTokenByAddress[tokenAddress].isEnabled,
+            'DepositManager: invalid deposit token'
+        );
+
+        require(
+            accountAddress == depositRecord.ownerAddress,
+            'DepositManager: invalid owner'
+        );
+        require(
+            depositRecord.withdrewAt == 0,
+            'DepositManager: deposit is withdrawn'
+        );
+        require(
+            depositRecord.maturedAt <= now,
+            'DepositManager: deposit is not matured'
+        );
+
+        uint256 numDaysAgo = DateTime.toDays(now - depositRecord.maturedAt);
+
+        uint256 interestIndex = _getInterestIndexFromDaysAgo(
+            self,
+            tokenAddress,
+            depositRecord.depositTerm,
+            numDaysAgo
+        );
+
+        uint256 totalInterests = depositRecord.depositAmount.mulFixed(
+            interestIndex
+        );
+        uint256 interestsForProtocol = totalInterests.mulFixed(
+            configuration.protocolReserveRatio
+        );
+        uint256 interestsForDepositor = totalInterests.sub(
+            interestsForProtocol
+        );
+        uint256 depositPlusInterestAmount = depositRecord.depositAmount.add(
+            interestsForDepositor
+        );
+
+        depositRecord.withdrewAt = now;
+
+        // Transfer deposit plus interest to depositor
+        ERC20(tokenAddress).safeTransfer(
+            accountAddress,
+            depositPlusInterestAmount
+        );
+
+        emit WithdrawSucceed(accountAddress, depositId);
+
+        return depositPlusInterestAmount;
     }
 
     function getDepositTokens(State storage self)
@@ -300,5 +406,18 @@ library _DepositManager {
         }
 
         return (_depositTokenAddressList, _isEnabledList);
+    }
+
+    function _getInterestIndexFromDaysAgo(
+        State storage self,
+        address tokenAddress,
+        uint256 depositTerm,
+        uint256 numDaysAgo
+    ) internal view returns (uint256 interestIndex) {
+        InterestIndexHistory storage history = self
+            .depositTokenByAddress[tokenAddress]
+            .interestIndexHistoryByTerm[depositTerm];
+
+        return history.interestIndexByDay[history.lastDay.sub(numDaysAgo)];
     }
 }
