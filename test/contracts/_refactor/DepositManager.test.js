@@ -307,5 +307,20 @@ contract('Protocol', function([owner, depositor]) {
         });
       });
     });
+    describe('#getDepositById', () => {
+      context('when deposit id valid', () => {
+        // TODO(ZhangRGK): depends on the deposit method and pool group implements
+        it('should get deposit details');
+      });
+
+      context('when deposit id invalid', () => {
+        it('reverts', async () => {
+          await expectRevert(
+            protocol.getDepositById(web3.utils.hexToBytes('0x00000000')),
+            'DepositManager: Deposit ID is invalid',
+          );
+        });
+      });
+    });
   });
 });

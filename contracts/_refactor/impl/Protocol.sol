@@ -27,7 +27,7 @@ contract Protocol is Ownable, Pausable {
     event LockUserActions();
     event UnlockUserActions();
 
-    /// --- Deposit ---
+    /// --- Deposit Configurations---
 
     function enableDepositTerm(uint256 term) external whenNotPaused onlyOwner {
         _depositManager.enableDepositTerm(_liquidityPools, term);
@@ -99,6 +99,27 @@ contract Protocol is Ownable, Pausable {
         )
     {
         return _depositManager.getDepositTokens();
+    }
+
+    /// --- Deposit
+
+    function getDepositById(bytes32 depositId)
+        external
+        view
+        returns (
+            address tokenAddress,
+            uint depositTerm,
+            uint depositAmount,
+            uint interestIndex,
+            uint poolId,
+            uint createdAt,
+            uint maturedAt,
+            uint withdrewAt,
+            bool isMatured,
+            bool isWithdrawn
+        )
+    {
+        return _depositManager.getDepositById(depositId);
     }
 
     /// --- Loan

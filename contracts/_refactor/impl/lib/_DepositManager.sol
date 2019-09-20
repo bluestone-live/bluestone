@@ -38,6 +38,9 @@ library _DepositManager {
         // When was the last time deposit maturity updated
         uint256 lastDepositMaturityUpdatedAt;
         uint256 numDeposits;
+
+        // AccountAddress -> DepositIds
+        mapping(address => bytes32[]) depositIdsByAccountAddress;
     }
 
     // Hold relavent information about a deposit token
@@ -80,10 +83,12 @@ library _DepositManager {
         State storage self,
         _LiquidityPools.State storage liquidityPools,
         uint256 term
-    ) external {
+    )
+        external
+    {
         require(
             !self.isDepositTermEnabled[term],
-            'DepositManager: term already enabled'
+            "DepositManager: term already enabled"
         );
 
         self.isDepositTermEnabled[term] = true;
@@ -109,7 +114,7 @@ library _DepositManager {
     function disableDepositTerm(State storage self, uint256 term) external {
         require(
             self.isDepositTermEnabled[term],
-            'DepositManager: term already disabled.'
+            "DepositManager: term already disabled."
         );
 
         self.isDepositTermEnabled[term] = false;
@@ -419,5 +424,42 @@ library _DepositManager {
             .interestIndexHistoryByTerm[depositTerm];
 
         return history.interestIndexByDay[history.lastDay.sub(numDaysAgo)];
+    }
+
+    function getDepositById(State storage self, bytes32 depositId)
+        external
+        view
+        returns (
+            address tokenAddress,
+            uint depositTerm,
+            uint depositAmount,
+            uint interestIndex,
+            uint poolId,
+            uint createdAt,
+            uint maturedAt,
+            uint withdrewAt,
+            bool isMatured,
+            bool isWithdrawn
+        )
+    {
+        DepositRecord memory depositRecord = self.depositRecordById[depositId];
+
+        require(depositRecord.tokenAddress != address(0), "DepositManager: Deposit ID is invalid");
+
+        // TODO(ZhangRGK): interest index depends on pool groups
+        interestIndex = 0;
+
+        return (
+            depositRecord.tokenAddress,
+            depositRecord.depositTerm,
+            depositRecord.depositAmount,
+            interestIndex,
+            depositRecord.poolId,
+            depositRecord.createdAt,
+            depositRecord.maturedAt,
+            depositRecord.withdrewAt,
+            now >= depositRecord.maturedAt,
+            depositRecord.withdrewAt != 0
+        );
     }
 }
