@@ -1,10 +1,10 @@
-const Deposit = artifacts.require("Deposit");
-const DateTime = artifacts.require("DateTime");
-const { BN, time } = require("openzeppelin-test-helpers");
-const { createERC20Token, toFixedBN } = require("../../utils/index.js");
-const { expect } = require("chai");
+const Deposit = artifacts.require('Deposit');
+const DateTime = artifacts.require('DateTime');
+const { BN, time } = require('openzeppelin-test-helpers');
+const { createERC20Token, toFixedBN } = require('../../utils/index.js');
+const { expect } = require('chai');
 
-contract("Deposit", ([owner]) => {
+contract('Deposit', ([owner]) => {
   const amount = toFixedBN(100);
   const protocolReserveRatio = toFixedBN(0.15);
   const poolId = toFixedBN(0);
@@ -14,7 +14,7 @@ contract("Deposit", ([owner]) => {
     asset = await createERC20Token(owner);
   });
 
-  describe("#constructor", async () => {
+  describe('#constructor', async () => {
     const term = new BN(1);
     let deposit, datetime, now, createdAt;
 
@@ -25,28 +25,28 @@ contract("Deposit", ([owner]) => {
         term,
         amount,
         protocolReserveRatio,
-        poolId
+        poolId,
       );
       now = await time.latest();
       datetime = await DateTime.new();
     });
 
-    it("updates createdAt", async () => {
+    it('updates createdAt', async () => {
       createdAt = await deposit.createdAt();
       expect(createdAt).to.be.bignumber.closeTo(now, new BN(1));
     });
 
-    it("updates maturedAt", async () => {
+    it('updates maturedAt', async () => {
       const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
       const dayInSeconds = new BN(86400);
       const maturedAt = createdAt.add(
-        secondsUntilMidnight.add(term.mul(dayInSeconds))
+        secondsUntilMidnight.add(term.mul(dayInSeconds)),
       );
       expect(await deposit.maturedAt()).to.be.bignumber.equal(maturedAt);
     });
   });
 
-  describe("#withdrawDepositAndInterest", () => {
+  describe('#withdrawDepositAndInterest', () => {
     const term = 1;
     let deposit;
 
@@ -57,15 +57,15 @@ contract("Deposit", ([owner]) => {
         term,
         amount,
         protocolReserveRatio,
-        poolId
+        poolId,
       );
     });
 
-    it("succeeds", async () => {
+    it('succeeds', async () => {
       const currInterestIndex = toFixedBN(0.05);
       const {
-        "0": withdrewAmount,
-        "1": interestsForProtocol
+        '0': withdrewAmount,
+        '1': interestsForProtocol,
       } = await deposit.withdrawDepositAndInterest.call(currInterestIndex);
 
       const expectedTotalInterests = amount
@@ -75,17 +75,17 @@ contract("Deposit", ([owner]) => {
         .mul(protocolReserveRatio)
         .div(toFixedBN(1));
       const expectedInterestsForDepositor = expectedTotalInterests.sub(
-        expectedInterestsForProtocol
+        expectedInterestsForProtocol,
       );
       const expectedWithdrewAmount = amount.add(expectedInterestsForDepositor);
       expect(withdrewAmount).to.be.bignumber.equal(expectedWithdrewAmount);
       expect(interestsForProtocol).to.be.bignumber.equal(
-        expectedInterestsForProtocol
+        expectedInterestsForProtocol,
       );
     });
   });
 
-  describe("#withdrawDeposit", () => {
+  describe('#withdrawDeposit', () => {
     const term = 1;
     let deposit;
 
@@ -96,11 +96,11 @@ contract("Deposit", ([owner]) => {
         term,
         amount,
         protocolReserveRatio,
-        poolId
+        poolId,
       );
     });
 
-    it("succeeds", async () => {
+    it('succeeds', async () => {
       await deposit.withdrawDeposit();
       expect(await deposit.isWithdrawn()).to.be.true;
       expect(await deposit.withdrewAmount()).to.be.bignumber.equal(amount);

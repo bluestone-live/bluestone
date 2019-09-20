@@ -1,29 +1,29 @@
-const Configuration = artifacts.require("./Configuration.sol");
-const PriceOracle = artifacts.require("./PriceOracle.sol");
-const TokenManager = artifacts.require("./TokenManager.sol");
-const LiquidityPools = artifacts.require("./LiquidityPools.sol");
-const DepositManager = artifacts.require("./DepositManager.sol");
-const LoanManager = artifacts.require("./LoanManager.sol");
-const AccountManager = artifacts.require("./AccountManager.sol");
-const DepositManagerMock = artifacts.require("./DepositManagerMock.sol");
-const LoanManagerMock = artifacts.require("./LoanManagerMock.sol");
-const { deploy } = require("../scripts/javascript/utils");
+const Configuration = artifacts.require('./Configuration.sol');
+const PriceOracle = artifacts.require('./PriceOracle.sol');
+const TokenManager = artifacts.require('./TokenManager.sol');
+const LiquidityPools = artifacts.require('./LiquidityPools.sol');
+const DepositManager = artifacts.require('./DepositManager.sol');
+const LoanManager = artifacts.require('./LoanManager.sol');
+const AccountManager = artifacts.require('./AccountManager.sol');
+const DepositManagerMock = artifacts.require('./DepositManagerMock.sol');
+const LoanManagerMock = artifacts.require('./LoanManagerMock.sol');
+const { deploy } = require('../scripts/javascript/utils');
 
 module.exports = async function(deployer, network) {
-  await deploy(deployer, network, DepositManager)
-  await deploy(deployer, network, LoanManager)
+  await deploy(deployer, network, DepositManager);
+  await deploy(deployer, network, LoanManager);
 
-  const depositManager = await DepositManager.deployed()
-  const loanManager = await LoanManager.deployed()
+  const depositManager = await DepositManager.deployed();
+  const loanManager = await LoanManager.deployed();
 
   await depositManager.init(
-    Configuration.address, 
-    PriceOracle.address, 
+    Configuration.address,
+    PriceOracle.address,
     TokenManager.address,
     LiquidityPools.address,
     LoanManager.address,
-    AccountManager.address
-  )
+    AccountManager.address,
+  );
 
   await loanManager.init(
     Configuration.address,
@@ -31,27 +31,27 @@ module.exports = async function(deployer, network) {
     TokenManager.address,
     LiquidityPools.address,
     DepositManager.address,
-    AccountManager.address
-  )
+    AccountManager.address,
+  );
 
   if (network === 'development') {
     // Deploy and initialize mocks
-    await deployer.deploy(DepositManagerMock)
-    await deployer.deploy(LoanManagerMock)
+    await deployer.deploy(DepositManagerMock);
+    await deployer.deploy(LoanManagerMock);
 
-    const depositManagerMock = await DepositManagerMock.deployed()
-    const loanManagerMock = await LoanManagerMock.deployed()
+    const depositManagerMock = await DepositManagerMock.deployed();
+    const loanManagerMock = await LoanManagerMock.deployed();
 
     await depositManagerMock.init(
-      Configuration.address, 
-      PriceOracle.address, 
+      Configuration.address,
+      PriceOracle.address,
       TokenManager.address,
       LiquidityPools.address,
       LoanManagerMock.address,
-      AccountManager.address
-    )
+      AccountManager.address,
+    );
 
-    await depositManagerMock.enableDepositTerm(30)
+    await depositManagerMock.enableDepositTerm(30);
 
     await loanManagerMock.init(
       Configuration.address,
@@ -59,10 +59,10 @@ module.exports = async function(deployer, network) {
       TokenManager.address,
       LiquidityPools.address,
       DepositManagerMock.address,
-      AccountManager.address
-    )
+      AccountManager.address,
+    );
 
-    await loanManagerMock.addLoanTerm(7)
-    await loanManagerMock.addLoanTerm(30)
+    await loanManagerMock.addLoanTerm(7);
+    await loanManagerMock.addLoanTerm(30);
   }
 };

@@ -1,38 +1,40 @@
-const DepositManager = artifacts.require('DepositManager')
-const { expectRevert, constants } = require('openzeppelin-test-helpers')
-const { expect } = require('chai')
+const DepositManager = artifacts.require('DepositManager');
+const { expectRevert, constants } = require('openzeppelin-test-helpers');
+const { expect } = require('chai');
 
 contract('DepositManager', ([owner, depositor]) => {
-  let depositManager
+  let depositManager;
 
   before(async () => {
-    depositManager = await DepositManager.deployed() 
-  })
+    depositManager = await DepositManager.deployed();
+  });
 
   describe('pause deposit manager', () => {
-    const asset = constants.ZERO_ADDRESS
+    const asset = constants.ZERO_ADDRESS;
 
     context('when paused', () => {
       before(async () => {
-        await depositManager.pause()
-      })
+        await depositManager.pause();
+      });
 
-      it('reverts on public call', async() => {
+      it('reverts on public call', async () => {
         await expectRevert.unspecified(
-          depositManager.isDepositAssetEnabled(asset, { from: depositor })
-        )
-      })
-    })
+          depositManager.isDepositAssetEnabled(asset, { from: depositor }),
+        );
+      });
+    });
 
     context('when unpaused', () => {
       before(async () => {
-        await depositManager.unpause()
-      })
+        await depositManager.unpause();
+      });
 
-      it('succeeds on public call', async() => {
-        const enabled = await depositManager.isDepositAssetEnabled(asset, { from: depositor })
-        expect(enabled).to.be.false
-      })
-    })
-  })
-})
+      it('succeeds on public call', async () => {
+        const enabled = await depositManager.isDepositAssetEnabled(asset, {
+          from: depositor,
+        });
+        expect(enabled).to.be.false;
+      });
+    });
+  });
+});

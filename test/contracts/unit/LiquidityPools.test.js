@@ -1,13 +1,13 @@
-const Configuration = artifacts.require("Configuration");
-const LiquidityPools = artifacts.require("LiquidityPoolsMock");
-const PoolGroup = artifacts.require("PoolGroup");
-const Deposit = artifacts.require("Deposit");
-const Loan = artifacts.require("Loan");
-const { constants, BN } = require("openzeppelin-test-helpers");
-const { createERC20Token, toFixedBN } = require("../../utils/index.js");
-const { expect } = require("chai");
+const Configuration = artifacts.require('Configuration');
+const LiquidityPools = artifacts.require('LiquidityPoolsMock');
+const PoolGroup = artifacts.require('PoolGroup');
+const Deposit = artifacts.require('Deposit');
+const Loan = artifacts.require('Loan');
+const { constants, BN } = require('openzeppelin-test-helpers');
+const { createERC20Token, toFixedBN } = require('../../utils/index.js');
+const { expect } = require('chai');
 
-contract("LiquidityPools", ([owner, account]) => {
+contract('LiquidityPools', ([owner, account]) => {
   let liquidityPools, loanAsset, collateralAsset, deposit, poolGroup, pool;
   const depositTerm = 30;
   const amount = toFixedBN(100);
@@ -23,38 +23,38 @@ contract("LiquidityPools", ([owner, account]) => {
     collateralAsset = await createERC20Token(account);
   });
 
-  describe("#initPoolGroupIfNeeded", () => {
+  describe('#initPoolGroupIfNeeded', () => {
     let pool30Address;
 
-    context("when pool group is not initialized", () => {
+    context('when pool group is not initialized', () => {
       before(async () => {});
 
-      it("succeeds", async () => {
+      it('succeeds', async () => {
         await liquidityPools.initPoolGroupIfNeeded(
           loanAsset.address,
-          depositTerm
+          depositTerm,
         );
       });
 
-      it("initializes pool group", async () => {
+      it('initializes pool group', async () => {
         pool30Address = await liquidityPools.poolGroups(
           loanAsset.address,
-          depositTerm
+          depositTerm,
         );
 
         expect(pool30Address).to.not.equal(constants.ZERO_ADDRESS);
       });
     });
-    context("after pool group has already been initialized", () => {
-      it("does nothing", async () => {
+    context('after pool group has already been initialized', () => {
+      it('does nothing', async () => {
         await liquidityPools.initPoolGroupIfNeeded(
           loanAsset.address,
-          depositTerm
+          depositTerm,
         );
 
         const updatedPool30Address = await liquidityPools.poolGroups(
           loanAsset.address,
-          30
+          30,
         );
 
         expect(updatedPool30Address).to.equal(pool30Address);
@@ -62,11 +62,11 @@ contract("LiquidityPools", ([owner, account]) => {
     });
   });
 
-  describe("#addDepositToPoolGroup", () => {
+  describe('#addDepositToPoolGroup', () => {
     before(async () => {
       const poolGroupAddress = await liquidityPools.poolGroups(
         loanAsset.address,
-        depositTerm
+        depositTerm,
       );
       poolGroup = await PoolGroup.at(poolGroupAddress);
       const poolId = await poolGroup.poolIds(depositTerm - 1);
@@ -77,11 +77,11 @@ contract("LiquidityPools", ([owner, account]) => {
         depositTerm,
         amount,
         protocolReserveRatio,
-        poolId
+        poolId,
       );
     });
 
-    it("succeed", async () => {
+    it('succeed', async () => {
       await liquidityPools.addDepositToPoolGroup(deposit.address, [7, 30]);
     });
 
@@ -97,11 +97,11 @@ contract("LiquidityPools", ([owner, account]) => {
     });
   });
 
-  describe("#subDepositFromPoolGroup", () => {
+  describe('#subDepositFromPoolGroup', () => {
     before(async () => {
       const poolGroupAddress = await liquidityPools.poolGroups(
         loanAsset.address,
-        depositTerm
+        depositTerm,
       );
       poolGroup = await PoolGroup.at(poolGroupAddress);
       const poolId = await poolGroup.poolIds(depositTerm - 1);
@@ -112,20 +112,22 @@ contract("LiquidityPools", ([owner, account]) => {
         depositTerm,
         amount,
         protocolReserveRatio,
-        poolId
+        poolId,
       );
     });
 
-    it("succeed to add deposit", async () => {
+    it('succeed to add deposit', async () => {
       await liquidityPools.addDepositToPoolGroup(deposit.address, loanTerms);
-      expect(await poolGroup.totalDeposit()).to.bignumber.equal(amount.mul(new BN(2)));
+      expect(await poolGroup.totalDeposit()).to.bignumber.equal(
+        amount.mul(new BN(2)),
+      );
     });
 
-    it("succeed to sub deposit", async () => {
-      await liquidityPools.subDepositFromPoolGroup(deposit.address, loanTerms)
+    it('succeed to sub deposit', async () => {
+      await liquidityPools.subDepositFromPoolGroup(deposit.address, loanTerms);
       expect(await poolGroup.totalDeposit()).to.bignumber.equal(amount);
       expect(await poolGroup.totalLoanableAmount()).to.bignumber.equal(amount);
-    })
+    });
 
     it("updates pool's deposit and loanable amount", async () => {
       const poolId = await poolGroup.poolIds(depositTerm - 1);
@@ -135,7 +137,7 @@ contract("LiquidityPools", ([owner, account]) => {
     });
   });
 
-  describe("#loanFromPoolGroup", () => {
+  describe('#loanFromPoolGroup', () => {
     const depositTerm = 7;
     const loanTerms = [1];
     const loanTerm = 1;
@@ -146,12 +148,12 @@ contract("LiquidityPools", ([owner, account]) => {
       liquidityPools = await LiquidityPools.new(config.address);
       await liquidityPools.initPoolGroupIfNeeded(
         loanAsset.address,
-        depositTerm
+        depositTerm,
       );
 
       const poolGroupAddress = await liquidityPools.poolGroups(
         loanAsset.address,
-        depositTerm
+        depositTerm,
       );
       poolGroup = await PoolGroup.at(poolGroupAddress);
       const depositAmount = toFixedBN(1);
@@ -169,7 +171,7 @@ contract("LiquidityPools", ([owner, account]) => {
       [0, 1, 1, 1, 1, 1, 1],
       [0, 1, 1, 1, 1, 1, 0],
       [0, 0, 0, 1, 1, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0]
+      [0, 0, 0, 0, 0, 0, 0],
     ];
 
     for (let i = 0; i < loanAmountList.length; i++) {
@@ -185,14 +187,14 @@ contract("LiquidityPools", ([owner, account]) => {
           loanAmount.mul(new BN(10)),
           interestRate,
           toFixedBN(1.5),
-          toFixedBN(0.05)
+          toFixedBN(0.05),
         );
 
         await liquidityPools.loanFromPoolGroup(
           loanAmount,
           depositTerm,
           currLoan.address,
-          loanTerms
+          loanTerms,
         );
 
         const loanableAmountList = expectedLoanableAmountLists[i];
@@ -209,7 +211,7 @@ contract("LiquidityPools", ([owner, account]) => {
             : toFixedBN(0);
 
           expect(
-            await poolGroup.getLoanableAmountFromPool(j)
+            await poolGroup.getLoanableAmountFromPool(j),
           ).to.bignumber.equal(toFixedBN(loanableAmountList[j]));
           expect(pool.loanInterest).to.bignumber.equal(interest);
         }

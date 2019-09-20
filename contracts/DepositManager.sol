@@ -1,24 +1,23 @@
 pragma solidity ^0.5.0;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
-import "openzeppelin-solidity/contracts/math/Math.sol";
-import "./Configuration.sol";
-import "./PriceOracle.sol";
-import "./TokenManager.sol";
-import "./LiquidityPools.sol";
-import "./LoanManager.sol";
-import "./PoolGroup.sol";
-import "./FixedMath.sol";
-import "./Deposit.sol";
-import "./AccountManager.sol";
-import "./DateTime.sol";
-
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
+import 'openzeppelin-solidity/contracts/math/Math.sol';
+import './Configuration.sol';
+import './PriceOracle.sol';
+import './TokenManager.sol';
+import './LiquidityPools.sol';
+import './LoanManager.sol';
+import './PoolGroup.sol';
+import './FixedMath.sol';
+import './Deposit.sol';
+import './AccountManager.sol';
+import './DateTime.sol';
 
 /// The main contract which handles everything related to deposit.
 contract DepositManager is Ownable, Pausable {
-    using SafeMath for uint;
-    using FixedMath for uint;
+    using SafeMath for uint256;
+    using FixedMath for uint256;
 
     Configuration private _config;
     PriceOracle private _priceOracle;
@@ -28,34 +27,40 @@ contract DepositManager is Ownable, Pausable {
     AccountManager private _accountManager;
 
     // Notice that event filter only can filter indexed property
-    event DepositSuccessful(address indexed user, Deposit deposit, uint amount);
-    event WithdrawDepositSuccessful(address indexed user, Deposit deposit, uint amount);
+    event DepositSuccessful(
+        address indexed user,
+        Deposit deposit,
+        uint256 amount
+    );
+    event WithdrawDepositSuccessful(
+        address indexed user,
+        Deposit deposit,
+        uint256 amount
+    );
 
     // Hold relavent information about a deposit asset
     struct DepositAsset {
         // Only enabled asset can perform deposit-related transactions
         bool isEnabled;
-
         // TODO: remove it
         // deposit term -> interest rate as of last update
-        mapping(uint => uint) lastInterestRatePerTerm;
-
+        mapping(uint256 => uint256) lastInterestRatePerTerm;
         // deposit term -> interest index history
-        mapping(uint => InterestIndexHistory) interestIndexHistoryPerTerm;
+        mapping(uint256 => InterestIndexHistory) interestIndexHistoryPerTerm;
     }
 
     // Record interest index on a daily basis
     struct InterestIndexHistory {
         /// Each interest index corresponds to a snapshot of a particular pool state
-        /// before updating deposit maturity of a PoolGroup. 
+        /// before updating deposit maturity of a PoolGroup.
         ///
         /// depositInterest = loanInterest * (deposit / totalDeposit) * (1 - protocolReserveRatio)
         /// And interestIndex here refers to `loanInterest / totalDeposit`.
         ///
         /// TODO: I couldn't find a meaningful variable name, so I kept "interestIndex",
         /// but we could replace it though.
-        mapping(uint => uint) interestIndexPerDay;
-        uint lastDay;
+        mapping(uint256 => uint256) interestIndexPerDay;
+        uint256 lastDay;
     }
 
     /// Include enabled and disabled deposit assets.
@@ -66,15 +71,15 @@ contract DepositManager is Ownable, Pausable {
 
     /// Includes enabled and disabled desposit terms.
     /// We need to keep disabled deposit terms for deposit maturity update.
-    uint[] private _allDepositTerms;
+    uint256[] private _allDepositTerms;
 
-    uint[] private _enabledDepositTerms;
+    uint256[] private _enabledDepositTerms;
 
     // Deposit term -> has been enabled once?
-    mapping(uint => bool) private _isDepositTermInitialized;
+    mapping(uint256 => bool) private _isDepositTermInitialized;
 
     // Deposit term -> enabled?
-    mapping(uint => bool) private _isDepositTermEnabled;
+    mapping(uint256 => bool) private _isDepositTermEnabled;
 
     // Token address -> DepositAsset
     mapping(address => DepositAsset) private _depositAssets;
@@ -82,42 +87,48 @@ contract DepositManager is Ownable, Pausable {
     // Deposit address -> valid?
     mapping(address => bool) private _isDepositValid;
 
-    // User address -> List of Deposit 
+    // User address -> List of Deposit
     mapping(address => Deposit[]) private _depositsByUser;
 
-    uint private _numDeposit;
+    uint256 private _numDeposit;
 
     // How many days of interest index we want to keep in InterestIndexHistory
-    uint constant private DAYS_OF_INTEREST_INDEX_TO_KEEP = 30;
+    uint256 private constant DAYS_OF_INTEREST_INDEX_TO_KEEP = 30;
 
     // When was the last time deposit maturity updated
-    uint private _lastDepositMaturityUpdatedAt;
+    uint256 private _lastDepositMaturityUpdatedAt;
 
     modifier enabledDepositAsset(address asset) {
-        require(_depositAssets[asset].isEnabled, "Deposit asset must be enabled.");
+        require(
+            _depositAssets[asset].isEnabled,
+            'Deposit asset must be enabled.'
+        );
         _;
     }
 
     modifier validDeposit(Deposit currDeposit) {
-        require(_isDepositValid[address(currDeposit)], "Invalid deposit.");
+        require(_isDepositValid[address(currDeposit)], 'Invalid deposit.');
         _;
     }
 
     // PUBLIC  -----------------------------------------------------------------
 
-    function deposit(address asset, uint depositTerm, uint amount) 
-        public 
+    function deposit(address asset, uint256 depositTerm, uint256 amount)
+        public
         whenNotPaused
         enabledDepositAsset(asset)
         returns (Deposit)
     {
-        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
-        require(_isDepositTermEnabled[depositTerm], "Invalid deposit term.");
+        require(
+            _config.isUserActionsLocked() == false,
+            'User actions are locked, please try again later'
+        );
+        require(_isDepositTermEnabled[depositTerm], 'Invalid deposit term.');
 
         address user = msg.sender;
-        uint protocolReserveRatio = _config.getProtocolReserveRatio();
+        uint256 protocolReserveRatio = _config.getProtocolReserveRatio();
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
-        uint poolId = poolGroup.poolIds(depositTerm - 1);
+        uint256 poolId = poolGroup.poolIds(depositTerm - 1);
 
         Deposit currDeposit = new Deposit(
             asset,
@@ -128,7 +139,7 @@ contract DepositManager is Ownable, Pausable {
             poolId
         );
 
-        uint[] memory loanTerms = _loanManager.getLoanTerms();
+        uint256[] memory loanTerms = _loanManager.getLoanTerms();
 
         _liquidityPools.addDepositToPoolGroup(currDeposit, loanTerms);
 
@@ -140,32 +151,56 @@ contract DepositManager is Ownable, Pausable {
 
         _tokenManager.receiveFrom(user, asset, amount);
 
-        _accountManager.incrementGeneralStat(user, "totalDeposits", 1);
-        _accountManager.incrementAssetStat(user, asset, "totalDeposits", 1);
-        _accountManager.incrementAssetStat(user, asset, "totalDepositAmount", amount);
+        _accountManager.incrementGeneralStat(user, 'totalDeposits', 1);
+        _accountManager.incrementAssetStat(user, asset, 'totalDeposits', 1);
+        _accountManager.incrementAssetStat(
+            user,
+            asset,
+            'totalDepositAmount',
+            amount
+        );
 
         emit DepositSuccessful(user, currDeposit, amount);
 
         return currDeposit;
     }
 
-    function withdraw(Deposit currDeposit) external whenNotPaused validDeposit(currDeposit) returns (uint) {
-        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
+    function withdraw(Deposit currDeposit)
+        external
+        whenNotPaused
+        validDeposit(currDeposit)
+        returns (uint256)
+    {
+        require(
+            _config.isUserActionsLocked() == false,
+            'User actions are locked, please try again later'
+        );
 
         address asset = currDeposit.asset();
         address user = msg.sender;
 
-        require(_depositAssets[asset].isEnabled, "Deposit Asset must be enabled.");
-        require(user == currDeposit.owner(), "Must be owner.");
-        require(!currDeposit.isWithdrawn(), "Deposit must not be withdrawn already.");
-        require(currDeposit.isMatured(), "Deposit must be matured.");
+        require(
+            _depositAssets[asset].isEnabled,
+            'Deposit Asset must be enabled.'
+        );
+        require(user == currDeposit.owner(), 'Must be owner.');
+        require(
+            !currDeposit.isWithdrawn(),
+            'Deposit must not be withdrawn already.'
+        );
+        require(currDeposit.isMatured(), 'Deposit must be matured.');
 
-        uint term = currDeposit.term();
+        uint256 term = currDeposit.term();
 
         // Depositor receives principle plus interest
-        uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
-        uint interestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
-        (uint withdrewAmount, uint interestsForProtocol) = currDeposit.withdrawDepositAndInterest(interestIndex);
+        uint256 numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
+        uint256 interestIndex = _getInterestIndexFromDaysAgo(
+            asset,
+            term,
+            numDaysAgo
+        );
+        (uint256 withdrewAmount, uint256 interestsForProtocol) = currDeposit
+            .withdrawDepositAndInterest(interestIndex);
         address protocol = _config.getProtocolAddress();
 
         _tokenManager.sendTo(user, asset, withdrewAmount);
@@ -175,29 +210,55 @@ contract DepositManager is Ownable, Pausable {
         return withdrewAmount;
     }
 
-    function isEarlyWithdrawable(Deposit currDeposit) public view returns (bool) {
+    function isEarlyWithdrawable(Deposit currDeposit)
+        public
+        view
+        returns (bool)
+    {
         if (currDeposit.isMatured()) {
             return false;
         }
 
-        PoolGroup poolGroup = _liquidityPools.poolGroups(currDeposit.asset(), currDeposit.term());
-        uint loanableAmount = poolGroup.getLoanableAmountFromPoolByPoolId(currDeposit.poolId());
+        PoolGroup poolGroup = _liquidityPools.poolGroups(
+            currDeposit.asset(),
+            currDeposit.term()
+        );
+        uint256 loanableAmount = poolGroup.getLoanableAmountFromPoolByPoolId(
+            currDeposit.poolId()
+        );
         return loanableAmount >= currDeposit.amount();
     }
 
-    function earlyWithdraw(Deposit currDeposit) external whenNotPaused validDeposit(currDeposit) returns (uint) {
-        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
+    function earlyWithdraw(Deposit currDeposit)
+        external
+        whenNotPaused
+        validDeposit(currDeposit)
+        returns (uint256)
+    {
+        require(
+            _config.isUserActionsLocked() == false,
+            'User actions are locked, please try again later'
+        );
 
         address asset = currDeposit.asset();
         address user = msg.sender;
 
-        require(_depositAssets[asset].isEnabled, "Deposit Asset must be enabled.");
-        require(user == currDeposit.owner(), "Must be owner.");
-        require(!currDeposit.isWithdrawn(), "Deposit must not be withdrawn already.");
-        require(isEarlyWithdrawable(currDeposit), "Deposit must be early withdrawable");
+        require(
+            _depositAssets[asset].isEnabled,
+            'Deposit Asset must be enabled.'
+        );
+        require(user == currDeposit.owner(), 'Must be owner.');
+        require(
+            !currDeposit.isWithdrawn(),
+            'Deposit must not be withdrawn already.'
+        );
+        require(
+            isEarlyWithdrawable(currDeposit),
+            'Deposit must be early withdrawable'
+        );
 
-        uint[] memory loanTerms = _loanManager.getLoanTerms();
-        uint withdrewAmount = currDeposit.withdrawDeposit();
+        uint256[] memory loanTerms = _loanManager.getLoanTerms();
+        uint256 withdrewAmount = currDeposit.withdrawDeposit();
 
         _liquidityPools.subDepositFromPoolGroup(currDeposit, loanTerms);
         _tokenManager.sendTo(user, asset, withdrewAmount);
@@ -206,43 +267,70 @@ contract DepositManager is Ownable, Pausable {
         return withdrewAmount;
     }
 
-    function isDepositAssetEnabled(address asset) external whenNotPaused view returns (bool) {
+    function isDepositAssetEnabled(address asset)
+        external
+        view
+        whenNotPaused
+        returns (bool)
+    {
         return _depositAssets[asset].isEnabled;
     }
 
-    function getInterestIndex(Deposit currDeposit) external view returns (uint) {
-        require(currDeposit.owner() == msg.sender, "Must be owner");
+    function getInterestIndex(Deposit currDeposit)
+        external
+        view
+        returns (uint256)
+    {
+        require(currDeposit.owner() == msg.sender, 'Must be owner');
         bool isMatured = currDeposit.isMatured();
         address asset = currDeposit.asset();
-        uint term = currDeposit.term();
-        uint protocolReserveRatio = currDeposit.protocolReserveRatio();
-        uint poolId = currDeposit.poolId();
+        uint256 term = currDeposit.term();
+        uint256 protocolReserveRatio = currDeposit.protocolReserveRatio();
+        uint256 poolId = currDeposit.poolId();
 
         if (isMatured) {
-            uint numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
-            uint originalInterestIndex = _getInterestIndexFromDaysAgo(asset, term, numDaysAgo);
-            return originalInterestIndex.sub(originalInterestIndex.mulFixed(protocolReserveRatio));
+            uint256 numDaysAgo = DateTime.toDays(now - currDeposit.maturedAt());
+            uint256 originalInterestIndex = _getInterestIndexFromDaysAgo(
+                asset,
+                term,
+                numDaysAgo
+            );
+            return
+                originalInterestIndex.sub(
+                    originalInterestIndex.mulFixed(protocolReserveRatio)
+                );
         }
 
         PoolGroup poolGroup = _liquidityPools.poolGroups(asset, term);
-        uint totalDeposit = poolGroup.getDepositByPoolId(poolId);
+        uint256 totalDeposit = poolGroup.getDepositByPoolId(poolId);
 
         if (totalDeposit == 0) {
             return 0;
         }
 
-        uint loanInterest = poolGroup.getLoanInterestByPoolId(poolId);
+        uint256 loanInterest = poolGroup.getLoanInterestByPoolId(poolId);
 
-        return loanInterest.sub(loanInterest.mulFixed(protocolReserveRatio)).divFixed(totalDeposit);
+        return
+            loanInterest
+                .sub(loanInterest.mulFixed(protocolReserveRatio))
+                .divFixed(totalDeposit);
     }
 
-    function getDepositsByUser(address user) external whenNotPaused view returns (Deposit[] memory) {
+    function getDepositsByUser(address user)
+        external
+        view
+        whenNotPaused
+        returns (Deposit[] memory)
+    {
         // We should lock this read action because the deposit records will be affecting while the pool group is updating
-        require(_config.isUserActionsLocked() == false, "User actions are locked, please try again later");
+        require(
+            _config.isUserActionsLocked() == false,
+            'User actions are locked, please try again later'
+        );
         return _depositsByUser[user];
     }
 
-    function getDepositTerms() external view returns (uint[] memory) {
+    function getDepositTerms() external view returns (uint256[] memory) {
         return _enabledDepositTerms;
     }
 
@@ -251,7 +339,7 @@ contract DepositManager is Ownable, Pausable {
     }
 
     // ADMIN --------------------------------------------------------------
-    
+
     function init(
         Configuration config,
         PriceOracle priceOracle,
@@ -259,11 +347,7 @@ contract DepositManager is Ownable, Pausable {
         LiquidityPools liquidityPools,
         LoanManager loanManager,
         AccountManager accountManager
-    ) 
-        public 
-        whenNotPaused
-        onlyOwner
-    {
+    ) public whenNotPaused onlyOwner {
         _config = config;
         _priceOracle = priceOracle;
         _tokenManager = tokenManager;
@@ -272,13 +356,13 @@ contract DepositManager is Ownable, Pausable {
         _accountManager = accountManager;
     }
 
-    function enableDepositTerm(uint term) public whenNotPaused onlyOwner {
-        require(!_isDepositTermEnabled[term], "Term already enabled.");
+    function enableDepositTerm(uint256 term) public whenNotPaused onlyOwner {
+        require(!_isDepositTermEnabled[term], 'Term already enabled.');
 
         _isDepositTermEnabled[term] = true;
         _enabledDepositTerms.push(term);
 
-        // Only add this deposit term if it has not been enabled before 
+        // Only add this deposit term if it has not been enabled before
         if (!_isDepositTermInitialized[term]) {
             _allDepositTerms.push(term);
             _isDepositTermInitialized[term] = true;
@@ -286,58 +370,73 @@ contract DepositManager is Ownable, Pausable {
 
         /// Initialize pool group and interest index history for each existing asset
         /// if they haven't been initialized
-        for (uint i = 0; i < _enabledDepositAssetAddresses.length; i++) {
+        for (uint256 i = 0; i < _enabledDepositAssetAddresses.length; i++) {
             address asset = _enabledDepositAssetAddresses[i];
             _liquidityPools.initPoolGroupIfNeeded(asset, term);
         }
     }
 
     /// Disable a deposit term only affects deposit action
-    function disableDepositTerm(uint term) external whenNotPaused onlyOwner {
-        require(_isDepositTermEnabled[term], "Term already disabled.");
+    function disableDepositTerm(uint256 term) external whenNotPaused onlyOwner {
+        require(_isDepositTermEnabled[term], 'Term already disabled.');
 
         _isDepositTermEnabled[term] = false;
 
         // Remove term from _enabledDepositTerms
-        for (uint i = 0; i < _enabledDepositTerms.length; i++) {
+        for (uint256 i = 0; i < _enabledDepositTerms.length; i++) {
             if (_enabledDepositTerms[i] == term) {
                 // Overwrite current term with the last term and shrink array size
-                _enabledDepositTerms[i] = _enabledDepositTerms[_enabledDepositTerms.length - 1];
+                _enabledDepositTerms[i] = _enabledDepositTerms[_enabledDepositTerms
+                        .length -
+                    1];
                 delete _enabledDepositTerms[_enabledDepositTerms.length - 1];
                 _enabledDepositTerms.length--;
             }
         }
     }
 
-    function enableDepositAsset(address asset) external whenNotPaused onlyOwner {
+    function enableDepositAsset(address asset)
+        external
+        whenNotPaused
+        onlyOwner
+    {
         DepositAsset storage depositAsset = _depositAssets[asset];
 
-        require(!depositAsset.isEnabled, "Asset is enabled already.");
+        require(!depositAsset.isEnabled, 'Asset is enabled already.');
 
         depositAsset.isEnabled = true;
         _allDepositAssetAddresses.push(asset);
         _enabledDepositAssetAddresses.push(asset);
 
         // Initialize pool group and interest index history if they haven't been initialized
-        for (uint i = 0; i < _enabledDepositTerms.length; i++) {
-            uint depositTerm = _enabledDepositTerms[i];
+        for (uint256 i = 0; i < _enabledDepositTerms.length; i++) {
+            uint256 depositTerm = _enabledDepositTerms[i];
             _liquidityPools.initPoolGroupIfNeeded(asset, depositTerm);
         }
     }
 
-    function disableDepositAsset(address asset) external whenNotPaused onlyOwner enabledDepositAsset(asset) {
+    function disableDepositAsset(address asset)
+        external
+        whenNotPaused
+        onlyOwner
+        enabledDepositAsset(asset)
+    {
         DepositAsset storage depositAsset = _depositAssets[asset];
 
-        require(depositAsset.isEnabled, "Asset is disabled already.");
+        require(depositAsset.isEnabled, 'Asset is disabled already.');
 
         depositAsset.isEnabled = false;
-        
+
         // Remove asset from _enabledDepositAssetAddresses
-        for (uint i = 0; i < _enabledDepositAssetAddresses.length; i++) {
+        for (uint256 i = 0; i < _enabledDepositAssetAddresses.length; i++) {
             if (_enabledDepositAssetAddresses[i] == asset) {
                 // Overwrite current asset with the last asset and shrink array size
-                _enabledDepositAssetAddresses[i] = _enabledDepositAssetAddresses[_enabledDepositAssetAddresses.length - 1];
-                delete _enabledDepositAssetAddresses[_enabledDepositAssetAddresses.length - 1];
+                _enabledDepositAssetAddresses[i] = _enabledDepositAssetAddresses[_enabledDepositAssetAddresses
+                        .length -
+                    1];
+                delete _enabledDepositAssetAddresses[_enabledDepositAssetAddresses
+                        .length -
+                    1];
                 _enabledDepositAssetAddresses.length--;
             }
         }
@@ -347,16 +446,20 @@ contract DepositManager is Ownable, Pausable {
 
     // Update deposit maturity for each asset
     function updateAllDepositMaturity() external whenNotPaused onlyOwner {
-        require(_config.isUserActionsLocked(), "User actions must be locked before proceeding.");
+        require(
+            _config.isUserActionsLocked(),
+            'User actions must be locked before proceeding.'
+        );
 
         /// Ensure deposit maturity update only triggers once in a day by checking current timestamp
         /// is greater than the timestamp of last update (in day unit).
         require(
-            DateTime.toDays(now) > DateTime.toDays(_lastDepositMaturityUpdatedAt),
-            "Cannot update multiple times within the same day."
+            DateTime.toDays(now) >
+                DateTime.toDays(_lastDepositMaturityUpdatedAt),
+            'Cannot update multiple times within the same day.'
         );
 
-        for (uint i = 0; i < _allDepositAssetAddresses.length; i++) {
+        for (uint256 i = 0; i < _allDepositAssetAddresses.length; i++) {
             _updateDepositMaturity(_allDepositAssetAddresses[i]);
         }
 
@@ -366,30 +469,47 @@ contract DepositManager is Ownable, Pausable {
     // INTERNAL  --------------------------------------------------------------
 
     // Add a new interest index
-    function _updateInterestIndexHistory(address asset, uint term, uint interestIndex) internal {
-        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
+    function _updateInterestIndexHistory(
+        address asset,
+        uint256 term,
+        uint256 interestIndex
+    ) internal {
+        InterestIndexHistory storage history = _depositAssets[asset]
+            .interestIndexHistoryPerTerm[term];
 
         // Add a new interest index
         history.lastDay++;
         history.interestIndexPerDay[history.lastDay] = interestIndex;
     }
 
-    function _getInterestIndexFromDaysAgo(address asset, uint term, uint numDaysAgo) internal view returns (uint) {
-        InterestIndexHistory storage history = _depositAssets[asset].interestIndexHistoryPerTerm[term];
+    function _getInterestIndexFromDaysAgo(
+        address asset,
+        uint256 term,
+        uint256 numDaysAgo
+    ) internal view returns (uint256) {
+        InterestIndexHistory storage history = _depositAssets[asset]
+            .interestIndexHistoryPerTerm[term];
         return history.interestIndexPerDay[history.lastDay.sub(numDaysAgo)];
     }
 
     // Update deposit maturity for each PoolGroup of an asset
-    function _updateDepositMaturity(address asset) internal whenNotPaused onlyOwner {
-        uint[] memory loanTerms = _loanManager.getLoanTerms();
+    function _updateDepositMaturity(address asset)
+        internal
+        whenNotPaused
+        onlyOwner
+    {
+        uint256[] memory loanTerms = _loanManager.getLoanTerms();
 
-        for (uint i = 0; i < _allDepositTerms.length; i++) {
-            uint depositTerm = _allDepositTerms[i];
-            PoolGroup poolGroup = _liquidityPools.poolGroups(asset, depositTerm);
-            uint index = 0;
-            uint totalDeposit = poolGroup.getDepositFromPool(index);
-            uint loanInterest = poolGroup.getLoanInterestFromPool(index);
-            uint interestIndex;
+        for (uint256 i = 0; i < _allDepositTerms.length; i++) {
+            uint256 depositTerm = _allDepositTerms[i];
+            PoolGroup poolGroup = _liquidityPools.poolGroups(
+                asset,
+                depositTerm
+            );
+            uint256 index = 0;
+            uint256 totalDeposit = poolGroup.getDepositFromPool(index);
+            uint256 loanInterest = poolGroup.getLoanInterestFromPool(index);
+            uint256 interestIndex;
 
             if (totalDeposit > 0) {
                 interestIndex = loanInterest.divFixed(totalDeposit);
@@ -399,7 +519,11 @@ contract DepositManager is Ownable, Pausable {
 
             _updateInterestIndexHistory(asset, depositTerm, interestIndex);
 
-            _liquidityPools.updatePoolGroupDepositMaturity(asset, depositTerm, loanTerms);
+            _liquidityPools.updatePoolGroupDepositMaturity(
+                asset,
+                depositTerm,
+                loanTerms
+            );
         }
     }
 }

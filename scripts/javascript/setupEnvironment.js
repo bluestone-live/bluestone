@@ -1,26 +1,26 @@
-const debug = require("debug")("script:setupEnvironment");
-const DepositManager = artifacts.require("./DepositManager.sol");
-const LoanManager = artifacts.require("./LoanManager.sol");
-const Configuration = artifacts.require("./Configuration.sol");
-const PriceOracle = artifacts.require("./PriceOracle.sol");
-const ERC20Mock = artifacts.require("./ERC20Mock.sol");
-const WrappedEther = artifacts.require("./WrappedEther.sol");
-const TokenManager = artifacts.require("./TokenManager.sol");
+const debug = require('debug')('script:setupEnvironment');
+const DepositManager = artifacts.require('./DepositManager.sol');
+const LoanManager = artifacts.require('./LoanManager.sol');
+const Configuration = artifacts.require('./Configuration.sol');
+const PriceOracle = artifacts.require('./PriceOracle.sol');
+const ERC20Mock = artifacts.require('./ERC20Mock.sol');
+const WrappedEther = artifacts.require('./WrappedEther.sol');
+const TokenManager = artifacts.require('./TokenManager.sol');
 const {
   makeTruffleScript,
   fetchTokenPrices,
-  mergeNetworkConfig
-} = require("./utils.js");
-const { configuration } = require("../../config.js");
+  mergeNetworkConfig,
+} = require('./utils.js');
+const { configuration } = require('../../config.js');
 const { BN } = web3.utils;
 
 module.exports = makeTruffleScript(async network => {
-  if (network !== "development" && network !== "rinkeby") {
-    throw "setupEnvironment should only run against testnet.";
+  if (network !== 'development' && network !== 'rinkeby') {
+    throw 'setupEnvironment should only run against testnet.';
   }
 
   if (!isValidConfiguartion(configuration)) {
-    throw "Invalid configuration. Check your ./config.js file.";
+    throw 'Invalid configuration. Check your ./config.js file.';
   }
 
   const depositManager = await DepositManager.deployed();
@@ -32,7 +32,7 @@ module.exports = makeTruffleScript(async network => {
     loanTerms,
     collateralRatio,
     liquidationDiscount,
-    loanInterestRate
+    loanInterestRate,
   } = configuration;
 
   const tokenSymbolListWithWETH = Object.keys(tokens);
@@ -52,7 +52,7 @@ module.exports = makeTruffleScript(async network => {
     tokens[symbol].address = deployedToken.address;
   }
 
-  mergeNetworkConfig(network, ["tokens"], tokens);
+  mergeNetworkConfig(network, ['tokens'], tokens);
 
   divider();
 
@@ -73,7 +73,7 @@ module.exports = makeTruffleScript(async network => {
 
   // TODO: not sure if we need to setup WETH
   const tokenSymbolList = tokenSymbolListWithWETH.filter(
-    symbol => symbol !== "WETH"
+    symbol => symbol !== 'WETH',
   );
 
   for (let loanTokenSymbol of tokenSymbolList) {
@@ -90,10 +90,10 @@ module.exports = makeTruffleScript(async network => {
       await config.setLoanInterestRate(
         loanAsset,
         loanTerm,
-        toFixedBN(decimalLoanInterestRate)
+        toFixedBN(decimalLoanInterestRate),
       );
       debug(
-        `setLoanInterestRate: ${loanTokenSymbol} ${loanTerm} ${decimalLoanInterestRate}`
+        `setLoanInterestRate: ${loanTokenSymbol} ${loanTerm} ${decimalLoanInterestRate}`,
       );
     }
 
@@ -103,7 +103,7 @@ module.exports = makeTruffleScript(async network => {
       if (loanAsset !== collateralAsset) {
         await loanManager.enableLoanAssetPair(loanAsset, collateralAsset);
         debug(
-          `enableLoanAssetPair: ${loanTokenSymbol} ${collateralTokenSymbol}`
+          `enableLoanAssetPair: ${loanTokenSymbol} ${collateralTokenSymbol}`,
         );
 
         const decimalCollateralRatio =
@@ -111,10 +111,10 @@ module.exports = makeTruffleScript(async network => {
         await config.setCollateralRatio(
           loanAsset,
           collateralAsset,
-          toFixedBN(decimalCollateralRatio)
+          toFixedBN(decimalCollateralRatio),
         );
         debug(
-          `setCollateralRatio: ${loanTokenSymbol} ${collateralTokenSymbol} ${decimalCollateralRatio}`
+          `setCollateralRatio: ${loanTokenSymbol} ${collateralTokenSymbol} ${decimalCollateralRatio}`,
         );
 
         const decimalLiquidationDiscount =
@@ -122,10 +122,10 @@ module.exports = makeTruffleScript(async network => {
         await config.setLiquidationDiscount(
           loanAsset,
           collateralAsset,
-          toFixedBN(decimalLiquidationDiscount)
+          toFixedBN(decimalLiquidationDiscount),
         );
         debug(
-          `setLiquidationDiscount: ${loanTokenSymbol} ${collateralTokenSymbol} ${decimalLiquidationDiscount}`
+          `setLiquidationDiscount: ${loanTokenSymbol} ${collateralTokenSymbol} ${decimalLiquidationDiscount}`,
         );
       }
     }
@@ -145,7 +145,7 @@ module.exports = makeTruffleScript(async network => {
   const scaledPriceList = priceList.map(price => toFixedBN(price));
   const priceOracle = await PriceOracle.deployed();
   const tokenAddressList = tokenSymbolList.map(
-    tokenSymbol => tokens[tokenSymbol].address
+    tokenSymbol => tokens[tokenSymbol].address,
   );
 
   debug(`setPrices: ${tokenSymbolList} ${priceList}`);
@@ -176,10 +176,10 @@ module.exports = makeTruffleScript(async network => {
     debug(`Mints ${initialSupply} ${loanTokenSymbol} to ${depositor}`);
 
     await loanAsset.approve(tokenManager.address, toFixedBN(initialAllowance), {
-      from: depositor
+      from: depositor,
     });
     debug(
-      `Depositor approves sending ${initialAllowance} ${loanTokenSymbol} as deposit to protocol`
+      `Depositor approves sending ${initialAllowance} ${loanTokenSymbol} as deposit to protocol`,
     );
 
     for (let depositTerm of depositTerms) {
@@ -187,17 +187,17 @@ module.exports = makeTruffleScript(async network => {
         loanAsset.address,
         depositTerm,
         toFixedBN(depositAmount),
-        { from: depositor }
+        { from: depositor },
       );
       debug(
-        `Depositor deposits ${depositAmount} ${loanTokenSymbol} in ${depositTerm}-day term`
+        `Depositor deposits ${depositAmount} ${loanTokenSymbol} in ${depositTerm}-day term`,
       );
     }
 
     for (let collateralTokenSymbol of tokenSymbolList) {
       if (collateralTokenSymbol !== loanTokenSymbol) {
         const collateralAsset = await ERC20Mock.at(
-          tokens[collateralTokenSymbol].address
+          tokens[collateralTokenSymbol].address,
         );
         await collateralAsset.mint(loaner, toFixedBN(initialSupply));
         debug(`Mints ${initialSupply} ${collateralTokenSymbol} to ${loaner}`);
@@ -206,11 +206,11 @@ module.exports = makeTruffleScript(async network => {
           tokenManager.address,
           toFixedBN(initialAllowance),
           {
-            from: loaner
-          }
+            from: loaner,
+          },
         );
         debug(
-          `Loaner approves sending ${initialAllowance} ${collateralTokenSymbol} as collateral to protocol`
+          `Loaner approves sending ${initialAllowance} ${collateralTokenSymbol} as collateral to protocol`,
         );
 
         for (let loanTerm of loanTerms) {
@@ -221,7 +221,7 @@ module.exports = makeTruffleScript(async network => {
 
           // 300% collateral ratio
           const collateralAmount = Math.round(
-            ((loanAmount * loanAssetPrice) / collateralAssetPrice) * 3
+            ((loanAmount * loanAssetPrice) / collateralAssetPrice) * 3,
           );
 
           await loanManager.loan(
@@ -231,10 +231,10 @@ module.exports = makeTruffleScript(async network => {
             toFixedBN(loanAmount),
             toFixedBN(collateralAmount),
             freedCollateralAmount,
-            { from: loaner }
+            { from: loaner },
           );
           debug(
-            `Loaner loans ${loanAmount} ${loanTokenSymbol} using ${collateralAmount} ${collateralTokenSymbol} collateral in ${loanTerm}-day term`
+            `Loaner loans ${loanAmount} ${loanTokenSymbol} using ${collateralAmount} ${collateralTokenSymbol} collateral in ${loanTerm}-day term`,
           );
         }
       }
@@ -251,14 +251,14 @@ function divider() {
 // https://github.com/trufflesuite/truffle/issues/255
 // const { toFixedBN } = require('../../test/utils/index.js')
 function toFixedBN(num, significant = 18) {
-  let decimalPlaces = (num.toString().split(".")[1] || []).length;
+  let decimalPlaces = (num.toString().split('.')[1] || []).length;
 
   if (decimalPlaces === 0) {
     return new BN(num).mul(new BN(10).pow(new BN(significant)));
   } else {
     const integer = num * Math.pow(10, decimalPlaces);
     return new BN(integer).mul(
-      new BN(10).pow(new BN(significant - decimalPlaces))
+      new BN(10).pow(new BN(significant - decimalPlaces)),
     );
   }
 }
@@ -271,7 +271,7 @@ function isValidConfiguartion(configuration) {
       loanTerms,
       collateralRatio,
       liquidationDiscount,
-      loanInterestRate
+      loanInterestRate,
     } = configuration;
     return (
       tokens &&

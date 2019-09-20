@@ -121,4 +121,4 @@ module.exports = [
   { args: [63075540], expected: 59 },
   { args: [63075599], expected: 59 },
   { args: [63075600], expected: 0 },
-]
+];

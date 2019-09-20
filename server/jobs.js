@@ -1,49 +1,53 @@
-const _debug = require('debug')('jobs')
-const util = require('util')
-const exec = util.promisify(require('child_process').exec)
-const { CronJob } = require('cron')
-
+const _debug = require('debug')('jobs');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+const { CronJob } = require('cron');
 
 const createCronJob = (cronTime, onTick) => {
-  const onComplete = null
-  const start = false
-  const timeZone = 'America/Los_Angeles'
+  const onComplete = null;
+  const start = false;
+  const timeZone = 'America/Los_Angeles';
 
   // Documentation: https://github.com/kelektiv/node-cron#api
-  return new CronJob(cronTime, onTick, onComplete, start, timeZone)
-}
+  return new CronJob(cronTime, onTick, onComplete, start, timeZone);
+};
 
 // See more cron schedule expressions examples: https://crontab.guru/examples.html
 const CRON_EXP = {
   EVERY_MINUTE: '* * * * *',
-  EVERY_MIDNIGHT: '0 0 * * *'
-}
+  EVERY_MIDNIGHT: '0 0 * * *',
+};
 
 /**
  * Post new token prices every minute.
  *
  * Note: This scheduled update mechanism may not be optimal, but it's good enough
- * for demo purpose. Later, we may need to switch to event-based update mechanism, 
- * e.g., only update price when the difference between new price and old price 
+ * for demo purpose. Later, we may need to switch to event-based update mechanism,
+ * e.g., only update price when the difference between new price and old price
  * is more than 1%, to allow potentially less writes to blockchain.
  * Here's how Maker does it: https://developer.makerdao.com/feeds/
  */
 const postTokenPrices = createCronJob(CRON_EXP.EVERY_MINUTE, async () => {
-  const debug = _debug.extend('postTokenPrices')
-  const { stdout, stderr } = await exec('./scripts/bash/postTokenPrices')
-  debug(stdout)
-  debug(stderr)
-})
+  const debug = _debug.extend('postTokenPrices');
+  const { stdout, stderr } = await exec('./scripts/bash/postTokenPrices');
+  debug(stdout);
+  debug(stderr);
+});
 
 // Update deposit maturity for enabled deposit assets every midnight.
-const updateDepositMaturity = createCronJob(CRON_EXP.EVERY_MIDNIGHT, async () => {
-  const debug = _debug.extend('updateDepositMaturity')
-  const { stdout, stderr } = await exec('./scripts/bash/updateDepositMaturity')
-  debug(stdout)
-  debug(stderr)
-})
+const updateDepositMaturity = createCronJob(
+  CRON_EXP.EVERY_MIDNIGHT,
+  async () => {
+    const debug = _debug.extend('updateDepositMaturity');
+    const { stdout, stderr } = await exec(
+      './scripts/bash/updateDepositMaturity',
+    );
+    debug(stdout);
+    debug(stderr);
+  },
+);
 
 module.exports = {
   postTokenPrices,
-  updateDepositMaturity
-}
+  updateDepositMaturity,
+};

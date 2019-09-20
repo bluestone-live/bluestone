@@ -1,8 +1,6 @@
 {
   "phabricator.uri": "https://phabricator.bluestone.live",
   "unit.engine": "CustomTestEngine",
-  "load": [
-    "arcanist-extensions"
-  ],
-  "git.default-relative-commit" : "HEAD^"
+  "load": ["arcanist-extensions"],
+  "git.default-relative-commit": "HEAD^"
 }

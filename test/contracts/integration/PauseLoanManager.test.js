@@ -1,18 +1,18 @@
-const LoanManager = artifacts.require("LoanManager");
-const { expectRevert, constants } = require("openzeppelin-test-helpers");
-const { expect } = require("chai");
+const LoanManager = artifacts.require('LoanManager');
+const { expectRevert, constants } = require('openzeppelin-test-helpers');
+const { expect } = require('chai');
 
-contract("LoanManager", ([owner, depositor]) => {
+contract('LoanManager', ([owner, depositor]) => {
   let loanManager;
 
   before(async () => {
     loanManager = await LoanManager.deployed();
   });
 
-  describe("pause loan manager", () => {
+  describe('pause loan manager', () => {
     const asset = constants.ZERO_ADDRESS;
 
-    context("when paused", () => {
+    context('when paused', () => {
       before(async () => {
         await loanManager.pause();
       });
@@ -20,7 +20,7 @@ contract("LoanManager", ([owner, depositor]) => {
       // TODO test actions
     });
 
-    context("when unpaused", () => {
+    context('when unpaused', () => {
       before(async () => {
         await loanManager.unpause();
       });

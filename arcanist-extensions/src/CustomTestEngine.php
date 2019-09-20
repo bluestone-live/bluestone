@@ -1,9 +1,9 @@
 <?php
 /**
  * This class integrates the various testing commands to `arc unit` workflow.
- * Since truffle does not generate test reports, it's difficult for us to get 
- * details for each test case. For now, because all we need is success/fail 
- * signal from `arc unit` workflow, we simply check if there is any error 
+ * Since truffle does not generate test reports, it's difficult for us to get
+ * details for each test case. For now, because all we need is success/fail
+ * signal from `arc unit` workflow, we simply check if there is any error
  * and pass in one ArcanistUnitTestResult to indicate if tests are passed.
  *
  * https://secure.phabricator.com/book/phabricator/article/arcanist_lint_unit/
@@ -52,7 +52,7 @@ final class CustomTestEngine extends ArcanistUnitTestEngine {
     }
 
     if ($this->shouldRunClientTest()) {
-      array_push($testCommands, 'cd client && yarn test');
+      array_push($testCommands, 'yarn test:client');
     }
 
     return $testCommands;

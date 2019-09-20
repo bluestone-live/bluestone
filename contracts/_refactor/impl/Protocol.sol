@@ -1,12 +1,11 @@
 pragma solidity ^0.5.0;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
-import "./lib/_Configuration.sol";
-import "./lib/_LiquidityPools.sol";
-import "./lib/_DepositManager.sol";
-import "./lib/_LoanManager.sol";
-
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
+import './lib/_Configuration.sol';
+import './lib/_LiquidityPools.sol';
+import './lib/_DepositManager.sol';
+import './lib/_LoanManager.sol';
 
 /// @title Main contract
 contract Protocol is Ownable, Pausable {
@@ -25,19 +24,27 @@ contract Protocol is Ownable, Pausable {
 
     /// --- Deposit ---
 
-    function enableDepositTerm(uint term) external whenNotPaused onlyOwner {
+    function enableDepositTerm(uint256 term) external whenNotPaused onlyOwner {
         _depositManager.enableDepositTerm(_liquidityPools, term);
     }
 
-    function disableDepositTerm(uint term) external whenNotPaused onlyOwner {
+    function disableDepositTerm(uint256 term) external whenNotPaused onlyOwner {
         _depositManager.disableDepositTerm(term);
     }
 
-    function enableDepositToken(address tokenAddress) external whenNotPaused onlyOwner {
+    function enableDepositToken(address tokenAddress)
+        external
+        whenNotPaused
+        onlyOwner
+    {
         _depositManager.enableDepositToken(_liquidityPools, tokenAddress);
     }
 
-    function disableDepositToken(address tokenAddress) external whenNotPaused onlyOwner {
+    function disableDepositToken(address tokenAddress)
+        external
+        whenNotPaused
+        onlyOwner
+    {
         _depositManager.disableDepositToken(tokenAddress);
     }
 
@@ -47,30 +54,32 @@ contract Protocol is Ownable, Pausable {
 
     function deposit(
         address tokenAddress,
-        uint depositAmount,
-        uint depositTerm
-    )
-        external
-        whenNotPaused
-        returns (bytes32 depositId)
-    {
-        return _depositManager.deposit(
-            _liquidityPools,
-            _loanManager,
-            tokenAddress,
-            depositAmount,
-            depositTerm
-        );
+        uint256 depositAmount,
+        uint256 depositTerm
+    ) external whenNotPaused returns (bytes32 depositId) {
+        return
+            _depositManager.deposit(
+                _liquidityPools,
+                _loanManager,
+                tokenAddress,
+                depositAmount,
+                depositTerm
+            );
     }
 
-    function getDepositTerms() external whenNotPaused view returns (uint[] memory depositTermList) {
+    function getDepositTerms()
+        external
+        view
+        whenNotPaused
+        returns (uint256[] memory depositTermList)
+    {
         return _depositManager.enabledDepositTermList;
     }
 
     function getDepositTokens()
         external
-        whenNotPaused
         view
+        whenNotPaused
         returns (
             address[] memory depositTokenAddressList,
             bool[] memory isEnabledList
@@ -81,28 +90,45 @@ contract Protocol is Ownable, Pausable {
 
     /// --- Loan
 
-    function addLoanTerm(uint loanTerm) external whenNotPaused onlyOwner {
+    function addLoanTerm(uint256 loanTerm) external whenNotPaused onlyOwner {
         _loanManager.addLoanTerm(loanTerm);
     }
 
-    function removeLoanTerm(uint loanTerm) external whenNotPaused onlyOwner {
+    function removeLoanTerm(uint256 loanTerm) external whenNotPaused onlyOwner {
         _loanManager.removeLoanTerm(loanTerm);
     }
 
-    function getLoanTerms() external whenNotPaused view returns (uint[] memory loanTermList) {
+    function getLoanTerms()
+        external
+        view
+        whenNotPaused
+        returns (uint256[] memory loanTermList)
+    {
         return _loanManager.loanTermList;
     }
 
     /// --- Configuration ---
-    function setPriceOracleAddress(address priceOracleAddress) external whenNotPaused onlyOwner {
+    function setPriceOracleAddress(address priceOracleAddress)
+        external
+        whenNotPaused
+        onlyOwner
+    {
         _configuration.setPriceOracleAddress(priceOracleAddress);
     }
 
-    function setProtocolAddress(address protocolAddress) external whenNotPaused onlyOwner {
+    function setProtocolAddress(address protocolAddress)
+        external
+        whenNotPaused
+        onlyOwner
+    {
         _configuration.setProtocolAddress(protocolAddress);
     }
 
-    function setProtocolReserveRatio(uint protocolReserveRatio) external whenNotPaused onlyOwner {
+    function setProtocolReserveRatio(uint256 protocolReserveRatio)
+        external
+        whenNotPaused
+        onlyOwner
+    {
         _configuration.setProtocolReserveRatio(protocolReserveRatio);
     }
 
@@ -114,15 +140,30 @@ contract Protocol is Ownable, Pausable {
         _configuration.unlockUserActions();
     }
 
-    function getPriceOracleAddress() external whenNotPaused view returns (address priceOracleAddress) {
+    function getPriceOracleAddress()
+        external
+        view
+        whenNotPaused
+        returns (address priceOracleAddress)
+    {
         return _configuration.priceOracleAddress;
     }
 
-    function getProtocolAddress() external whenNotPaused view returns (address protocolAddress) {
+    function getProtocolAddress()
+        external
+        view
+        whenNotPaused
+        returns (address protocolAddress)
+    {
         return _configuration.protocolAddress;
     }
 
-    function getProtocolReserveRatio() external whenNotPaused view returns (uint protocolReserveRatio) {
+    function getProtocolReserveRatio()
+        external
+        view
+        whenNotPaused
+        returns (uint256 protocolReserveRatio)
+    {
         return _configuration.protocolReserveRatio;
     }
 

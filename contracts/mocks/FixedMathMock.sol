@@ -1,10 +1,9 @@
 pragma solidity ^0.5.0;
 
-import "../FixedMath.sol";
-
+import '../FixedMath.sol';
 
 contract FixedMathMock {
-    function mulFixed(uint a, uint b) public pure returns (uint) {
+    function mulFixed(uint256 a, uint256 b) public pure returns (uint256) {
         return FixedMath.mulFixed(a, b);
     }
 }

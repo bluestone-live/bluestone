@@ -20,9 +20,9 @@
 
 require('chai/register-should');
 
-const HDWalletProvider = require("truffle-hdwallet-provider");
-const { infura, mnemonic, accountIndex } = require("./config");
-const path = require("path");
+const HDWalletProvider = require('truffle-hdwallet-provider');
+const { infura, mnemonic, accountIndex } = require('./config');
+const path = require('path');
 
 module.exports = {
   /**
@@ -43,9 +43,9 @@ module.exports = {
     // options below to some value.
 
     development: {
-      host: "127.0.0.1", // Localhost (default: none)
+      host: '127.0.0.1', // Localhost (default: none)
       port: 7545, // Standard Ethereum port (default: none)
-      network_id: "*" // Any network (default: none)
+      network_id: '*', // Any network (default: none)
     },
 
     // Another network with more advanced options...
@@ -74,10 +74,10 @@ module.exports = {
         new HDWalletProvider(
           mnemonic,
           `https://rinkeby.infura.io/v3/${infura.projectId}`,
-          accountIndex
+          accountIndex,
         ),
-      network_id: 4
-    }
+      network_id: 4,
+    },
 
     // Useful for private networks
     // private: {
@@ -101,12 +101,12 @@ module.exports = {
         // See the solidity docs for advice about optimization and evmVersion
         optimizer: {
           enabled: true,
-          runs: 200
-        }
+          runs: 200,
+        },
         //  evmVersion: "byzantium"
-      }
-    }
+      },
+    },
   },
 
-  contracts_build_directory: path.join(__dirname, "client/src/contracts")
+  contracts_build_directory: path.join(__dirname, 'client/src/contracts'),
 };

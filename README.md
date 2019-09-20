@@ -16,7 +16,7 @@ Make sure you have read through [Truffle Documentation](https://truffleframework
 download and install Ganache GUI or use cli command below:
 
 ```
-# create a directory to save the chain database 
+# create a directory to save the chain database
 $ mkdir ~/<your_db_path>
 
 # start up ganache server
@@ -83,7 +83,6 @@ contract Foo {
 
 Then, in truffle environment, we could call `printLogs()` function to print out event logs:
 
-
 ```
 const { printLogs } = require('./test/utils/index.js')
 const Foo = artifacts.require('./Foo.sol')
@@ -133,7 +132,7 @@ Notice that `arc unit` will be executed in the `arc diff` process, which will ru
 
 **WARNING: current deployment strategy is still highly experienmental and immature.**
 
-Because deployed contracts are final, we always deploy fresh new contracts to the testnet and setup test environment from scratch. We may change our deployment strategy once we figure out how to upgrade existing contracts. 
+Because deployed contracts are final, we always deploy fresh new contracts to the testnet and setup test environment from scratch. We may change our deployment strategy once we figure out how to upgrade existing contracts.
 
 ### Rinkeby testnet
 
@@ -151,4 +150,4 @@ Setup initial state for the test environment:
 ./scripts/bash/setupEnvironment rinkeby
 ```
 
-Since contract ABIs have been changed, we need to redeploy web app following the same section in client's README. 
+Since contract ABIs have been changed, we need to redeploy web app following the same section in client's README.

@@ -2,7 +2,7 @@
 
 ## Structures
 
-~~~
+```
 src
   - components: Dumb components. Cares about how things look.
   - containers: Smart components. Cares about how things work.
@@ -12,7 +12,7 @@ src
   - stores: Mobx stores declares
   - styles: Themes variables
   - utils: some useful utils or helpers
-~~~
+```
 
 ## Prerequisites
 

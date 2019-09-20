@@ -1,10 +1,10 @@
-const AccountManager = artifacts.require("AccountManager");
-const TokenManager = artifacts.require("TokenManager");
-const { createERC20Token, toFixedBN } = require("../../utils/index.js");
-const { BN, expectEvent } = require("openzeppelin-test-helpers");
-const { expect } = require("chai");
+const AccountManager = artifacts.require('AccountManager');
+const TokenManager = artifacts.require('TokenManager');
+const { createERC20Token, toFixedBN } = require('../../utils/index.js');
+const { BN, expectEvent } = require('openzeppelin-test-helpers');
+const { expect } = require('chai');
 
-contract("AccountManager", ([owner]) => {
+contract('AccountManager', ([owner]) => {
   let accountManager, token, tokenManager;
   const increaseAmount = toFixedBN(100);
   const decreaseAmount = toFixedBN(50);
@@ -15,85 +15,85 @@ contract("AccountManager", ([owner]) => {
     token = await createERC20Token(owner);
   });
 
-  describe("Statistics", () => {
+  describe('Statistics', () => {
     const totalDeposits = new BN(100);
     const totalDepositAmount = new BN(1000);
 
-    describe("#setGeneralStat", () => {
-      it("succeeds", async () => {
-        const key = "totalDeposits";
+    describe('#setGeneralStat', () => {
+      it('succeeds', async () => {
+        const key = 'totalDeposits';
 
         await accountManager.setGeneralStat(owner, key, totalDeposits);
         expect(
-          await accountManager.getGeneralStat(owner, key)
+          await accountManager.getGeneralStat(owner, key),
         ).to.bignumber.equal(totalDeposits);
       });
     });
 
-    describe("#incrementGeneralStat", () => {
-      it("succeeds", async () => {
-        const key = "totalDeposits";
+    describe('#incrementGeneralStat', () => {
+      it('succeeds', async () => {
+        const key = 'totalDeposits';
 
         await accountManager.incrementGeneralStat(owner, key, new BN(1));
         expect(
-          await accountManager.getGeneralStat(owner, key)
+          await accountManager.getGeneralStat(owner, key),
         ).to.bignumber.equal(totalDeposits.add(new BN(1)));
       });
     });
 
-    describe("#setAssetStat", () => {
-      it("succeeds", async () => {
-        const key = "totalDepositAmount";
+    describe('#setAssetStat', () => {
+      it('succeeds', async () => {
+        const key = 'totalDepositAmount';
 
         await accountManager.setAssetStat(
           owner,
           token.address,
           key,
-          totalDepositAmount
+          totalDepositAmount,
         );
         expect(
-          await accountManager.getAssetStat(owner, token.address, key)
+          await accountManager.getAssetStat(owner, token.address, key),
         ).to.bignumber.equal(totalDepositAmount);
       });
     });
 
-    describe("#incrementAssetStat", () => {
-      it("succeeds", async () => {
-        const key = "totalDepositAmount";
+    describe('#incrementAssetStat', () => {
+      it('succeeds', async () => {
+        const key = 'totalDepositAmount';
 
         await accountManager.incrementAssetStat(
           owner,
           token.address,
           key,
-          new BN(100)
+          new BN(100),
         );
         expect(
-          await accountManager.getAssetStat(owner, token.address, key)
+          await accountManager.getAssetStat(owner, token.address, key),
         ).to.bignumber.equal(totalDepositAmount.add(new BN(100)));
       });
     });
   });
 
-  describe("#getFreedCollateral", () => {
-    it("succeeds", async () => {
+  describe('#getFreedCollateral', () => {
+    it('succeeds', async () => {
       const amount = await accountManager.getFreedCollateral(
         owner,
-        token.address
+        token.address,
       );
       expect(amount).to.be.bignumber.equal(toFixedBN(0));
     });
   });
 
-  describe("#increaseFreedCollateral", () => {
-    it("succeeds", async () => {
+  describe('#increaseFreedCollateral', () => {
+    it('succeeds', async () => {
       await accountManager.increaseFreedCollateral(
         token.address,
         owner,
-        increaseAmount
+        increaseAmount,
       );
       const amount = await accountManager.getFreedCollateral(
         owner,
-        token.address
+        token.address,
       );
       expect(amount).to.be.bignumber.equal(increaseAmount);
     });
@@ -102,34 +102,34 @@ contract("AccountManager", ([owner]) => {
       await accountManager.decreaseFreedCollateral(
         token.address,
         owner,
-        increaseAmount
+        increaseAmount,
       );
     });
   });
-  describe("#decreaseFreedCollateral", () => {
+  describe('#decreaseFreedCollateral', () => {
     before(async () => {
       await accountManager.increaseFreedCollateral(
         token.address,
         owner,
-        increaseAmount
+        increaseAmount,
       );
     });
-    it("succeeds", async () => {
+    it('succeeds', async () => {
       await accountManager.decreaseFreedCollateral(
         token.address,
         owner,
-        decreaseAmount
+        decreaseAmount,
       );
 
       const amount = await accountManager.getFreedCollateral(
         owner,
-        token.address
+        token.address,
       );
 
       expect(amount).to.be.bignumber.equal(increaseAmount.sub(decreaseAmount));
     });
   });
-  describe("#withdrawFreedCollateral", () => {
+  describe('#withdrawFreedCollateral', () => {
     let balance, freedCollateralAmount;
 
     before(async () => {
@@ -139,44 +139,44 @@ contract("AccountManager", ([owner]) => {
       await accountManager.increaseFreedCollateral(
         token.address,
         owner,
-        increaseAmount
+        increaseAmount,
       );
       freedCollateralAmount = await accountManager.getFreedCollateral(
         owner,
-        token.address
+        token.address,
       );
     });
 
-    it("succeeds and emit WithdrawFreedCollateralSuccessful event", async () => {
+    it('succeeds and emit WithdrawFreedCollateralSuccessful event', async () => {
       const { logs } = await accountManager.withdrawFreedCollateral(
         token.address,
         decreaseAmount,
         {
-          from: owner
-        }
+          from: owner,
+        },
       );
 
-      expectEvent.inLogs(logs, "WithdrawFreedCollateralSuccessful", {
+      expectEvent.inLogs(logs, 'WithdrawFreedCollateralSuccessful', {
         user: owner,
-        amount: decreaseAmount
+        amount: decreaseAmount,
       });
     });
 
-    it("reduced freed collateral", async () => {
+    it('reduced freed collateral', async () => {
       const amount = await accountManager.getFreedCollateral(
         owner,
-        token.address
+        token.address,
       );
       expect(amount).to.be.bignumber.equal(
-        freedCollateralAmount.sub(decreaseAmount)
+        freedCollateralAmount.sub(decreaseAmount),
       );
     });
 
-    it("increased user balance", async () => {
+    it('increased user balance', async () => {
       const balanceAfterWithdraw = await token.balanceOf(owner);
 
       expect(balanceAfterWithdraw).to.be.bignumber.equal(
-        balance.add(decreaseAmount)
+        balance.add(decreaseAmount),
       );
     });
   });

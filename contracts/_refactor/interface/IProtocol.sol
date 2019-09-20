@@ -6,11 +6,11 @@ contract IProtocol {
 
     /// @notice Enable a deposit term
     /// @param depositTerm Deposit term
-    function enableDepositTerm(uint depositTerm) external;
+    function enableDepositTerm(uint256 depositTerm) external;
 
     /// @notice Disable a deposit term
     /// @param depositTerm  Deposit term
-    function disableDepositTerm(uint depositTerm) external;
+    function disableDepositTerm(uint256 depositTerm) external;
 
     /// @notice Enable an ERC20 token for deposit
     /// @param tokenAddress Token address
@@ -31,20 +31,23 @@ contract IProtocol {
     /// @return depositId ID that identifies the deposit
     function deposit(
         address tokenAddress,
-        uint depositAmount,
-        uint depositTerm
-    )
-        external
-        returns (bytes32 depositId);
+        uint256 depositAmount,
+        uint256 depositTerm
+    ) external returns (bytes32 depositId);
 
     /// @notice Withdraw a deposit
     /// @param depositId Id that identifies the deposit
     /// @return withdrewAmount Total amount withdrew, including interest
-    function withdraw(bytes32 depositId) external returns (uint withdrewAmount);
+    function withdraw(bytes32 depositId)
+        external
+        returns (uint256 withdrewAmount);
 
     /// @notice Return enabled deposit terms
     /// @return depositTerms A list of enabled deposit terms
-    function getDepositTerms() external view returns (uint[] memory depositTerms);
+    function getDepositTerms()
+        external
+        view
+        returns (uint256[] memory depositTerms);
 
     /// @notice Return details for each deposit token
     /// @return depositTokenAddressList A list of deposit tokens
@@ -71,22 +74,20 @@ contract IProtocol {
     /// @return withdrewAt
     /// @return isMatured
     /// @return isWithdrawn
-    function getDeposit(
-        bytes32 depositId
-    )
+    function getDeposit(bytes32 depositId)
         external
         view
         returns (
             address tokenAddress,
-            uint depositTerm,
-            uint depositAmount,
-            uint withdrewAmount,
-            uint protocolReserveRatio,
-            uint interestIndex,
-            uint poolId,
-            uint createdAt,
-            uint maturedAt,
-            uint withdrewAt,
+            uint256 depositTerm,
+            uint256 depositAmount,
+            uint256 withdrewAmount,
+            uint256 protocolReserveRatio,
+            uint256 interestIndex,
+            uint256 poolId,
+            uint256 createdAt,
+            uint256 maturedAt,
+            uint256 withdrewAt,
             bool isMatured,
             bool isWithdrawn
         );
@@ -111,15 +112,15 @@ contract IProtocol {
         returns (
             bytes32[] memory depositIdList,
             address[] memory tokenAddressList,
-            uint[] memory depositTermList,
-            uint[] memory depositAmountList,
-            uint[] memory withdrewAmountList,
-            uint[] memory protocolReserveRatioList,
-            uint[] memory interestIndexList,
-            uint[] memory poolIdList,
-            uint[] memory createdAtList,
-            uint[] memory maturedAtList,
-            uint[] memory withdrewAtList,
+            uint256[] memory depositTermList,
+            uint256[] memory depositAmountList,
+            uint256[] memory withdrewAmountList,
+            uint256[] memory protocolReserveRatioList,
+            uint256[] memory interestIndexList,
+            uint256[] memory poolIdList,
+            uint256[] memory createdAtList,
+            uint256[] memory maturedAtList,
+            uint256[] memory withdrewAtList,
             bool[] memory isMaturedList,
             bool[] memory isWithdrawList
         );
@@ -128,11 +129,11 @@ contract IProtocol {
 
     /// @notice Add a loan term
     /// @param loanTerm Loan term
-    function addLoanTerm(uint loanTerm) external;
+    function addLoanTerm(uint256 loanTerm) external;
 
     /// @notice Remove a loan term
     /// @param loanTerm Loan term
-    function removeLoanTerm(uint loanTerm) external;
+    function removeLoanTerm(uint256 loanTerm) external;
 
     /// @notice Enable a loan and collateral token pair, e.g., ETH_DAI.
     /// @param loanTokenAddress Loan token address
@@ -140,8 +141,7 @@ contract IProtocol {
     function enableLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress
-    )
-        external;
+    ) external;
 
     /// @notice Disable a loan and collateral token pair, e.g., ETH_DAI
     /// @param loanTokenAddress Loan token address
@@ -149,8 +149,7 @@ contract IProtocol {
     function disableLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress
-    )
-        external;
+    ) external;
 
     /// @notice Set collateral coverage ratio for each loan and collateral token pair
     /// @param loanTokenAddressList A list of loan token addresses
@@ -159,9 +158,8 @@ contract IProtocol {
     function setCollateralCoverageRatios(
         address[] calldata loanTokenAddressList,
         address[] calldata collateralTokenAddressList,
-        uint[] calldata collateralCoverageRatioList
-    )
-        external;
+        uint256[] calldata collateralCoverageRatioList
+    ) external;
 
     /// @notice Set liquidation discount for each loan and collateral token pair
     /// @param loanTokenAddressList A list of loan token addresses
@@ -170,9 +168,8 @@ contract IProtocol {
     function setLiquidationDiscounts(
         address[] calldata loanTokenAddressList,
         address[] calldata collateralTokenAddressList,
-        uint[] calldata liquidationDiscountList
-    )
-        external;
+        uint256[] calldata liquidationDiscountList
+    ) external;
 
     /// @notice Set loan interest rate for each token and loan term
     /// @param tokenAddressList A list of token addresses
@@ -180,10 +177,9 @@ contract IProtocol {
     /// @param loanInterestRateList A list of loan interest rates
     function setLoanInterestRates(
         address[] calldata tokenAddressList,
-        uint[] calldata loanTerms,
-        uint[] calldata loanInterestRateList
-    )
-        external;
+        uint256[] calldata loanTerms,
+        uint256[] calldata loanInterestRateList
+    ) external;
 
     /// @notice Borrow token in a specific term
     /// @param loanTokenAddress token to borrow
@@ -196,18 +192,16 @@ contract IProtocol {
     function loan(
         address loanTokenAddress,
         address collateralTokenAddress,
-        uint loanAmount,
-        uint collateralAmount,
-        uint term,
+        uint256 loanAmount,
+        uint256 collateralAmount,
+        uint256 term,
         bool useFreedCollateral
-    )
-        external
-        returns (bytes32 loanId);
+    ) external returns (bytes32 loanId);
 
     /// @notice Pay back a specific amount of loan
     /// @param loanId ID that identifies the loan
     /// @param repayAmount Amount to repay
-    function repayLoan(bytes32 loanId, uint repayAmount) external;
+    function repayLoan(bytes32 loanId, uint256 repayAmount) external;
 
     /// @notice Liquidate a loan that is under-collateralized or defaulted
     /// @param loanId ID that identifies the loan
@@ -215,12 +209,9 @@ contract IProtocol {
     ///        is greater than the remaining debt of the loan, it will
     ///        liquidate the full remaining debt.
     /// @return liquidatedAmount The amount actually get liqudiated
-    function liquidateLoan(
-        bytes32 loanId,
-        uint liquidateAmount
-    )
+    function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
         external
-        returns (uint liquidatedAmount);
+        returns (uint256 liquidatedAmount);
 
     /// @notice Add collateral to a loan
     /// @param loanId ID that identifies the loan
@@ -228,16 +219,17 @@ contract IProtocol {
     /// @return totalCollateralAmount The total collateral amount after adding collateral
     function addCollateral(
         bytes32 loanId,
-        uint collateralAmount,
+        uint256 collateralAmount,
         bool useFreedCollateral
-    )
-        external
-        returns (uint totalCollateralAmount);
+    ) external returns (uint256 totalCollateralAmount);
 
     /// @notice Withdraw freed collateral from caller's account
     /// @param tokenAddress The collateral token address
     /// @param collateralAmount The freed collateral amount
-    function withdrawFreedCollateral(address tokenAddress, uint collateralAmount) external;
+    function withdrawFreedCollateral(
+        address tokenAddress,
+        uint256 collateralAmount
+    ) external;
 
     /// @notice Return amount of freed collateral for each token in caller's account
     /// @return tokenAddressList A list of token addresses
@@ -247,7 +239,7 @@ contract IProtocol {
         view
         returns (
             address[] memory tokenAddressList,
-            uint[] memory freedCollateralAmountList
+            uint256[] memory freedCollateralAmountList
         );
 
     /// @notice Return details of a loan owned by the caller
@@ -272,29 +264,27 @@ contract IProtocol {
     /// @return isLiquidatable
     /// @return isOverDue
     /// @return isClose
-    function getLoan(
-        bytes32 loanId
-    )
+    function getLoan(bytes32 loanId)
         external
         view
         returns (
             address loanTokenAddress,
             address collateralTokenAddress,
-            uint loanTerm,
-            uint loanAmount,
-            uint collateralAmount,
-            uint annualInterestRate,
-            uint interest,
-            uint minCollateralRatio,
-            uint liquidationDiscount,
-            uint alreadyPaidAmount,
-            uint liquidatedAmount,
-            uint soldCollateralAmount,
-            uint remainingDebt,
-            uint createdAt,
-            uint lastInterestUpdatedAt,
-            uint lastRepaidAt,
-            uint lastLiquidatedAt,
+            uint256 loanTerm,
+            uint256 loanAmount,
+            uint256 collateralAmount,
+            uint256 annualInterestRate,
+            uint256 interest,
+            uint256 minCollateralRatio,
+            uint256 liquidationDiscount,
+            uint256 alreadyPaidAmount,
+            uint256 liquidatedAmount,
+            uint256 soldCollateralAmount,
+            uint256 remainingDebt,
+            uint256 createdAt,
+            uint256 lastInterestUpdatedAt,
+            uint256 lastRepaidAt,
+            uint256 lastLiquidatedAt,
             bool isLiquidatable,
             bool isOverDue,
             bool isClosed
@@ -329,21 +319,21 @@ contract IProtocol {
             bytes32[] memory loanIdList,
             address[] memory loanTokenAddressList,
             address[] memory collateralTokenAddressList,
-            uint[] memory loanTermList,
-            uint[] memory loanAmountList,
-            uint[] memory collateralAmountList,
-            uint[] memory annualInterestRateList,
-            uint[] memory interestList,
-            uint[] memory minCollateralRatioList,
-            uint[] memory liquidationDiscountList,
-            uint[] memory alreadyPaidAmountList,
-            uint[] memory liquidatedAmountList,
-            uint[] memory soldCollateralAmountList,
-            uint[] memory remainingDebtList,
-            uint[] memory createdAtList,
-            uint[] memory lastInterestUpdatedAtList,
-            uint[] memory lastRepaidAtList,
-            uint[] memory lastLiquidatedAtList,
+            uint256[] memory loanTermList,
+            uint256[] memory loanAmountList,
+            uint256[] memory collateralAmountList,
+            uint256[] memory annualInterestRateList,
+            uint256[] memory interestList,
+            uint256[] memory minCollateralRatioList,
+            uint256[] memory liquidationDiscountList,
+            uint256[] memory alreadyPaidAmountList,
+            uint256[] memory liquidatedAmountList,
+            uint256[] memory soldCollateralAmountList,
+            uint256[] memory remainingDebtList,
+            uint256[] memory createdAtList,
+            uint256[] memory lastInterestUpdatedAtList,
+            uint256[] memory lastRepaidAtList,
+            uint256[] memory lastLiquidatedAtList,
             bool[] memory isLiquidatableList,
             bool[] memory isOverDueList,
             bool[] memory isCloseList
@@ -351,7 +341,10 @@ contract IProtocol {
 
     /// @notice Return a list of enabled loan terms
     /// @return loanTermList A list of enabled loan terms
-    function getLoanTerms() external view returns (uint[] memory loanTermList);
+    function getLoanTerms()
+        external
+        view
+        returns (uint256[] memory loanTermList);
 
     /// @notice Return details for each loan and collateral token pair
     /// @return loanTokenAddressList A list of loan token addresses
@@ -366,8 +359,8 @@ contract IProtocol {
             address[] memory loanTokenAddressList,
             address[] memory collateralTokenAddressList,
             bool[] memory isEnabledList,
-            uint[] memory collateralCoverageRatioList,
-            uint[] memory liquidationDiscountList
+            uint256[] memory collateralCoverageRatioList,
+            uint256[] memory liquidationDiscountList
         );
 
     /// @notice Return loan interest rates for each token and loan term
@@ -379,8 +372,8 @@ contract IProtocol {
         view
         returns (
             address[] memory tokenAddressList,
-            uint[] memory loanTerms,
-            uint[] memory loanInterestRates
+            uint256[] memory loanTerms,
+            uint256[] memory loanInterestRates
         );
 
     /// --- Configuration ---
@@ -396,7 +389,7 @@ contract IProtocol {
     /// @notice Set protocol reserve ratio, which determines the percentage
     ///         of interest that goes to protocol reserve.
     /// @param protocolReserveRatio Protocol reserve ratio
-    function setProtocolReserveRatio(uint protocolReserveRatio) external;
+    function setProtocolReserveRatio(uint256 protocolReserveRatio) external;
 
     /// @notice Lock user actions
     function lockUserActions() external;
@@ -406,15 +399,24 @@ contract IProtocol {
 
     /// @notice Return price oracle address
     /// @return priceOracleAddress Price oracle address
-    function getPriceOracleAddress() external view returns (address priceOracleAddress);
+    function getPriceOracleAddress()
+        external
+        view
+        returns (address priceOracleAddress);
 
     /// @notice Return protocol address
     /// @return protocolAddress Protocol address
-    function getProtocolAddress() external view returns (address protocolAddress);
+    function getProtocolAddress()
+        external
+        view
+        returns (address protocolAddress);
 
     /// @notice Return protocol reserve ratio
     /// @return protocolReserveRatio Protocol reserve ratio
-    function getProtocolReserveRatio() external view returns (uint protocolReserveRatio);
+    function getProtocolReserveRatio()
+        external
+        view
+        returns (uint256 protocolReserveRatio);
 
     /// @notice Check if user actions are locked
     /// @param isLocked Return true if user actions are locked, else return false
@@ -426,13 +428,10 @@ contract IProtocol {
     /// @param accountAddress Account address
     /// @param key The key to retrieve corresponding stat
     /// @return stat The statistical value
-    function getAccountGeneralStat(
-        address accountAddress,
-        string calldata key
-    )
+    function getAccountGeneralStat(address accountAddress, string calldata key)
         external
         view
-        returns (uint stat);
+        returns (uint256 stat);
 
     /// @notice Return a token-specific statistic for an account
     /// @param accountAddress Account address
@@ -443,8 +442,5 @@ contract IProtocol {
         address accountAddress,
         address tokenAddress,
         string calldata key
-    )
-        external
-        view
-        returns (uint stat);
+    ) external view returns (uint256 stat);
 }

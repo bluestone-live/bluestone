@@ -1,19 +1,19 @@
-const Protocol = artifacts.require("Protocol");
-const { expectRevert } = require("openzeppelin-test-helpers");
-const { expect } = require("chai");
+const Protocol = artifacts.require('Protocol');
+const { expectRevert } = require('openzeppelin-test-helpers');
+const { expect } = require('chai');
 
-contract("Protocol", function() {
+contract('Protocol', function() {
   let protocol;
 
   beforeEach(async () => {
     protocol = await Protocol.new();
   });
 
-  describe("#addLoanTerm", () => {
+  describe('#addLoanTerm', () => {
     const term = 60;
 
-    context("when term does not exist", () => {
-      it("succeeds", async () => {
+    context('when term does not exist', () => {
+      it('succeeds', async () => {
         await protocol.addLoanTerm(term);
         const currTerms = await protocol.getLoanTerms();
         expect(currTerms.length).to.equal(1);
@@ -21,29 +21,29 @@ contract("Protocol", function() {
       });
     });
 
-    context("when term already exists", () => {
+    context('when term already exists', () => {
       beforeEach(async () => {
         await protocol.addLoanTerm(term);
       });
 
-      it("reverts", async () => {
+      it('reverts', async () => {
         await expectRevert(
           protocol.addLoanTerm(term),
-          "LoanManager: term already exists"
+          'LoanManager: term already exists',
         );
       });
     });
   });
 
-  describe("#removeLoanTerm", () => {
+  describe('#removeLoanTerm', () => {
     const term = 60;
 
-    context("when term already exists", () => {
+    context('when term already exists', () => {
       beforeEach(async () => {
         await protocol.addLoanTerm(term);
       });
 
-      it("succeeds", async () => {
+      it('succeeds', async () => {
         await protocol.removeLoanTerm(term);
         const currTerms = await protocol.getLoanTerms();
         expect(currTerms.length).to.equal(0);
@@ -51,11 +51,11 @@ contract("Protocol", function() {
       });
     });
 
-    context("when term does not exist", () => {
-      it("reverts", async () => {
+    context('when term does not exist', () => {
+      it('reverts', async () => {
         await expectRevert(
           protocol.removeLoanTerm(term),
-          "LoanManager: term does not exist"
+          'LoanManager: term does not exist',
         );
       });
     });

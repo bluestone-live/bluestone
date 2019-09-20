@@ -3,18 +3,30 @@
   "private": "true",
   "scripts": {
     "start": "DEBUG=* nodemon server/index.js",
-    "test": "npx truffle test"
+    "test:contract": "npx truffle test",
+    "test:client": "jest client/"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.18",
     "chai": "^4.2.0",
-    "ethlint": "^1.2.4",
     "ganache-cli": "^6.4.4",
+    "husky": ">=1",
+    "jest": "^24.9.0",
+    "lint-staged": ">=8",
     "nodemon": "^1.19.1",
     "openzeppelin-test-helpers": "^0.4.2",
+    "prettier": "^1.18.2",
+    "prettier-plugin-solidity": "^1.0.0-alpha.32",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "seamless-immutable": "^7.1.4",
-    "truffle": "^5.0.22"
+    "truffle": "^5.0.22",
+    "ts-jest": "^24.1.0",
+    "tslint": "^5.20.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.0.1",
+    "tslint-react": "^4.0.0",
+    "typescript": "^3.6.3"
   },
   "dependencies": {
     "cron": "^1.7.1",
@@ -24,5 +36,20 @@
     "koa-router": "^7.4.0",
     "openzeppelin-solidity": "^2.3.0",
     "truffle-hdwallet-provider": "^1.0.13"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,css,json,md,sol}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.{ts,tsx}": [
+      "tslint --project tsconfig.json --config tslint.json --fix",
+      "git add"
+    ]
   }
 }

@@ -1,54 +1,51 @@
 pragma solidity ^0.5.0;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/math/Math.sol";
-import "./FixedMath.sol";
-
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/math/Math.sol';
+import './FixedMath.sol';
 
 contract Loan {
-    using SafeMath for uint;
-    using FixedMath for uint;
+    using SafeMath for uint256;
+    using FixedMath for uint256;
 
     address private _loanAsset;
     address private _collateralAsset;
     address private _owner;
-    uint private _term;
-    uint private _loanAmount;
-    uint private _collateralAmount;
-    uint private _annualInterestRate;
-    uint private _interest;
-    uint private _minCollateralRatio;
-    uint private _liquidationDiscount;
-    uint private _alreadyPaidAmount;
-    uint private _liquidatedAmount;
-    uint private _soldCollateralAmount;
-    uint private _createdAt;
-    uint private _lastInterestUpdatedAt;
-    uint private _lastRepaidAt;
-    uint private _lastLiquidatedAt;
+    uint256 private _term;
+    uint256 private _loanAmount;
+    uint256 private _collateralAmount;
+    uint256 private _annualInterestRate;
+    uint256 private _interest;
+    uint256 private _minCollateralRatio;
+    uint256 private _liquidationDiscount;
+    uint256 private _alreadyPaidAmount;
+    uint256 private _liquidatedAmount;
+    uint256 private _soldCollateralAmount;
+    uint256 private _createdAt;
+    uint256 private _lastInterestUpdatedAt;
+    uint256 private _lastRepaidAt;
+    uint256 private _lastLiquidatedAt;
     bool private _isClosed;
 
     /// Deposit Term -> Pool ID -> Amount
-    /// How much have one loaned from a specific pool (identified by Pool Index) 
+    /// How much have one loaned from a specific pool (identified by Pool Index)
     /// in a specific pool group (identified by Deposit Term).
-    mapping(uint => mapping(uint => uint)) private _records;
+    mapping(uint256 => mapping(uint256 => uint256)) private _records;
 
-    uint constant private DAY_IN_SECONDS = 24 * 60 * 60;
-    uint constant private ONE = 10 ** 18;
+    uint256 private constant DAY_IN_SECONDS = 24 * 60 * 60;
+    uint256 private constant ONE = 10**18;
 
     constructor(
         address loanAsset,
         address collateralAsset,
-        address owner, 
-        uint term, 
-        uint loanAmount, 
-        uint collateralAmount, 
-        uint annualInterestRate, 
-        uint minCollateralRatio,
-        uint liquidationDiscount
-    ) 
-        public 
-    {
+        address owner,
+        uint256 term,
+        uint256 loanAmount,
+        uint256 collateralAmount,
+        uint256 annualInterestRate,
+        uint256 minCollateralRatio,
+        uint256 liquidationDiscount
+    ) public {
         _loanAsset = loanAsset;
         _collateralAsset = collateralAsset;
         _owner = owner;
@@ -58,7 +55,7 @@ contract Loan {
         _annualInterestRate = annualInterestRate;
 
         // calculate simple interest
-        _interest = loanAmount.mulFixed(annualInterestRate).mul(term).div(365); 
+        _interest = loanAmount.mulFixed(annualInterestRate).mul(term).div(365);
 
         _minCollateralRatio = minCollateralRatio;
         _liquidationDiscount = liquidationDiscount;
@@ -72,26 +69,28 @@ contract Loan {
         _isClosed = false;
     }
 
-    function setRecord(uint depositTerm, uint poolId, uint amount) external {
+    function setRecord(uint256 depositTerm, uint256 poolId, uint256 amount)
+        external
+    {
         require(amount > 0);
 
         _records[depositTerm][poolId] = amount;
     }
 
-    function addCollateral(uint amount) external {
+    function addCollateral(uint256 amount) external {
         require(!_isClosed);
 
-        _collateralAmount = _collateralAmount.add(amount);    
+        _collateralAmount = _collateralAmount.add(amount);
     }
 
     /// @param amount The amount to repay
     /// @return (repaidAmount, freedCollateralAmount)
-    function repay(uint amount) external returns (uint, uint) {
-        require(!_isClosed, "Loan must not be closed.");
+    function repay(uint256 amount) external returns (uint256, uint256) {
+        require(!_isClosed, 'Loan must not be closed.');
 
-        uint currRemainingDebt = remainingDebt();
+        uint256 currRemainingDebt = remainingDebt();
 
-        require(amount <= currRemainingDebt, "Invalid repay amount.");
+        require(amount <= currRemainingDebt, 'Invalid repay amount.');
 
         _alreadyPaidAmount = _alreadyPaidAmount.add(amount);
         _lastRepaidAt = now;
@@ -99,25 +98,31 @@ contract Loan {
         if (remainingDebt() == 0) {
             _isClosed = true;
 
-            uint freedCollateralAmount = _collateralAmount.sub(_soldCollateralAmount);
+            uint256 freedCollateralAmount = _collateralAmount.sub(
+                _soldCollateralAmount
+            );
             return (amount, freedCollateralAmount);
         } else {
             return (amount, 0);
         }
     }
 
-    function liquidate(uint amount, uint loanAssetPrice, uint collateralAssetPrice) 
-        external
-        returns (uint, uint, uint)
-    {
-        require(!_isClosed, "Loan must not be closed.");                        
-        require(loanAssetPrice > 0, "Asset price must be greater than 0.");
-        require(collateralAssetPrice > 0, "Collateral price must be greater than 0.");
+    function liquidate(
+        uint256 amount,
+        uint256 loanAssetPrice,
+        uint256 collateralAssetPrice
+    ) external returns (uint256, uint256, uint256) {
+        require(!_isClosed, 'Loan must not be closed.');
+        require(loanAssetPrice > 0, 'Asset price must be greater than 0.');
+        require(
+            collateralAssetPrice > 0,
+            'Collateral price must be greater than 0.'
+        );
 
-        uint currRemainingDebt = remainingDebt();
-        uint liquidatingAmount = Math.min(amount, currRemainingDebt);
+        uint256 currRemainingDebt = remainingDebt();
+        uint256 liquidatingAmount = Math.min(amount, currRemainingDebt);
 
-        uint soldCollateralAmount = liquidatingAmount
+        uint256 soldCollateralAmount = liquidatingAmount
             .mulFixed(loanAssetPrice)
             .divFixed(collateralAssetPrice)
             .divFixed(ONE.sub(_liquidationDiscount));
@@ -131,8 +136,14 @@ contract Loan {
             _isClosed = true;
 
             // Release the collateral
-            uint freedCollateralAmount = _collateralAmount.sub(_soldCollateralAmount);
-            return (liquidatingAmount, soldCollateralAmount, freedCollateralAmount);
+            uint256 freedCollateralAmount = _collateralAmount.sub(
+                _soldCollateralAmount
+            );
+            return (
+                liquidatingAmount,
+                soldCollateralAmount,
+                freedCollateralAmount
+            );
         } else {
             // Still has remaining debt, do not release the collateral
             return (liquidatingAmount, soldCollateralAmount, 0);
@@ -151,39 +162,43 @@ contract Loan {
         return _owner;
     }
 
-    function term() external view returns (uint) {
+    function term() external view returns (uint256) {
         return _term;
     }
 
-    function loanAmount() external view returns (uint) {
+    function loanAmount() external view returns (uint256) {
         return _loanAmount;
     }
 
-    function alreadyPaidAmount() external view returns (uint) {
+    function alreadyPaidAmount() external view returns (uint256) {
         return _alreadyPaidAmount;
     }
 
-    function liquidatedAmount() external view returns (uint) {
+    function liquidatedAmount() external view returns (uint256) {
         return _liquidatedAmount;
     }
 
-    function collateralAmount() external view returns (uint) {
+    function collateralAmount() external view returns (uint256) {
         return _collateralAmount;
     }
 
-    function soldCollateralAmount() external view returns (uint) {
+    function soldCollateralAmount() external view returns (uint256) {
         return _soldCollateralAmount;
     }
 
-    function annualInterestRate() external view returns (uint) {
+    function annualInterestRate() external view returns (uint256) {
         return _annualInterestRate;
     }
 
-    function interest() external view returns (uint) {
+    function interest() external view returns (uint256) {
         return _interest;
     }
 
-    function getRecord(uint depositTerm, uint poolId) external view returns (uint) {
+    function getRecord(uint256 depositTerm, uint256 poolId)
+        external
+        view
+        returns (uint256)
+    {
         return _records[depositTerm][poolId];
     }
 
@@ -191,7 +206,7 @@ contract Loan {
         return _isClosed;
     }
 
-    function createdAt() external view returns (uint) {
+    function createdAt() external view returns (uint256) {
         return _createdAt;
     }
 
@@ -200,12 +215,16 @@ contract Loan {
     }
 
     // Check whether the loan is defaulted or under the required collaterization ratio
-    function isLiquidatable(uint loanAssetPrice, uint collateralAssetPrice) external view returns (bool) {
+    function isLiquidatable(
+        uint256 loanAssetPrice,
+        uint256 collateralAssetPrice
+    ) external view returns (bool) {
         if (_isClosed) {
             return false;
         }
 
-        uint currCollateralRatio = _collateralAmount.sub(_soldCollateralAmount)
+        uint256 currCollateralRatio = _collateralAmount
+            .sub(_soldCollateralAmount)
             .mulFixed(collateralAssetPrice)
             .divFixed(remainingDebt())
             .divFixed(loanAssetPrice);
@@ -216,7 +235,10 @@ contract Loan {
     }
 
     // The remaining debt equals to orignal loan + interest - repaid loan - liquidated loan.
-    function remainingDebt() public view returns (uint) {
-        return _loanAmount.add(_interest).sub(_alreadyPaidAmount).sub(_liquidatedAmount);
+    function remainingDebt() public view returns (uint256) {
+        return
+            _loanAmount.add(_interest).sub(_alreadyPaidAmount).sub(
+                _liquidatedAmount
+            );
     }
 }

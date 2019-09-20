@@ -48,4 +48,4 @@ module.exports = [
   { args: [63154799], expected: 22 },
   { args: [63154800], expected: 23 },
   { args: [63158400], expected: 0 },
-]
+];

@@ -1,9 +1,0 @@
-{
-  "linters": {
-    "solidity": {
-      "type": "script-and-regex",
-      "script-and-regex.script": "npx solium -d .",
-      "script-and-regex.regex": "(^((?P<file>.+): line (?P<line>[0-9]+), col (?P<col>[0-9]+), (?P<severity>[^\\-]*) - (?P<message>.*) \\((?P<name>[a-z\\-]+)\\))$)m"
-    }
-  }
-}

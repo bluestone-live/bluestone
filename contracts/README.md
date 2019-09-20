@@ -1,6 +1,6 @@
 ## Contracts
 
-This directory contains smart contracts written in [Solidity](https://solidity.readthedocs.io/en/latest/). 
+This directory contains smart contracts written in [Solidity](https://solidity.readthedocs.io/en/latest/).
 
 ### Current state
 
@@ -15,7 +15,7 @@ We are currently focused on building user interface to interact with these contr
 
 ### Overview
 
-We have two main deployed contracts which user can interact with: `DepositManager` and `LoanManager`. Each manager exposes external function calls related to its domain, i.e., deposit or loan, for end-users and admin. 
+We have two main deployed contracts which user can interact with: `DepositManager` and `LoanManager`. Each manager exposes external function calls related to its domain, i.e., deposit or loan, for end-users and admin.
 
 Here is a list of deployed contract dependencies for both managers to initialize:
 

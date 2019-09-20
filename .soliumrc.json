@@ -1,12 +1,7 @@
 {
   "extends": "solium:all",
-  "plugins": [
-    "security"
-  ],
+  "plugins": ["security"],
   "rules": {
-    "quotes": [
-      "error",
-      "double"
-    ]
+    "quotes": ["error", "double"]
   }
 }

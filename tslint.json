@@ -26,7 +26,7 @@
     "no-consecutive-blank-lines": true,
     "import-spacing": true,
     "no-redundant-jsdoc": true,
-    "prettier": [true, ".prettierrc"],
+    "prettier": [true, ".prettierrc.json"],
     "no-var-requires": false
   }
 }
