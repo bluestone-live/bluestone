@@ -1,9 +1,9 @@
-const Protocol = artifacts.require("ProtocolMock");
-const { expectRevert } = require("openzeppelin-test-helpers");
-const { createERC20Token, toFixedBN } = require("../../utils/index");
-const { expect } = require("chai");
+const Protocol = artifacts.require('ProtocolMock');
+const { expectRevert } = require('openzeppelin-test-helpers');
+const { createERC20Token, toFixedBN } = require('../../utils/index');
+const { expect } = require('chai');
 
-contract("Protocol", async ([owner, anotherAccount]) => {
+contract('Protocol', async ([owner, anotherAccount]) => {
   let protocol;
   const token = await createERC20Token(owner);
 
@@ -11,28 +11,28 @@ contract("Protocol", async ([owner, anotherAccount]) => {
     protocol = await Protocol.new();
   });
 
-  describe("#setAccountGeneralStat", () => {
-    it("succeed", async () => {
+  describe('#setAccountGeneralStat', () => {
+    it('succeed', async () => {
       await protocol.setAccountGeneralStat(
         anotherAccount,
-        "testValue",
-        toFixedBN(10)
+        'testValue',
+        toFixedBN(10),
       );
       const accountGeneralStat = await protocol.getAccountGeneralStat(
         anotherAccount,
-        "testValue"
+        'testValue',
       );
 
       expect(accountGeneralStat).to.bignumber.equal(toFixedBN(10));
     });
   });
 
-  describe("#getAccountGeneralStat", () => {
-    context("in initialization", () => {
-      it("should get 0", async () => {
+  describe('#getAccountGeneralStat', () => {
+    context('in initialization', () => {
+      it('should get 0', async () => {
         const accountGeneralStat = await protocol.getAccountGeneralStat(
           owner,
-          "testValue"
+          'testValue',
         );
 
         expect(accountGeneralStat).to.bignumber.equal(toFixedBN(0));
@@ -40,31 +40,31 @@ contract("Protocol", async ([owner, anotherAccount]) => {
     });
   });
 
-  describe("#setAccountTokenStat", () => {
-    it("succeed", async () => {
+  describe('#setAccountTokenStat', () => {
+    it('succeed', async () => {
       await protocol.setAccountTokenStat(
         anotherAccount,
         token.address,
-        "testValue",
-        toFixedBN(10)
+        'testValue',
+        toFixedBN(10),
       );
       const accountTokenStat = await protocol.getAccountTokenStat(
         anotherAccount,
         token.address,
-        "testValue"
+        'testValue',
       );
 
       expect(accountTokenStat).to.bignumber.equal(toFixedBN(10));
     });
   });
 
-  describe("#getAccountTokenStat", () => {
-    context("in initialization", () => {
-      it("should get 0", async () => {
+  describe('#getAccountTokenStat', () => {
+    context('in initialization', () => {
+      it('should get 0', async () => {
         const accountTokenStat = await protocol.getAccountTokenStat(
           owner,
           token.address,
-          "testValue"
+          'testValue',
         );
 
         expect(accountTokenStat).to.bignumber.equal(toFixedBN(0));

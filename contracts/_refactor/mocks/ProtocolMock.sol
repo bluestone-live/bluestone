@@ -45,4 +45,14 @@ contract ProtocolMock is Protocol {
             value
         );
     }
+
+    function addFreedCollateral(
+        address accountAddress,
+        address tokenAddress,
+        uint amount
+    )
+        external
+    {
+        _loanManager.addFreedCollateral(accountAddress, tokenAddress, amount);
+    }
 }

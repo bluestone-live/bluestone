@@ -18,7 +18,15 @@ library _LoanManager {
 
         // accountAddress -> loanIds
         mapping(address => bytes32[]) loanIdsByAccountAddress;
+
+        // TODO(ZhangRGK): I need a collateral token list in account manager, I will merge it after loan pair finished
+        address[] collateralTokenList;
+
+        // account -> tokenAddress -> freedCollateralamount
+        mapping(address => mapping(address => uint)) freedCollateralsByAccount;
     }
+
+    event WithdrawFreedCollateralSucceed(address indexed accountAddress, uint amount);
 
     uint private constant DAY_IN_SECONDS = 86400;
 
@@ -42,22 +50,6 @@ library _LoanManager {
         uint lastRepaidAt;
         uint lastLiquidatedAt;
         bool isClosed;
-    }
-
-    struct LoanRecordView {
-        bytes32 loanId;
-        address loanTokenAddress;
-        address collateralTokenAddress;
-        uint loanTerm;
-        uint loanAmount;
-        uint collateralAmount;
-        uint interest;
-        uint remainingDebt;
-        uint createdAt;
-        uint currentCollateralRatio;
-        bool isClosed;
-        bool isLiquidatable;
-        bool isOverDue;
     }
 
     struct LoanRecordListView {
@@ -112,7 +104,6 @@ library _LoanManager {
         bytes32 loanId
     )
         external
-        view
         returns (
             address loanTokenAddress,
             address collateralTokenAddress,
@@ -272,5 +263,71 @@ library _LoanManager {
     {
         self.loanRecordsById[loanId].collateralAmount = self.loanRecordsById[loanId].collateralAmount.add(collateralAmount);
         return self.loanRecordsById[loanId].collateralAmount;
+    }
+    function getFreedCollateralsByAccount(
+        State storage self,
+        address accountAddress
+    )
+        external
+        view
+        returns (
+            address[] memory tokenAddressList,
+            uint[] memory freedCollateralAmountList
+        )
+    {
+        for (uint i = 0; i < self.collateralTokenList.length; i++) {
+            freedCollateralAmountList[i] = self.freedCollateralsByAccount[accountAddress][self.collateralTokenList[i]];
+        }
+        return (
+            self.collateralTokenList,
+            freedCollateralAmountList
+        );
+    }
+
+    function withdrawFreedCollateral(
+        State storage self,
+        address accountAddress,
+        address tokenAddress,
+        uint collateralAmount
+    )
+        external
+    {
+        uint availableFreedCollateral = self.freedCollateralsByAccount[accountAddress][tokenAddress];
+        require(availableFreedCollateral >= collateralAmount, "AccountManager: Availiable freed collateral amount is not enough");
+
+        self.freedCollateralsByAccount[accountAddress][tokenAddress] = self.freedCollateralsByAccount[accountAddress][tokenAddress]
+            .sub(availableFreedCollateral);
+        // TODO(ZhangRGK): send token from tokenManager to user account
+        emit WithdrawFreedCollateralSucceed(accountAddress, availableFreedCollateral);
+    }
+
+    function addFreedCollateral(
+        State storage self,
+        address accountAddress,
+        address tokenAddress,
+        uint amount
+    )
+        external
+    {
+        self.freedCollateralsByAccount[accountAddress][tokenAddress] = self.freedCollateralsByAccount[accountAddress][tokenAddress].add(amount);
+    }
+
+    function subtractFreedCollateral(
+        State storage self,
+        address accountAddress,
+        address tokenAddress,
+        uint amount
+    )
+        external
+        returns (uint)
+    {
+        require(amount > 0, "LoanManager: The decrease in freed collateral amount must be greater than 0.");
+
+        uint availableFreedCollateral = Math.min(self.freedCollateralsByAccount[accountAddress][tokenAddress], amount);
+
+        self.freedCollateralsByAccount[accountAddress][tokenAddress] = self.freedCollateralsByAccount[accountAddress][tokenAddress]
+            .sub(availableFreedCollateral);
+
+        return availableFreedCollateral;
     }
 }

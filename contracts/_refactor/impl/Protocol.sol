@@ -8,6 +8,10 @@ import "./lib/_LiquidityPools.sol";
 import "./lib/_DepositManager.sol";
 import "./lib/_LoanManager.sol";
 import "./lib/_AccountManager.sol";
+<<<<<<< HEAD
+=======
+
+>>>>>>> [Contract]: Implements generalStat and assetStat
 
 /// @title Main contract
 /// TODO(ZhangRGK): add IProtocol to interface implemention after all method implement
@@ -157,6 +161,25 @@ contract Protocol is Ownable, Pausable {
         returns (uint256[] memory loanTermList)
     {
         return _loanManager.loanTermList;
+    }
+
+    function getFreedCollateralsByAccount(
+        address accountAddress
+    )
+        external
+        whenNotPaused
+        view
+        returns (
+            address[] memory tokenAddressList,
+            uint[] memory freedCollateralAmountList
+        )
+    {
+        return _loanManager.getFreedCollateralsByAccount(accountAddress);
+    }
+
+    function withdrawFreedCollateral(address tokenAddress, uint collateralAmount) external whenNotPaused {
+        address accountAddress = msg.sender;
+        _loanManager.withdrawFreedCollateral(accountAddress, tokenAddress, collateralAmount);
     }
 
     /// --- AccountManager ---

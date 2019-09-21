@@ -3,10 +3,14 @@ const { expectRevert } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 contract('Protocol', function([owner, otherAccount]) {
 =======
 contract("Protocol", function([owner, otherAccount]) {
 >>>>>>> [Contract]: implement getLoanRecordsByAccount
+=======
+contract("Protocol", function([owner]) {
+>>>>>>> [Contract]: implement getFreedCollateral and withdrawFreedCollateral
   let protocol;
 
   beforeEach(async () => {
@@ -128,5 +132,23 @@ contract("Protocol", function([owner, otherAccount]) {
   // TODO(ZhangRGK): after the loan implement
   describe("#addCollateral", () => {
     it("succeed");
+  });
+  describe("#getFreedCollateralsByAccount", () => {
+    context("in initialization", () => {
+      // TODO(ZhangRGK): depends on set collateral token function
+      it("should get 0 for each token");
+    });
+  });
+
+  describe("#withdrawFreedCollateral", () => {
+    context("when amount is enough to withdraw", () => {
+      // TODO(ZhangRGK): depends on set collateral token function
+      it("succeed");
+    });
+
+    context("when amount is not enough", () => {
+      // TODO(ZhangRGK): depends on set collateral token function
+      it("reverts");
+    });
   });
 });
