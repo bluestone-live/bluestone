@@ -3,6 +3,7 @@ const Configuration = artifacts.require('_Configuration');
 const LiquidityPools = artifacts.require('_LiquidityPools');
 const DepositManager = artifacts.require('_DepositManager');
 const LoanManager = artifacts.require('_LoanManager');
+const AccountManager = artifacts.require('_AccountManager');
 const DateTime = artifacts.require('DateTime');
 const ProtocolMock = artifacts.require('ProtocolMock');
 
@@ -16,6 +17,7 @@ module.exports = async function(deployer, network) {
   await deployer.deploy(LiquidityPools);
   await deployer.deploy(LoanManager);
   await deployer.deploy(DateTime);
+  await deployer.deploy(AccountManager);
 
   await deployer.link(LiquidityPools, [DepositManager, Protocol, ProtocolMock]);
   await deployer.link(DateTime, DepositManager);
@@ -24,4 +26,5 @@ module.exports = async function(deployer, network) {
   await deployer.link(Configuration, [Protocol, ProtocolMock]);
   await deployer.link(DepositManager, [Protocol, ProtocolMock]);
   await deployer.link(LoanManager, [Protocol, ProtocolMock]);
+  await deployer.link(AccountManager, [Protocol, ProtocolMock]);
 };

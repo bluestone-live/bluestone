@@ -7,6 +7,7 @@ import "./lib/_Configuration.sol";
 import "./lib/_LiquidityPools.sol";
 import "./lib/_DepositManager.sol";
 import "./lib/_LoanManager.sol";
+import "./lib/_AccountManager.sol";
 
 /// @title Main contract
 /// TODO(ZhangRGK): add IProtocol to interface implemention after all method implement
@@ -15,11 +16,13 @@ contract Protocol is Ownable, Pausable {
     using _LiquidityPools for _LiquidityPools.State;
     using _DepositManager for _DepositManager.State;
     using _LoanManager for _LoanManager.State;
+    using _AccountManager for _AccountManager.State;
 
     _Configuration.State _configuration;
     _LiquidityPools.State _liquidityPools;
     _DepositManager.State _depositManager;
     _LoanManager.State _loanManager;
+    _AccountManager.State _accountManager;
 
     event LockUserActions();
     event UnlockUserActions();
@@ -115,6 +118,27 @@ contract Protocol is Ownable, Pausable {
         returns (uint256[] memory loanTermList)
     {
         return _loanManager.loanTermList;
+    }
+
+    /// --- AccountManager ---
+
+    function getAccountGeneralStat(
+        address accountAddress,
+        string calldata key
+    )
+        external whenNotPaused view returns (uint)
+    {
+        return _accountManager.getAccountGeneralStat(accountAddress, key);
+    }
+
+    function getAccountTokenStat(
+        address accountAddress,
+        address tokenAddress,
+        string calldata key
+    )
+        external whenNotPaused view returns (uint)
+    {
+        return _accountManager.getAccountTokenStat(accountAddress, tokenAddress, key);
     }
 
     /// --- Configuration ---

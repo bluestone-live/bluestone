@@ -18,4 +18,31 @@ contract ProtocolMock is Protocol {
             poolGroup.lastPoolId
         );
     }
+
+    // Just for unit testing, so it won't check the msg.sender
+    function setAccountGeneralStat(
+        address accountAddress,
+        string calldata key,
+        uint value
+    )
+      external
+    {
+        _accountManager.setAccountGeneralStat(accountAddress, key, value);
+    }
+
+    function setAccountTokenStat(
+        address accountAddress,
+        address tokenAddress,
+        string calldata key,
+        uint value
+    )
+      external
+    {
+        _accountManager.setAccountTokenStat(
+            accountAddress,
+            tokenAddress,
+            key,
+            value
+        );
+    }
 }
