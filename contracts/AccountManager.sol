@@ -1,8 +1,10 @@
 pragma solidity ^0.5.0;
 
-import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
-import 'openzeppelin-solidity/contracts/math/Math.sol';
-import './TokenManager.sol';
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/math/Math.sol";
+import "./TokenManager.sol";
+
 
 contract AccountManager is Pausable {
     using SafeMath for uint256;

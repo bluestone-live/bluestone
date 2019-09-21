@@ -180,6 +180,59 @@ contract Protocol is Ownable, Pausable {
         return _accountManager.getAccountTokenStat(accountAddress, tokenAddress, key);
     }
 
+    /// -- Loan ---
+
+    function getLoanBasicInfoById(bytes32 loanId)
+        external
+        whenNotPaused
+        view
+        returns (
+            address loanTokenAddress,
+            address collateralTokenAddress,
+            uint loanTerm,
+            uint collateralAmount,
+            uint createdAt
+        )
+    {
+        return _loanManager.getLoanBasicInfoById(loanId);
+    }
+
+    function getLoanExtraInfoById(bytes32 loanId)
+        external
+        whenNotPaused
+        view
+        returns (
+            uint remainingDebt,
+            uint currentCollateralRatio,
+            bool isLiquidatable,
+            bool isOverDue,
+            bool isClosed
+        )
+    {
+        // TODO(ZhangRGK): get price from oracle
+        uint collateralTokenPrice = 0;
+        uint loanTokenPrice = 0;
+
+        return _loanManager.getLoanExtraInfoById(loanId, collateralTokenPrice, loanTokenPrice);
+    }
+
+    function getLoanRecordsByAccount(address accountAddress)
+        external
+        whenNotPaused
+        view
+        returns (
+            bytes32[] memory loanIdList,
+            address[] memory loanTokenAddressList,
+            address[] memory collateralTokenAddressList,
+            uint[] memory loanTermList,
+            uint[] memory remainingDebtList,
+            uint[] memory createdAtList,
+            bool[] memory isClosedList
+        )
+    {
+        return _loanManager.getLoanRecordsByAccount(accountAddress);
+    }
+
     /// --- Configuration ---
     function setPriceOracleAddress(address priceOracleAddress)
         external

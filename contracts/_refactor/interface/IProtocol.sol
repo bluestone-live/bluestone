@@ -246,18 +246,9 @@ contract IProtocol {
     /// @return loanTerm
     /// @return loanAmount
     /// @return collateralAmount
-    /// @return annualInterestRate
     /// @return interest
-    /// @return minCollateralRatio
-    /// @return liquidationDiscount
-    /// @return alreadyPaidAmount
-    /// @return liquidatedAmount
-    /// @return soldCollateralAmount
     /// @return remainingDebt
     /// @return createdAt
-    /// @return lastInterestUpdatedAt
-    /// @return lastRepaidAt
-    /// @return lastLiquidatedAt
     /// @return isLiquidatable
     /// @return isOverDue
     /// @return isClose
@@ -269,21 +260,13 @@ contract IProtocol {
         returns (
             address loanTokenAddress,
             address collateralTokenAddress,
-            uint256 loanTerm,
-            uint256 loanAmount,
-            uint256 collateralAmount,
-            uint256 annualInterestRate,
-            uint256 interest,
-            uint256 minCollateralRatio,
-            uint256 liquidationDiscount,
-            uint256 alreadyPaidAmount,
-            uint256 liquidatedAmount,
-            uint256 soldCollateralAmount,
-            uint256 remainingDebt,
-            uint256 createdAt,
-            uint256 lastInterestUpdatedAt,
-            uint256 lastRepaidAt,
-            uint256 lastLiquidatedAt,
+            uint loanTerm,
+            uint loanAmount,
+            uint collateralAmount,
+            uint interest,
+            uint remainingDebt,
+            uint createdAt,
+            uint currentCollateralRatio,
             bool isLiquidatable,
             bool isOverDue,
             bool isClosed
