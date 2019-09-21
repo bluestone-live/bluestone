@@ -79,6 +79,16 @@ library _DepositManager {
     event DepositSucceed(address indexed accountAddress, bytes32 depositId);
     event WithdrawSucceed(address indexed accountAddress, bytes32 depositId);
 
+    struct DepositRecordListView {
+        bytes32[] depositIdList;
+        address[] tokenAddressList;
+        uint[] depositTermList;
+        uint[] depositAmountList;
+        uint[] createdAtList;
+        uint[] maturedAtList;
+        uint[] withdrewAtList;
+    }
+
     function enableDepositTerm(
         State storage self,
         _LiquidityPools.State storage liquidityPools,
@@ -90,6 +100,8 @@ library _DepositManager {
             !self.isDepositTermEnabled[term],
             "DepositManager: term already enabled"
         );
+
+
 
         self.isDepositTermEnabled[term] = true;
         self.enabledDepositTermList.push(term);
@@ -460,6 +472,44 @@ library _DepositManager {
             depositRecord.withdrewAt,
             now >= depositRecord.maturedAt,
             depositRecord.withdrewAt != 0
+        );
+    }
+
+    function getDepositRecordsByAccount(State storage self, address account)
+        external
+        view
+        returns (
+            bytes32[] memory depositIdList,
+            address[] memory tokenAddressList,
+            uint[] memory depositTermList,
+            uint[] memory depositAmountList,
+            uint[] memory createdAtList,
+            uint[] memory maturedAtList,
+            uint[] memory withdrewAtList
+        )
+    {
+        DepositRecordListView memory depositRecordListViewObject;
+        depositRecordListViewObject.depositIdList = self.depositIdsByAccountAddress[account];
+        if (depositRecordListViewObject.depositIdList.length != 0) {
+            for (uint i = 0; i < depositRecordListViewObject.depositIdList.length; i++) {
+                DepositRecord memory depositRecord = self.depositRecordsByDepositId[depositRecordListViewObject.depositIdList[i]];
+                depositRecordListViewObject.tokenAddressList[i] = depositRecord.tokenAddress;
+                depositRecordListViewObject.depositTermList[i] = depositRecord.depositTerm;
+                depositRecordListViewObject.depositAmountList[i] = depositRecord.depositAmount;
+                depositRecordListViewObject.createdAtList[i] = depositRecord.createdAt;
+                depositRecordListViewObject.maturedAtList[i] = depositRecord.maturedAt;
+                depositRecordListViewObject.withdrewAtList[i] = depositRecord.withdrewAt;
+
+            }
+        }
+        return (
+            depositRecordListViewObject.depositIdList,
+            depositRecordListViewObject.tokenAddressList,
+            depositRecordListViewObject.depositTermList,
+            depositRecordListViewObject.depositAmountList,
+            depositRecordListViewObject.createdAtList,
+            depositRecordListViewObject.maturedAtList,
+            depositRecordListViewObject.withdrewAtList
         );
     }
 }

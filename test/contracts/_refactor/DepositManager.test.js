@@ -322,5 +322,48 @@ contract('Protocol', function([owner, depositor]) {
         });
       });
     });
+    describe('#getDepositById', () => {
+      context('when deposit id valid', () => {
+        // TODO(ZhangRGK): depends on the deposit method and pool group implements
+        it('should get deposit details');
+      });
+
+      context('when deposit id invalid', () => {
+        it('reverts', async () => {
+          await expectRevert(
+            protocol.getDepositById(web3.utils.hexToBytes('0x00000000')),
+            'DepositManager: Deposit ID is invalid',
+          );
+        });
+      });
+    });
+  });
+
+  describe('#getDepositsByAccount', () => {
+    context("when user didn't have any deposit records", () => {
+      it('should return empty resultSet', async () => {
+        const {
+          depositIdList,
+          tokenAddressList,
+          depositTermList,
+          depositAmountList,
+          createdAtList,
+          maturedAtList,
+          withdrewAtList,
+        } = await protocol.getDepositRecordsByAccount(otherAccount);
+        expect(depositIdList.length).to.equal(0);
+        expect(tokenAddressList.length).to.equal(0);
+        expect(depositTermList.length).to.equal(0);
+        expect(depositAmountList.length).to.equal(0);
+        expect(createdAtList.length).to.equal(0);
+        expect(maturedAtList.length).to.equal(0);
+        expect(withdrewAtList.length).to.equal(0);
+      });
+    });
+
+    context('when user have deposit records', () => {
+      // TODO(ZhangRGK): depends on the deposit method and pool group implements
+      it('succeed');
+    });
   });
 });

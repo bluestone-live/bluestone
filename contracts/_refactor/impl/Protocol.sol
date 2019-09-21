@@ -105,6 +105,7 @@ contract Protocol is Ownable, Pausable {
 
     function getDepositById(bytes32 depositId)
         external
+        whenNotPaused
         view
         returns (
             address tokenAddress,
@@ -120,6 +121,23 @@ contract Protocol is Ownable, Pausable {
         )
     {
         return _depositManager.getDepositById(depositId);
+    }
+
+    function getDepositRecordsByAccount(address accountAddress)
+        external
+        whenNotPaused
+        view
+        returns (
+            bytes32[] memory depositIdList,
+            address[] memory tokenAddressList,
+            uint[] memory depositTermList,
+            uint[] memory depositAmountList,
+            uint[] memory createdAtList,
+            uint[] memory maturedAtList,
+            uint[] memory withdrewAtList
+        )
+    {
+        return _depositManager.getDepositRecordsByAccount(accountAddress);
     }
 
     /// --- Loan

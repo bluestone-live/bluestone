@@ -101,32 +101,20 @@ contract IProtocol {
     /// @return tokenAddressList
     /// @return depositTermList
     /// @return depositAmountList
-    /// @return withdrewAmountList
-    /// @return protocolReserveRatioList
-    /// @return interestIndexList
-    /// @return poolIdList
     /// @return createdAtList
     /// @return maturedAtList
     /// @return withdrewAtList
-    /// @return isMaturedList
-    /// @return isWithdrawnList
     function getDepositRecordsByAccount(address accountAddress)
         external
         view
         returns (
             bytes32[] memory depositIdList,
             address[] memory tokenAddressList,
-            uint256[] memory depositTermList,
-            uint256[] memory depositAmountList,
-            uint256[] memory withdrewAmountList,
-            uint256[] memory protocolReserveRatioList,
-            uint256[] memory interestIndexList,
-            uint256[] memory poolIdList,
-            uint256[] memory createdAtList,
-            uint256[] memory maturedAtList,
-            uint256[] memory withdrewAtList,
-            bool[] memory isMaturedList,
-            bool[] memory isWithdrawList
+            uint[] memory depositTermList,
+            uint[] memory depositAmountList,
+            uint[] memory createdAtList,
+            uint[] memory maturedAtList,
+            uint[] memory withdrewAtList
         );
 
     /// --- Loan ---
