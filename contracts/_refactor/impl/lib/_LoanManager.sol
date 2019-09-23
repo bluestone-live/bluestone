@@ -44,6 +44,22 @@ library _LoanManager {
         bool isClosed;
     }
 
+    struct LoanRecordView {
+        bytes32 loanId;
+        address loanTokenAddress;
+        address collateralTokenAddress;
+        uint loanTerm;
+        uint loanAmount;
+        uint collateralAmount;
+        uint interest;
+        uint remainingDebt;
+        uint createdAt;
+        uint currentCollateralRatio;
+        bool isClosed;
+        bool isLiquidatable;
+        bool isOverDue;
+    }
+
     struct LoanRecordListView {
         bytes32[] loanIdList;
         address[] loanTokenAddressList;
@@ -205,5 +221,56 @@ library _LoanManager {
             loanRecordListView.createdAtList,
             loanRecordListView.isClosedList
         );
+    }
+
+    function getLoanRecordsByAccount(
+        State storage self,
+        address accountAddress
+    )
+        external
+        view
+        returns (
+            bytes32[] memory,
+            address[] memory,
+            address[] memory,
+            uint[] memory,
+            uint[] memory,
+            uint[] memory,
+            bool[] memory
+        )
+    {
+        LoanRecordListView memory loanRecordListViewObject;
+        loanRecordListViewObject.loanIdList = self.loanIdsByAccountAddress[accountAddress];
+        if (loanRecordListViewObject.loanIdList.length != 0) {
+            uint i = 0;
+            while (i < loanRecordListViewObject.loanIdList.length) {
+                LoanRecord memory loanRecord = self.loanRecordsById[loanRecordListViewObject.loanIdList[i]];
+                loanRecordListViewObject.loanIdList[i] = loanRecord.loanId;
+                loanRecordListViewObject.loanTokenAddressList[i] = loanRecord.loanTokenAddress;
+                loanRecordListViewObject.collateralTokenAddressList[i] = loanRecord.collateralTokenAddress;
+                loanRecordListViewObject.loanTermList[i] = loanRecord.loanTerm;
+                loanRecordListViewObject.remainingDebtList[i] = loanRecord.loanAmount
+                    .add(loanRecord.interest)
+                    .sub(loanRecord.alreadyPaidAmount)
+                    .sub(loanRecord.liquidatedAmount);
+                loanRecordListViewObject.createdAtList[i] = loanRecord.createdAt;
+                loanRecordListViewObject.isClosedList[i] = loanRecord.isClosed;
+                i++;
+            }
+        }
+    }
+
+    function addCollateral(
+        State storage self,
+        bytes32 loanId,
+        uint collateralAmount
+    )
+        external
+        returns (
+            uint totalCollateralAmount
+        )
+    {
+        self.loanRecordsById[loanId].collateralAmount = self.loanRecordsById[loanId].collateralAmount.add(collateralAmount);
+        return self.loanRecordsById[loanId].collateralAmount;
     }
 }

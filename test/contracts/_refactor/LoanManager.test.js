@@ -2,7 +2,11 @@ const Protocol = artifacts.require('Protocol');
 const { expectRevert } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
 
+<<<<<<< HEAD
 contract('Protocol', function([owner, otherAccount]) {
+=======
+contract("Protocol", function([owner, otherAccount]) {
+>>>>>>> [Contract]: implement getLoanRecordsByAccount
   let protocol;
 
   beforeEach(async () => {
@@ -119,5 +123,10 @@ contract('Protocol', function([owner, otherAccount]) {
       // TODO(ZhangRGK): depends on the loan and pool group implements
       it('succeed');
     });
+  });
+
+  // TODO(ZhangRGK): after the loan implement
+  describe("#addCollateral", () => {
+    it("succeed");
   });
 });

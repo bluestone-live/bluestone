@@ -213,7 +213,35 @@ contract Protocol is Ownable, Pausable {
         uint collateralTokenPrice = 0;
         uint loanTokenPrice = 0;
 
+        return _loanManager.getLoanBasicInfoById(loanId, collateralTokenPrice, loanTokenPrice);
+    }
+
+    function getLoanExtraInfoById(bytes32 loanId)
         return _loanManager.getLoanExtraInfoById(loanId, collateralTokenPrice, loanTokenPrice);
+    }
+
+    function getLoanRecordsByAccount(address accountAddress)
+            bytes32[] memory loanIdList,
+            address[] memory loanTokenAddressList,
+            address[] memory collateralTokenAddressList,
+            uint[] memory loanTermList,
+            uint[] memory remainingDebtList,
+            uint[] memory createdAtList,
+            bool[] memory isClosedList
+        )
+    {
+        return _loanManager.getLoanRecordsByAccount(accountAddress);
+    }
+        external
+        whenNotPaused
+        view
+        returns (
+            bool isLiquidatable,
+            bool isOverDue,
+            bool isClosed
+        )
+    {
+        return _loanManager.getLoanExtraInfoById(loanId);
     }
 
     function getLoanRecordsByAccount(address accountAddress)
@@ -231,6 +259,18 @@ contract Protocol is Ownable, Pausable {
         )
     {
         return _loanManager.getLoanRecordsByAccount(accountAddress);
+    }
+
+    function addCollateral(bytes32 loanId, uint collateralAmount, bool useFreedCollateral)
+        external
+        whenNotPaused
+        returns (uint totalCollateralAmount)
+    {
+        uint remainingCollateralAmount = collateralAmount;
+        if (useFreedCollateral) {
+            // TODO(ZhangRGK): subscract freed collateral amount
+        }
+        return _loanManager.addCollateral(loanId, remainingCollateralAmount);
     }
 
     /// --- Configuration ---
