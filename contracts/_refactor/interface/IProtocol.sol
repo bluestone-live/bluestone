@@ -1,6 +1,5 @@
 pragma solidity ^0.5.0;
 
-
 /// @title Interface for main protocol
 /// TODO (ZhangRGK): change to interface after all method implement
 contract IProtocol {
@@ -76,9 +75,7 @@ contract IProtocol {
     /// @return withdrewAt
     /// @return isMatured
     /// @return isWithdrawn
-    function getDepositRecordById(
-        bytes32 depositId
-    )
+    function getDepositRecordById(bytes32 depositId)
         external
         view
         returns (
@@ -110,11 +107,11 @@ contract IProtocol {
         returns (
             bytes32[] memory depositIdList,
             address[] memory tokenAddressList,
-            uint[] memory depositTermList,
-            uint[] memory depositAmountList,
-            uint[] memory createdAtList,
-            uint[] memory maturedAtList,
-            uint[] memory withdrewAtList
+            uint256[] memory depositTermList,
+            uint256[] memory depositAmountList,
+            uint256[] memory createdAtList,
+            uint256[] memory maturedAtList,
+            uint256[] memory withdrewAtList
         );
 
     /// --- Loan ---
@@ -168,17 +165,16 @@ contract IProtocol {
     /// @param loanInterestRateList A list of loan interest rates
     function setLoanInterestRatesForToken(
         address tokenAddress,
-        uint[] calldata loanTerms,
-        uint[] calldata loanInterestRateList
-    )
-        external;
+        uint256[] calldata loanTerms,
+        uint256[] calldata loanInterestRateList
+    ) external;
 
     /// @notice Borrow token in a specific term
     /// @param loanTokenAddress token to borrow
     /// @param collateralTokenAddress token to collateralize the loan
     /// @param loanAmount Amount to borrow
     /// @param collateralAmount Amount to collateralize
-    /// @param term Loan term
+    /// @param loanTerm Loan term
     /// @param useFreedCollateral Whether to use freed collateral in user's account
     /// @return loanId ID that identifies the loan
     function loan(
@@ -186,7 +182,7 @@ contract IProtocol {
         address collateralTokenAddress,
         uint256 loanAmount,
         uint256 collateralAmount,
-        uint256 term,
+        uint256 loanTerm,
         bool useFreedCollateral
     ) external returns (bytes32 loanId);
 
@@ -194,7 +190,9 @@ contract IProtocol {
     /// @param loanId ID that identifies the loan
     /// @param repayAmount Amount to repay
     /// @return remainingDebt remaining debt of the loan
-    function repayLoan(bytes32 loanId, uint repayAmount) external returns (uint remainingDebt);
+    function repayLoan(bytes32 loanId, uint256 repayAmount)
+        external
+        returns (uint256 remainingDebt);
 
     /// @notice Liquidate a loan that is under-collateralized or defaulted
     /// @param loanId ID that identifies the loan
@@ -203,12 +201,9 @@ contract IProtocol {
     ///        liquidate the full remaining debt.
     /// @return remainingCollateral The remaining amount of collateral after liquidation
     /// @return liuquidatedAmount The amount of debt that is liquidated.
-    function liquidateLoan(
-        bytes32 loanId,
-        uint liquidateAmount
-    )
+    function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
         external
-        returns (uint remainingCollateral, uint liquidatedAmount);
+        returns (uint256 remainingCollateral, uint256 liquidatedAmount);
 
     /// @notice Add collateral to a loan
     /// @param loanId ID that identifies the loan
@@ -252,21 +247,19 @@ contract IProtocol {
     /// @return isLiquidatable
     /// @return isOverDue
     /// @return isClose
-    function getLoanRecordById(
-        bytes32 loanId
-    )
+    function getLoanRecordById(bytes32 loanId)
         external
         view
         returns (
             address loanTokenAddress,
             address collateralTokenAddress,
-            uint loanTerm,
-            uint loanAmount,
-            uint collateralAmount,
-            uint interest,
-            uint remainingDebt,
-            uint createdAt,
-            uint currentCollateralRatio,
+            uint256 loanTerm,
+            uint256 loanAmount,
+            uint256 collateralAmount,
+            uint256 interest,
+            uint256 remainingDebt,
+            uint256 createdAt,
+            uint256 currentCollateralRatio,
             bool isLiquidatable,
             bool isOverDue,
             bool isClosed
@@ -352,8 +345,8 @@ contract IProtocol {
         external
         view
         returns (
-            uint[] memory loanTerms,
-            uint[] memory loanInterestRates
+            uint256[] memory loanTerms,
+            uint256[] memory loanInterestRates
         );
 
     /// --- Configuration ---

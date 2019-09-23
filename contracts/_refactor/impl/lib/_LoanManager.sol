@@ -1,45 +1,51 @@
 pragma solidity ^0.5.0;
 
+import 'openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/math/Math.sol';
 import '../../lib/FixedMath.sol';
+import '../../lib/DateTime.sol';
+import '../_PriceOracle.sol';
+import './_Configuration.sol';
+import './_LiquidityPools.sol';
+import './_DepositManager.sol';
 
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _LoanManager {
+    using _Configuration for _Configuration.State;
+    using _LiquidityPools for _LiquidityPools.State;
+    using _DepositManager for _DepositManager.State;
+    using SafeERC20 for ERC20;
     using SafeMath for uint256;
     using FixedMath for uint256;
 
     struct State {
         uint256[] loanTermList;
         mapping(uint256 => bool) isLoanTermValid;
-        // loanId -> LoanRecord
-        mapping(bytes32 => LoanRecord) loanRecordsById;
+        // ID -> LoanRecord
+        mapping(bytes32 => LoanRecord) loanRecordById;
         // accountAddress -> loanIds
-        mapping(address => bytes32[]) loanIdsByAccountAddress;
+        mapping(address => bytes32[]) loanIdsByAccount;
         // TODO(ZhangRGK): I need a collateral token list in account manager, I will merge it after loan pair finished
         address[] collateralTokenList;
         // account -> tokenAddress -> freedCollateralamount
         mapping(address => mapping(address => uint256)) freedCollateralsByAccount;
+        uint256 numLoans;
     }
 
-    event WithdrawFreedCollateralSucceed(
-        address indexed accountAddress,
-        uint256 amount
-    );
-
-    uint256 private constant DAY_IN_SECONDS = 86400;
-
     struct LoanRecord {
+        bool isValid;
         bytes32 loanId;
+        address ownerAddress;
         address loanTokenAddress;
         address collateralTokenAddress;
-        address owner;
-        uint256 loanTerm;
         uint256 loanAmount;
         uint256 collateralAmount;
+        uint256 loanTerm;
         uint256 annualInterestRate;
         uint256 interest;
-        uint256 minCollateralRatio;
+        uint256 minCollateralCoverageRatio;
         uint256 liquidationDiscount;
         uint256 alreadyPaidAmount;
         uint256 liquidatedAmount;
@@ -49,6 +55,9 @@ library _LoanManager {
         uint256 lastRepaidAt;
         uint256 lastLiquidatedAt;
         bool isClosed;
+        // deposit term -> pool id -> loan amount
+        /// How much have one borrowed from a pool in a specific pool group
+        mapping(uint256 => mapping(uint256 => uint256)) loanAmountByPool;
     }
 
     struct LoanRecordListView {
@@ -61,6 +70,24 @@ library _LoanManager {
         uint256[] currentCollateralRatioList;
         bool[] isClosedList;
     }
+
+    struct LocalVars {
+        bytes32 loanId;
+        uint256 remainingCollateralAmount;
+        uint256 loanTokenPrice;
+        uint256 collateralTokenPrice;
+        uint256 currCollateralCoverageRatio;
+        uint256 minCollateralCoverageRatio;
+        uint256 loanInterestRate;
+        uint256 liquidationDiscount;
+        uint256 loanInterest;
+    }
+
+    event LoanSucceed(address indexed accountAddress, bytes32 loanId);
+    event WithdrawFreedCollateralSucceed(
+        address indexed accountAddress,
+        uint256 amount
+    );
 
     function addLoanTerm(State storage self, uint256 loanTerm) external {
         require(
@@ -87,8 +114,8 @@ library _LoanManager {
             if (self.loanTermList[i] == loanTerm) {
                 // Overwrite current term with the last term
                 self.loanTermList[i] = self.loanTermList[self
-                    .loanTermList
-                    .length -
+                        .loanTermList
+                        .length -
                     1];
 
                 // Shrink array size
@@ -109,7 +136,7 @@ library _LoanManager {
             uint256 createdAt
         )
     {
-        LoanRecord memory loanRecord = self.loanRecordsById[loanId];
+        LoanRecord memory loanRecord = self.loanRecordById[loanId];
 
         require(
             loanRecord.loanTokenAddress != address(0),
@@ -141,7 +168,7 @@ library _LoanManager {
             bool isClosed
         )
     {
-        LoanRecord memory loanRecord = self.loanRecordsById[loanId];
+        LoanRecord memory loanRecord = self.loanRecordById[loanId];
         require(
             loanRecord.loanTokenAddress != address(0),
             'LoanManager: Loan ID is invalid'
@@ -161,10 +188,13 @@ library _LoanManager {
             .divFixed(loanTokenPrice);
 
         isOverDue =
-            now > loanRecord.createdAt + loanRecord.loanTerm * DAY_IN_SECONDS;
+            now >
+            loanRecord.createdAt +
+                loanRecord.loanTerm *
+                DateTime.dayInSeconds();
 
         isLiquidatable =
-            (currentCollateralRatio < loanRecord.minCollateralRatio) ||
+            (currentCollateralRatio < loanRecord.minCollateralCoverageRatio) ||
             isOverDue;
 
         return (
@@ -190,12 +220,11 @@ library _LoanManager {
         )
     {
         LoanRecordListView memory loanRecordListView;
-        loanRecordListView.loanIdList = self
-            .loanIdsByAccountAddress[accountAddress];
+        loanRecordListView.loanIdList = self.loanIdsByAccount[accountAddress];
         if (loanRecordListView.loanIdList.length != 0) {
             for (uint256 i = 0; i < loanRecordListView.loanIdList.length; i++) {
                 LoanRecord memory loanRecord = self
-                    .loanRecordsById[loanRecordListView.loanIdList[i]];
+                    .loanRecordById[loanRecordListView.loanIdList[i]];
                 loanRecordListView.loanIdList[i] = loanRecord.loanId;
                 loanRecordListView.loanTokenAddressList[i] = loanRecord
                     .loanTokenAddress;
@@ -227,11 +256,11 @@ library _LoanManager {
         bytes32 loanId,
         uint256 collateralAmount
     ) external returns (uint256 totalCollateralAmount) {
-        self.loanRecordsById[loanId].collateralAmount = self
-            .loanRecordsById[loanId]
+        self.loanRecordById[loanId].collateralAmount = self
+            .loanRecordById[loanId]
             .collateralAmount
             .add(collateralAmount);
-        return self.loanRecordsById[loanId].collateralAmount;
+        return self.loanRecordById[loanId].collateralAmount;
     }
     function getFreedCollateralsByAccount(
         State storage self,
@@ -307,5 +336,121 @@ library _LoanManager {
             .sub(availableFreedCollateral);
 
         return availableFreedCollateral;
+    }
+
+    function loan(
+        State storage self,
+        _Configuration.State storage configuration,
+        _LiquidityPools.State storage liquidityPools,
+        _DepositManager.State storage depositManager,
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 loanAmount,
+        uint256 collateralAmount,
+        uint256 loanTerm,
+        bool useFreedCollateral
+    ) external returns (bytes32 loanId) {
+        // TODO(desmond): verify user actions are locked
+        // TODO(desmond): verify loan and collateral token pair is enabled
+
+        require(loanAmount > 0, 'LoanManager: invalid loan amount');
+        require(collateralAmount > 0, 'LoanManager: invalid collateral amount');
+        require(
+            self.isLoanTermValid[loanTerm],
+            'LoanManager: invalid loan term'
+        );
+
+        LocalVars memory localVars;
+        localVars.remainingCollateralAmount = collateralAmount;
+
+        if (useFreedCollateral) {
+            // TODO(desmond): getFreedCollateral
+            uint256 availableFreedCollateral = 0;
+
+            localVars.remainingCollateralAmount = localVars
+                .remainingCollateralAmount
+                .sub(availableFreedCollateral);
+        }
+
+        // TODO(desmond): getLoanInterestRate
+        localVars.loanInterestRate = 0;
+
+        // TODO(desmond): getLiquidationDiscount
+        localVars.liquidationDiscount = 0;
+
+        // TODO(desmond): getMinCollateralCoverageRatio
+        localVars.minCollateralCoverageRatio = 0;
+        localVars.loanInterest = loanAmount
+            .mulFixed(localVars.loanInterestRate)
+            .mul(loanTerm)
+            .div(365);
+
+        _PriceOracle priceOracle = _PriceOracle(
+            configuration.priceOracleAddress
+        );
+        localVars.loanTokenPrice = priceOracle.getPrice(loanTokenAddress);
+        localVars.collateralTokenPrice = priceOracle.getPrice(
+            collateralTokenAddress
+        );
+
+        localVars.currCollateralCoverageRatio = collateralAmount
+            .mulFixed(localVars.collateralTokenPrice)
+            .divFixed(loanAmount.add(localVars.loanInterest))
+            .divFixed(localVars.loanTokenPrice);
+
+        require(
+            localVars.currCollateralCoverageRatio >=
+                localVars.minCollateralCoverageRatio,
+            'LoanManager: collateral ratio is below requirement'
+        );
+
+        self.numLoans++;
+
+        localVars.loanId = keccak256(abi.encode(msg.sender, self.numLoans));
+
+        self.loanRecordById[localVars.loanId] = LoanRecord({
+            isValid: true,
+            loanId: localVars.loanId,
+            ownerAddress: msg.sender,
+            loanTokenAddress: loanTokenAddress,
+            collateralTokenAddress: collateralTokenAddress,
+            loanAmount: loanAmount,
+            collateralAmount: collateralAmount,
+            loanTerm: loanTerm,
+            annualInterestRate: localVars.loanInterestRate,
+            interest: localVars.loanInterest,
+            minCollateralCoverageRatio: localVars.minCollateralCoverageRatio,
+            liquidationDiscount: localVars.liquidationDiscount,
+            alreadyPaidAmount: 0,
+            liquidatedAmount: 0,
+            soldCollateralAmount: 0,
+            createdAt: now,
+            lastInterestUpdatedAt: now,
+            lastRepaidAt: 0,
+            lastLiquidatedAt: 0,
+            isClosed: false
+        });
+
+        liquidityPools.loanFromPoolGroups(
+            self,
+            localVars.loanId,
+            depositManager.enabledDepositTermList
+        );
+
+        // Transfer collateral tokens from loaner to protocol
+        ERC20(collateralTokenAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            localVars.remainingCollateralAmount
+        );
+
+        // Transfer loan tokens from protocol to loaner
+        ERC20(loanTokenAddress).safeTransfer(msg.sender, loanAmount);
+
+        // TODO(desmond): increment stats
+
+        emit LoanSucceed(msg.sender, localVars.loanId);
+
+        return localVars.loanId;
     }
 }

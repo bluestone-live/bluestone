@@ -150,6 +150,28 @@ contract Protocol is Ownable, Pausable {
         _loanManager.removeLoanTerm(loanTerm);
     }
 
+    function loan(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 loanAmount,
+        uint256 collateralAmount,
+        uint256 loanTerm,
+        bool useFreedCollateral
+    ) external returns (bytes32 loanId) {
+        return
+            _loanManager.loan(
+                _configuration,
+                _liquidityPools,
+                _depositManager,
+                loanTokenAddress,
+                collateralTokenAddress,
+                loanAmount,
+                collateralAmount,
+                loanTerm,
+                useFreedCollateral
+            );
+    }
+
     function getLoanTerms()
         external
         view

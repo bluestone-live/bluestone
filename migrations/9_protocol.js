@@ -15,13 +15,18 @@ module.exports = async function(deployer, network) {
 
   await deployer.deploy(Configuration);
   await deployer.deploy(LiquidityPools);
-  await deployer.deploy(LoanManager);
   await deployer.deploy(DateTime);
   await deployer.deploy(AccountManager);
 
-  await deployer.link(LiquidityPools, [DepositManager, Protocol, ProtocolMock]);
-  await deployer.link(DateTime, DepositManager);
+  await deployer.link(LiquidityPools, [
+    DepositManager,
+    LoanManager,
+    Protocol,
+    ProtocolMock,
+  ]);
+  await deployer.link(DateTime, [DepositManager, LoanManager]);
   await deployer.deploy(DepositManager);
+  await deployer.deploy(LoanManager);
 
   await deployer.link(Configuration, [Protocol, ProtocolMock]);
   await deployer.link(DepositManager, [Protocol, ProtocolMock]);
