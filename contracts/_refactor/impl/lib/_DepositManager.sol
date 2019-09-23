@@ -38,7 +38,6 @@ library _DepositManager {
         // When was the last time deposit maturity updated
         uint256 lastDepositMaturityUpdatedAt;
         uint256 numDeposits;
-
         // AccountAddress -> DepositIds
         mapping(address => bytes32[]) depositIdsByAccountAddress;
     }
@@ -82,26 +81,22 @@ library _DepositManager {
     struct DepositRecordListView {
         bytes32[] depositIdList;
         address[] tokenAddressList;
-        uint[] depositTermList;
-        uint[] depositAmountList;
-        uint[] createdAtList;
-        uint[] maturedAtList;
-        uint[] withdrewAtList;
+        uint256[] depositTermList;
+        uint256[] depositAmountList;
+        uint256[] createdAtList;
+        uint256[] maturedAtList;
+        uint256[] withdrewAtList;
     }
 
     function enableDepositTerm(
         State storage self,
         _LiquidityPools.State storage liquidityPools,
         uint256 term
-    )
-        external
-    {
+    ) external {
         require(
             !self.isDepositTermEnabled[term],
-            "DepositManager: term already enabled"
+            'DepositManager: term already enabled'
         );
-
-
 
         self.isDepositTermEnabled[term] = true;
         self.enabledDepositTermList.push(term);
@@ -126,7 +121,7 @@ library _DepositManager {
     function disableDepositTerm(State storage self, uint256 term) external {
         require(
             self.isDepositTermEnabled[term],
-            "DepositManager: term already disabled."
+            'DepositManager: term already disabled.'
         );
 
         self.isDepositTermEnabled[term] = false;
@@ -443,20 +438,23 @@ library _DepositManager {
         view
         returns (
             address tokenAddress,
-            uint depositTerm,
-            uint depositAmount,
-            uint interestIndex,
-            uint poolId,
-            uint createdAt,
-            uint maturedAt,
-            uint withdrewAt,
+            uint256 depositTerm,
+            uint256 depositAmount,
+            uint256 interestIndex,
+            uint256 poolId,
+            uint256 createdAt,
+            uint256 maturedAt,
+            uint256 withdrewAt,
             bool isMatured,
             bool isWithdrawn
         )
     {
         DepositRecord memory depositRecord = self.depositRecordById[depositId];
 
-        require(depositRecord.tokenAddress != address(0), "DepositManager: Deposit ID is invalid");
+        require(
+            depositRecord.tokenAddress != address(0),
+            'DepositManager: Deposit ID is invalid'
+        );
 
         // TODO(ZhangRGK): interest index depends on pool groups
         interestIndex = 0;
@@ -481,24 +479,37 @@ library _DepositManager {
         returns (
             bytes32[] memory depositIdList,
             address[] memory tokenAddressList,
-            uint[] memory depositTermList,
-            uint[] memory depositAmountList,
-            uint[] memory createdAtList,
-            uint[] memory maturedAtList,
-            uint[] memory withdrewAtList
+            uint256[] memory depositTermList,
+            uint256[] memory depositAmountList,
+            uint256[] memory createdAtList,
+            uint256[] memory maturedAtList,
+            uint256[] memory withdrewAtList
         )
     {
         DepositRecordListView memory depositRecordListViewObject;
-        depositRecordListViewObject.depositIdList = self.depositIdsByAccountAddress[account];
+        depositRecordListViewObject.depositIdList = self
+            .depositIdsByAccountAddress[account];
         if (depositRecordListViewObject.depositIdList.length != 0) {
-            for (uint i = 0; i < depositRecordListViewObject.depositIdList.length; i++) {
-                DepositRecord memory depositRecord = self.depositRecordsByDepositId[depositRecordListViewObject.depositIdList[i]];
-                depositRecordListViewObject.tokenAddressList[i] = depositRecord.tokenAddress;
-                depositRecordListViewObject.depositTermList[i] = depositRecord.depositTerm;
-                depositRecordListViewObject.depositAmountList[i] = depositRecord.depositAmount;
-                depositRecordListViewObject.createdAtList[i] = depositRecord.createdAt;
-                depositRecordListViewObject.maturedAtList[i] = depositRecord.maturedAt;
-                depositRecordListViewObject.withdrewAtList[i] = depositRecord.withdrewAt;
+            for (
+                uint256 i = 0;
+                i < depositRecordListViewObject.depositIdList.length;
+                i++
+            ) {
+                DepositRecord memory depositRecord = self
+                    .depositRecordById[depositRecordListViewObject
+                    .depositIdList[i]];
+                depositRecordListViewObject.tokenAddressList[i] = depositRecord
+                    .tokenAddress;
+                depositRecordListViewObject.depositTermList[i] = depositRecord
+                    .depositTerm;
+                depositRecordListViewObject.depositAmountList[i] = depositRecord
+                    .depositAmount;
+                depositRecordListViewObject.createdAtList[i] = depositRecord
+                    .createdAt;
+                depositRecordListViewObject.maturedAtList[i] = depositRecord
+                    .maturedAt;
+                depositRecordListViewObject.withdrewAtList[i] = depositRecord
+                    .withdrewAt;
 
             }
         }

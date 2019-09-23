@@ -1,17 +1,13 @@
 pragma solidity ^0.5.0;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
-import "../interface/IProtocol.sol";
-import "./lib/_Configuration.sol";
-import "./lib/_LiquidityPools.sol";
-import "./lib/_DepositManager.sol";
-import "./lib/_LoanManager.sol";
-import "./lib/_AccountManager.sol";
-<<<<<<< HEAD
-=======
-
->>>>>>> [Contract]: Implements generalStat and assetStat
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
+import '../interface/IProtocol.sol';
+import './lib/_Configuration.sol';
+import './lib/_LiquidityPools.sol';
+import './lib/_DepositManager.sol';
+import './lib/_LoanManager.sol';
+import './lib/_AccountManager.sol';
 
 /// @title Main contract
 /// TODO(ZhangRGK): add IProtocol to interface implemention after all method implement
@@ -109,17 +105,17 @@ contract Protocol is Ownable, Pausable {
 
     function getDepositById(bytes32 depositId)
         external
-        whenNotPaused
         view
+        whenNotPaused
         returns (
             address tokenAddress,
-            uint depositTerm,
-            uint depositAmount,
-            uint interestIndex,
-            uint poolId,
-            uint createdAt,
-            uint maturedAt,
-            uint withdrewAt,
+            uint256 depositTerm,
+            uint256 depositAmount,
+            uint256 interestIndex,
+            uint256 poolId,
+            uint256 createdAt,
+            uint256 maturedAt,
+            uint256 withdrewAt,
             bool isMatured,
             bool isWithdrawn
         )
@@ -129,16 +125,16 @@ contract Protocol is Ownable, Pausable {
 
     function getDepositRecordsByAccount(address accountAddress)
         external
-        whenNotPaused
         view
+        whenNotPaused
         returns (
             bytes32[] memory depositIdList,
             address[] memory tokenAddressList,
-            uint[] memory depositTermList,
-            uint[] memory depositAmountList,
-            uint[] memory createdAtList,
-            uint[] memory maturedAtList,
-            uint[] memory withdrewAtList
+            uint256[] memory depositTermList,
+            uint256[] memory depositAmountList,
+            uint256[] memory createdAtList,
+            uint256[] memory maturedAtList,
+            uint256[] memory withdrewAtList
         )
     {
         return _depositManager.getDepositRecordsByAccount(accountAddress);
@@ -163,32 +159,37 @@ contract Protocol is Ownable, Pausable {
         return _loanManager.loanTermList;
     }
 
-    function getFreedCollateralsByAccount(
-        address accountAddress
-    )
+    function getFreedCollateralsByAccount(address accountAddress)
         external
-        whenNotPaused
         view
+        whenNotPaused
         returns (
             address[] memory tokenAddressList,
-            uint[] memory freedCollateralAmountList
+            uint256[] memory freedCollateralAmountList
         )
     {
         return _loanManager.getFreedCollateralsByAccount(accountAddress);
     }
 
-    function withdrawFreedCollateral(address tokenAddress, uint collateralAmount) external whenNotPaused {
+    function withdrawFreedCollateral(
+        address tokenAddress,
+        uint256 collateralAmount
+    ) external whenNotPaused {
         address accountAddress = msg.sender;
-        _loanManager.withdrawFreedCollateral(accountAddress, tokenAddress, collateralAmount);
+        _loanManager.withdrawFreedCollateral(
+            accountAddress,
+            tokenAddress,
+            collateralAmount
+        );
     }
 
     /// --- AccountManager ---
 
-    function getAccountGeneralStat(
-        address accountAddress,
-        string calldata key
-    )
-        external whenNotPaused view returns (uint)
+    function getAccountGeneralStat(address accountAddress, string calldata key)
+        external
+        view
+        whenNotPaused
+        returns (uint256)
     {
         return _accountManager.getAccountGeneralStat(accountAddress, key);
     }
@@ -197,99 +198,94 @@ contract Protocol is Ownable, Pausable {
         address accountAddress,
         address tokenAddress,
         string calldata key
-    )
-        external whenNotPaused view returns (uint)
-    {
-        return _accountManager.getAccountTokenStat(accountAddress, tokenAddress, key);
+    ) external view whenNotPaused returns (uint256) {
+        return
+            _accountManager.getAccountTokenStat(
+                accountAddress,
+                tokenAddress,
+                key
+            );
     }
 
     /// -- Loan ---
 
-    function getLoanBasicInfoById(bytes32 loanId)
+    function getLoanRecordById(bytes32 loanId)
         external
-        whenNotPaused
         view
+        whenNotPaused
         returns (
             address loanTokenAddress,
             address collateralTokenAddress,
-            uint loanTerm,
-            uint collateralAmount,
-            uint createdAt
-        )
-    {
-        return _loanManager.getLoanBasicInfoById(loanId);
-    }
-
-    function getLoanExtraInfoById(bytes32 loanId)
-        external
-        whenNotPaused
-        view
-        returns (
-            uint remainingDebt,
-            uint currentCollateralRatio,
+            uint256 loanTerm,
+            uint256 collateralAmount,
+            uint256 createdAt,
+            uint256 remainingDebt,
+            uint256 currentCollateralRatio,
             bool isLiquidatable,
             bool isOverDue,
             bool isClosed
         )
     {
-        // TODO(ZhangRGK): get price from oracle
-        uint collateralTokenPrice = 0;
-        uint loanTokenPrice = 0;
+        (
+            loanTokenAddress,
+            collateralTokenAddress,
+            loanTerm,
+            collateralAmount,
+            createdAt
+        ) = _loanManager.getLoanBasicInfoById(loanId);
 
-        return _loanManager.getLoanBasicInfoById(loanId, collateralTokenPrice, loanTokenPrice);
-    }
+        // TODO(ZhangRGK): get price from price oracle
+        uint256 collateralTokenPrice = 0;
+        uint256 loanTokenPrice = 0;
 
-    function getLoanExtraInfoById(bytes32 loanId)
-        return _loanManager.getLoanExtraInfoById(loanId, collateralTokenPrice, loanTokenPrice);
+        (
+            remainingDebt,
+            currentCollateralRatio,
+            isLiquidatable,
+            isOverDue,
+            isClosed
+        ) = _loanManager.getLoanExtraInfoById(
+            loanId,
+            collateralTokenPrice,
+            loanTokenPrice
+        );
+        return (
+            loanTokenAddress,
+            collateralTokenAddress,
+            loanTerm,
+            collateralAmount,
+            createdAt,
+            remainingDebt,
+            currentCollateralRatio,
+            isLiquidatable,
+            isOverDue,
+            isClosed
+        );
     }
 
     function getLoanRecordsByAccount(address accountAddress)
-            bytes32[] memory loanIdList,
-            address[] memory loanTokenAddressList,
-            address[] memory collateralTokenAddressList,
-            uint[] memory loanTermList,
-            uint[] memory remainingDebtList,
-            uint[] memory createdAtList,
-            bool[] memory isClosedList
-        )
-    {
-        return _loanManager.getLoanRecordsByAccount(accountAddress);
-    }
         external
-        whenNotPaused
         view
-        returns (
-            bool isLiquidatable,
-            bool isOverDue,
-            bool isClosed
-        )
-    {
-        return _loanManager.getLoanExtraInfoById(loanId);
-    }
-
-    function getLoanRecordsByAccount(address accountAddress)
-        external
         whenNotPaused
-        view
         returns (
             bytes32[] memory loanIdList,
             address[] memory loanTokenAddressList,
             address[] memory collateralTokenAddressList,
-            uint[] memory loanTermList,
-            uint[] memory remainingDebtList,
-            uint[] memory createdAtList,
+            uint256[] memory loanTermList,
+            uint256[] memory remainingDebtList,
+            uint256[] memory createdAtList,
             bool[] memory isClosedList
         )
     {
         return _loanManager.getLoanRecordsByAccount(accountAddress);
     }
 
-    function addCollateral(bytes32 loanId, uint collateralAmount, bool useFreedCollateral)
-        external
-        whenNotPaused
-        returns (uint totalCollateralAmount)
-    {
-        uint remainingCollateralAmount = collateralAmount;
+    function addCollateral(
+        bytes32 loanId,
+        uint256 collateralAmount,
+        bool useFreedCollateral
+    ) external whenNotPaused returns (uint256 totalCollateralAmount) {
+        uint256 remainingCollateralAmount = collateralAmount;
         if (useFreedCollateral) {
             // TODO(ZhangRGK): subscract freed collateral amount
         }

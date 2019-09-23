@@ -350,7 +350,7 @@ contract('Protocol', function([owner, depositor]) {
           createdAtList,
           maturedAtList,
           withdrewAtList,
-        } = await protocol.getDepositRecordsByAccount(otherAccount);
+        } = await protocol.getDepositRecordsByAccount(depositor);
         expect(depositIdList.length).to.equal(0);
         expect(tokenAddressList.length).to.equal(0);
         expect(depositTermList.length).to.equal(0);

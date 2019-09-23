@@ -2,15 +2,7 @@ const Protocol = artifacts.require('Protocol');
 const { expectRevert } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 contract('Protocol', function([owner, otherAccount]) {
-=======
-contract("Protocol", function([owner, otherAccount]) {
->>>>>>> [Contract]: implement getLoanRecordsByAccount
-=======
-contract("Protocol", function([owner]) {
->>>>>>> [Contract]: implement getFreedCollateral and withdrawFreedCollateral
   let protocol;
 
   beforeEach(async () => {
@@ -69,7 +61,7 @@ contract("Protocol", function([owner]) {
     });
   });
 
-  describe('#getLoanBasicInfoById', () => {
+  describe('#getLoanRecordById', () => {
     context('when loan id is valid', () => {
       // TODO(ZhangRGK): after the liquidityPools implement
       it('succeed');
@@ -78,23 +70,7 @@ contract("Protocol", function([owner]) {
     context('when loan id is invalid', () => {
       it('revert', async () => {
         await expectRevert(
-          protocol.getLoanBasicInfoById(web3.utils.hexToBytes('0x00000000')),
-          'LoanManager: Loan ID is invalid',
-        );
-      });
-    });
-  });
-
-  describe('#getLoanExtraInfoById', () => {
-    context('when loan id is valid', () => {
-      // TODO(ZhangRGK): after the liquidityPools implement
-      it('succeed');
-    });
-
-    context('when loan id is invalid', () => {
-      it('revert', async () => {
-        await expectRevert(
-          protocol.getLoanExtraInfoById(web3.utils.hexToBytes('0x00000000')),
+          protocol.getLoanRecordById(web3.utils.hexToBytes('0x00000000')),
           'LoanManager: Loan ID is invalid',
         );
       });
@@ -130,25 +106,25 @@ contract("Protocol", function([owner]) {
   });
 
   // TODO(ZhangRGK): after the loan implement
-  describe("#addCollateral", () => {
-    it("succeed");
+  describe('#addCollateral', () => {
+    it('succeed');
   });
-  describe("#getFreedCollateralsByAccount", () => {
-    context("in initialization", () => {
+  describe('#getFreedCollateralsByAccount', () => {
+    context('in initialization', () => {
       // TODO(ZhangRGK): depends on set collateral token function
-      it("should get 0 for each token");
+      it('should get 0 for each token');
     });
   });
 
-  describe("#withdrawFreedCollateral", () => {
-    context("when amount is enough to withdraw", () => {
+  describe('#withdrawFreedCollateral', () => {
+    context('when amount is enough to withdraw', () => {
       // TODO(ZhangRGK): depends on set collateral token function
-      it("succeed");
+      it('succeed');
     });
 
-    context("when amount is not enough", () => {
+    context('when amount is not enough', () => {
       // TODO(ZhangRGK): depends on set collateral token function
-      it("reverts");
+      it('reverts');
     });
   });
 });
