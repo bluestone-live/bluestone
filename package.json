@@ -10,7 +10,7 @@
     "@types/jest": "^24.0.18",
     "chai": "^4.2.0",
     "ganache-cli": "^6.4.4",
-    "husky": ">=1",
+    "husky": "^3.0.5",
     "jest": "^24.9.0",
     "lint-staged": ">=8",
     "nodemon": "^1.19.1",
@@ -39,7 +39,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn test:contract && yarn test:client"
     }
   },
   "lint-staged": {
