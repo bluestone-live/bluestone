@@ -339,7 +339,13 @@ library _LoanManager {
         self.freedCollateralsByAccount[accountAddress][tokenAddress] = self
             .freedCollateralsByAccount[accountAddress][tokenAddress]
             .sub(availableFreedCollateral);
-        // TODO(ZhangRGK): send token from tokenManager to user account
+
+        // Transfer token from protocol to user.
+        ERC20(tokenAddress).safeTransfer(
+            accountAddress,
+            availableFreedCollateral
+        );
+
         emit WithdrawFreedCollateralSucceed(
             accountAddress,
             availableFreedCollateral
