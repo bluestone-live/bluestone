@@ -307,11 +307,12 @@ contract Protocol is Ownable, Pausable {
         uint256 collateralAmount,
         bool useFreedCollateral
     ) external whenNotPaused returns (uint256 totalCollateralAmount) {
-        uint256 remainingCollateralAmount = collateralAmount;
-        if (useFreedCollateral) {
-            // TODO(ZhangRGK): subscract freed collateral amount
-        }
-        return _loanManager.addCollateral(loanId, remainingCollateralAmount);
+        return
+            _loanManager.addCollateral(
+                loanId,
+                collateralAmount,
+                useFreedCollateral
+            );
     }
 
     function enableLoanAndCollateralTokenPair(

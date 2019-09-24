@@ -4,6 +4,8 @@ import 'openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/math/Math.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import '../../lib/FixedMath.sol';
 import '../../lib/DateTime.sol';
 import '../_PriceOracle.sol';
@@ -19,6 +21,7 @@ library _LoanManager {
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
     using FixedMath for uint256;
+    using SafeERC20 for ERC20;
 
     struct State {
         uint256[] loanTermList;
@@ -37,6 +40,8 @@ library _LoanManager {
         mapping(address => mapping(address => bool)) isLoanTokenPairEnabled;
         uint256 numLoans;
     }
+
+    uint256 private constant DAY_IN_SECONDS = 86400;
 
     struct LoanRecord {
         bool isValid;
@@ -90,6 +95,11 @@ library _LoanManager {
     event LoanSucceed(address indexed accountAddress, bytes32 loanId);
     event WithdrawFreedCollateralSucceed(
         address indexed accountAddress,
+        uint256 amount
+    );
+    event AddCollateralSucceed(
+        address indexed accountAddress,
+        bytes32 indexed loanId,
         uint256 amount
     );
 
@@ -258,14 +268,42 @@ library _LoanManager {
     function addCollateral(
         State storage self,
         bytes32 loanId,
-        uint256 collateralAmount
+        uint256 collateralAmount,
+        bool useFreedCollateral
     ) external returns (uint256 totalCollateralAmount) {
+        uint256 remainingCollateralAmount = collateralAmount;
+        address collateralTokenAddress = self.loanRecordById[loanId]
+            .collateralTokenAddress;
+
+        if (useFreedCollateral) {
+            uint256 availableFreedCollateral = subtractFreedCollateral(
+                self,
+                msg.sender,
+                collateralTokenAddress,
+                collateralAmount
+            );
+            remainingCollateralAmount -= availableFreedCollateral;
+        }
+
+        // Transfer remaining amount from user account to protocol
+        if (remainingCollateralAmount > 0) {
+            ERC20(collateralTokenAddress).safeTransferFrom(
+                msg.sender,
+                address(this),
+                remainingCollateralAmount
+            );
+        }
+
         self.loanRecordById[loanId].collateralAmount = self
             .loanRecordById[loanId]
             .collateralAmount
             .add(collateralAmount);
+
+        emit AddCollateralSucceed(msg.sender, loanId, collateralAmount);
+
         return self.loanRecordById[loanId].collateralAmount;
     }
+
     function getFreedCollateralsByAccount(
         State storage self,
         address accountAddress
@@ -324,7 +362,7 @@ library _LoanManager {
         address accountAddress,
         address tokenAddress,
         uint256 amount
-    ) external returns (uint256) {
+    ) public returns (uint256) {
         require(
             amount > 0,
             'LoanManager: The decrease in freed collateral amount must be greater than 0.'
