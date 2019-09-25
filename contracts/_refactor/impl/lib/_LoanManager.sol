@@ -31,6 +31,10 @@ library _LoanManager {
         address[] collateralTokenList;
         // account -> tokenAddress -> freedCollateralamount
         mapping(address => mapping(address => uint256)) freedCollateralsByAccount;
+        /// loan token -> collateral token -> enabled
+        /// An loan token pair refers to loan token A using collateral B, i.e., "B -> A",
+        /// Loan-related transactions can happen only if "B -> A" is enabled.
+        mapping(address => mapping(address => bool)) isLoanTokenPairEnabled;
         uint256 numLoans;
     }
 
@@ -114,8 +118,8 @@ library _LoanManager {
             if (self.loanTermList[i] == loanTerm) {
                 // Overwrite current term with the last term
                 self.loanTermList[i] = self.loanTermList[self
-                        .loanTermList
-                        .length -
+                    .loanTermList
+                    .length -
                     1];
 
                 // Shrink array size
@@ -452,5 +456,23 @@ library _LoanManager {
         emit LoanSucceed(msg.sender, localVars.loanId);
 
         return localVars.loanId;
+    }
+
+    function enableLoanAndCollateralTokenPair(
+        State storage self,
+        address loanTokenAddress,
+        address collateralTokenAddress
+    ) external {
+        require(
+            loanTokenAddress != collateralTokenAddress,
+            'LoanManager: two tokens must be different.'
+        );
+        require(
+            !self
+                .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress],
+            'LoanManager: loan token pair is already enabled.'
+        );
+        self
+            .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress] = true;
     }
 }

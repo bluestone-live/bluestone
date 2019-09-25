@@ -314,6 +314,16 @@ contract Protocol is Ownable, Pausable {
         return _loanManager.addCollateral(loanId, remainingCollateralAmount);
     }
 
+    function enableLoanAndCollateralTokenPair(
+        address loanTokenAddress,
+        address collateralTokenAddress
+    ) external whenNotPaused onlyOwner {
+        _loanManager.enableLoanAndCollateralTokenPair(
+            loanTokenAddress,
+            collateralTokenAddress
+        );
+    }
+
     /// --- Configuration ---
     function setPriceOracleAddress(address priceOracleAddress)
         external

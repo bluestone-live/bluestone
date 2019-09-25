@@ -4,12 +4,15 @@ const { toFixedBN, createERC20Token } = require('../../utils/index.js');
 const { expectRevert, expectEvent } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
 
-contract('Protocol', function([owner, depositor, loaner, otherAccount]) {
-  let protocol, priceOracle;
+contract('Protocol', function([owner, depositor, loaner]) {
+  const initialSupply = toFixedBN(1000);
+  let protocol, loanToken, collateralToken, priceOracle;
 
   beforeEach(async () => {
     protocol = await Protocol.new();
     priceOracle = await PriceOracle.new();
+    loanToken = await createERC20Token(depositor, initialSupply);
+    collateralToken = await createERC20Token(loaner, initialSupply);
   });
 
   describe('#addLoanTerm', () => {
@@ -91,7 +94,7 @@ contract('Protocol', function([owner, depositor, loaner, otherAccount]) {
           remainingDebtList,
           createdAtList,
           isClosedList,
-        } = await protocol.getLoanRecordsByAccount(otherAccount);
+        } = await protocol.getLoanRecordsByAccount(owner);
         expect(loanIdList.length).to.equal(0);
         expect(loanTokenAddressList.length).to.equal(0);
         expect(collateralTokenAddressList.length).to.equal(0);
@@ -187,6 +190,50 @@ contract('Protocol', function([owner, depositor, loaner, otherAccount]) {
         expectEvent.inLogs(logs, 'LoanSucceed', {
           accountAddress: loaner,
         });
+      });
+    });
+  });
+
+  describe('#enableLoanAndCollateralTokenPair', () => {
+    context('when loan and collateral token are the same', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.enableLoanAndCollateralTokenPair(
+            loanToken.address,
+            loanToken.address,
+            { from: owner },
+          ),
+          'LoanManager: two tokens must be different.',
+        );
+      });
+    });
+
+    context('when loan and collateral token are different', () => {
+      it('success', async () => {
+        // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+          { from: owner },
+        );
+      });
+    });
+
+    context('when the pair already exists', () => {
+      it('reverts', async () => {
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+          { from: owner },
+        );
+        await expectRevert(
+          protocol.enableLoanAndCollateralTokenPair(
+            loanToken.address,
+            collateralToken.address,
+            { from: owner },
+          ),
+          'LoanManager: loan token pair is already enabled.',
+        );
       });
     });
   });
