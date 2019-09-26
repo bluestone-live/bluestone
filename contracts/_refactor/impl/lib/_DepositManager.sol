@@ -433,14 +433,13 @@ library _DepositManager {
         return history.interestIndexByDay[history.lastDay.sub(numDaysAgo)];
     }
 
-    function getDepositById(State storage self, bytes32 depositId)
+    function getDepositRecordById(State storage self, bytes32 depositId)
         external
         view
         returns (
             address tokenAddress,
             uint256 depositTerm,
             uint256 depositAmount,
-            uint256 interestIndex,
             uint256 poolId,
             uint256 createdAt,
             uint256 maturedAt,
@@ -456,14 +455,10 @@ library _DepositManager {
             'DepositManager: Deposit ID is invalid'
         );
 
-        // TODO(ZhangRGK): interest index depends on pool groups
-        interestIndex = 0;
-
         return (
             depositRecord.tokenAddress,
             depositRecord.depositTerm,
             depositRecord.depositAmount,
-            interestIndex,
             depositRecord.poolId,
             depositRecord.createdAt,
             depositRecord.maturedAt,
@@ -471,6 +466,51 @@ library _DepositManager {
             now >= depositRecord.maturedAt,
             depositRecord.withdrewAt != 0
         );
+    }
+
+    function getDepositInterestById(
+        State storage self,
+        _LiquidityPools.State storage liquidityPools,
+        _Configuration.State storage configuration,
+        bytes32 depositId
+    ) external view returns (uint256 interest) {
+        DepositRecord memory depositRecord = self.depositRecordById[depositId];
+        require(
+            depositRecord.tokenAddress != address(0),
+            'DepositManager: Deposit ID is invalid'
+        );
+
+        uint256 originalInterestIndex;
+
+        /// if deposit was matured, get interest index from history
+        /// otherwise calculate by this formula: interestIndex = loanInterest / totalDeposit
+        if (depositRecord.maturedAt < now) {
+            originalInterestIndex = _getInterestIndexFromDaysAgo(
+                self,
+                depositRecord.tokenAddress,
+                depositRecord.depositTerm,
+                DateTime.toDays(now - depositRecord.maturedAt)
+            );
+        } else {
+            (uint256 totalDepositAmount, , , uint256 loanInterest) = liquidityPools
+                .getPoolById(
+                depositRecord.tokenAddress,
+                depositRecord.depositTerm,
+                depositRecord.poolId
+            );
+
+            if (totalDepositAmount != 0) {
+                originalInterestIndex = loanInterest.divFixed(
+                    totalDepositAmount
+                );
+            }
+        }
+        return (depositRecord.depositAmount *
+            originalInterestIndex.sub(
+                originalInterestIndex.mulFixed(
+                    configuration.protocolReserveRatio
+                )
+            ));
     }
 
     function getDepositRecordsByAccount(State storage self, address account)

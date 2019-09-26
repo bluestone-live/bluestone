@@ -23,10 +23,8 @@ contract ProtocolMock is Protocol {
     function setAccountGeneralStat(
         address accountAddress,
         string calldata key,
-        uint value
-    )
-      external
-    {
+        uint256 value
+    ) external {
         _accountManager.setAccountGeneralStat(accountAddress, key, value);
     }
 
@@ -34,10 +32,8 @@ contract ProtocolMock is Protocol {
         address accountAddress,
         address tokenAddress,
         string calldata key,
-        uint value
-    )
-      external
-    {
+        uint256 value
+    ) external {
         _accountManager.setAccountTokenStat(
             accountAddress,
             tokenAddress,
@@ -49,10 +45,25 @@ contract ProtocolMock is Protocol {
     function addFreedCollateral(
         address accountAddress,
         address tokenAddress,
-        uint amount
+        uint256 amount
+    ) external {
+        _loanManager.addFreedCollateral(accountAddress, tokenAddress, amount);
+    }
+
+    function getPoolById(
+        address tokenAddress,
+        uint256 depositTerm,
+        uint256 poolId
     )
         external
+        view
+        returns (
+            uint256 depositAmount,
+            uint256 borrowedAmount,
+            uint256 availableAmount,
+            uint256 loanInterest
+        )
     {
-        _loanManager.addFreedCollateral(accountAddress, tokenAddress, amount);
+        return _liquidityPools.getPoolById(tokenAddress, depositTerm, poolId);
     }
 }

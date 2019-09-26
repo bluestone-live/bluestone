@@ -10,11 +10,13 @@ const { expect } = require('chai');
 const { createERC20Token, toFixedBN } = require('../../utils/index');
 
 contract('Protocol', function([owner, depositor]) {
-  let protocol, datetime;
+  const depositTerm = 30;
+  let token, protocol, datetime;
 
   beforeEach(async () => {
     protocol = await Protocol.new();
     datetime = await DateTime.new();
+    token = await createERC20Token(depositor);
   });
 
   describe('#enableDepositTerm', () => {
@@ -135,10 +137,8 @@ contract('Protocol', function([owner, depositor]) {
   describe('#updateDepositMaturity', () => {
     context('when update once within one day', () => {
       const depositTerm = 30;
-      let token;
 
       beforeEach(async () => {
-        token = await createERC20Token(owner);
         await protocol.enableDepositToken(token.address);
         await protocol.enableDepositTerm(depositTerm);
         await protocol.addLoanTerm(7);
@@ -205,11 +205,6 @@ contract('Protocol', function([owner, depositor]) {
   describe('#deposit', () => {
     const depositAmount = toFixedBN(10);
     const depositTerm = 30;
-    let token;
-
-    beforeEach(async () => {
-      token = await createERC20Token(depositor);
-    });
 
     context('when token is not enabled', () => {
       it('reverts', async () => {
@@ -267,11 +262,8 @@ contract('Protocol', function([owner, depositor]) {
 
   describe('#withdraw', () => {
     const depositAmount = toFixedBN(10);
-    const depositTerm = 30;
-    let token;
 
     beforeEach(async () => {
-      token = await createERC20Token(depositor);
       await protocol.enableDepositToken(token.address);
       await protocol.enableDepositTerm(depositTerm);
 
@@ -307,34 +299,104 @@ contract('Protocol', function([owner, depositor]) {
         });
       });
     });
-    describe('#getDepositById', () => {
-      context('when deposit id valid', () => {
-        // TODO(ZhangRGK): depends on the deposit method and pool group implements
-        it('should get deposit details');
+  });
+
+  describe('#getDepositRecordById', () => {
+    let depositId;
+    const depositAmount = toFixedBN(10);
+
+    beforeEach(async () => {
+      await protocol.enableDepositToken(token.address);
+      await protocol.enableDepositTerm(depositTerm);
+
+      await token.approve(protocol.address, depositAmount, {
+        from: depositor,
       });
 
-      context('when deposit id invalid', () => {
-        it('reverts', async () => {
-          await expectRevert(
-            protocol.getDepositById(web3.utils.hexToBytes('0x00000000')),
-            'DepositManager: Deposit ID is invalid',
-          );
-        });
+      const { logs } = await protocol.deposit(
+        token.address,
+        depositAmount,
+        depositTerm,
+        {
+          from: depositor,
+        },
+      );
+      depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+        .depositId;
+    });
+
+    context('when deposit id valid', () => {
+      // TODO(ZhangRGK): depends on the deposit method and pool group implements
+      it('should get deposit details', async () => {
+        const deposit = await protocol.getDepositRecordById(depositId);
+        expect(deposit.tokenAddress).to.equal(token.address);
+        expect(deposit.depositTerm).to.bignumber.equal(new BN(depositTerm));
+        expect(deposit.depositAmount).to.bignumber.equal(depositAmount);
+        expect(deposit.isMatured).to.be.false;
+        expect(deposit.isWithdrawn).to.be.false;
       });
     });
-    describe('#getDepositById', () => {
-      context('when deposit id valid', () => {
-        // TODO(ZhangRGK): depends on the deposit method and pool group implements
-        it('should get deposit details');
+
+    context('when deposit id invalid', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.getDepositRecordById(web3.utils.hexToBytes('0x00000000')),
+          'DepositManager: Deposit ID is invalid',
+        );
+      });
+    });
+  });
+
+  describe('#getDepositInterestById', () => {
+    let depositId;
+    const depositAmount = toFixedBN(10);
+
+    beforeEach(async () => {
+      await protocol.enableDepositToken(token.address);
+      await protocol.enableDepositTerm(depositTerm);
+
+      await token.approve(protocol.address, depositAmount, {
+        from: depositor,
       });
 
-      context('when deposit id invalid', () => {
-        it('reverts', async () => {
-          await expectRevert(
-            protocol.getDepositById(web3.utils.hexToBytes('0x00000000')),
-            'DepositManager: Deposit ID is invalid',
-          );
-        });
+      const { logs } = await protocol.deposit(
+        token.address,
+        depositAmount,
+        depositTerm,
+        {
+          from: depositor,
+        },
+      );
+      depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+        .depositId;
+    });
+
+    context('when deposit id valid', () => {
+      it('should get interest earned by deposit', async () => {
+        const interest = await protocol.getDepositInterestById(depositId);
+
+        const { poolId } = await protocol.getDepositRecordById(depositId);
+        const protocolReserveRatio = await protocol.getProtocolReserveRatio();
+        const {
+          depositAmount: totalDepositAmount,
+          loanInterest,
+        } = await protocol.getPoolById(token.address, depositTerm, poolId);
+
+        const expectedInterest = loanInterest
+          .div(totalDepositAmount)
+          .sub(loanInterest.div(depositAmount).mul(protocolReserveRatio))
+          .mul(depositAmount);
+
+        expect(interest).to.bignumber.equal(expectedInterest);
+      });
+    });
+
+    context('when deposit id invalid', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.getDepositInterestById(web3.utils.hexToBytes('0x00000000')),
+          'DepositManager: Deposit ID is invalid',
+        );
       });
     });
   });

@@ -241,8 +241,33 @@ library _LiquidityPools {
     {
         PoolGroup storage poolGroup = self
             .poolGroups[tokenAddress][depositTerm];
-        Pool storage pool = poolGroup.poolsById[poolGroup.firstPoolId +
-            poolIndex];
+        return
+            getPoolById(
+                self,
+                tokenAddress,
+                depositTerm,
+                poolGroup.firstPoolId + poolIndex
+            );
+    }
+
+    function getPoolById(
+        State storage self,
+        address tokenAddress,
+        uint256 depositTerm,
+        uint256 poolId
+    )
+        public
+        view
+        returns (
+            uint256 depositAmount,
+            uint256 borrowedAmount,
+            uint256 availableAmount,
+            uint256 loanInterest
+        )
+    {
+        PoolGroup storage poolGroup = self
+            .poolGroups[tokenAddress][depositTerm];
+        Pool storage pool = poolGroup.poolsById[poolId];
 
         return (
             pool.depositAmount,

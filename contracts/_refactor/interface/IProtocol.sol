@@ -61,14 +61,13 @@ contract IProtocol {
             bool[] memory isEnabledList
         );
 
-    /// @notice Return details about a deposit owned by the caller
+    /// @notice Return details about a deposit
     /// @param depositId ID that identifies the deposit
     /// @return tokenAddress
     /// @return depositTerm
     /// @return depositAmount
     /// @return withdrewAmount
     /// @return protocolReserveRatio
-    /// @return interestIndex
     /// @return poolId
     /// @return createdAt
     /// @return maturedAt
@@ -84,7 +83,6 @@ contract IProtocol {
             uint256 depositAmount,
             uint256 withdrewAmount,
             uint256 protocolReserveRatio,
-            uint256 interestIndex,
             uint256 poolId,
             uint256 createdAt,
             uint256 maturedAt,
@@ -93,7 +91,15 @@ contract IProtocol {
             bool isWithdrawn
         );
 
-    /// @notice Return details about all deposits owned by the caller
+    /// @notice Return interest earned by a deposit
+    /// @param depositId ID that identifies the deposit
+    /// @return interest
+    function getDepositInterestById(bytes32 depositId)
+        external
+        view
+        returns (uint256 interest);
+
+    /// @notice Return details about all deposits
     /// @return depositIdList
     /// @return tokenAddressList
     /// @return depositTermList
@@ -234,7 +240,7 @@ contract IProtocol {
             uint256[] memory freedCollateralAmountList
         );
 
-    /// @notice Return details of a loan owned by the caller
+    /// @notice Return details of a loan
     /// @param loanId ID that identifies the loan
     /// @return loanTokenAddress
     /// @return collateralTokenAddress

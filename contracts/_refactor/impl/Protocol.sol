@@ -103,7 +103,7 @@ contract Protocol is Ownable, Pausable {
 
     /// --- Deposit
 
-    function getDepositById(bytes32 depositId)
+    function getDepositRecordById(bytes32 depositId)
         external
         view
         whenNotPaused
@@ -111,7 +111,6 @@ contract Protocol is Ownable, Pausable {
             address tokenAddress,
             uint256 depositTerm,
             uint256 depositAmount,
-            uint256 interestIndex,
             uint256 poolId,
             uint256 createdAt,
             uint256 maturedAt,
@@ -120,7 +119,21 @@ contract Protocol is Ownable, Pausable {
             bool isWithdrawn
         )
     {
-        return _depositManager.getDepositById(depositId);
+        return _depositManager.getDepositRecordById(depositId);
+    }
+
+    function getDepositInterestById(bytes32 depositId)
+        external
+        view
+        whenNotPaused
+        returns (uint256 interest)
+    {
+        return
+            _depositManager.getDepositInterestById(
+                _liquidityPools,
+                _configuration,
+                depositId
+            );
     }
 
     function getDepositRecordsByAccount(address accountAddress)
