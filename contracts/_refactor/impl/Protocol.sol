@@ -8,6 +8,7 @@ import './lib/_LiquidityPools.sol';
 import './lib/_DepositManager.sol';
 import './lib/_LoanManager.sol';
 import './lib/_AccountManager.sol';
+import './_PriceOracle.sol';
 
 /// @title Main contract
 /// TODO(ZhangRGK): add IProtocol to interface implemention after all method implement
@@ -261,41 +262,7 @@ contract Protocol is Ownable, Pausable {
             bool isClosed
         )
     {
-        (
-            loanTokenAddress,
-            collateralTokenAddress,
-            loanTerm,
-            collateralAmount,
-            createdAt
-        ) = _loanManager.getLoanBasicInfoById(loanId);
-
-        // TODO(ZhangRGK): get price from price oracle
-        uint256 collateralTokenPrice = 0;
-        uint256 loanTokenPrice = 0;
-
-        (
-            remainingDebt,
-            currentCollateralRatio,
-            isLiquidatable,
-            isOverDue,
-            isClosed
-        ) = _loanManager.getLoanExtraInfoById(
-            loanId,
-            collateralTokenPrice,
-            loanTokenPrice
-        );
-        return (
-            loanTokenAddress,
-            collateralTokenAddress,
-            loanTerm,
-            collateralAmount,
-            createdAt,
-            remainingDebt,
-            currentCollateralRatio,
-            isLiquidatable,
-            isOverDue,
-            isClosed
-        );
+        return _loanManager.getLoanRecordById(_configuration, loanId);
     }
 
     function getLoanRecordsByAccount(address accountAddress)
@@ -369,15 +336,6 @@ contract Protocol is Ownable, Pausable {
 
     function unlockUserActions() external whenNotPaused onlyOwner {
         _configuration.unlockUserActions();
-    }
-
-    function getPriceOracleAddress()
-        external
-        view
-        whenNotPaused
-        returns (address priceOracleAddress)
-    {
-        return _configuration.priceOracleAddress;
     }
 
     function getProtocolAddress()

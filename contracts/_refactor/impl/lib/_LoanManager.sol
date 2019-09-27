@@ -139,8 +139,67 @@ library _LoanManager {
         }
     }
 
-    function getLoanBasicInfoById(State storage self, bytes32 loanId)
+    function getLoanRecordById(
+        State storage self,
+        _Configuration.State storage configuration,
+        bytes32 loanId
+    )
         external
+        view
+        returns (
+            address loanTokenAddress,
+            address collateralTokenAddress,
+            uint256 loanTerm,
+            uint256 collateralAmount,
+            uint256 createdAt,
+            uint256 remainingDebt,
+            uint256 currentCollateralRatio,
+            bool isLiquidatable,
+            bool isOverDue,
+            bool isClosed
+        )
+    {
+        (
+            loanTokenAddress,
+            collateralTokenAddress,
+            loanTerm,
+            collateralAmount,
+            createdAt
+        ) = _getLoanBasicInfoById(self, loanId);
+
+        _PriceOracle priceOracle = _PriceOracle(
+            configuration.priceOracleAddress
+        );
+
+        (
+            remainingDebt,
+            currentCollateralRatio,
+            isLiquidatable,
+            isOverDue,
+            isClosed
+        ) = _getLoanExtraInfoById(
+            self,
+            loanId,
+            priceOracle.getPrice(loanTokenAddress),
+            priceOracle.getPrice(collateralTokenAddress)
+        );
+
+        return (
+            loanTokenAddress,
+            collateralTokenAddress,
+            loanTerm,
+            collateralAmount,
+            createdAt,
+            remainingDebt,
+            currentCollateralRatio,
+            isLiquidatable,
+            isOverDue,
+            isClosed
+        );
+    }
+
+    function _getLoanBasicInfoById(State storage self, bytes32 loanId)
+        internal
         view
         returns (
             address loanTokenAddress,
@@ -166,13 +225,13 @@ library _LoanManager {
         );
     }
 
-    function getLoanExtraInfoById(
+    function _getLoanExtraInfoById(
         State storage self,
         bytes32 loanId,
-        uint256 collateralTokenPrice,
-        uint256 loanTokenPrice
+        uint256 loanTokenPrice,
+        uint256 collateralTokenPrice
     )
-        external
+        internal
         view
         returns (
             uint256 remainingDebt,

@@ -1,4 +1,4 @@
-const Protocol = artifacts.require('Protocol');
+const Protocol = artifacts.require('ProtocolMock');
 const {
   expectRevert,
   expectEvent,
