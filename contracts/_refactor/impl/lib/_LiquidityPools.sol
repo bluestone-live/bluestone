@@ -224,6 +224,69 @@ library _LiquidityPools {
         }
     }
 
+    function repayLoanToPoolGroup(
+        State storage self,
+        _LoanManager.State storage loanManager,
+        bytes32 loanId,
+        uint256 repayAmount,
+        uint256 depositTerm
+    ) external {
+        _LoanManager.LoanRecord storage loanRecord = loanManager
+            .loanRecordById[loanId];
+        PoolGroup storage poolGroup = self.poolGroups[loanRecord
+            .loanTokenAddress][depositTerm];
+
+        uint256 remainingRepayAmount = repayAmount;
+
+        // Repay loan back to each pool, proportional to the total loan from all pools
+        for (uint256 poolIndex = 0; poolIndex < depositTerm; poolIndex++) {
+            if (remainingRepayAmount == 0) {
+                // Stop loop when remaining repay amount is cleared up
+                break;
+            }
+
+            uint256 poolId = poolGroup.firstPoolId + poolIndex;
+            uint256 loanAmountFromThisPool = loanRecord
+                .loanAmountByPool[depositTerm][poolId];
+
+            if (loanAmountFromThisPool == 0) {
+                // Skip this pool since it has no loan
+                continue;
+            }
+
+            /// Calculate the amount to repay to this pool, e.g., if I loaned total of 100
+            /// from all pools, where 10 is from this pool, and I want to repay 50 now.
+            /// Then the amount pay back to this pool will be: 50 * 10 / 100 = 5
+            uint256 repayAmountToThisPool = repayAmount
+                .mulFixed(loanAmountFromThisPool)
+                .divFixed(loanRecord.loanAmount);
+
+            Pool storage pool = poolGroup.poolsById[poolId];
+            pool.availableAmount = pool.availableAmount.add(
+                repayAmountToThisPool
+            );
+            pool.borrowedAmount = pool.borrowedAmount.sub(
+                repayAmountToThisPool
+            );
+
+            remainingRepayAmount = remainingRepayAmount.sub(
+                repayAmountToThisPool
+            );
+
+            // Add repay amount to availableAmountByTerm for every loan term <= current term the pool refers to
+            for (uint256 i = 0; i < loanManager.loanTermList.length; i++) {
+                uint256 loanTerm = loanManager.loanTermList[i];
+
+                if (loanTerm <= poolIndex + 1) {
+                    poolGroup.availableAmountByTerm[loanTerm] = poolGroup
+                        .availableAmountByTerm[loanTerm]
+                        .add(repayAmountToThisPool);
+                }
+            }
+        }
+
+    }
+
     function getPool(
         State storage self,
         address tokenAddress,

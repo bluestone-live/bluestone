@@ -186,6 +186,20 @@ contract Protocol is Ownable, Pausable {
             );
     }
 
+    function repayLoan(bytes32 loanId, uint256 repayAmount)
+        external
+        returns (uint256 remainingDebt)
+    {
+        return
+            _loanManager.repayLoan(
+                _configuration,
+                _liquidityPools,
+                _depositManager,
+                loanId,
+                repayAmount
+            );
+    }
+
     function getLoanTerms()
         external
         view

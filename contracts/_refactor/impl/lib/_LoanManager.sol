@@ -93,6 +93,7 @@ library _LoanManager {
     }
 
     event LoanSucceed(address indexed accountAddress, bytes32 loanId);
+    event RepayLoanSucceed(address indexed accountAddress, bytes32 loanId);
     event WithdrawFreedCollateralSucceed(
         address indexed accountAddress,
         uint256 amount
@@ -247,18 +248,19 @@ library _LoanManager {
             'LoanManager: Loan ID is invalid'
         );
 
-        remainingDebt = loanRecord
-            .loanAmount
-            .add(loanRecord.interest)
-            .sub(loanRecord.alreadyPaidAmount)
-            .sub(loanRecord.liquidatedAmount);
+        remainingDebt = _calculateRemainingDebt(loanRecord);
 
-        currentCollateralRatio = loanRecord
-            .collateralAmount
-            .sub(loanRecord.soldCollateralAmount)
-            .mulFixed(collateralTokenPrice)
-            .divFixed(remainingDebt)
-            .divFixed(loanTokenPrice);
+        if (loanRecord.isClosed) {
+            // If loan is closed, collateral coverage ratio becomes meaningless
+            currentCollateralRatio = 0;
+        } else {
+            currentCollateralRatio = loanRecord
+                .collateralAmount
+                .sub(loanRecord.soldCollateralAmount)
+                .mulFixed(collateralTokenPrice)
+                .divFixed(remainingDebt)
+                .divFixed(loanTokenPrice);
+        }
 
         isOverDue =
             now >
@@ -416,7 +418,7 @@ library _LoanManager {
         address accountAddress,
         address tokenAddress,
         uint256 amount
-    ) external {
+    ) public {
         self.freedCollateralsByAccount[accountAddress][tokenAddress] = self
             .freedCollateralsByAccount[accountAddress][tokenAddress]
             .add(amount);
@@ -457,8 +459,16 @@ library _LoanManager {
         uint256 loanTerm,
         bool useFreedCollateral
     ) external returns (bytes32 loanId) {
-        // TODO(desmond): verify user actions are locked
-        // TODO(desmond): verify loan and collateral token pair is enabled
+        require(
+            !configuration.isUserActionsLocked,
+            'LoanManager: user actions are locked, please try again later'
+        );
+
+        require(
+            self
+                .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress],
+            'LoanManager: invalid loan and collateral token pair'
+        );
 
         require(loanAmount > 0, 'LoanManager: invalid loan amount');
         require(collateralAmount > 0, 'LoanManager: invalid collateral amount');
@@ -591,5 +601,104 @@ library _LoanManager {
         );
         self
             .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress] = false;
+    }
+
+    function repayLoan(
+        State storage self,
+        _Configuration.State storage configuration,
+        _LiquidityPools.State storage liquidityPools,
+        _DepositManager.State storage depositManager,
+        bytes32 loanId,
+        uint256 repayAmount
+    ) external returns (uint256 remainingDebt) {
+        require(
+            !configuration.isUserActionsLocked,
+            'LoanManager: user actions are locked, please try again later'
+        );
+
+        LoanRecord storage loanRecord = self.loanRecordById[loanId];
+
+        require(
+            self.isLoanTokenPairEnabled[loanRecord.loanTokenAddress][loanRecord
+                .collateralTokenAddress],
+            'LoanManager: invalid loan and collateral token pair'
+        );
+
+        require(
+            msg.sender == loanRecord.ownerAddress,
+            'LoanManager: invalid owner'
+        );
+
+        require(!loanRecord.isClosed, 'LoanManager: loan is closed');
+
+        uint256 currRemainingDebt = _calculateRemainingDebt(loanRecord);
+
+        require(
+            repayAmount <= currRemainingDebt,
+            'LoanManager: invalid repay amount'
+        );
+
+        loanRecord.alreadyPaidAmount = loanRecord.alreadyPaidAmount.add(
+            repayAmount
+        );
+        loanRecord.lastRepaidAt = now;
+
+        if (_calculateRemainingDebt(loanRecord) == 0) {
+            loanRecord.isClosed = true;
+            uint256 freedCollateralAmount = loanRecord.collateralAmount.sub(
+                loanRecord.soldCollateralAmount
+            );
+
+            if (freedCollateralAmount > 0) {
+                // Add freed collateral to loaner's account
+                addFreedCollateral(
+                    self,
+                    msg.sender,
+                    loanRecord.collateralTokenAddress,
+                    freedCollateralAmount
+                );
+            }
+        }
+
+        for (
+            uint256 i = 0;
+            i < depositManager.enabledDepositTermList.length;
+            i++
+        ) {
+            uint256 depositTerm = depositManager.enabledDepositTermList[i];
+
+            if (loanRecord.loanTerm <= depositTerm) {
+                liquidityPools.repayLoanToPoolGroup(
+                    self,
+                    loanId,
+                    repayAmount,
+                    depositTerm
+                );
+            }
+        }
+
+        // Transfer loan tokens from user to protocol
+        ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            repayAmount
+        );
+
+        emit RepayLoanSucceed(msg.sender, loanId);
+
+        return _calculateRemainingDebt(loanRecord);
+    }
+
+    function _calculateRemainingDebt(LoanRecord memory loanRecord)
+        internal
+        pure
+        returns (uint256 remainingDebt)
+    {
+        return
+            loanRecord
+                .loanAmount
+                .add(loanRecord.interest)
+                .sub(loanRecord.alreadyPaidAmount)
+                .sub(loanRecord.liquidatedAmount);
     }
 }

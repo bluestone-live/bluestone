@@ -1,18 +1,15 @@
 const Protocol = artifacts.require('Protocol');
 const PriceOracle = artifacts.require('_PriceOracle');
 const { toFixedBN, createERC20Token } = require('../../utils/index.js');
-const { expectRevert, expectEvent } = require('openzeppelin-test-helpers');
+const { BN, expectRevert, expectEvent } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
 
 contract('Protocol', function([owner, depositor, loaner]) {
-  const initialSupply = toFixedBN(1000);
-  let protocol, loanToken, collateralToken, priceOracle;
+  let protocol, priceOracle;
 
   beforeEach(async () => {
     protocol = await Protocol.new();
     priceOracle = await PriceOracle.new();
-    loanToken = await createERC20Token(depositor, initialSupply);
-    collateralToken = await createERC20Token(loaner, initialSupply);
   });
 
   describe('#addLoanTerm', () => {
@@ -166,7 +163,10 @@ contract('Protocol', function([owner, depositor, loaner]) {
 
     context('when loan and collateral token pair is enabled', () => {
       beforeEach(async () => {
-        // TODO(desmond): enable loan and collateral token pair
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+        );
       });
 
       it('succeeds', async () => {
@@ -195,6 +195,14 @@ contract('Protocol', function([owner, depositor, loaner]) {
   });
 
   describe('#enableLoanAndCollateralTokenPair', () => {
+    const initialSupply = toFixedBN(1000);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+    });
+
     context('when loan and collateral token are the same', () => {
       it('reverts', async () => {
         await expectRevert(
@@ -239,6 +247,14 @@ contract('Protocol', function([owner, depositor, loaner]) {
   });
 
   describe('#disableLoanAndCollateralTokenPair', () => {
+    const initialSupply = toFixedBN(1000);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+    });
+
     context('when the pair does not exist', () => {
       it('reverts', async () => {
         await expectRevert(
@@ -288,6 +304,90 @@ contract('Protocol', function([owner, depositor, loaner]) {
           ),
           'LoanManager: loan token pair is already disabled.',
         );
+      });
+    });
+  });
+
+  describe('#repayLoan', () => {
+    const initialSupply = toFixedBN(1000);
+    const depositAmount = toFixedBN(10);
+    const depositTerm = 30;
+    const loanAmount = toFixedBN(10);
+    const collateralAmount = toFixedBN(30);
+    const loanTerm = 30;
+    let loanToken, collateralToken, loanId;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+      await priceOracle.setPrice(loanToken.address, toFixedBN(10));
+      await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
+      await protocol.setPriceOracleAddress(priceOracle.address);
+      await protocol.enableDepositToken(loanToken.address);
+      await protocol.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        collateralToken.address,
+        { from: owner },
+      );
+      await protocol.enableDepositTerm(depositTerm);
+      await protocol.addLoanTerm(7);
+      await protocol.addLoanTerm(30);
+
+      await loanToken.approve(protocol.address, initialSupply, {
+        from: depositor,
+      });
+
+      await collateralToken.approve(protocol.address, initialSupply, {
+        from: loaner,
+      });
+
+      await protocol.deposit(loanToken.address, depositAmount, depositTerm, {
+        from: depositor,
+      });
+
+      const useFreedCollateral = false;
+
+      const { logs } = await protocol.loan(
+        loanToken.address,
+        collateralToken.address,
+        loanAmount,
+        collateralAmount,
+        loanTerm,
+        useFreedCollateral,
+        {
+          from: loaner,
+        },
+      );
+
+      loanId = logs.filter(log => log.event === 'LoanSucceed')[0].args.loanId;
+    });
+
+    context('when loan and collateral token pair is enabled', () => {
+      it('repays fully', async () => {
+        const prevLoanRecord = await protocol.getLoanRecordById(loanId);
+
+        await loanToken.approve(
+          protocol.address,
+          prevLoanRecord.remainingDebt,
+          {
+            from: loaner,
+          },
+        );
+
+        const { logs } = await protocol.repayLoan(
+          loanId,
+          prevLoanRecord.remainingDebt,
+          { from: loaner },
+        );
+
+        expectEvent.inLogs(logs, 'RepayLoanSucceed', {
+          accountAddress: loaner,
+          loanId: loanId,
+        });
+
+        const currLoanRecord = await protocol.getLoanRecordById(loanId);
+        expect(currLoanRecord.remainingDebt).to.bignumber.equal(new BN(0));
+        expect(currLoanRecord.isClosed).to.be.true;
       });
     });
   });
