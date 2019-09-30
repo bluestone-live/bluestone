@@ -50,7 +50,6 @@ library _LoanManager {
         uint256 numLoans;
     }
 
-    uint256 private constant DAY_IN_SECONDS = 86400;
     uint256 private constant LOWER_BOUND_OF_CCR_FOR_ALL_PAIRS = 10**18; // 1.0 (100%)
     uint256 private constant ONE = 10**18;
     uint256 private constant MAX_LIQUIDATION_DISCOUNT = 2 * (10**17); // 0.2 (20%)
@@ -95,17 +94,23 @@ library _LoanManager {
     struct LocalVars {
         bytes32 loanId;
         uint256 remainingCollateralAmount;
+        uint256 remainingDebt;
         uint256 loanTokenPrice;
         uint256 collateralTokenPrice;
         uint256 currCollateralCoverageRatio;
         uint256 minCollateralCoverageRatio;
         uint256 loanInterestRate;
         uint256 liquidationDiscount;
+        uint256 liquidatedAmount;
         uint256 loanInterest;
+        uint256 soldCollateralAmount;
+        bool isUnderCollateralCoverageRatio;
+        bool isOverDue;
     }
 
     event LoanSucceed(address indexed accountAddress, bytes32 loanId);
     event RepayLoanSucceed(address indexed accountAddress, bytes32 loanId);
+    event LiquidateLoanSucceed(address indexed accountAddress, bytes32 loanId);
     event WithdrawFreedCollateralSucceed(
         address indexed accountAddress,
         uint256 amount
@@ -699,6 +704,140 @@ library _LoanManager {
         emit RepayLoanSucceed(msg.sender, loanId);
 
         return _calculateRemainingDebt(loanRecord);
+    }
+
+    function liquidateLoan(
+        State storage self,
+        _Configuration.State storage configuration,
+        _LiquidityPools.State storage liquidityPools,
+        _DepositManager.State storage depositManager,
+        bytes32 loanId,
+        uint256 liquidateAmount
+    ) external returns (uint256 remainingCollateral, uint256 liquidatedAmount) {
+        require(
+            !configuration.isUserActionsLocked,
+            'LoanManager: user actions are locked, please try again later'
+        );
+
+        LoanRecord storage loanRecord = self.loanRecordById[loanId];
+
+        require(
+            self.isLoanTokenPairEnabled[loanRecord.loanTokenAddress][loanRecord
+                .collateralTokenAddress],
+            'LoanManager: invalid loan and collateral token pair'
+        );
+
+        require(
+            msg.sender != loanRecord.ownerAddress,
+            'LoanManager: invalid user'
+        );
+
+        require(!loanRecord.isClosed, 'LoanManager: loan already closed');
+
+        _PriceOracle priceOracle = _PriceOracle(
+            configuration.priceOracleAddress
+        );
+
+        LocalVars memory localVars;
+        localVars.loanTokenPrice = priceOracle.getPrice(
+            loanRecord.loanTokenAddress
+        );
+        localVars.collateralTokenPrice = priceOracle.getPrice(
+            loanRecord.collateralTokenAddress
+        );
+
+        localVars.remainingDebt = _calculateRemainingDebt(loanRecord);
+
+        localVars.currCollateralCoverageRatio = loanRecord
+            .collateralAmount
+            .sub(loanRecord.soldCollateralAmount)
+            .mulFixed(localVars.collateralTokenPrice)
+            .divFixed(localVars.remainingDebt)
+            .divFixed(localVars.loanTokenPrice);
+
+        localVars.isUnderCollateralCoverageRatio =
+            localVars.currCollateralCoverageRatio <
+            loanRecord.minCollateralCoverageRatio;
+        localVars.isOverDue =
+            now >
+            loanRecord.createdAt +
+                loanRecord.loanTerm *
+                DateTime.dayInSeconds();
+
+        require(
+            localVars.isUnderCollateralCoverageRatio || localVars.isOverDue,
+            'LoanManager: not liquidatable'
+        );
+
+        localVars.liquidatedAmount = Math.min(
+            liquidateAmount,
+            localVars.remainingDebt
+        );
+        localVars.soldCollateralAmount = localVars
+            .liquidatedAmount
+            .mulFixed(localVars.loanTokenPrice)
+            .divFixed(localVars.collateralTokenPrice)
+            .divFixed(ONE.sub(loanRecord.liquidationDiscount));
+
+        loanRecord.soldCollateralAmount = loanRecord.soldCollateralAmount.add(
+            localVars.soldCollateralAmount
+        );
+        loanRecord.liquidatedAmount = loanRecord.liquidatedAmount.add(
+            localVars.liquidatedAmount
+        );
+        loanRecord.lastLiquidatedAt = now;
+
+        if (_calculateRemainingDebt(loanRecord) == 0) {
+            // Close the loan if debt is clear
+            loanRecord.isClosed = true;
+
+            uint256 freedCollateralAmount = loanRecord.collateralAmount.sub(
+                loanRecord.soldCollateralAmount
+            );
+
+            if (freedCollateralAmount > 0) {
+                // Add freed collateral to loaner's account
+                addFreedCollateral(
+                    self,
+                    loanRecord.ownerAddress,
+                    loanRecord.collateralTokenAddress,
+                    freedCollateralAmount
+                );
+            }
+        }
+
+        for (
+            uint256 i = 0;
+            i < depositManager.enabledDepositTermList.length;
+            i++
+        ) {
+            uint256 depositTerm = depositManager.enabledDepositTermList[i];
+
+            if (loanRecord.loanTerm <= depositTerm) {
+                liquidityPools.repayLoanToPoolGroup(
+                    self,
+                    loanId,
+                    localVars.liquidatedAmount,
+                    depositTerm
+                );
+            }
+        }
+
+        // TODO(desmond): increment stat if loan is overdue
+
+        // Transfer loan tokens from liquidator to protocol
+        ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            localVars.liquidatedAmount
+        );
+
+        emit LiquidateLoanSucceed(msg.sender, loanId);
+
+        return (
+            loanRecord.collateralAmount.sub(loanRecord.soldCollateralAmount),
+            localVars.liquidatedAmount
+        );
     }
 
     function _calculateRemainingDebt(LoanRecord memory loanRecord)

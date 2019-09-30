@@ -200,6 +200,20 @@ contract Protocol is Ownable, Pausable {
             );
     }
 
+    function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
+        external
+        returns (uint256 remainingCollateral, uint256 liquidatedAmount)
+    {
+        return
+            _loanManager.liquidateLoan(
+                _configuration,
+                _liquidityPools,
+                _depositManager,
+                loanId,
+                liquidateAmount
+            );
+    }
+
     function getLoanTerms()
         external
         view

@@ -1,18 +1,25 @@
 const Protocol = artifacts.require('Protocol');
 const PriceOracle = artifacts.require('_PriceOracle');
-const { BN, expectRevert, expectEvent } = require('openzeppelin-test-helpers');
+const { toFixedBN, createERC20Token } = require('../../utils/index.js');
+const {
+  BN,
+  expectRevert,
+  expectEvent,
+  time,
+} = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
-const { createERC20Token, toFixedBN } = require('../../utils/index.js');
 
-contract('Protocol', function([owner, depositor, loaner]) {
-  const initialSupply = toFixedBN(1000);
-  let protocol, priceOracle, loanToken, collateralToken;
+// <<<<<<< HEAD
+// contract('Protocol', function([owner, depositor, loaner]) {
+//   const initialSupply = toFixedBN(1000);
+//   let protocol, priceOracle, loanToken, collateralToken;
+// =======
+contract('Protocol', function([owner, depositor, loaner, liquidator]) {
+  let protocol, priceOracle;
 
   beforeEach(async () => {
     protocol = await Protocol.new();
     priceOracle = await PriceOracle.new();
-    loanToken = await createERC20Token(depositor, initialSupply);
-    collateralToken = await createERC20Token(loaner, initialSupply);
   });
 
   describe('#addLoanTerm', () => {
@@ -396,6 +403,14 @@ contract('Protocol', function([owner, depositor, loaner]) {
   });
 
   describe('#setMinCollateralCoverageRatios', () => {
+    const initialSupply = toFixedBN(1000);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+    });
+
     context("when arrays' lengths are different", () => {
       let loanTokenAddressList,
         collateralTokenAddressList,
@@ -511,6 +526,14 @@ contract('Protocol', function([owner, depositor, loaner]) {
   });
 
   describe('#setLoanInterestRatesForToken', () => {
+    const initialSupply = toFixedBN(1000);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+    });
+
     context("when arrays' lengths do not match", () => {
       let tokenAddress, loanTerms, loanInterestRateList;
 
@@ -587,6 +610,14 @@ contract('Protocol', function([owner, depositor, loaner]) {
   });
 
   describe('#setLiquidationDiscounts', () => {
+    const initialSupply = toFixedBN(1000);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+    });
+
     context("when arrays' lengths are different", () => {
       let loanTokenAddressList,
         collateralTokenAddressList,
@@ -668,6 +699,95 @@ contract('Protocol', function([owner, depositor, loaner]) {
           liquidationDiscountList,
         );
         // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
+      });
+    });
+  });
+
+  describe('#liquidateLoan', () => {
+    const initialSupply = toFixedBN(1000);
+    const depositAmount = toFixedBN(10);
+    const depositTerm = 30;
+    const loanAmount = toFixedBN(10);
+    const collateralAmount = toFixedBN(30);
+    const loanTerm = 30;
+    let loanToken, collateralToken, loanId;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+      await loanToken.mint(liquidator, initialSupply);
+      await priceOracle.setPrice(loanToken.address, toFixedBN(10));
+      await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
+      await protocol.setPriceOracleAddress(priceOracle.address);
+      await protocol.enableDepositToken(loanToken.address);
+      await protocol.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        collateralToken.address,
+        { from: owner },
+      );
+      await protocol.enableDepositTerm(depositTerm);
+      await protocol.addLoanTerm(7);
+      await protocol.addLoanTerm(30);
+
+      await loanToken.approve(protocol.address, initialSupply, {
+        from: depositor,
+      });
+
+      await collateralToken.approve(protocol.address, initialSupply, {
+        from: loaner,
+      });
+
+      await protocol.deposit(loanToken.address, depositAmount, depositTerm, {
+        from: depositor,
+      });
+
+      const useFreedCollateral = false;
+
+      const { logs } = await protocol.loan(
+        loanToken.address,
+        collateralToken.address,
+        loanAmount,
+        collateralAmount,
+        loanTerm,
+        useFreedCollateral,
+        {
+          from: loaner,
+        },
+      );
+
+      loanId = logs.filter(log => log.event === 'LoanSucceed')[0].args.loanId;
+    });
+
+    context('when loan is defaulted', () => {
+      beforeEach(async () => {
+        await time.increase(time.duration.days(loanTerm + 1));
+      });
+
+      it('liquidates fully', async () => {
+        const prevLoanRecord = await protocol.getLoanRecordById(loanId);
+
+        await loanToken.approve(
+          protocol.address,
+          prevLoanRecord.remainingDebt,
+          {
+            from: liquidator,
+          },
+        );
+
+        const { logs } = await protocol.liquidateLoan(
+          loanId,
+          prevLoanRecord.remainingDebt,
+          { from: liquidator },
+        );
+
+        expectEvent.inLogs(logs, 'LiquidateLoanSucceed', {
+          accountAddress: liquidator,
+          loanId: loanId,
+        });
+
+        const currLoanRecord = await protocol.getLoanRecordById(loanId);
+        expect(currLoanRecord.remainingDebt).to.bignumber.equal(new BN(0));
+        expect(currLoanRecord.isClosed).to.be.true;
       });
     });
   });
