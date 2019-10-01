@@ -305,6 +305,16 @@ contract Protocol is Ownable, Pausable {
         );
     }
 
+    function disableLoanAndCollateralTokenPair(
+        address loanTokenAddress,
+        address collateralTokenAddress
+    ) external whenNotPaused onlyOwner {
+        _loanManager.disableLoanAndCollateralTokenPair(
+            loanTokenAddress,
+            collateralTokenAddress
+        );
+    }
+
     /// --- Configuration ---
     function setPriceOracleAddress(address priceOracleAddress)
         external

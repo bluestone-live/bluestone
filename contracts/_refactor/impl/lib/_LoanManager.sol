@@ -578,4 +578,18 @@ library _LoanManager {
         self
             .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress] = true;
     }
+
+    function disableLoanAndCollateralTokenPair(
+        State storage self,
+        address loanTokenAddress,
+        address collateralTokenAddress
+    ) external {
+        require(
+            self
+                .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress],
+            'LoanManager: loan token pair is already disabled.'
+        );
+        self
+            .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress] = false;
+    }
 }

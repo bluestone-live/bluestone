@@ -237,4 +237,58 @@ contract('Protocol', function([owner, depositor, loaner]) {
       });
     });
   });
+
+  describe('#disableLoanAndCollateralTokenPair', () => {
+    context('when the pair does not exist', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.disableLoanAndCollateralTokenPair(
+            loanToken.address,
+            collateralToken.address,
+            { from: owner },
+          ),
+          'LoanManager: loan token pair is already disabled.',
+        );
+      });
+    });
+
+    context('when the pair are disabled after being enabled', () => {
+      it('success', async () => {
+        // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+          { from: owner },
+        );
+        await protocol.disableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+          { from: owner },
+        );
+      });
+    });
+
+    context('when the pair is already disabled', () => {
+      it('reverts', async () => {
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+          { from: owner },
+        );
+        await protocol.disableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+          { from: owner },
+        );
+        await expectRevert(
+          protocol.disableLoanAndCollateralTokenPair(
+            loanToken.address,
+            collateralToken.address,
+            { from: owner },
+          ),
+          'LoanManager: loan token pair is already disabled.',
+        );
+      });
+    });
+  });
 });
