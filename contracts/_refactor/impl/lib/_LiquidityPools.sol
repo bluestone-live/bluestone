@@ -125,6 +125,32 @@ library _LiquidityPools {
         return poolGroup.lastPoolId;
     }
 
+    function subtractDepositFromPool(
+        State storage self,
+        address tokenAddress,
+        uint256 depositAmount,
+        uint256 depositTerm,
+        uint256 poolId,
+        uint256[] calldata loanTermList
+    ) external {
+        PoolGroup storage poolGroup = self
+            .poolGroups[tokenAddress][depositTerm];
+        Pool storage pool = poolGroup.poolsById[poolId];
+        pool.depositAmount = pool.depositAmount.sub(depositAmount);
+        pool.availableAmount = pool.availableAmount.sub(depositAmount);
+        uint256 daysBeforeMaturity = poolId - poolGroup.firstPoolId;
+
+        for (uint256 i = 0; i < loanTermList.length; i++) {
+            uint256 loanTerm = loanTermList[i];
+
+            if (loanTerm <= daysBeforeMaturity) {
+                poolGroup.availableAmountByTerm[loanTerm] = poolGroup
+                    .availableAmountByTerm[loanTerm]
+                    .sub(depositAmount);
+            }
+        }
+    }
+
     function loanFromPoolGroups(
         State storage self,
         _LoanManager.State storage loanManager,

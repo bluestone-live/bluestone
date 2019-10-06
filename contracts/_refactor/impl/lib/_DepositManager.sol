@@ -396,6 +396,56 @@ library _DepositManager {
         return depositPlusInterestAmount;
     }
 
+    function earlyWithdraw(
+        State storage self,
+        _Configuration.State storage configuration,
+        _LiquidityPools.State storage liquidityPools,
+        _LoanManager.State storage loanManager,
+        bytes32 depositId
+    ) external returns (uint256 withdrewAmount) {
+        require(
+            !configuration.isUserActionsLocked,
+            'User actions are locked, please try again later'
+        );
+
+        DepositRecord storage depositRecord = self.depositRecordById[depositId];
+        address tokenAddress = depositRecord.tokenAddress;
+
+        require(
+            self.depositTokenByAddress[tokenAddress].isEnabled,
+            'DepositManager: invalid deposit token'
+        );
+
+        require(
+            msg.sender == depositRecord.ownerAddress,
+            'DepositManager: invalid owner'
+        );
+
+        require(
+            isDepositEarlyWithdrawable(self, liquidityPools, depositId),
+            'DepositManager: deposit is not early withdrawable'
+        );
+
+        liquidityPools.subtractDepositFromPool(
+            depositRecord.tokenAddress,
+            depositRecord.depositAmount,
+            depositRecord.depositTerm,
+            depositRecord.poolId,
+            loanManager.loanTermList
+        );
+
+        depositRecord.withdrewAt = now;
+
+        ERC20(depositRecord.tokenAddress).safeTransfer(
+            msg.sender,
+            depositRecord.depositAmount
+        );
+
+        emit WithdrawSucceed(msg.sender, depositRecord.depositId);
+
+        return depositRecord.depositAmount;
+    }
+
     function getDepositTokens(State storage self)
         external
         view
@@ -562,5 +612,29 @@ library _DepositManager {
             depositRecordListViewObject.maturedAtList,
             depositRecordListViewObject.withdrewAtList
         );
+    }
+
+    function isDepositEarlyWithdrawable(
+        State storage self,
+        _LiquidityPools.State storage liquidityPools,
+        bytes32 depositId
+    ) public view returns (bool isEarlyWithdrawable) {
+        DepositRecord memory depositRecord = self.depositRecordById[depositId];
+
+        if (
+            depositRecord.tokenAddress == address(0) ||
+            depositRecord.withdrewAt != 0 ||
+            depositRecord.maturedAt <= now
+        ) {
+            return false;
+        }
+
+        (, , uint256 availableAmount, ) = liquidityPools.getPoolById(
+            depositRecord.tokenAddress,
+            depositRecord.depositTerm,
+            depositRecord.poolId
+        );
+
+        return availableAmount >= depositRecord.depositAmount;
     }
 }

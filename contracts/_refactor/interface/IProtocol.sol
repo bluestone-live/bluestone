@@ -43,6 +43,13 @@ contract IProtocol {
         external
         returns (uint256 withdrewAmount);
 
+    /// @notice Early withdraw a deposit
+    /// @param depositId Id that identifies the deposit
+    /// @return withdrewAmount Total amount withdrew, not including interest
+    function earlyWithdraw(bytes32 depositId)
+        external
+        returns (uint256 withdrewAmount);
+
     /// @notice Return enabled deposit terms
     /// @return depositTerms A list of enabled deposit terms
     function getDepositTerms()
@@ -119,6 +126,14 @@ contract IProtocol {
             uint256[] memory maturedAtList,
             uint256[] memory withdrewAtList
         );
+
+    /// @notice Return whether a deposit can be early withdrew.
+    /// @param depositId ID that identifies the deposit
+    /// @return isEarlyWithdrawable
+    function isDepositEarlyWithdrawable(bytes32 depositId)
+        external
+        view
+        returns (bool isEarlyWithdrawable);
 
     /// --- Loan ---
 

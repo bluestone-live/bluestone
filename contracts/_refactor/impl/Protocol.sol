@@ -81,6 +81,20 @@ contract Protocol is Ownable, Pausable {
         return _depositManager.withdraw(_configuration, depositId);
     }
 
+    function earlyWithdraw(bytes32 depositId)
+        external
+        whenNotPaused
+        returns (uint256 withdrewAmount)
+    {
+        return
+            _depositManager.earlyWithdraw(
+                _configuration,
+                _liquidityPools,
+                _loanManager,
+                depositId
+            );
+    }
+
     function getDepositTerms()
         external
         view
@@ -152,6 +166,19 @@ contract Protocol is Ownable, Pausable {
         )
     {
         return _depositManager.getDepositRecordsByAccount(accountAddress);
+    }
+
+    function isDepositEarlyWithdrawable(bytes32 depositId)
+        external
+        view
+        whenNotPaused
+        returns (bool isEarlyWithdrawable)
+    {
+        return
+            _depositManager.isDepositEarlyWithdrawable(
+                _liquidityPools,
+                depositId
+            );
     }
 
     /// --- Loan

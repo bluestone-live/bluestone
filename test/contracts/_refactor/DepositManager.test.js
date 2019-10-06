@@ -301,6 +301,43 @@ contract('Protocol', function([owner, depositor]) {
     });
   });
 
+  describe('#earlyWithdraw', () => {
+    const depositAmount = toFixedBN(10);
+
+    beforeEach(async () => {
+      await protocol.enableDepositToken(token.address);
+      await protocol.enableDepositTerm(depositTerm);
+
+      await token.approve(protocol.address, depositAmount, {
+        from: depositor,
+      });
+    });
+
+    context('when deposit is valid', () => {
+      let depositId;
+
+      beforeEach(async () => {
+        const { logs } = await protocol.deposit(
+          token.address,
+          depositAmount,
+          depositTerm,
+          {
+            from: depositor,
+          },
+        );
+
+        depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+          .depositId;
+      });
+
+      context('when deposit is not matured', () => {
+        it('succeeds', async () => {
+          await protocol.earlyWithdraw(depositId, { from: depositor });
+        });
+      });
+    });
+  });
+
   describe('#getDepositRecordById', () => {
     let depositId;
     const depositAmount = toFixedBN(10);
