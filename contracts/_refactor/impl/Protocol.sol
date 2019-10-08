@@ -341,6 +341,18 @@ contract Protocol is Ownable, Pausable {
         );
     }
 
+    function setLoanInterestRatesForToken(
+        address tokenAddress,
+        uint256[] calldata loanTerms,
+        uint256[] calldata loanInterestRateList
+    ) external whenNotPaused onlyOwner {
+        _loanManager.setLoanInterestRatesForToken(
+            tokenAddress,
+            loanTerms,
+            loanInterestRateList
+        );
+    }
+
     /// --- Configuration ---
     function setPriceOracleAddress(address priceOracleAddress)
         external

@@ -509,4 +509,80 @@ contract('Protocol', function([owner, depositor, loaner]) {
       });
     });
   });
+
+  describe('#setLoanInterestRatesForToken', () => {
+    context("when arrays' lengths do not match", () => {
+      let tokenAddress, loanTerms, loanInterestRateList;
+
+      beforeEach(async () => {
+        tokenAddress = loanToken.address;
+        loanTerms = [7, 30];
+        loanInterestRateList = [toFixedBN(0.5)];
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.setLoanInterestRatesForToken(
+            tokenAddress,
+            loanTerms,
+            loanInterestRateList,
+          ),
+          "LoanManager: Arrays' length must be the same.",
+        );
+      });
+    });
+
+    context('when interest rate is not smaller than 1', () => {
+      let tokenAddress, loanTerms, loanInterestRateList0, loanInterestRateList1;
+
+      beforeEach(async () => {
+        tokenAddress = loanToken.address;
+        loanTerms = [7, 30];
+        loanInterestRateList0 = [toFixedBN(0.5), toFixedBN(1)];
+        loanInterestRateList1 = [toFixedBN(1.1), toFixedBN(0.1)];
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.setLoanInterestRatesForToken(
+            tokenAddress,
+            loanTerms,
+            loanInterestRateList0,
+          ),
+          'LoanManager: interest rate must be smaller than 1.',
+        );
+        await expectRevert(
+          protocol.setLoanInterestRatesForToken(
+            tokenAddress,
+            loanTerms,
+            loanInterestRateList1,
+          ),
+          'LoanManager: interest rate must be smaller than 1.',
+        );
+      });
+    });
+
+    context('when loan interest rates are added', () => {
+      let tokenAddress, loanTerms, loanInterestRateList;
+
+      beforeEach(async () => {
+        tokenAddress = loanToken.address;
+        loanTerms = [7, 30];
+        loanInterestRateList = [toFixedBN(0.5), toFixedBN(0.01)];
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+        );
+      });
+
+      it('succeeds', async () => {
+        await protocol.setLoanInterestRatesForToken(
+          tokenAddress,
+          loanTerms,
+          loanInterestRateList,
+        );
+        // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
+      });
+    });
+  });
 });

@@ -43,11 +43,14 @@ library _LoanManager {
         /// can loan 100 DAI at most for colleteralize 1 ETH. And when the collateral coverage ratio of loan
         /// is below 1.5, the colleratal will be liquidated
         mapping(address => mapping(address => uint256)) minCollateralCoverageRatios;
+        /// loan token -> term -> loan interest rates
+        mapping(address => mapping(uint256 => uint256)) loanInterestRates;
         uint256 numLoans;
     }
 
     uint256 private constant DAY_IN_SECONDS = 86400;
     uint256 private constant LOWER_BOUND_OF_CCR_FOR_ALL_PAIRS = 10**18; // 1.0 (100%)
+    uint256 private constant ONE = 10**18;
 
     struct LoanRecord {
         bool isValid;
@@ -739,6 +742,29 @@ library _LoanManager {
         for (uint256 i = 0; i < minCollateralCoverageRatioList.length; i++) {
             self
                 .minCollateralCoverageRatios[loanTokenAddressList[i]][collateralTokenAddressList[i]] = minCollateralCoverageRatioList[i];
+        }
+    }
+
+    function setLoanInterestRatesForToken(
+        State storage self,
+        address tokenAddress,
+        uint256[] calldata loanTerms,
+        uint256[] calldata loanInterestRateList
+    ) external {
+        require(
+            loanTerms.length == loanInterestRateList.length,
+            "LoanManager: Arrays' length must be the same."
+        );
+        for (uint256 i = 0; i < loanInterestRateList.length; i++) {
+            require(
+                loanInterestRateList[i] < ONE,
+                'LoanManager: interest rate must be smaller than 1.'
+            );
+        }
+
+        for (uint256 i = 0; i < loanTerms.length; i++) {
+            self
+                .loanInterestRates[tokenAddress][loanTerms[i]] = loanInterestRateList[i];
         }
     }
 }
