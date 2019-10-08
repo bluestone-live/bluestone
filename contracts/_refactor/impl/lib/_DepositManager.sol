@@ -208,8 +208,6 @@ library _DepositManager {
         _LiquidityPools.State storage liquidityPools,
         _LoanManager.State storage loanManager
     ) external {
-        // TODO(desmond): verify user actions are locked after the method is implemented
-
         /// Ensure deposit maturity update only triggers once in a day by checking current
         /// timestamp is greater than the timestamp of last update (in day unit).
         require(
@@ -265,8 +263,6 @@ library _DepositManager {
         uint256 depositAmount,
         uint256 depositTerm
     ) external returns (bytes32 depositId) {
-        // TODO(desmond): verify user actions not locked
-
         require(
             self.depositTokenByAddress[tokenAddress].isEnabled,
             'DepositManager: invalid deposit token'
@@ -330,8 +326,6 @@ library _DepositManager {
         _Configuration.State storage configuration,
         bytes32 depositId
     ) external returns (uint256 withdrewAmount) {
-        // TODO(desmond): verify user actions are locked
-
         DepositRecord storage depositRecord = self.depositRecordById[depositId];
 
         require(
@@ -397,16 +391,10 @@ library _DepositManager {
 
     function earlyWithdraw(
         State storage self,
-        _Configuration.State storage configuration,
         _LiquidityPools.State storage liquidityPools,
         _LoanManager.State storage loanManager,
         bytes32 depositId
     ) external returns (uint256 withdrewAmount) {
-        require(
-            !configuration.isUserActionsLocked,
-            'User actions are locked, please try again later'
-        );
-
         DepositRecord storage depositRecord = self.depositRecordById[depositId];
         address tokenAddress = depositRecord.tokenAddress;
 

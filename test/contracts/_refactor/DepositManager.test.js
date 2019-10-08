@@ -151,7 +151,9 @@ contract('Protocol', function([owner, depositor]) {
           depositTerm,
         );
 
+        await protocol.lockUserActions();
         await protocol.updateDepositMaturity();
+        await protocol.unlockUserActions();
 
         const currPoolGroup = await protocol.getPoolGroup(
           token.address,
@@ -172,7 +174,9 @@ contract('Protocol', function([owner, depositor]) {
       'when update twice within the same day right before midnight',
       () => {
         beforeEach(async () => {
+          await protocol.lockUserActions();
           await protocol.updateDepositMaturity();
+          await protocol.unlockUserActions();
         });
 
         it('reverts', async () => {
@@ -180,24 +184,32 @@ contract('Protocol', function([owner, depositor]) {
           const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
           await time.increase(time.duration.seconds(secondsUntilMidnight - 10));
 
+          await protocol.lockUserActions();
+
           await expectRevert(
             protocol.updateDepositMaturity(),
             'Cannot update multiple times within the same day.',
           );
+
+          await protocol.unlockUserActions();
         });
       },
     );
 
     context('when update on the next day right after midnight', () => {
       beforeEach(async () => {
+        await protocol.lockUserActions();
         await protocol.updateDepositMaturity();
+        await protocol.unlockUserActions();
       });
 
       it('succeeds', async () => {
         const now = await time.latest();
         const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
         await time.increase(time.duration.seconds(secondsUntilMidnight + 10));
+        await protocol.lockUserActions();
         await protocol.updateDepositMaturity();
+        await protocol.unlockUserActions();
       });
     });
   });

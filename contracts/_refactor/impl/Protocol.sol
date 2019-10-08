@@ -28,6 +28,22 @@ contract Protocol is Ownable, Pausable {
     event LockUserActions();
     event UnlockUserActions();
 
+    modifier whenUserActionsUnlocked() {
+        require(
+            !_configuration.isUserActionsLocked,
+            'Protocol: user actions must be unlocked'
+        );
+        _;
+    }
+
+    modifier whenUserActionsLocked() {
+        require(
+            _configuration.isUserActionsLocked,
+            'Protocol: user actions must be locked'
+        );
+        _;
+    }
+
     /// --- Deposit Configurations---
 
     function enableDepositTerm(uint256 term) external whenNotPaused onlyOwner {
@@ -54,7 +70,12 @@ contract Protocol is Ownable, Pausable {
         _depositManager.disableDepositToken(tokenAddress);
     }
 
-    function updateDepositMaturity() external whenNotPaused onlyOwner {
+    function updateDepositMaturity()
+        external
+        whenNotPaused
+        whenUserActionsLocked
+        onlyOwner
+    {
         _depositManager.updateDepositMaturity(_liquidityPools, _loanManager);
     }
 
@@ -62,7 +83,12 @@ contract Protocol is Ownable, Pausable {
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm
-    ) external whenNotPaused returns (bytes32 depositId) {
+    )
+        external
+        whenNotPaused
+        whenUserActionsUnlocked
+        returns (bytes32 depositId)
+    {
         return
             _depositManager.deposit(
                 _liquidityPools,
@@ -76,6 +102,7 @@ contract Protocol is Ownable, Pausable {
     function withdraw(bytes32 depositId)
         external
         whenNotPaused
+        whenUserActionsUnlocked
         returns (uint256 withdrewAmount)
     {
         return _depositManager.withdraw(_configuration, depositId);
@@ -84,11 +111,11 @@ contract Protocol is Ownable, Pausable {
     function earlyWithdraw(bytes32 depositId)
         external
         whenNotPaused
+        whenUserActionsUnlocked
         returns (uint256 withdrewAmount)
     {
         return
             _depositManager.earlyWithdraw(
-                _configuration,
                 _liquidityPools,
                 _loanManager,
                 depositId
@@ -198,7 +225,7 @@ contract Protocol is Ownable, Pausable {
         uint256 collateralAmount,
         uint256 loanTerm,
         bool useFreedCollateral
-    ) external returns (bytes32 loanId) {
+    ) external whenNotPaused whenUserActionsUnlocked returns (bytes32 loanId) {
         return
             _loanManager.loan(
                 _configuration,
@@ -215,11 +242,12 @@ contract Protocol is Ownable, Pausable {
 
     function repayLoan(bytes32 loanId, uint256 repayAmount)
         external
+        whenNotPaused
+        whenUserActionsUnlocked
         returns (uint256 remainingDebt)
     {
         return
             _loanManager.repayLoan(
-                _configuration,
                 _liquidityPools,
                 _depositManager,
                 loanId,
@@ -229,6 +257,8 @@ contract Protocol is Ownable, Pausable {
 
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
         external
+        whenNotPaused
+        whenUserActionsUnlocked
         returns (uint256 remainingCollateral, uint256 liquidatedAmount)
     {
         return
@@ -265,7 +295,7 @@ contract Protocol is Ownable, Pausable {
     function withdrawFreedCollateral(
         address tokenAddress,
         uint256 collateralAmount
-    ) external whenNotPaused {
+    ) external whenNotPaused whenUserActionsUnlocked {
         address accountAddress = msg.sender;
         _loanManager.withdrawFreedCollateral(
             accountAddress,
@@ -341,7 +371,12 @@ contract Protocol is Ownable, Pausable {
         bytes32 loanId,
         uint256 collateralAmount,
         bool useFreedCollateral
-    ) external whenNotPaused returns (uint256 totalCollateralAmount) {
+    )
+        external
+        whenNotPaused
+        whenUserActionsUnlocked
+        returns (uint256 totalCollateralAmount)
+    {
         return
             _loanManager.addCollateral(
                 loanId,

@@ -477,11 +477,6 @@ library _LoanManager {
         bool useFreedCollateral
     ) external returns (bytes32 loanId) {
         require(
-            !configuration.isUserActionsLocked,
-            'LoanManager: user actions are locked, please try again later'
-        );
-
-        require(
             self
                 .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress],
             'LoanManager: invalid loan and collateral token pair'
@@ -622,17 +617,11 @@ library _LoanManager {
 
     function repayLoan(
         State storage self,
-        _Configuration.State storage configuration,
         _LiquidityPools.State storage liquidityPools,
         _DepositManager.State storage depositManager,
         bytes32 loanId,
         uint256 repayAmount
     ) external returns (uint256 remainingDebt) {
-        require(
-            !configuration.isUserActionsLocked,
-            'LoanManager: user actions are locked, please try again later'
-        );
-
         LoanRecord storage loanRecord = self.loanRecordById[loanId];
 
         require(
@@ -714,11 +703,6 @@ library _LoanManager {
         bytes32 loanId,
         uint256 liquidateAmount
     ) external returns (uint256 remainingCollateral, uint256 liquidatedAmount) {
-        require(
-            !configuration.isUserActionsLocked,
-            'LoanManager: user actions are locked, please try again later'
-        );
-
         LoanRecord storage loanRecord = self.loanRecordById[loanId];
 
         require(
