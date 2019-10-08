@@ -50,9 +50,7 @@ library _DepositManager {
         mapping(uint256 => InterestIndexHistory) interestIndexHistoryByTerm;
     }
 
-    // TODO(desmond): merge with D378
     struct DepositRecord {
-        bool isValid;
         bytes32 depositId;
         address ownerAddress;
         address tokenAddress;
@@ -301,9 +299,7 @@ library _DepositManager {
             depositTerm *
             DateTime.dayInSeconds();
 
-        // TODO(desmond): complete deposit record after D378 is done
         self.depositRecordById[currDepositId] = DepositRecord({
-            isValid: true,
             depositId: currDepositId,
             ownerAddress: accountAddress,
             tokenAddress: tokenAddress,
@@ -338,7 +334,10 @@ library _DepositManager {
 
         DepositRecord storage depositRecord = self.depositRecordById[depositId];
 
-        require(depositRecord.isValid, 'DepositManager: invalid deposit ID');
+        require(
+            depositRecord.tokenAddress != address(0),
+            'DepositManager: invalid deposit ID'
+        );
 
         address tokenAddress = depositRecord.tokenAddress;
         address accountAddress = msg.sender;
