@@ -38,10 +38,16 @@ library _LoanManager {
         /// An loan token pair refers to loan token A using collateral B, i.e., "B -> A",
         /// Loan-related transactions can happen only if "B -> A" is enabled.
         mapping(address => mapping(address => bool)) isLoanTokenPairEnabled;
+        /// loan token -> collateral token -> minimum collateral coverage ratios
+        /// For example, if minCollateralCoverageRatios[DAI][ETH] = 1.5 when 1 ETH = 150 DAI, it means you
+        /// can loan 100 DAI at most for colleteralize 1 ETH. And when the collateral coverage ratio of loan
+        /// is below 1.5, the colleratal will be liquidated
+        mapping(address => mapping(address => uint256)) minCollateralCoverageRatios;
         uint256 numLoans;
     }
 
     uint256 private constant DAY_IN_SECONDS = 86400;
+    uint256 private constant LOWER_BOUND_OF_CCR_FOR_ALL_PAIRS = 10**18; // 1.0 (100%)
 
     struct LoanRecord {
         bool isValid;
@@ -700,5 +706,39 @@ library _LoanManager {
                 .add(loanRecord.interest)
                 .sub(loanRecord.alreadyPaidAmount)
                 .sub(loanRecord.liquidatedAmount);
+    }
+
+    function setMinCollateralCoverageRatios(
+        State storage self,
+        address[] calldata loanTokenAddressList,
+        address[] calldata collateralTokenAddressList,
+        uint256[] calldata minCollateralCoverageRatioList
+    ) external {
+        require(
+            loanTokenAddressList.length == collateralTokenAddressList.length,
+            "LoanManager: Arrays' length must be the same."
+        );
+        require(
+            loanTokenAddressList.length ==
+                minCollateralCoverageRatioList.length,
+            "LoanManager: Arrays' length must be the same."
+        );
+        for (uint256 i = 0; i < minCollateralCoverageRatioList.length; i++) {
+            require(
+                self
+                    .isLoanTokenPairEnabled[loanTokenAddressList[i]][collateralTokenAddressList[i]],
+                'LoanManager: The token pair must be enabled.'
+            );
+            require(
+                minCollateralCoverageRatioList[i] >
+                    LOWER_BOUND_OF_CCR_FOR_ALL_PAIRS,
+                'LoanManager: Minimum CCR must be larger than lower bound.'
+            );
+        }
+
+        for (uint256 i = 0; i < minCollateralCoverageRatioList.length; i++) {
+            self
+                .minCollateralCoverageRatios[loanTokenAddressList[i]][collateralTokenAddressList[i]] = minCollateralCoverageRatioList[i];
+        }
     }
 }

@@ -329,6 +329,18 @@ contract Protocol is Ownable, Pausable {
         );
     }
 
+    function setMinCollateralCoverageRatios(
+        address[] calldata loanTokenAddressList,
+        address[] calldata collateralTokenAddressList,
+        uint256[] calldata minCollateralCoverageRatioList
+    ) external whenNotPaused onlyOwner {
+        _loanManager.setMinCollateralCoverageRatios(
+            loanTokenAddressList,
+            collateralTokenAddressList,
+            minCollateralCoverageRatioList
+        );
+    }
+
     /// --- Configuration ---
     function setPriceOracleAddress(address priceOracleAddress)
         external

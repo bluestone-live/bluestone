@@ -1,15 +1,18 @@
 const Protocol = artifacts.require('Protocol');
 const PriceOracle = artifacts.require('_PriceOracle');
-const { toFixedBN, createERC20Token } = require('../../utils/index.js');
 const { BN, expectRevert, expectEvent } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
+const { createERC20Token, toFixedBN } = require('../../utils/index.js');
 
 contract('Protocol', function([owner, depositor, loaner]) {
-  let protocol, priceOracle;
+  const initialSupply = toFixedBN(1000);
+  let protocol, priceOracle, loanToken, collateralToken;
 
   beforeEach(async () => {
     protocol = await Protocol.new();
     priceOracle = await PriceOracle.new();
+    loanToken = await createERC20Token(depositor, initialSupply);
+    collateralToken = await createERC20Token(loaner, initialSupply);
   });
 
   describe('#addLoanTerm', () => {
@@ -388,6 +391,121 @@ contract('Protocol', function([owner, depositor, loaner]) {
         const currLoanRecord = await protocol.getLoanRecordById(loanId);
         expect(currLoanRecord.remainingDebt).to.bignumber.equal(new BN(0));
         expect(currLoanRecord.isClosed).to.be.true;
+      });
+    });
+  });
+
+  describe('#setMinCollateralCoverageRatios', () => {
+    context("when arrays' lengths are different", () => {
+      let loanTokenAddressList,
+        collateralTokenAddressList,
+        minCollateralCoverageRatioList;
+
+      beforeEach(async () => {
+        loanTokenAddressList = [loanToken.address];
+        collateralTokenAddressList = [collateralToken.address];
+        minCollateralCoverageRatioList = [toFixedBN(1.5), toFixedBN(1.1)];
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.setMinCollateralCoverageRatios(
+            loanTokenAddressList,
+            collateralTokenAddressList,
+            minCollateralCoverageRatioList,
+          ),
+          "LoanManager: Arrays' length must be the same.",
+        );
+      });
+
+      it('reverts', async () => {
+        await collateralTokenAddressList.push(loanToken.address);
+        await minCollateralCoverageRatioList.pop();
+        await expectRevert(
+          protocol.setMinCollateralCoverageRatios(
+            loanTokenAddressList,
+            collateralTokenAddressList,
+            minCollateralCoverageRatioList,
+          ),
+          "LoanManager: Arrays' length must be the same.",
+        );
+      });
+    });
+    context('when some pairs are not enabled', () => {
+      let loanTokenAddressList,
+        collateralTokenAddressList,
+        minCollateralCoverageRatioList;
+
+      beforeEach(async () => {
+        loanTokenAddressList = [loanToken.address];
+        collateralTokenAddressList = [loanToken.address];
+        minCollateralCoverageRatioList = [toFixedBN(1.5)];
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.setMinCollateralCoverageRatios(
+            loanTokenAddressList,
+            collateralTokenAddressList,
+            minCollateralCoverageRatioList,
+          ),
+          'LoanManager: The token pair must be enabled.',
+        );
+      });
+    });
+
+    context(
+      'when the collateral coverage ratio is equal or small than lower bound',
+      () => {
+        let loanTokenAddressList,
+          collateralTokenAddressList,
+          minCollateralCoverageRatioList;
+
+        beforeEach(async () => {
+          loanTokenAddressList = [loanToken.address];
+          collateralTokenAddressList = [collateralToken.address];
+          minCollateralCoverageRatioList = [toFixedBN(1)];
+          await protocol.enableLoanAndCollateralTokenPair(
+            loanTokenAddressList[0],
+            collateralTokenAddressList[0],
+          );
+        });
+
+        it('reverts', async () => {
+          await expectRevert(
+            protocol.setMinCollateralCoverageRatios(
+              loanTokenAddressList,
+              collateralTokenAddressList,
+              minCollateralCoverageRatioList,
+            ),
+            'LoanManager: Minimum CCR must be larger than lower bound.',
+          );
+        });
+      },
+    );
+
+    context('when minimum collateral coverage ratios are added', () => {
+      let loanTokenAddressList,
+        collateralTokenAddressList,
+        minCollateralCoverageRatioList;
+
+      beforeEach(async () => {
+        loanTokenAddressList = [loanToken.address];
+        collateralTokenAddressList = [collateralToken.address];
+        minCollateralCoverageRatioList = [toFixedBN(1.5)];
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanTokenAddressList[0],
+          collateralTokenAddressList[0],
+        );
+      });
+
+      it('succeeds', async () => {
+        await protocol.setMinCollateralCoverageRatios(
+          loanTokenAddressList,
+          collateralTokenAddressList,
+          minCollateralCoverageRatioList,
+        );
+        // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
       });
     });
   });

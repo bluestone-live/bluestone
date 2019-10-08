@@ -146,14 +146,14 @@ contract IProtocol {
         address collateralTokenAddress
     ) external;
 
-    /// @notice Set collateral coverage ratio for each loan and collateral token pair
+    /// @notice Set minimum collateral coverage ratio for each loan and collateral token pair
     /// @param loanTokenAddressList A list of loan token addresses
     /// @param collateralTokenAddressList A list of collateral token addresses
-    /// @param collateralCoverageRatioList A list of collateral coverage ratios
-    function setCollateralCoverageRatios(
+    /// @param minCollateralCoverageRatioList A list of minimum collateral coverage ratios
+    function setMinCollateralCoverageRatios(
         address[] calldata loanTokenAddressList,
         address[] calldata collateralTokenAddressList,
-        uint256[] calldata collateralCoverageRatioList
+        uint256[] calldata minCollateralCoverageRatioList
     ) external;
 
     /// @notice Set liquidation discount for each loan and collateral token pair
