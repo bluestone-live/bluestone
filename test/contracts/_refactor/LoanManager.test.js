@@ -585,4 +585,90 @@ contract('Protocol', function([owner, depositor, loaner]) {
       });
     });
   });
+
+  describe('#setLiquidationDiscounts', () => {
+    context("when arrays' lengths are different", () => {
+      let loanTokenAddressList,
+        collateralTokenAddressList,
+        liquidationDiscountList;
+
+      beforeEach(async () => {
+        loanTokenAddressList = [loanToken.address];
+        collateralTokenAddressList = [collateralToken.address];
+        liquidationDiscountList = [toFixedBN(0.95), toFixedBN(0.9)];
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.setLiquidationDiscounts(
+            loanTokenAddressList,
+            collateralTokenAddressList,
+            liquidationDiscountList,
+          ),
+          "LoanManager: Arrays' length must be the same.",
+        );
+      });
+
+      it('reverts', async () => {
+        await collateralTokenAddressList.push(loanToken.address);
+        await liquidationDiscountList.pop();
+        await expectRevert(
+          protocol.setLiquidationDiscounts(
+            loanTokenAddressList,
+            collateralTokenAddressList,
+            liquidationDiscountList,
+          ),
+          "LoanManager: Arrays' length must be the same.",
+        );
+      });
+    });
+
+    context('when some pairs are not enabled', () => {
+      let loanTokenAddressList,
+        collateralTokenAddressList,
+        liquidationDiscountList;
+
+      beforeEach(async () => {
+        loanTokenAddressList = [loanToken.address];
+        collateralTokenAddressList = [loanToken.address];
+        liquidationDiscountList = [toFixedBN(0.9)];
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.setLiquidationDiscounts(
+            loanTokenAddressList,
+            collateralTokenAddressList,
+            liquidationDiscountList,
+          ),
+          'LoanManager: The token pair must be enabled.',
+        );
+      });
+    });
+
+    context('when minimum collateral coverage ratios are added', () => {
+      let loanTokenAddressList,
+        collateralTokenAddressList,
+        liquidationDiscountList;
+
+      beforeEach(async () => {
+        loanTokenAddressList = [loanToken.address];
+        collateralTokenAddressList = [collateralToken.address];
+        liquidationDiscountList = [toFixedBN(0.03)];
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanTokenAddressList[0],
+          collateralTokenAddressList[0],
+        );
+      });
+
+      it('succeeds', async () => {
+        await protocol.setLiquidationDiscounts(
+          loanTokenAddressList,
+          collateralTokenAddressList,
+          liquidationDiscountList,
+        );
+        // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
+      });
+    });
+  });
 });

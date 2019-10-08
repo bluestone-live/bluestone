@@ -353,6 +353,18 @@ contract Protocol is Ownable, Pausable {
         );
     }
 
+    function setLiquidationDiscounts(
+        address[] calldata loanTokenAddressList,
+        address[] calldata collateralTokenAddressList,
+        uint256[] calldata liquidationDiscountList
+    ) external whenNotPaused onlyOwner {
+        _loanManager.setLiquidationDiscounts(
+            loanTokenAddressList,
+            collateralTokenAddressList,
+            liquidationDiscountList
+        );
+    }
+
     /// --- Configuration ---
     function setPriceOracleAddress(address priceOracleAddress)
         external

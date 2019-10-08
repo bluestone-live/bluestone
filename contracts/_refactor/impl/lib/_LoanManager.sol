@@ -45,12 +45,15 @@ library _LoanManager {
         mapping(address => mapping(address => uint256)) minCollateralCoverageRatios;
         /// loan token -> term -> loan interest rates
         mapping(address => mapping(uint256 => uint256)) loanInterestRates;
+        /// loan token -> collateral token -> liquidation discounts
+        mapping(address => mapping(address => uint256)) liquidationDiscounts;
         uint256 numLoans;
     }
 
     uint256 private constant DAY_IN_SECONDS = 86400;
     uint256 private constant LOWER_BOUND_OF_CCR_FOR_ALL_PAIRS = 10**18; // 1.0 (100%)
     uint256 private constant ONE = 10**18;
+    uint256 private constant MAX_LIQUIDATION_DISCOUNT = 2 * (10**17); // 0.2 (20%)
 
     struct LoanRecord {
         bool isValid;
@@ -765,6 +768,38 @@ library _LoanManager {
         for (uint256 i = 0; i < loanTerms.length; i++) {
             self
                 .loanInterestRates[tokenAddress][loanTerms[i]] = loanInterestRateList[i];
+        }
+    }
+
+    function setLiquidationDiscounts(
+        State storage self,
+        address[] calldata loanTokenAddressList,
+        address[] calldata collateralTokenAddressList,
+        uint256[] calldata liquidationDiscountList
+    ) external {
+        require(
+            loanTokenAddressList.length == collateralTokenAddressList.length,
+            "LoanManager: Arrays' length must be the same."
+        );
+        require(
+            loanTokenAddressList.length == liquidationDiscountList.length,
+            "LoanManager: Arrays' length must be the same."
+        );
+        for (uint256 i = 0; i < liquidationDiscountList.length; i++) {
+            require(
+                self
+                    .isLoanTokenPairEnabled[loanTokenAddressList[i]][collateralTokenAddressList[i]],
+                'LoanManager: The token pair must be enabled.'
+            );
+            require(
+                liquidationDiscountList[i] < MAX_LIQUIDATION_DISCOUNT,
+                'LoanManager: discount must be smaller than MAX_LIQUIDATION_DISCOUNT.'
+            );
+        }
+
+        for (uint256 i = 0; i < liquidationDiscountList.length; i++) {
+            self
+                .liquidationDiscounts[loanTokenAddressList[i]][collateralTokenAddressList[i]] = liquidationDiscountList[i];
         }
     }
 }
