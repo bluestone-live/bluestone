@@ -405,13 +405,13 @@ contract Protocol is Ownable, Pausable {
         );
     }
 
-    function setMinCollateralCoverageRatios(
-        address[] calldata loanTokenAddressList,
+    function setMinCollateralCoverageRatiosForToken(
+        address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata minCollateralCoverageRatioList
     ) external whenNotPaused onlyOwner {
-        _loanManager.setMinCollateralCoverageRatios(
-            loanTokenAddressList,
+        _loanManager.setMinCollateralCoverageRatiosForToken(
+            loanTokenAddress,
             collateralTokenAddressList,
             minCollateralCoverageRatioList
         );
@@ -429,16 +429,38 @@ contract Protocol is Ownable, Pausable {
         );
     }
 
-    function setLiquidationDiscounts(
-        address[] calldata loanTokenAddressList,
+    function setLiquidationDiscountsForToken(
+        address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata liquidationDiscountList
     ) external whenNotPaused onlyOwner {
-        _loanManager.setLiquidationDiscounts(
-            loanTokenAddressList,
+        _loanManager.setLiquidationDiscountsForToken(
+            loanTokenAddress,
             collateralTokenAddressList,
             liquidationDiscountList
         );
+    }
+
+    function getLoanAndCollateralTokenPairs()
+        external
+        view
+        returns (
+            address[] memory loanTokenAddressList,
+            address[] memory collateralTokenAddressList,
+            bool[] memory isEnabledList,
+            uint256[] memory minCollateralCoverageRatioList,
+            uint256[] memory liquidationDiscountList
+        )
+    {
+        return _loanManager.getLoanAndCollateralTokenPairs();
+    }
+
+    function getTokenAddressList(uint256 tokenType)
+        external
+        view
+        returns (address[] memory tokenAddressList, bool[] memory isActive)
+    {
+        return _loanManager.getTokenAddressList(tokenType);
     }
 
     /// --- Configuration ---

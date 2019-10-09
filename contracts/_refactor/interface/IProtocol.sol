@@ -162,26 +162,27 @@ contract IProtocol {
     ) external;
 
     /// @notice Set minimum collateral coverage ratio for each loan and collateral token pair
-    /// @param loanTokenAddressList A list of loan token addresses
+    /// @param loanTokenAddress A loan token addresses
     /// @param collateralTokenAddressList A list of collateral token addresses
     /// @param minCollateralCoverageRatioList A list of minimum collateral coverage ratios
-    function setMinCollateralCoverageRatios(
-        address[] calldata loanTokenAddressList,
+    function setMinCollateralCoverageRatiosForToken(
+        address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata minCollateralCoverageRatioList
     ) external;
 
     /// @notice Set liquidation discount for each loan and collateral token pair
-    /// @param loanTokenAddressList A list of loan token addresses
+    /// @param loanTokenAddress A loan token addresses
     /// @param collateralTokenAddressList A list of collateral token addresses
     /// @param liquidationDiscountList A list of liquidation discounts
-    function setLiquidationDiscounts(
-        address[] calldata loanTokenAddressList,
+    function setLiquidationDiscountsForToken(
+        address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata liquidationDiscountList
     ) external;
 
     /// @notice Set loan interest rate for each loan term for specific token
+    /// @param tokenAddress A loan token address
     /// @param loanTerms A list of loan terms
     /// @param loanInterestRateList A list of loan interest rates
     function setLoanInterestRatesForToken(
@@ -346,7 +347,7 @@ contract IProtocol {
     /// @return loanTokenAddressList A list of loan token addresses
     /// @return collateralTokenAddressList A list of collateral token addresses
     /// @return isEnabledList A list of boolean value indicates whether the token pair is enabled
-    /// @return collateralCoverageRatioList A list of collateral coverage ratios
+    /// @return minCollateralCoverageRatioList A list of minimum collateral coverage ratios
     /// @return liquidationDiscountList A list of liquidation discounts
     function getLoanAndCollateralTokenPairs()
         external
@@ -355,9 +356,18 @@ contract IProtocol {
             address[] memory loanTokenAddressList,
             address[] memory collateralTokenAddressList,
             bool[] memory isEnabledList,
-            uint256[] memory collateralCoverageRatioList,
+            uint256[] memory minCollateralCoverageRatioList,
             uint256[] memory liquidationDiscountList
         );
+
+    /// @notice return token addresses for all loanable tokens
+    /// @param tokenType Type flag, 0 for loan token and 1 for collateral token
+    /// @return tokenAddressList A list of loan token addresses
+    /// @return isActive A list that shows if the loan token is active now
+    function getTokenAddressList(uint256 tokenType)
+        external
+        view
+        returns (address[] memory tokenAddressList, bool[] memory isActive);
 
     /// @notice Return loan interest rates for each loan term for given token
     /// @return loanTerms A list of loan terms

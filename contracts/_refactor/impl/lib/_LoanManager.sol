@@ -25,6 +25,8 @@ library _LoanManager {
 
     struct State {
         uint256[] loanTermList;
+        TokenStorage loanTokens;
+        TokenStorage collateralTokens;
         mapping(uint256 => bool) isLoanTermValid;
         // ID -> LoanRecord
         mapping(bytes32 => LoanRecord) loanRecordById;
@@ -50,6 +52,17 @@ library _LoanManager {
         uint256 numLoans;
     }
 
+    struct TokenStorage {
+        /// When referenceCounter < 0, the token was enabled as a loan token pair list before,
+        /// but has been disabled and not existed in loan token pair list now.
+        /// If referenceCounter == 0, the token never existed in loan token pair list.
+        /// If referenceCounter > 0, the token exists in `referenceCounter` loan token pair list.
+        mapping(address => int256) referenceCounter;
+        /// an array store all token that have ever existed in loan token pair list.
+        address[] tokenList;
+    }
+
+    uint256 private constant DAY_IN_SECONDS = 86400;
     uint256 private constant LOWER_BOUND_OF_CCR_FOR_ALL_PAIRS = 10**18; // 1.0 (100%)
     uint256 private constant ONE = 10**18;
     uint256 private constant MAX_LIQUIDATION_DISCOUNT = 2 * (10**17); // 0.2 (20%)
@@ -599,6 +612,28 @@ library _LoanManager {
         );
         self
             .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress] = true;
+
+        if (self.loanTokens.referenceCounter[loanTokenAddress] == 0) {
+            self.loanTokens.tokenList.push(loanTokenAddress);
+            self.loanTokens.referenceCounter[loanTokenAddress]++;
+        } else if (self.loanTokens.referenceCounter[loanTokenAddress] < 0) {
+            self.loanTokens.referenceCounter[loanTokenAddress] = 1;
+        } else {
+            self.loanTokens.referenceCounter[loanTokenAddress]++;
+        }
+
+        if (
+            self.collateralTokens.referenceCounter[collateralTokenAddress] == 0
+        ) {
+            self.collateralTokens.tokenList.push(collateralTokenAddress);
+            self.collateralTokens.referenceCounter[collateralTokenAddress]++;
+        } else if (
+            self.collateralTokens.referenceCounter[collateralTokenAddress] < 0
+        ) {
+            self.collateralTokens.referenceCounter[collateralTokenAddress] = 1;
+        } else {
+            self.collateralTokens.referenceCounter[collateralTokenAddress]++;
+        }
     }
 
     function disableLoanAndCollateralTokenPair(
@@ -611,8 +646,31 @@ library _LoanManager {
                 .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress],
             'LoanManager: loan token pair is already disabled.'
         );
+        require(
+            self.loanTokens.referenceCounter[loanTokenAddress] > 0,
+            'LoanManager: the reference counter must be larger than 0.'
+        );
+        require(
+            self.collateralTokens.referenceCounter[collateralTokenAddress] > 0,
+            'LoanManager: the reference counter must be larger than 0.'
+        );
+
         self
             .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress] = false;
+
+        if (self.loanTokens.referenceCounter[loanTokenAddress] == 1) {
+            self.loanTokens.referenceCounter[loanTokenAddress] = -1;
+        } else {
+            self.loanTokens.referenceCounter[loanTokenAddress]--;
+        }
+
+        if (
+            self.collateralTokens.referenceCounter[collateralTokenAddress] == 1
+        ) {
+            self.collateralTokens.referenceCounter[collateralTokenAddress] = -1;
+        } else {
+            self.collateralTokens.referenceCounter[collateralTokenAddress]--;
+        }
     }
 
     function repayLoan(
@@ -837,25 +895,21 @@ library _LoanManager {
                 .sub(loanRecord.liquidatedAmount);
     }
 
-    function setMinCollateralCoverageRatios(
+    function setMinCollateralCoverageRatiosForToken(
         State storage self,
-        address[] calldata loanTokenAddressList,
+        address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata minCollateralCoverageRatioList
     ) external {
         require(
-            loanTokenAddressList.length == collateralTokenAddressList.length,
-            "LoanManager: Arrays' length must be the same."
-        );
-        require(
-            loanTokenAddressList.length ==
+            collateralTokenAddressList.length ==
                 minCollateralCoverageRatioList.length,
             "LoanManager: Arrays' length must be the same."
         );
         for (uint256 i = 0; i < minCollateralCoverageRatioList.length; i++) {
             require(
                 self
-                    .isLoanTokenPairEnabled[loanTokenAddressList[i]][collateralTokenAddressList[i]],
+                    .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddressList[i]],
                 'LoanManager: The token pair must be enabled.'
             );
             require(
@@ -867,7 +921,7 @@ library _LoanManager {
 
         for (uint256 i = 0; i < minCollateralCoverageRatioList.length; i++) {
             self
-                .minCollateralCoverageRatios[loanTokenAddressList[i]][collateralTokenAddressList[i]] = minCollateralCoverageRatioList[i];
+                .minCollateralCoverageRatios[loanTokenAddress][collateralTokenAddressList[i]] = minCollateralCoverageRatioList[i];
         }
     }
 
@@ -894,24 +948,20 @@ library _LoanManager {
         }
     }
 
-    function setLiquidationDiscounts(
+    function setLiquidationDiscountsForToken(
         State storage self,
-        address[] calldata loanTokenAddressList,
+        address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata liquidationDiscountList
     ) external {
         require(
-            loanTokenAddressList.length == collateralTokenAddressList.length,
-            "LoanManager: Arrays' length must be the same."
-        );
-        require(
-            loanTokenAddressList.length == liquidationDiscountList.length,
+            collateralTokenAddressList.length == liquidationDiscountList.length,
             "LoanManager: Arrays' length must be the same."
         );
         for (uint256 i = 0; i < liquidationDiscountList.length; i++) {
             require(
                 self
-                    .isLoanTokenPairEnabled[loanTokenAddressList[i]][collateralTokenAddressList[i]],
+                    .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddressList[i]],
                 'LoanManager: The token pair must be enabled.'
             );
             require(
@@ -922,7 +972,75 @@ library _LoanManager {
 
         for (uint256 i = 0; i < liquidationDiscountList.length; i++) {
             self
-                .liquidationDiscounts[loanTokenAddressList[i]][collateralTokenAddressList[i]] = liquidationDiscountList[i];
+                .liquidationDiscounts[loanTokenAddress][collateralTokenAddressList[i]] = liquidationDiscountList[i];
         }
+    }
+
+    function getLoanAndCollateralTokenPairs(State storage self)
+        external
+        view
+        returns (
+            address[] memory loanTokenAddressList,
+            address[] memory collateralTokenAddressList,
+            bool[] memory isEnabledList,
+            uint256[] memory minCollateralCoverageRatioList,
+            uint256[] memory liquidationDiscountList
+        )
+    {
+        loanTokenAddressList = self.loanTokens.tokenList;
+        collateralTokenAddressList = self.collateralTokens.tokenList;
+        uint256 loanLen = loanTokenAddressList.length;
+        uint256 collateralLen = collateralTokenAddressList.length;
+        isEnabledList = new bool[](loanLen * collateralLen);
+        minCollateralCoverageRatioList = new uint256[](loanLen * collateralLen);
+        liquidationDiscountList = new uint256[](loanLen * collateralLen);
+        uint256 k = 0;
+        for (uint256 i = 0; i < loanLen; ++i) {
+            for (uint256 j = 0; j < collateralLen; j++) {
+                isEnabledList[k] = self
+                    .isLoanTokenPairEnabled[loanTokenAddressList[i]][collateralTokenAddressList[j]];
+                minCollateralCoverageRatioList[k] = self
+                    .minCollateralCoverageRatios[loanTokenAddressList[i]][collateralTokenAddressList[j]];
+                liquidationDiscountList[k] = self
+                    .liquidationDiscounts[loanTokenAddressList[i]][collateralTokenAddressList[j]];
+                k++;
+            }
+        }
+        return (
+            loanTokenAddressList,
+            collateralTokenAddressList,
+            isEnabledList,
+            minCollateralCoverageRatioList,
+            liquidationDiscountList
+        );
+    }
+
+    function getTokenAddressList(State storage self, uint256 tokenType)
+        external
+        view
+        returns (address[] memory tokenAddressList, bool[] memory isActive)
+    {
+        if (tokenType == 0) {
+            tokenAddressList = self.loanTokens.tokenList;
+            isActive = new bool[](self.loanTokens.tokenList.length);
+            for (uint256 i = 0; i < isActive.length; i++) {
+                isActive[i] =
+                    self.loanTokens.referenceCounter[self
+                        .loanTokens
+                        .tokenList[i]] >
+                    0;
+            }
+        } else if (tokenType == 1) {
+            tokenAddressList = self.collateralTokens.tokenList;
+            isActive = new bool[](self.collateralTokens.tokenList.length);
+            for (uint256 i = 0; i < isActive.length; i++) {
+                isActive[i] =
+                    self.collateralTokens.referenceCounter[self
+                        .collateralTokens
+                        .tokenList[i]] >
+                    0;
+            }
+        }
+        return (tokenAddressList, isActive);
     }
 }

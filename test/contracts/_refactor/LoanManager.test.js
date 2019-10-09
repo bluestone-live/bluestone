@@ -9,11 +9,6 @@ const {
 } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
 
-// <<<<<<< HEAD
-// contract('Protocol', function([owner, depositor, loaner]) {
-//   const initialSupply = toFixedBN(1000);
-//   let protocol, priceOracle, loanToken, collateralToken;
-// =======
 contract('Protocol', function([owner, depositor, loaner, liquidator]) {
   let protocol, priceOracle;
 
@@ -412,20 +407,20 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
     });
 
     context("when arrays' lengths are different", () => {
-      let loanTokenAddressList,
+      let loanTokenAddress,
         collateralTokenAddressList,
         minCollateralCoverageRatioList;
 
       beforeEach(async () => {
-        loanTokenAddressList = [loanToken.address];
+        loanTokenAddress = loanToken.address;
         collateralTokenAddressList = [collateralToken.address];
         minCollateralCoverageRatioList = [toFixedBN(1.5), toFixedBN(1.1)];
       });
 
       it('reverts', async () => {
         await expectRevert(
-          protocol.setMinCollateralCoverageRatios(
-            loanTokenAddressList,
+          protocol.setMinCollateralCoverageRatiosForToken(
+            loanTokenAddress,
             collateralTokenAddressList,
             minCollateralCoverageRatioList,
           ),
@@ -437,8 +432,8 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
         await collateralTokenAddressList.push(loanToken.address);
         await minCollateralCoverageRatioList.pop();
         await expectRevert(
-          protocol.setMinCollateralCoverageRatios(
-            loanTokenAddressList,
+          protocol.setMinCollateralCoverageRatiosForToken(
+            loanTokenAddress,
             collateralTokenAddressList,
             minCollateralCoverageRatioList,
           ),
@@ -446,21 +441,22 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
         );
       });
     });
+
     context('when some pairs are not enabled', () => {
-      let loanTokenAddressList,
+      let loanTokenAddress,
         collateralTokenAddressList,
         minCollateralCoverageRatioList;
 
       beforeEach(async () => {
-        loanTokenAddressList = [loanToken.address];
+        loanTokenAddress = loanToken.address;
         collateralTokenAddressList = [loanToken.address];
         minCollateralCoverageRatioList = [toFixedBN(1.5)];
       });
 
       it('reverts', async () => {
         await expectRevert(
-          protocol.setMinCollateralCoverageRatios(
-            loanTokenAddressList,
+          protocol.setMinCollateralCoverageRatiosForToken(
+            loanTokenAddress,
             collateralTokenAddressList,
             minCollateralCoverageRatioList,
           ),
@@ -472,24 +468,24 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
     context(
       'when the collateral coverage ratio is equal or small than lower bound',
       () => {
-        let loanTokenAddressList,
+        let loanTokenAddress,
           collateralTokenAddressList,
           minCollateralCoverageRatioList;
 
         beforeEach(async () => {
-          loanTokenAddressList = [loanToken.address];
+          loanTokenAddress = loanToken.address;
           collateralTokenAddressList = [collateralToken.address];
           minCollateralCoverageRatioList = [toFixedBN(1)];
           await protocol.enableLoanAndCollateralTokenPair(
-            loanTokenAddressList[0],
+            loanTokenAddress,
             collateralTokenAddressList[0],
           );
         });
 
         it('reverts', async () => {
           await expectRevert(
-            protocol.setMinCollateralCoverageRatios(
-              loanTokenAddressList,
+            protocol.setMinCollateralCoverageRatiosForToken(
+              loanTokenAddress,
               collateralTokenAddressList,
               minCollateralCoverageRatioList,
             ),
@@ -500,23 +496,23 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
     );
 
     context('when minimum collateral coverage ratios are added', () => {
-      let loanTokenAddressList,
+      let loanTokenAddress,
         collateralTokenAddressList,
         minCollateralCoverageRatioList;
 
       beforeEach(async () => {
-        loanTokenAddressList = [loanToken.address];
+        loanTokenAddress = loanToken.address;
         collateralTokenAddressList = [collateralToken.address];
         minCollateralCoverageRatioList = [toFixedBN(1.5)];
         await protocol.enableLoanAndCollateralTokenPair(
-          loanTokenAddressList[0],
+          loanTokenAddress,
           collateralTokenAddressList[0],
         );
       });
 
       it('succeeds', async () => {
-        await protocol.setMinCollateralCoverageRatios(
-          loanTokenAddressList,
+        await protocol.setMinCollateralCoverageRatiosForToken(
+          loanTokenAddress,
           collateralTokenAddressList,
           minCollateralCoverageRatioList,
         );
@@ -619,20 +615,18 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
     });
 
     context("when arrays' lengths are different", () => {
-      let loanTokenAddressList,
-        collateralTokenAddressList,
-        liquidationDiscountList;
+      let loanTokenAddress, collateralTokenAddressList, liquidationDiscountList;
 
       beforeEach(async () => {
-        loanTokenAddressList = [loanToken.address];
+        loanTokenAddress = loanToken.address;
         collateralTokenAddressList = [collateralToken.address];
         liquidationDiscountList = [toFixedBN(0.95), toFixedBN(0.9)];
       });
 
       it('reverts', async () => {
         await expectRevert(
-          protocol.setLiquidationDiscounts(
-            loanTokenAddressList,
+          protocol.setLiquidationDiscountsForToken(
+            loanTokenAddress,
             collateralTokenAddressList,
             liquidationDiscountList,
           ),
@@ -644,8 +638,8 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
         await collateralTokenAddressList.push(loanToken.address);
         await liquidationDiscountList.pop();
         await expectRevert(
-          protocol.setLiquidationDiscounts(
-            loanTokenAddressList,
+          protocol.setLiquidationDiscountsForToken(
+            loanTokenAddress,
             collateralTokenAddressList,
             liquidationDiscountList,
           ),
@@ -655,20 +649,18 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
     });
 
     context('when some pairs are not enabled', () => {
-      let loanTokenAddressList,
-        collateralTokenAddressList,
-        liquidationDiscountList;
+      let loanTokenAddress, collateralTokenAddressList, liquidationDiscountList;
 
       beforeEach(async () => {
-        loanTokenAddressList = [loanToken.address];
+        loanTokenAddress = loanToken.address;
         collateralTokenAddressList = [loanToken.address];
         liquidationDiscountList = [toFixedBN(0.9)];
       });
 
       it('reverts', async () => {
         await expectRevert(
-          protocol.setLiquidationDiscounts(
-            loanTokenAddressList,
+          protocol.setLiquidationDiscountsForToken(
+            loanTokenAddress,
             collateralTokenAddressList,
             liquidationDiscountList,
           ),
@@ -677,28 +669,220 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
       });
     });
 
-    context('when minimum collateral coverage ratios are added', () => {
-      let loanTokenAddressList,
+    context('when the liquidation discount >= MAX_LIQUIDATION_DISCOUNT', () => {
+      let loanTokenAddress,
         collateralTokenAddressList,
-        liquidationDiscountList;
+        liquidationDiscountList0,
+        liquidationDiscountList1;
 
       beforeEach(async () => {
-        loanTokenAddressList = [loanToken.address];
+        loanTokenAddress = loanToken.address;
+        collateralTokenAddressList = [collateralToken.address];
+        liquidationDiscountList0 = [toFixedBN(0.2)];
+        liquidationDiscountList1 = [toFixedBN(0.5)];
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanTokenAddress,
+          collateralTokenAddressList[0],
+        );
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.setLiquidationDiscountsForToken(
+            loanTokenAddress,
+            collateralTokenAddressList,
+            liquidationDiscountList0,
+          ),
+          'LoanManager: discount must be smaller than MAX_LIQUIDATION_DISCOUNT.',
+        );
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          protocol.setLiquidationDiscountsForToken(
+            loanTokenAddress,
+            collateralTokenAddressList,
+            liquidationDiscountList1,
+          ),
+          'LoanManager: discount must be smaller than MAX_LIQUIDATION_DISCOUNT.',
+        );
+      });
+    });
+
+    context('when minimum collateral coverage ratios are added', () => {
+      let loanTokenAddress, collateralTokenAddressList, liquidationDiscountList;
+
+      beforeEach(async () => {
+        loanTokenAddress = loanToken.address;
         collateralTokenAddressList = [collateralToken.address];
         liquidationDiscountList = [toFixedBN(0.03)];
         await protocol.enableLoanAndCollateralTokenPair(
-          loanTokenAddressList[0],
+          loanTokenAddress,
           collateralTokenAddressList[0],
         );
       });
 
       it('succeeds', async () => {
-        await protocol.setLiquidationDiscounts(
-          loanTokenAddressList,
+        await protocol.setLiquidationDiscountsForToken(
+          loanTokenAddress,
           collateralTokenAddressList,
           liquidationDiscountList,
         );
         // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
+      });
+    });
+  });
+
+  describe('#getTokenAddressList', () => {
+    const LOAN_TYPE = 0;
+    const COLLATERAL_TYPE = 1;
+    const initialSupply = toFixedBN(1000);
+    let loanToken, collateralToken, collateralToken1;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+      collateralToken1 = await createERC20Token(loaner, initialSupply);
+    });
+
+    context('when no token pair is enabled', () => {
+      it('succeeds', async () => {
+        let {
+          loanList,
+          isLoanTokensActive,
+        } = await protocol.getTokenAddressList(LOAN_TYPE);
+        let {
+          collateralList,
+          isCollateralTokensActive,
+        } = await protocol.getTokenAddressList(COLLATERAL_TYPE);
+        expect(loanList).to.be.undefined;
+        expect(isLoanTokensActive).to.be.undefined;
+        expect(collateralList).to.be.undefined;
+        expect(isCollateralTokensActive).to.be.undefined;
+      });
+    });
+
+    context('when loan and collateral tokens are enabled', () => {
+      it('succeeds', async () => {
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+        );
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken1.address,
+        );
+        loanResult = await protocol.getTokenAddressList(LOAN_TYPE);
+        collateralResult = await protocol.getTokenAddressList(COLLATERAL_TYPE);
+        expect(loanResult.tokenAddressList).to.have.members([
+          loanToken.address,
+        ]);
+        expect(loanResult.isActive).to.have.members([true]);
+        expect(collateralResult.tokenAddressList).to.have.members([
+          collateralToken.address,
+          collateralToken1.address,
+        ]);
+        expect(collateralResult.isActive).to.have.members([true, true]);
+      });
+    });
+
+    context(
+      'when loan and collateral tokens are disabled after being enabled',
+      () => {
+        it('succeeds', async () => {
+          await protocol.enableLoanAndCollateralTokenPair(
+            loanToken.address,
+            collateralToken.address,
+          );
+          await protocol.enableLoanAndCollateralTokenPair(
+            loanToken.address,
+            collateralToken1.address,
+          );
+          await protocol.disableLoanAndCollateralTokenPair(
+            loanToken.address,
+            collateralToken1.address,
+          );
+          loanResult = await protocol.getTokenAddressList(LOAN_TYPE);
+          collateralResult = await protocol.getTokenAddressList(
+            COLLATERAL_TYPE,
+          );
+          expect(loanResult.tokenAddressList).to.have.members([
+            loanToken.address,
+          ]);
+          expect(loanResult.isActive).to.have.members([true]);
+          expect(collateralResult.tokenAddressList).to.have.members([
+            collateralToken.address,
+            collateralToken1.address,
+          ]);
+          expect(collateralResult.isActive).to.have.members([true, false]);
+        });
+      },
+    );
+  });
+
+  describe('#getLoanAndCollateralTokenPairs', () => {
+    const initialSupply = toFixedBN(1000);
+    let loanToken, collateralToken, collateralToken1;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+      collateralToken1 = await createERC20Token(loaner, initialSupply);
+    });
+
+    context('when not set token pairs', () => {
+      it('succeeds', async () => {
+        let result = await protocol.getLoanAndCollateralTokenPairs();
+        expect(result.loanTokenAddressList.length).to.be.equal(0);
+        expect(result.collateralTokenAddressList.length).to.be.equal(0);
+        expect(result.isEnabledList.length).to.be.equal(0);
+        expect(result.minCollateralCoverageRatioList.length).to.be.equal(0);
+        expect(result.liquidationDiscountList.length).to.be.equal(0);
+      });
+    });
+
+    context('when set token pairs', () => {
+      it('succeeds', async () => {
+        let loanTokenAddress = loanToken.address,
+          collateralTokenAddressList = [
+            collateralToken.address,
+            collateralToken1.address,
+          ],
+          minCollateralCoverageRatioList = [toFixedBN(1.5), toFixedBN(1.1)],
+          liquidationDiscountList = [toFixedBN(0.03), toFixedBN(0.01)];
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanTokenAddress,
+          collateralToken.address,
+        );
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanTokenAddress,
+          collateralToken1.address,
+        );
+        await protocol.setMinCollateralCoverageRatiosForToken(
+          loanTokenAddress,
+          collateralTokenAddressList,
+          minCollateralCoverageRatioList,
+        );
+        await protocol.setLiquidationDiscountsForToken(
+          loanTokenAddress,
+          collateralTokenAddressList,
+          liquidationDiscountList,
+        );
+
+        let result = await protocol.getLoanAndCollateralTokenPairs();
+        expect(result.loanTokenAddressList).to.have.members([loanTokenAddress]);
+        expect(result.collateralTokenAddressList).to.have.members(
+          collateralTokenAddressList,
+        );
+        expect(result.isEnabledList).to.have.members([true, true]);
+        for (let i = 0; i < collateralTokenAddressList.length; i++) {
+          expect(
+            result.minCollateralCoverageRatioList[i],
+          ).to.be.bignumber.equal(minCollateralCoverageRatioList[i]);
+          expect(result.liquidationDiscountList[i]).to.be.bignumber.equal(
+            liquidationDiscountList[i],
+          );
+        }
       });
     });
   });
