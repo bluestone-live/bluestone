@@ -134,7 +134,12 @@ library _LoanManager {
         uint256 amount
     );
 
-    function addLoanTerm(State storage self, uint256 loanTerm) external {
+    function addLoanTerm(
+        State storage self,
+        _LiquidityPools.State storage liquidityPools,
+        _DepositManager.State storage depositManager,
+        uint256 loanTerm
+    ) external {
         require(
             !self.isLoanTermValid[loanTerm],
             'LoanManager: term already exists'
@@ -143,8 +148,16 @@ library _LoanManager {
         self.loanTermList.push(loanTerm);
         self.isLoanTermValid[loanTerm] = true;
 
-        // TODO(desmond): update totalLoanableAmountPerTerm for each deposit asset and deposit term
+        address[] memory depositTokenAddressList = depositManager
+            .enabledDepositTokenAddressList;
 
+        for (uint256 i = 0; i < depositTokenAddressList.length; i++) {
+            liquidityPools.updateAvailableAmountByTerm(
+                depositTokenAddressList[i],
+                depositManager.enabledDepositTermList,
+                loanTerm
+            );
+        }
     }
 
     function removeLoanTerm(State storage self, uint256 loanTerm) external {

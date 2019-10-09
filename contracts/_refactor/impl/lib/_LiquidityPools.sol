@@ -67,6 +67,39 @@ library _LiquidityPools {
         }
     }
 
+    // Update availableAmountByTerm for all pool groups of a deposit token
+    function updateAvailableAmountByTerm(
+        State storage self,
+        address depositTokenAddress,
+        uint256[] calldata depositTermList,
+        uint256 loanTerm
+    ) external {
+        for (uint256 i = 0; i < depositTermList.length; i++) {
+            uint256 depositTerm = depositTermList[i];
+            PoolGroup storage poolGroup = self
+                .poolGroups[depositTokenAddress][depositTerm];
+            uint256 totalAvailableAmount;
+
+            // Add up availableAmount from pools
+            for (
+                uint256 poolIndex = loanTerm;
+                poolIndex <= depositTerm;
+                poolIndex++
+            ) {
+                uint256 availableAmountOfPool = poolGroup.poolsById[poolGroup
+                    .firstPoolId +
+                    poolIndex]
+                    .availableAmount;
+
+                totalAvailableAmount = totalAvailableAmount.add(
+                    availableAmountOfPool
+                );
+            }
+
+            poolGroup.availableAmountByTerm[loanTerm] = totalAvailableAmount;
+        }
+    }
+
     function updatePoolGroupDepositMaturity(
         State storage self,
         address tokenAddress,

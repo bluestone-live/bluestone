@@ -211,7 +211,7 @@ contract Protocol is Ownable, Pausable {
     /// --- Loan
 
     function addLoanTerm(uint256 loanTerm) external whenNotPaused onlyOwner {
-        _loanManager.addLoanTerm(loanTerm);
+        _loanManager.addLoanTerm(_liquidityPools, _depositManager, loanTerm);
     }
 
     function removeLoanTerm(uint256 loanTerm) external whenNotPaused onlyOwner {
