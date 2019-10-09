@@ -1043,4 +1043,22 @@ library _LoanManager {
         }
         return (tokenAddressList, isActive);
     }
+
+    function getLoanInterestRateByToken(
+        State storage self,
+        address tokenAddress
+    )
+        external
+        view
+        returns (uint256[] memory loanTerms, uint256[] memory loanInterestRates)
+    {
+        loanTerms = self.loanTermList;
+        loanInterestRates = new uint256[](loanTerms.length);
+
+        for (uint256 i = 0; i < loanTerms.length; i++) {
+            loanInterestRates[i] = self
+                .loanInterestRates[tokenAddress][loanTerms[i]];
+        }
+        return (loanTerms, loanInterestRates);
+    }
 }

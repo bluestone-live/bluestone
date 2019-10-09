@@ -463,6 +463,14 @@ contract Protocol is Ownable, Pausable {
         return _loanManager.getTokenAddressList(tokenType);
     }
 
+    function getLoanInterestRateByToken(address tokenAddress)
+        external
+        view
+        returns (uint256[] memory loanTerms, uint256[] memory loanInterestRates)
+    {
+        return _loanManager.getLoanInterestRateByToken(tokenAddress);
+    }
+
     /// --- Configuration ---
     function setPriceOracleAddress(address priceOracleAddress)
         external

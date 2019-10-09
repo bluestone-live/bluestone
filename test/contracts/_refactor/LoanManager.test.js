@@ -975,4 +975,52 @@ contract('Protocol', function([owner, depositor, loaner, liquidator]) {
       });
     });
   });
+
+  describe('#getLoanInterestRateByToken', () => {
+    const initialSupply = toFixedBN(1000);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+    });
+
+    context('when no token pair is enabled', () => {
+      it('succeeds', async () => {
+        let result = await protocol.getLoanInterestRateByToken(
+          loanToken.address,
+        );
+        expect(result.loanTerms.length).to.be.equal(0);
+        expect(result.loanInterestRates.length).to.be.equal(0);
+      });
+    });
+
+    context('when token pair, term, and loan interest rates are set', () => {
+      it('succeeds', async () => {
+        let term = 60,
+          loanTokenAddress = loanToken.address,
+          loanTermList = [term],
+          loanInterestRateList = [toFixedBN(0.02)];
+        await protocol.enableLoanAndCollateralTokenPair(
+          loanTokenAddress,
+          collateralToken.address,
+        );
+        await protocol.addLoanTerm(term);
+        await protocol.setLoanInterestRatesForToken(
+          loanTokenAddress,
+          loanTermList,
+          loanInterestRateList,
+        );
+        result = await protocol.getLoanInterestRateByToken(loanTokenAddress);
+        expect(result.loanTerms.map(term => term.toNumber())).to.have.members(
+          loanTermList,
+        );
+        for (let i = 0; i < loanInterestRateList.length; i++) {
+          expect(result.loanInterestRates[i]).to.be.bignumber.equal(
+            loanInterestRateList[i],
+          );
+        }
+      });
+    });
+  });
 });
