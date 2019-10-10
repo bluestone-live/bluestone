@@ -66,12 +66,4 @@ contract ProtocolMock is Protocol {
     {
         return _liquidityPools.getPoolById(tokenAddress, depositTerm, poolId);
     }
-
-    function getPriceOracleAddress()
-        public
-        view
-        returns (address priceOracleAddress)
-    {
-        return _configuration.priceOracleAddress;
-    }
 }

@@ -1,4 +1,4 @@
-const Protocol = artifacts.require('ProtocolMock');
+const Configuration = artifacts.require('ConfigurationMock');
 const {
   expectRevert,
   expectEvent,
@@ -7,18 +7,18 @@ const {
 } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
 
-contract('Protocol', function([owner]) {
-  let protocol;
+contract('Configuration', function([owner]) {
+  let configuration;
 
   beforeEach(async () => {
-    protocol = await Protocol.new();
+    configuration = await Configuration.new();
   });
 
   describe('#setPriceOracleAddress', () => {
     context('when address is invalid', () => {
       it('reverts', async () => {
         await expectRevert(
-          protocol.setProtocolAddress(constants.ZERO_ADDRESS),
+          configuration.setProtocolAddress(constants.ZERO_ADDRESS),
           'Configuration: invalid protocol address',
         );
       });
@@ -26,8 +26,8 @@ contract('Protocol', function([owner]) {
 
     context('when address is valid', () => {
       it('succeeds', async () => {
-        await protocol.setPriceOracleAddress(owner);
-        expect(await protocol.getPriceOracleAddress()).to.equal(owner);
+        await configuration.setPriceOracleAddress(owner);
+        expect(await configuration.getPriceOracleAddress()).to.equal(owner);
       });
     });
   });
@@ -36,7 +36,7 @@ contract('Protocol', function([owner]) {
     context('when address is invalid', () => {
       it('reverts', async () => {
         await expectRevert(
-          protocol.setProtocolAddress(constants.ZERO_ADDRESS),
+          configuration.setProtocolAddress(constants.ZERO_ADDRESS),
           'Configuration: invalid protocol address',
         );
       });
@@ -44,8 +44,8 @@ contract('Protocol', function([owner]) {
 
     context('when address is valid', () => {
       it('succeeds', async () => {
-        await protocol.setProtocolAddress(owner);
-        expect(await protocol.getProtocolAddress()).to.equal(owner);
+        await configuration.setProtocolAddress(owner);
+        expect(await configuration.getProtocolAddress()).to.equal(owner);
       });
     });
   });
@@ -53,46 +53,36 @@ contract('Protocol', function([owner]) {
   describe('#setProtocolReserveRatio', () => {
     context('when ratio is set to 1', () => {
       it('succeeds', async () => {
-        await protocol.setProtocolReserveRatio(1);
-        expect(await protocol.getProtocolReserveRatio()).to.bignumber.equal(
-          new BN(1),
-        );
+        await configuration.setProtocolReserveRatio(1);
+        expect(
+          await configuration.getProtocolReserveRatio(),
+        ).to.bignumber.equal(new BN(1));
       });
     });
 
     context('when ratio is set to 2', () => {
       it('succeeds', async () => {
-        await protocol.setProtocolReserveRatio(2);
-        expect(await protocol.getProtocolReserveRatio()).to.bignumber.equal(
-          new BN(2),
-        );
+        await configuration.setProtocolReserveRatio(2);
+        expect(
+          await configuration.getProtocolReserveRatio(),
+        ).to.bignumber.equal(new BN(2));
       });
     });
   });
 
   describe('#lockUserActions', () => {
-    context('when lock user actions', () => {
-      it('succeeds', async () => {
-        const { logs } = await protocol.lockUserActions();
-        expect(await protocol.isUserActionsLocked()).to.true;
-        expectEvent.inLogs(logs, 'LockUserActions');
-      });
+    it('succeeds', async () => {
+      const { logs } = await configuration.lockUserActions();
+      expect(await configuration.isUserActionsLocked()).to.true;
+      expectEvent.inLogs(logs, 'LockUserActions');
     });
+  });
 
-    context('when unlock user actions', () => {
-      it('succeeds', async () => {
-        const { logs } = await protocol.unlockUserActions();
-        expect(await protocol.isUserActionsLocked()).to.false;
-        expectEvent.inLogs(logs, 'UnlockUserActions');
-      });
-    });
-
-    context('when lock user actions again', () => {
-      it('succeeds', async () => {
-        const { logs } = await protocol.lockUserActions();
-        expect(await protocol.isUserActionsLocked()).to.true;
-        expectEvent.inLogs(logs, 'LockUserActions');
-      });
+  describe('#unlockUserActions', () => {
+    it('succeeds', async () => {
+      const { logs } = await configuration.unlockUserActions();
+      expect(await configuration.isUserActionsLocked()).to.false;
+      expectEvent.inLogs(logs, 'UnlockUserActions');
     });
   });
 });
