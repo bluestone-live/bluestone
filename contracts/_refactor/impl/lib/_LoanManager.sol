@@ -117,6 +117,7 @@ library _LoanManager {
         uint256 liquidatedAmount;
         uint256 loanInterest;
         uint256 soldCollateralAmount;
+        uint256 availableFreedCollateral;
         bool isUnderCollateralCoverageRatio;
         bool isOverDue;
     }
@@ -519,22 +520,24 @@ library _LoanManager {
         localVars.remainingCollateralAmount = collateralAmount;
 
         if (useFreedCollateral) {
-            // TODO(desmond): getFreedCollateral
-            uint256 availableFreedCollateral = 0;
+            localVars.availableFreedCollateral = subtractFreedCollateral(
+                self,
+                msg.sender,
+                collateralTokenAddress,
+                collateralAmount
+            );
 
             localVars.remainingCollateralAmount = localVars
                 .remainingCollateralAmount
-                .sub(availableFreedCollateral);
+                .sub(localVars.availableFreedCollateral);
         }
 
-        // TODO(desmond): getLoanInterestRate
-        localVars.loanInterestRate = 0;
-
-        // TODO(desmond): getLiquidationDiscount
-        localVars.liquidationDiscount = 0;
-
-        // TODO(desmond): getMinCollateralCoverageRatio
-        localVars.minCollateralCoverageRatio = 0;
+        localVars.loanInterestRate = self
+            .loanInterestRates[loanTokenAddress][loanTerm];
+        localVars.liquidationDiscount = self
+            .liquidationDiscounts[loanTokenAddress][collateralTokenAddress];
+        localVars.minCollateralCoverageRatio = self
+            .minCollateralCoverageRatios[loanTokenAddress][collateralTokenAddress];
         localVars.loanInterest = loanAmount
             .mulFixed(localVars.loanInterestRate)
             .mul(loanTerm)
