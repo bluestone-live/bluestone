@@ -8,10 +8,13 @@ src
   - containers: Smart components. Cares about how things work.
   - pages: Page components where each corresponds to a URL route.
   - layouts: Different layouts. for example: `DefaultLayout` for function page, `CoverLayout` for login or MetaMask alert page.
-  - routes: react-router configs
-  - stores: Mobx stores declares
+  - routes: React-router configs
+  - stores: Redux stores
+  - services: Implementation of the business call to the contract
+    - Pipes: Some data transform function, we can transform input data to the desired output and validate input data if valid
   - styles: Themes variables
-  - utils: some useful utils or helpers
+  - utils: Some useful utils or helpers
+    - *Provider.ts: Provides a contract generic call interface for the Service
 ```
 
 ## Prerequisites
