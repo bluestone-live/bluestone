@@ -1,7 +1,7 @@
 import { BigNumber } from '../utils/BigNumber';
 import { IAction } from '.';
 import { Contract } from 'web3-eth-contract';
-import { replaceBy } from '../utils/replaceWith';
+import { replaceBy } from '../utils/replaceBy';
 
 const enum CommonActionType {
   SetCurrentNetwork = 'SET_CURRENT_NETWORK',

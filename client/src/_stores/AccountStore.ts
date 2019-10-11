@@ -1,5 +1,5 @@
 import { IAction } from '.';
-import { replaceBy } from '../utils/replaceWith';
+import { replaceBy } from '../utils/replaceBy';
 
 enum AccountActionType {
   SetAccounts = 'SET_ACCOUNTS',
