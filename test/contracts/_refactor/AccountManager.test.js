@@ -1,24 +1,23 @@
-const Protocol = artifacts.require('ProtocolMock');
-const { expectRevert } = require('openzeppelin-test-helpers');
+const AccountManager = artifacts.require('AccountManagerMock');
 const { createERC20Token, toFixedBN } = require('../../utils/index');
 const { expect } = require('chai');
 
-contract('Protocol', async ([owner, anotherAccount]) => {
-  let protocol;
-  const token = await createERC20Token(owner);
+contract('AccountManager', ([owner, anotherAccount]) => {
+  let accountManager, token;
 
   beforeEach(async () => {
-    protocol = await Protocol.new();
+    token = await createERC20Token(owner);
+    accountManager = await AccountManager.new();
   });
 
   describe('#setAccountGeneralStat', () => {
     it('succeed', async () => {
-      await protocol.setAccountGeneralStat(
+      await accountManager.setAccountGeneralStat(
         anotherAccount,
         'testValue',
         toFixedBN(10),
       );
-      const accountGeneralStat = await protocol.getAccountGeneralStat(
+      const accountGeneralStat = await accountManager.getAccountGeneralStat(
         anotherAccount,
         'testValue',
       );
@@ -30,7 +29,7 @@ contract('Protocol', async ([owner, anotherAccount]) => {
   describe('#getAccountGeneralStat', () => {
     context('in initialization', () => {
       it('should get 0', async () => {
-        const accountGeneralStat = await protocol.getAccountGeneralStat(
+        const accountGeneralStat = await accountManager.getAccountGeneralStat(
           owner,
           'testValue',
         );
@@ -42,13 +41,13 @@ contract('Protocol', async ([owner, anotherAccount]) => {
 
   describe('#setAccountTokenStat', () => {
     it('succeed', async () => {
-      await protocol.setAccountTokenStat(
+      await accountManager.setAccountTokenStat(
         anotherAccount,
         token.address,
         'testValue',
         toFixedBN(10),
       );
-      const accountTokenStat = await protocol.getAccountTokenStat(
+      const accountTokenStat = await accountManager.getAccountTokenStat(
         anotherAccount,
         token.address,
         'testValue',
@@ -61,7 +60,7 @@ contract('Protocol', async ([owner, anotherAccount]) => {
   describe('#getAccountTokenStat', () => {
     context('in initialization', () => {
       it('should get 0', async () => {
-        const accountTokenStat = await protocol.getAccountTokenStat(
+        const accountTokenStat = await accountManager.getAccountTokenStat(
           owner,
           token.address,
           'testValue',
