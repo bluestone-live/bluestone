@@ -28,4 +28,32 @@ contract('LiquidityPools', function([owner]) {
       expect(lastPoolId).to.bignumber.equal(new BN(depositTerm));
     });
   });
+
+  describe('#updateAvailableAmountByTerm', () => {
+    it('succeeds');
+  });
+
+  describe('#updatePoolGroupDepositMaturity', () => {
+    it('succeeds');
+  });
+
+  describe('#addDepositToPool', () => {
+    it('succeeds');
+  });
+
+  describe('#subtractDepositFromPool', () => {
+    it('succeeds');
+  });
+
+  describe('#loanFromPoolGroups', () => {
+    it('succeeds');
+  });
+
+  describe('#repayLoanToPoolGroup', () => {
+    it('succeeds');
+  });
+
+  describe('#_loanFromPoolGroup', () => {
+    it('succeeds');
+  });
 });

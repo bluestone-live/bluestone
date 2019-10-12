@@ -457,19 +457,6 @@ library _DepositManager {
         return (_depositTokenAddressList, _isEnabledList);
     }
 
-    function _getInterestIndexFromDaysAgo(
-        State storage self,
-        address tokenAddress,
-        uint256 depositTerm,
-        uint256 numDaysAgo
-    ) internal view returns (uint256 interestIndex) {
-        InterestIndexHistory storage history = self
-            .depositTokenByAddress[tokenAddress]
-            .interestIndexHistoryByTerm[depositTerm];
-
-        return history.interestIndexByDay[history.lastDay.sub(numDaysAgo)];
-    }
-
     function getDepositRecordById(State storage self, bytes32 depositId)
         external
         view
@@ -624,4 +611,18 @@ library _DepositManager {
 
         return availableAmount >= depositRecord.depositAmount;
     }
+
+    function _getInterestIndexFromDaysAgo(
+        State storage self,
+        address tokenAddress,
+        uint256 depositTerm,
+        uint256 numDaysAgo
+    ) internal view returns (uint256 interestIndex) {
+        InterestIndexHistory storage history = self
+            .depositTokenByAddress[tokenAddress]
+            .interestIndexHistoryByTerm[depositTerm];
+
+        return history.interestIndexByDay[history.lastDay.sub(numDaysAgo)];
+    }
+
 }

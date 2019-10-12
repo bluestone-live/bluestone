@@ -338,6 +338,10 @@ contract('DepositManager', function([_, depositor]) {
     });
   });
 
+  describe('#getDepositTokens', () => {
+    it('succeeds');
+  });
+
   describe('#getDepositRecordById', () => {
     let depositId;
     const depositAmount = toFixedBN(10);
@@ -363,7 +367,6 @@ contract('DepositManager', function([_, depositor]) {
     });
 
     context('when deposit id valid', () => {
-      // TODO(ZhangRGK): depends on the deposit method and pool group implements
       it('should get deposit details', async () => {
         const deposit = await depositManager.getDepositRecordById(depositId);
         expect(deposit.tokenAddress).to.equal(token.address);
@@ -446,7 +449,7 @@ contract('DepositManager', function([_, depositor]) {
     });
   });
 
-  describe('#getDepositsByAccount', () => {
+  describe('#getDepositRecordsByAccount', () => {
     context("when user didn't have any deposit records", () => {
       it('should return empty resultSet', async () => {
         const {
@@ -469,8 +472,15 @@ contract('DepositManager', function([_, depositor]) {
     });
 
     context('when user have deposit records', () => {
-      // TODO(ZhangRGK): depends on the deposit method and pool group implements
       it('succeed');
     });
+  });
+
+  describe('#isDepositEarlyWithdrawable', () => {
+    it('succeeds');
+  });
+
+  describe('#_getInterestIndexFromDaysAgo', () => {
+    it('succeeds');
   });
 });
