@@ -7,6 +7,7 @@ const AccountManager = artifacts.require('_AccountManager');
 const DateTime = artifacts.require('DateTime');
 const ConfigurationMock = artifacts.require('ConfigurationMock');
 const LiquidityPoolsMock = artifacts.require('_LiquidityPoolsMock');
+const DepositManagerMock = artifacts.require('_DepositManagerMock');
 const AccountManagerMock = artifacts.require('AccountManagerMock');
 
 // TODO(desmond): remove it after we mock every lib
@@ -29,6 +30,7 @@ module.exports = async function(deployer, network) {
     Protocol,
     ProtocolMock,
     LiquidityPoolsMock,
+    DepositManagerMock,
   ]);
   await deployer.link(DateTime, [DepositManager, LoanManager]);
   await deployer.deploy(DepositManager);
@@ -39,8 +41,16 @@ module.exports = async function(deployer, network) {
     ProtocolMock,
     ConfigurationMock,
   ]);
-  await deployer.link(DepositManager, [Protocol, ProtocolMock]);
-  await deployer.link(LoanManager, [Protocol, ProtocolMock]);
+  await deployer.link(DepositManager, [
+    Protocol,
+    ProtocolMock,
+    DepositManagerMock,
+  ]);
+  await deployer.link(LoanManager, [
+    Protocol,
+    ProtocolMock,
+    DepositManagerMock,
+  ]);
   await deployer.link(AccountManager, [
     Protocol,
     ProtocolMock,
