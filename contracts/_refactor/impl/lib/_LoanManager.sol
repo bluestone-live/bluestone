@@ -32,8 +32,6 @@ library _LoanManager {
         mapping(bytes32 => LoanRecord) loanRecordById;
         // accountAddress -> loanIds
         mapping(address => bytes32[]) loanIdsByAccount;
-        // TODO(ZhangRGK): I need a collateral token list in account manager, I will merge it after loan pair finished
-        address[] collateralTokenList;
         // account -> tokenAddress -> freedCollateralamount
         mapping(address => mapping(address => uint256)) freedCollateralsByAccount;
         /// loan token -> collateral token -> enabled
@@ -420,12 +418,13 @@ library _LoanManager {
             uint256[] memory freedCollateralAmountList
         )
     {
-        for (uint256 i = 0; i < self.collateralTokenList.length; i++) {
+        for (uint256 i = 0; i < self.collateralTokens.tokenList.length; i++) {
             freedCollateralAmountList[i] = self
                 .freedCollateralsByAccount[accountAddress][self
-                .collateralTokenList[i]];
+                .collateralTokens
+                .tokenList[i]];
         }
-        return (self.collateralTokenList, freedCollateralAmountList);
+        return (self.collateralTokens.tokenList, freedCollateralAmountList);
     }
 
     function withdrawFreedCollateral(
