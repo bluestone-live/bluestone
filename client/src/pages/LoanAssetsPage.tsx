@@ -3,10 +3,7 @@ import { observer, inject } from 'mobx-react';
 import { TokenStore, AccountStore, LoanManagerStore } from '../stores';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import {
-  calculateRate,
-  RatePeriod,
-} from '../utils/interestRateCalculateHelper';
+import { calculateRate } from '../utils/interestRateCalculateHelper';
 import { ThemedProps } from '../styles/themes';
 import Radio from '../components/common/Radio';
 import Card from '../components/common/Card';

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, Fragment } from 'react';
+import React, { useState, useCallback, Fragment } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
@@ -66,7 +66,7 @@ interface IProps extends WithTranslation, RouteComponentProps {
   depositManagerStore: DepositManagerStore;
 }
 
-const DepositOverview = (props: IProps) => {
+const DepositOverviewPage = (props: IProps) => {
   const { t } = props;
   const dispatch = useDispatch();
 
@@ -215,4 +215,4 @@ const DepositOverview = (props: IProps) => {
   );
 };
 
-export default withTranslation()(withRouter(DepositOverview));
+export default withTranslation()(withRouter(DepositOverviewPage));
