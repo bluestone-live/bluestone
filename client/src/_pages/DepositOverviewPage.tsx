@@ -9,7 +9,7 @@ import Card from '../components/common/Card';
 import Radio from '../components/common/Radio';
 import { getService } from '../services';
 import { useDispatch, useSelector } from 'react-redux';
-import { CommonActions, IState, IToken } from '../_stores';
+import { CommonActions, IState, IToken, ITerm } from '../_stores';
 import { BigNumber } from '../utils/BigNumber';
 import { useEffectAsync } from '../utils/useEffectAsync';
 
@@ -79,10 +79,7 @@ const DepositOverviewPage = (props: IProps) => {
     state => state.common.availableDepositTokens,
   );
 
-  const depositTerms = useSelector<
-    IState,
-    Array<{ text: string; value: number }>
-  >(state =>
+  const depositTerms = useSelector<IState, ITerm[]>(state =>
     state.common.depositTerms
       .map((bigNumber: BigNumber) => ({ value: bigNumber.toString() }))
       .map(({ value }: { value: string }) => ({

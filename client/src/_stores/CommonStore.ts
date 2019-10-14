@@ -22,6 +22,11 @@ export interface IToken {
   collateralCoverageRatio?: BigNumber;
 }
 
+export interface ITerm {
+  text: string;
+  value: number;
+}
+
 export interface ILoanPair {
   loanToken: IToken;
   collateralToken: IToken;
