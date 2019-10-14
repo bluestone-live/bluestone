@@ -10,6 +10,7 @@ const enum CommonActionType {
   SetAvailableLoanPairs = 'SET_AVAILABLE_LOAN_PAIRS',
   SetAllowance = 'SET_ALLOWANCE',
   SetDepositTerms = 'SET_DEPOSIT_TERMS',
+  SetLoanTerms = 'SET_LOAN_TERMS',
 }
 
 export interface IToken {
@@ -18,12 +19,13 @@ export interface IToken {
   allowance?: BigNumber;
   price?: BigNumber;
   erc20Instance: Contract;
+  collateralCoverageRatio?: BigNumber;
 }
 
 export interface ILoanPair {
   loanToken: IToken;
   collateralToken: IToken;
-  annualPercentageRate: string;
+  annualPercentageRate?: BigNumber;
 }
 
 interface ICommonState {
@@ -31,6 +33,7 @@ interface ICommonState {
   isUserActionsLocked: boolean;
   depositTerms: BigNumber[];
   availableDepositTokens: IToken[];
+  loanTerms: BigNumber[];
   availableLoanPairs: ILoanPair[];
 }
 
@@ -39,6 +42,7 @@ const initState: ICommonState = {
   isUserActionsLocked: true,
   depositTerms: [],
   availableDepositTokens: [],
+  loanTerms: [],
   availableLoanPairs: [],
 };
 
@@ -77,6 +81,11 @@ export const CommonReducer = (
       return {
         ...state,
         depositTerms: action.payload.depositTerms,
+      };
+    case CommonActionType.SetLoanTerms:
+      return {
+        ...state,
+        loanTerms: action.payload.loanTerms,
       };
     default:
       return state;
@@ -136,6 +145,15 @@ export class CommonActions {
       type: CommonActionType.SetDepositTerms,
       payload: {
         depositTerms,
+      },
+    };
+  }
+
+  static setLoanTerms(loanTerms: BigNumber[]) {
+    return {
+      type: CommonActionType.SetLoanTerms,
+      payload: {
+        loanTerms,
       },
     };
   }

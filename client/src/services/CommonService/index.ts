@@ -1,6 +1,6 @@
 import { BigNumber } from '../../utils/BigNumber';
 import { depositTokenPipe } from './Pipes';
-import { IToken } from '../../_stores';
+import { IToken, ILoanPair } from '../../_stores';
 import { EventName, MetaMaskProvider } from '../../utils/MetaMaskProvider';
 
 export class CommonService {
@@ -47,16 +47,14 @@ export class CommonService {
   /**
    * @returns available loan-collateral token pairs
    */
-  async getLoanAndCollateralTokenPairs(): Promise<{
-    loanTokenAddressList: string[];
-    collateralTokenAddressList: string[];
-    isEnabledList: string[];
-    collateralCoverageRatioList: BigNumber[];
-    liquidationDiscountList: BigNumber[];
-  }> {
+  async getLoanAndCollateralTokenPairs(): Promise<ILoanPair[]> {
     return this.provider.protocol.methods
       .getLoanAndCollateralTokenPairs()
       .call();
+  }
+
+  async getLoanTerms(): Promise<BigNumber[]> {
+    return this.provider.protocol.methods.getLoanTerms().call();
   }
 
   /**
