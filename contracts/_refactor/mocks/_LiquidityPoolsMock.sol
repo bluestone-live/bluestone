@@ -14,6 +14,73 @@ contract _LiquidityPoolsMock {
         _liquidityPools.initPoolGroupIfNeeded(tokenAddress, depositTerm);
     }
 
+    function addDepositToPool(
+        address tokenAddress,
+        uint256 depositAmount,
+        uint256 depositTerm,
+        uint256[] calldata loanTermList
+    ) external returns (uint256 poolId) {
+        return
+            _liquidityPools.addDepositToPool(
+                tokenAddress,
+                depositAmount,
+                depositTerm,
+                loanTermList
+            );
+    }
+
+    function subtractDepositFromPool(
+        address tokenAddress,
+        uint256 depositAmount,
+        uint256 depositTerm,
+        uint256 poolId,
+        uint256[] calldata loanTermList
+    ) external {
+        _liquidityPools.subtractDepositFromPool(
+            tokenAddress,
+            depositAmount,
+            depositTerm,
+            poolId,
+            loanTermList
+        );
+    }
+
+    function getPool(
+        address tokenAddress,
+        uint256 depositTerm,
+        uint256 poolIndex
+    )
+        external
+        view
+        returns (
+            uint256 depositAmount,
+            uint256 borrowedAmount,
+            uint256 availableAmount,
+            uint256 loanInterest
+        )
+    {
+        return _liquidityPools.getPool(tokenAddress, depositTerm, poolIndex);
+    }
+
+    function getPoolById(
+        address tokenAddress,
+        uint256 depositTerm,
+        uint256 poolId
+    )
+        external
+        view
+        returns (
+            uint256 depositAmount,
+            uint256 borrowedAmount,
+            uint256 availableAmount,
+            uint256 loanInterest
+        )
+    {
+        return _liquidityPools.getPoolById(tokenAddress, depositTerm, poolId);
+    }
+
+    /// --- Helpers
+
     function getPoolGroup(address tokenAddress, uint256 depositTerm)
         external
         view
@@ -28,4 +95,16 @@ contract _LiquidityPoolsMock {
             poolGroup.lastPoolId
         );
     }
+
+    function getPoolGroupAvailableAmountByTerm(
+        address tokenAddress,
+        uint256 depositTerm,
+        uint256 loanTerm
+    ) external view returns (uint256 availableAmountByTerm) {
+        _LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
+            .poolGroups[tokenAddress][depositTerm];
+
+        return poolGroup.availableAmountByTerm[loanTerm];
+    }
+
 }
