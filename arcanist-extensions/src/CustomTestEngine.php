@@ -13,6 +13,10 @@
 
 final class CustomTestEngine extends ArcanistUnitTestEngine {
   public function run() {
+    $arcanist_src_dir=__DIR__; // which will be '$DEV_DIR/bluestone/arcanist-extensions/src/'
+    $project_root=$arcanist_src_dir.'/../..';
+    chdir($project_root);
+
     $testCommands = $this->collectTestCommands();
     $hasError = false;
 
