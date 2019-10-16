@@ -6,6 +6,7 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import './_Configuration.sol';
 import './_LiquidityPools.sol';
 import './_LoanManager.sol';
+import './_AccountManager.sol';
 import '../../lib/DateTime.sol';
 import '../../lib/FixedMath.sol';
 
@@ -14,6 +15,7 @@ library _DepositManager {
     using _Configuration for _Configuration.State;
     using _LiquidityPools for _LiquidityPools.State;
     using _LoanManager for _LoanManager.State;
+    using _AccountManager for _AccountManager.State;
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
     using FixedMath for uint256;
@@ -259,6 +261,7 @@ library _DepositManager {
         State storage self,
         _LiquidityPools.State storage liquidityPools,
         _LoanManager.State storage loanManager,
+        _AccountManager.State storage accountManager,
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm
@@ -314,7 +317,23 @@ library _DepositManager {
             depositAmount
         );
 
-        // TODO(desmond): increment stats
+        accountManager.addToAccountGeneralStat(
+            accountAddress,
+            'totalDeposits',
+            1
+        );
+        accountManager.addToAccountTokenStat(
+            accountAddress,
+            tokenAddress,
+            'totalDeposits',
+            1
+        );
+        accountManager.addToAccountTokenStat(
+            accountAddress,
+            tokenAddress,
+            'totalDepositAmount',
+            depositAmount
+        );
 
         emit DepositSucceed(accountAddress, currDepositId);
 

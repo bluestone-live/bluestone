@@ -34,6 +34,7 @@ module.exports = async function(deployer, network) {
     DepositManagerMock,
   ]);
   await deployer.link(DateTime, [DepositManager, LoanManager]);
+  await deployer.link(AccountManager, [DepositManager, LoanManager]);
   await deployer.deploy(DepositManager);
   await deployer.deploy(LoanManager);
 

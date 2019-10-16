@@ -2,7 +2,6 @@ pragma solidity ^0.5.0;
 
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _AccountManager {
-
     struct State {
         // account -> stats
         mapping(address => Statistics) accountStats;
@@ -10,19 +9,16 @@ library _AccountManager {
 
     struct Statistics {
         // key -> integer value
-        mapping(string => uint) generalStats;
-
+        mapping(string => uint256) generalStats;
         // asset -> key -> integer value
-        mapping(address => mapping(string => uint)) assetStats;
+        mapping(address => mapping(string => uint256)) assetStats;
     }
 
     function getAccountGeneralStat(
         State storage self,
         address accountAddress,
         string calldata key
-    )
-        external view returns (uint)
-    {
+    ) external view returns (uint256) {
         return self.accountStats[accountAddress].generalStats[key];
     }
 
@@ -31,9 +27,7 @@ library _AccountManager {
         address accountAddress,
         address tokenAddress,
         string calldata key
-    )
-        external view returns (uint)
-    {
+    ) external view returns (uint256) {
         return self.accountStats[accountAddress].assetStats[tokenAddress][key];
     }
 
@@ -41,11 +35,20 @@ library _AccountManager {
         State storage self,
         address accountAddress,
         string calldata key,
-        uint value
-    )
-      external
-    {
+        uint256 value
+    ) external {
         self.accountStats[accountAddress].generalStats[key] = value;
+    }
+
+    function addToAccountGeneralStat(
+        State storage self,
+        address accountAddress,
+        string calldata key,
+        uint256 value
+    ) external {
+        self.accountStats[accountAddress].generalStats[key] =
+            self.accountStats[accountAddress].generalStats[key] +
+            value;
     }
 
     function setAccountTokenStat(
@@ -53,10 +56,20 @@ library _AccountManager {
         address accountAddress,
         address tokenAddress,
         string calldata key,
-        uint value
-    )
-      external
-    {
+        uint256 value
+    ) external {
         self.accountStats[accountAddress].assetStats[tokenAddress][key] = value;
+    }
+
+    function addToAccountTokenStat(
+        State storage self,
+        address accountAddress,
+        address tokenAddress,
+        string calldata key,
+        uint256 value
+    ) external {
+        self.accountStats[accountAddress].assetStats[tokenAddress][key] =
+            self.accountStats[accountAddress].assetStats[tokenAddress][key] +
+            value;
     }
 }

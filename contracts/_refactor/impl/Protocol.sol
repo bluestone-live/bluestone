@@ -93,6 +93,7 @@ contract Protocol is Ownable, Pausable {
             _depositManager.deposit(
                 _liquidityPools,
                 _loanManager,
+                _accountManager,
                 tokenAddress,
                 depositAmount,
                 depositTerm
@@ -226,18 +227,23 @@ contract Protocol is Ownable, Pausable {
         uint256 loanTerm,
         bool useFreedCollateral
     ) external whenNotPaused whenUserActionsUnlocked returns (bytes32 loanId) {
-        return
-            _loanManager.loan(
-                _configuration,
-                _liquidityPools,
-                _depositManager,
-                loanTokenAddress,
-                collateralTokenAddress,
-                loanAmount,
-                collateralAmount,
-                loanTerm,
-                useFreedCollateral
-            );
+        loanId = _loanManager.loan(
+            _configuration,
+            _liquidityPools,
+            _depositManager,
+            loanTokenAddress,
+            collateralTokenAddress,
+            loanAmount,
+            collateralAmount,
+            loanTerm,
+            useFreedCollateral
+        );
+        _loanManager.addToLoanStat(
+            _accountManager,
+            loanTokenAddress,
+            loanAmount
+        );
+        return loanId;
     }
 
     function repayLoan(bytes32 loanId, uint256 repayAmount)

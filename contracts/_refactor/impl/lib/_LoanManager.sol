@@ -12,12 +12,14 @@ import '../_PriceOracle.sol';
 import './_Configuration.sol';
 import './_LiquidityPools.sol';
 import './_DepositManager.sol';
+import './_AccountManager.sol';
 
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _LoanManager {
     using _Configuration for _Configuration.State;
     using _LiquidityPools for _LiquidityPools.State;
     using _DepositManager for _DepositManager.State;
+    using _AccountManager for _AccountManager.State;
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
     using FixedMath for uint256;
@@ -490,6 +492,7 @@ library _LoanManager {
         return availableFreedCollateral;
     }
 
+    // TODO(ZhangRGK): We may need to combining params into one parameter struct
     function loan(
         State storage self,
         _Configuration.State storage configuration,
@@ -604,11 +607,30 @@ library _LoanManager {
         // Transfer loan tokens from protocol to loaner
         ERC20(loanTokenAddress).safeTransfer(msg.sender, loanAmount);
 
-        // TODO(desmond): increment stats
-
         emit LoanSucceed(msg.sender, localVars.loanId);
 
         return localVars.loanId;
+    }
+
+    function addToLoanStat(
+        State storage,
+        _AccountManager.State storage accountManager,
+        address loanTokenAddress,
+        uint256 loanAmount
+    ) external {
+        accountManager.addToAccountGeneralStat(msg.sender, 'totalLoans', 1);
+        accountManager.addToAccountTokenStat(
+            msg.sender,
+            loanTokenAddress,
+            'totalLoans',
+            1
+        );
+        accountManager.addToAccountTokenStat(
+            msg.sender,
+            loanTokenAddress,
+            'totalLoanAmount',
+            loanAmount
+        );
     }
 
     function enableLoanAndCollateralTokenPair(

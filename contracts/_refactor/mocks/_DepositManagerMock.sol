@@ -4,17 +4,20 @@ import '../impl/lib/_Configuration.sol';
 import '../impl/lib/_LiquidityPools.sol';
 import '../impl/lib/_DepositManager.sol';
 import '../impl/lib/_LoanManager.sol';
+import '../impl/lib/_AccountManager.sol';
 
 contract _DepositManagerMock {
     using _Configuration for _Configuration.State;
     using _LiquidityPools for _LiquidityPools.State;
     using _DepositManager for _DepositManager.State;
     using _LoanManager for _LoanManager.State;
+    using _AccountManager for _AccountManager.State;
 
     _Configuration.State _configuration;
     _LiquidityPools.State _liquidityPools;
     _DepositManager.State _depositManager;
     _LoanManager.State _loanManager;
+    _AccountManager.State _accountManager;
 
     function enableDepositTerm(uint256 term) external {
         _depositManager.enableDepositTerm(_liquidityPools, term);
@@ -45,6 +48,7 @@ contract _DepositManagerMock {
             _depositManager.deposit(
                 _liquidityPools,
                 _loanManager,
+                _accountManager,
                 tokenAddress,
                 depositAmount,
                 depositTerm
