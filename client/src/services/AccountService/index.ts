@@ -1,5 +1,7 @@
 import { BigNumber } from '../../utils/BigNumber';
 import { EventName, MetaMaskProvider } from '../../utils/MetaMaskProvider';
+import { IFreedCollateral } from '../../_stores';
+import { freedCollateralPipe } from './Pipes';
 
 export class AccountService {
   constructor(private readonly provider: MetaMaskProvider) {}
@@ -52,13 +54,12 @@ export class AccountService {
    */
   async getFreedCollaterals(
     accountAddress: string,
-  ): Promise<{
-    tokenAddressList: string[];
-    freedCollateralAmountList: BigNumber[];
-  }> {
-    return this.provider.protocol.methods
-      .getFreedCollateralsByAccount(accountAddress)
-      .call();
+  ): Promise<IFreedCollateral[]> {
+    return freedCollateralPipe(
+      this.provider.protocol.methods
+        .getFreedCollateralsByAccount(accountAddress)
+        .call(),
+    );
   }
 
   /**

@@ -6,12 +6,11 @@ enum AccountActionType {
   SetAccounts = 'SET_ACCOUNTS',
   SetGeneralStat = 'SET_GENERAL_STAT',
   SetTokenStat = 'SET_TOKEN_STAT',
-  SetFreedCollateral = 'SET_FREED_COLLATERAL',
+  SetFreedCollaterals = 'SET_FREED_COLLATERALS',
 }
 
 export interface IFreedCollateral {
   tokenAddress: string;
-  tokenSymbol: string;
   amount: BigNumber;
 }
 
@@ -56,14 +55,10 @@ export const AccountReducer = (
   switch (action.type) {
     case AccountActionType.SetAccounts:
       return replaceBy(state, { accounts: action.payload.accounts });
-    case AccountActionType.SetFreedCollateral:
+    case AccountActionType.SetFreedCollaterals:
       return {
         ...state,
-        freedCollaterals: replaceBy(
-          state.freedCollaterals,
-          action.payload.freedCollateral,
-          'tokenAddress',
-        ),
+        freedCollaterals: action.payload.freedCollaterals,
       };
     case AccountActionType.SetGeneralStat:
       return {
@@ -91,11 +86,11 @@ export class AccountActions {
       payload: { accounts },
     };
   }
-  static setFreedCollateral(freedCollateral: IFreedCollateral) {
+  static setFreedCollaterals(freedCollaterals: IFreedCollateral[]) {
     return {
-      type: AccountActionType.SetFreedCollateral,
+      type: AccountActionType.SetFreedCollaterals,
       payload: {
-        freedCollateral,
+        freedCollaterals,
       },
     };
   }
