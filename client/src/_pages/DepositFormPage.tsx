@@ -42,7 +42,7 @@ const DepositFormPage = (props: IProps) => {
     dispatch(CommonActions.setAvailableDepositTokens(depositTokens));
 
     if (!match.params.tokenSymbol && defaultToken) {
-      history.replace(`/deposit/${defaultToken.tokenSymbol}`);
+      history.replace(`/deposit/${defaultToken.tokenAddress}`);
     }
   });
 

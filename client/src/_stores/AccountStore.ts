@@ -1,5 +1,6 @@
 import { IAction } from '.';
 import { replaceBy } from '../utils/replaceBy';
+import { BigNumber } from '../utils/BigNumber';
 
 enum AccountActionType {
   SetAccounts = 'SET_ACCOUNTS',
@@ -11,7 +12,7 @@ enum AccountActionType {
 export interface IFreedCollateral {
   tokenAddress: string;
   tokenSymbol: string;
-  amount: string;
+  amount: BigNumber;
 }
 
 export interface IGeneralStats {
@@ -51,7 +52,7 @@ const initState: IAccountState = {
 export const AccountReducer = (
   state: IAccountState = initState,
   action: IAction<AccountActionType>,
-) => {
+): IAccountState => {
   switch (action.type) {
     case AccountActionType.SetAccounts:
       return replaceBy(state, { accounts: action.payload.accounts });

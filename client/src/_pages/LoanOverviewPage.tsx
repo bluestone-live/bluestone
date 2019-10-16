@@ -156,7 +156,7 @@ const LoanOverviewPage = (props: IProps) => {
             <StyledButton
               primary
               onClick={goTo(
-                `/loan?loanTokenSymbol=${loanToken.tokenSymbol}&collateralTokenSymbol=${collateralToken.tokenSymbol}&term=${defaultTerm}`,
+                `/loan?loanTokenAddress=${loanToken.tokenAddress}&collateralTokenAddress=${collateralToken.tokenAddress}&term=${defaultTerm}`,
               )}
             >
               {t('loan')}
