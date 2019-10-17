@@ -64,3 +64,5 @@ export const convertDecimalToWei = (num: number | string) => {
  */
 export const formatBigNumber = (bn: BigNumber) =>
   convertDecimalToWei(convertWeiToDecimal(bn));
+
+export const ZERO = new BigNumber(0);
