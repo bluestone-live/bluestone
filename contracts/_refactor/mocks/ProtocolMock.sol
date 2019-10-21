@@ -4,13 +4,13 @@ import '../impl/Protocol.sol';
 import '../impl/lib/_LiquidityPools.sol';
 
 contract ProtocolMock is Protocol {
-    function getPoolGroup(address tokenAddress, uint256 depositTerm)
+    function getPoolGroup(address tokenAddress)
         external
         view
         returns (bool isInitialized, uint256 firstPoolId, uint256 lastPoolId)
     {
         _LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
-            .poolGroups[tokenAddress][depositTerm];
+            .poolGroups[tokenAddress];
 
         return (
             poolGroup.isInitialized,
@@ -27,11 +27,7 @@ contract ProtocolMock is Protocol {
         _loanManager.addFreedCollateral(accountAddress, tokenAddress, amount);
     }
 
-    function getPoolById(
-        address tokenAddress,
-        uint256 depositTerm,
-        uint256 poolId
-    )
+    function getPoolById(address tokenAddress, uint256 poolId)
         external
         view
         returns (
@@ -41,6 +37,6 @@ contract ProtocolMock is Protocol {
             uint256 loanInterest
         )
     {
-        return _liquidityPools.getPoolById(tokenAddress, depositTerm, poolId);
+        return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 }

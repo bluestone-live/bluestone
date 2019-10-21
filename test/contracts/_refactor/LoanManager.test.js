@@ -17,58 +17,6 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
     priceOracle = await PriceOracle.new();
   });
 
-  describe('#addLoanTerm', () => {
-    const term = 60;
-
-    context('when term does not exist', () => {
-      it('succeeds', async () => {
-        await loanManager.addLoanTerm(term);
-        const currTerms = await loanManager.getLoanTerms();
-        expect(currTerms.length).to.equal(1);
-        expect(currTerms.map(term => term.toNumber())).to.contain(term);
-      });
-    });
-
-    context('when term already exists', () => {
-      beforeEach(async () => {
-        await loanManager.addLoanTerm(term);
-      });
-
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.addLoanTerm(term),
-          'LoanManager: term already exists',
-        );
-      });
-    });
-  });
-
-  describe('#removeLoanTerm', () => {
-    const term = 60;
-
-    context('when term already exists', () => {
-      beforeEach(async () => {
-        await loanManager.addLoanTerm(term);
-      });
-
-      it('succeeds', async () => {
-        await loanManager.removeLoanTerm(term);
-        const currTerms = await loanManager.getLoanTerms();
-        expect(currTerms.length).to.equal(0);
-        expect(currTerms.map(term => term.toNumber())).to.not.contain(term);
-      });
-    });
-
-    context('when term does not exist', () => {
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.removeLoanTerm(term),
-          'LoanManager: term does not exist',
-        );
-      });
-    });
-  });
-
   describe('#getLoanRecordById', () => {
     context('when loan id is valid', () => {
       // TODO(ZhangRGK): after the liquidityPools implement
@@ -266,9 +214,7 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
       await loanManager.setPriceOracleAddress(priceOracle.address);
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableDepositTerm(depositTerm);
-      await loanManager.addLoanTerm(7);
-      await loanManager.addLoanTerm(30);
-
+      await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
       await loanToken.approve(loanManager.address, initialSupply, {
         from: depositor,
       });
@@ -337,8 +283,7 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
         { from: owner },
       );
       await loanManager.enableDepositTerm(depositTerm);
-      await loanManager.addLoanTerm(7);
-      await loanManager.addLoanTerm(30);
+      await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
 
       await loanToken.approve(loanManager.address, initialSupply, {
         from: depositor,
@@ -422,8 +367,7 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
         { from: owner },
       );
       await loanManager.enableDepositTerm(depositTerm);
-      await loanManager.addLoanTerm(7);
-      await loanManager.addLoanTerm(30);
+      await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
 
       await loanToken.approve(loanManager.address, initialSupply, {
         from: depositor,
@@ -981,51 +925,7 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
   });
 
   describe('#getLoanInterestRateByToken', () => {
-    const initialSupply = toFixedBN(1000);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-    });
-
-    context('when no token pair is enabled', () => {
-      it('succeeds', async () => {
-        let result = await loanManager.getLoanInterestRateByToken(
-          loanToken.address,
-        );
-        expect(result.loanTerms.length).to.be.equal(0);
-        expect(result.loanInterestRates.length).to.be.equal(0);
-      });
-    });
-
-    context('when token pair, term, and loan interest rates are set', () => {
-      it('succeeds', async () => {
-        let term = 60,
-          loanTokenAddress = loanToken.address,
-          loanTermList = [term],
-          loanInterestRateList = [toFixedBN(0.02)];
-        await loanManager.enableLoanAndCollateralTokenPair(
-          loanTokenAddress,
-          collateralToken.address,
-        );
-        await loanManager.addLoanTerm(term);
-        await loanManager.setLoanInterestRatesForToken(
-          loanTokenAddress,
-          loanTermList,
-          loanInterestRateList,
-        );
-        result = await loanManager.getLoanInterestRateByToken(loanTokenAddress);
-        expect(result.loanTerms.map(term => term.toNumber())).to.have.members(
-          loanTermList,
-        );
-        for (let i = 0; i < loanInterestRateList.length; i++) {
-          expect(result.loanInterestRates[i]).to.be.bignumber.equal(
-            loanInterestRateList[i],
-          );
-        }
-      });
-    });
+    it('succeeds');
   });
 
   describe('#_getLoanBasicInfoById', () => {

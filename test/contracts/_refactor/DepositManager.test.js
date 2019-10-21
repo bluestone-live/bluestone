@@ -141,22 +141,14 @@ contract('DepositManager', function([_, depositor]) {
       beforeEach(async () => {
         await depositManager.enableDepositToken(token.address);
         await depositManager.enableDepositTerm(depositTerm);
-        await depositManager.addLoanTerm(7);
-        await depositManager.addLoanTerm(30);
       });
 
       it('succeeds', async () => {
-        const prevPoolGroup = await depositManager.getPoolGroup(
-          token.address,
-          depositTerm,
-        );
+        const prevPoolGroup = await depositManager.getPoolGroup(token.address);
 
         await depositManager.updateDepositMaturity();
 
-        const currPoolGroup = await depositManager.getPoolGroup(
-          token.address,
-          depositTerm,
-        );
+        const currPoolGroup = await depositManager.getPoolGroup(token.address);
 
         expect(currPoolGroup.firstPoolId).to.bignumber.equal(
           prevPoolGroup.firstPoolId.add(new BN(1)),
@@ -422,11 +414,7 @@ contract('DepositManager', function([_, depositor]) {
         const {
           depositAmount: totalDepositAmount,
           loanInterest,
-        } = await depositManager.getPoolById(
-          token.address,
-          depositTerm,
-          poolId,
-        );
+        } = await depositManager.getPoolById(token.address, poolId);
 
         const expectedInterest = loanInterest
           .div(totalDepositAmount)

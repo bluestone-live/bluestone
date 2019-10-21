@@ -76,7 +76,7 @@ contract Protocol is Ownable, Pausable {
         whenUserActionsLocked
         onlyOwner
     {
-        _depositManager.updateDepositMaturity(_liquidityPools, _loanManager);
+        _depositManager.updateDepositMaturity(_liquidityPools);
     }
 
     function deposit(
@@ -92,7 +92,6 @@ contract Protocol is Ownable, Pausable {
         return
             _depositManager.deposit(
                 _liquidityPools,
-                _loanManager,
                 _accountManager,
                 tokenAddress,
                 depositAmount,
@@ -115,12 +114,7 @@ contract Protocol is Ownable, Pausable {
         whenUserActionsUnlocked
         returns (uint256 withdrewAmount)
     {
-        return
-            _depositManager.earlyWithdraw(
-                _liquidityPools,
-                _loanManager,
-                depositId
-            );
+        return _depositManager.earlyWithdraw(_liquidityPools, depositId);
     }
 
     function getDepositTerms()
@@ -211,13 +205,7 @@ contract Protocol is Ownable, Pausable {
 
     /// --- Loan
 
-    function addLoanTerm(uint256 loanTerm) external whenNotPaused onlyOwner {
-        _loanManager.addLoanTerm(_liquidityPools, _depositManager, loanTerm);
-    }
-
-    function removeLoanTerm(uint256 loanTerm) external whenNotPaused onlyOwner {
-        _loanManager.removeLoanTerm(loanTerm);
-    }
+    // TODO(desmond): setMaxLoanTerm
 
     function loan(
         address loanTokenAddress,
@@ -230,7 +218,6 @@ contract Protocol is Ownable, Pausable {
         loanId = _loanManager.loan(
             _configuration,
             _liquidityPools,
-            _depositManager,
             loanTokenAddress,
             collateralTokenAddress,
             loanAmount,
@@ -252,13 +239,7 @@ contract Protocol is Ownable, Pausable {
         whenUserActionsUnlocked
         returns (uint256 remainingDebt)
     {
-        return
-            _loanManager.repayLoan(
-                _liquidityPools,
-                _depositManager,
-                loanId,
-                repayAmount
-            );
+        return _loanManager.repayLoan(_liquidityPools, loanId, repayAmount);
     }
 
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
@@ -271,20 +252,12 @@ contract Protocol is Ownable, Pausable {
             _loanManager.liquidateLoan(
                 _configuration,
                 _liquidityPools,
-                _depositManager,
                 loanId,
                 liquidateAmount
             );
     }
 
-    function getLoanTerms()
-        external
-        view
-        whenNotPaused
-        returns (uint256[] memory loanTermList)
-    {
-        return _loanManager.loanTermList;
-    }
+    // TODO(desmond): getMaxLoanTerm
 
     function getFreedCollateralsByAccount(address accountAddress)
         external
@@ -469,13 +442,7 @@ contract Protocol is Ownable, Pausable {
         return _loanManager.getTokenAddressList(tokenType);
     }
 
-    function getLoanInterestRateByToken(address tokenAddress)
-        external
-        view
-        returns (uint256[] memory loanTerms, uint256[] memory loanInterestRates)
-    {
-        return _loanManager.getLoanInterestRateByToken(tokenAddress);
-    }
+    // TODO(desmond): refactor getLoanInterestRateByToken
 
     /// --- Configuration ---
     function setPriceOracleAddress(address priceOracleAddress)

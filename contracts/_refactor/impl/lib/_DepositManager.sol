@@ -207,8 +207,7 @@ library _DepositManager {
 
     function updateDepositMaturity(
         State storage self,
-        _LiquidityPools.State storage liquidityPools,
-        _LoanManager.State storage loanManager
+        _LiquidityPools.State storage liquidityPools
     ) external {
         /// Ensure deposit maturity update only triggers once in a day by checking current
         /// timestamp is greater than the timestamp of last update (in day unit).
@@ -218,8 +217,6 @@ library _DepositManager {
             'Cannot update multiple times within the same day.'
         );
 
-        uint256[] memory loanTermList = loanManager.loanTermList;
-
         for (uint256 i = 0; i < self.allDepositTokenAddressList.length; i++) {
             address tokenAddress = self.allDepositTokenAddressList[i];
 
@@ -228,7 +225,7 @@ library _DepositManager {
                 uint256 poolIndex = 0;
 
                 (uint256 depositAmount, , , uint256 loanInterest) = liquidityPools
-                    .getPool(tokenAddress, depositTerm, poolIndex);
+                    .getPool(tokenAddress, poolIndex);
 
                 InterestIndexHistory storage history = self
                     .depositTokenByAddress[tokenAddress]
@@ -246,11 +243,7 @@ library _DepositManager {
                 history.lastDay++;
                 history.interestIndexByDay[history.lastDay] = interestIndex;
 
-                liquidityPools.updatePoolGroupDepositMaturity(
-                    tokenAddress,
-                    depositTerm,
-                    loanTermList
-                );
+                liquidityPools.updatePoolGroupDepositMaturity(tokenAddress);
             }
         }
 
@@ -260,7 +253,6 @@ library _DepositManager {
     function deposit(
         State storage self,
         _LiquidityPools.State storage liquidityPools,
-        _LoanManager.State storage loanManager,
         _AccountManager.State storage accountManager,
         address tokenAddress,
         uint256 depositAmount,
@@ -280,9 +272,7 @@ library _DepositManager {
 
         uint256 poolId = liquidityPools.addDepositToPool(
             tokenAddress,
-            depositAmount,
-            depositTerm,
-            loanManager.loanTermList
+            depositAmount
         );
 
         self.numDeposits++;
@@ -411,7 +401,6 @@ library _DepositManager {
     function earlyWithdraw(
         State storage self,
         _LiquidityPools.State storage liquidityPools,
-        _LoanManager.State storage loanManager,
         bytes32 depositId
     ) external returns (uint256 withdrewAmount) {
         DepositRecord storage depositRecord = self.depositRecordById[depositId];
@@ -435,9 +424,7 @@ library _DepositManager {
         liquidityPools.subtractDepositFromPool(
             depositRecord.tokenAddress,
             depositRecord.depositAmount,
-            depositRecord.depositTerm,
-            depositRecord.poolId,
-            loanManager.loanTermList
+            depositRecord.poolId
         );
 
         depositRecord.withdrewAt = now;
@@ -536,11 +523,7 @@ library _DepositManager {
             );
         } else {
             (uint256 totalDepositAmount, , , uint256 loanInterest) = liquidityPools
-                .getPoolById(
-                depositRecord.tokenAddress,
-                depositRecord.depositTerm,
-                depositRecord.poolId
-            );
+                .getPoolById(depositRecord.tokenAddress, depositRecord.poolId);
 
             if (totalDepositAmount != 0) {
                 originalInterestIndex = loanInterest.divFixed(
@@ -624,7 +607,6 @@ library _DepositManager {
 
         (, , uint256 availableAmount, ) = liquidityPools.getPoolById(
             depositRecord.tokenAddress,
-            depositRecord.depositTerm,
             depositRecord.poolId
         );
 

@@ -36,7 +36,7 @@ contract _DepositManagerMock {
     }
 
     function updateDepositMaturity() external {
-        _depositManager.updateDepositMaturity(_liquidityPools, _loanManager);
+        _depositManager.updateDepositMaturity(_liquidityPools);
     }
 
     function deposit(
@@ -47,7 +47,6 @@ contract _DepositManagerMock {
         return
             _depositManager.deposit(
                 _liquidityPools,
-                _loanManager,
                 _accountManager,
                 tokenAddress,
                 depositAmount,
@@ -66,12 +65,7 @@ contract _DepositManagerMock {
         external
         returns (uint256 withdrewAmount)
     {
-        return
-            _depositManager.earlyWithdraw(
-                _liquidityPools,
-                _loanManager,
-                depositId
-            );
+        return _depositManager.earlyWithdraw(_liquidityPools, depositId);
     }
 
     function getDepositTerms()
@@ -154,15 +148,7 @@ contract _DepositManagerMock {
 
     // --- Helpers ---
 
-    function addLoanTerm(uint256 loanTerm) external {
-        _loanManager.addLoanTerm(_liquidityPools, _depositManager, loanTerm);
-    }
-
-    function getPoolById(
-        address tokenAddress,
-        uint256 depositTerm,
-        uint256 poolId
-    )
+    function getPoolById(address tokenAddress, uint256 poolId)
         external
         view
         returns (
@@ -172,16 +158,16 @@ contract _DepositManagerMock {
             uint256 loanInterest
         )
     {
-        return _liquidityPools.getPoolById(tokenAddress, depositTerm, poolId);
+        return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 
-    function getPoolGroup(address tokenAddress, uint256 depositTerm)
+    function getPoolGroup(address tokenAddress)
         external
         view
         returns (bool isInitialized, uint256 firstPoolId, uint256 lastPoolId)
     {
         _LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
-            .poolGroups[tokenAddress][depositTerm];
+            .poolGroups[tokenAddress];
 
         return (
             poolGroup.isInitialized,

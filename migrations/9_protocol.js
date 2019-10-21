@@ -32,6 +32,7 @@ module.exports = async function(deployer, network) {
     ProtocolMock,
     LiquidityPoolsMock,
     DepositManagerMock,
+    LoanManagerMock,
   ]);
   await deployer.link(DateTime, [DepositManager, LoanManager]);
   await deployer.link(AccountManager, [DepositManager, LoanManager]);

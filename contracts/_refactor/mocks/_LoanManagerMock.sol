@@ -19,14 +19,6 @@ contract _LoanManagerMock {
     _LoanManager.State _loanManager;
     _AccountManager.State _accountManager;
 
-    function addLoanTerm(uint256 loanTerm) external {
-        _loanManager.addLoanTerm(_liquidityPools, _depositManager, loanTerm);
-    }
-
-    function removeLoanTerm(uint256 loanTerm) external {
-        _loanManager.removeLoanTerm(loanTerm);
-    }
-
     function loan(
         address loanTokenAddress,
         address collateralTokenAddress,
@@ -39,7 +31,6 @@ contract _LoanManagerMock {
             _loanManager.loan(
                 _configuration,
                 _liquidityPools,
-                _depositManager,
                 loanTokenAddress,
                 collateralTokenAddress,
                 loanAmount,
@@ -53,13 +44,7 @@ contract _LoanManagerMock {
         external
         returns (uint256 remainingDebt)
     {
-        return
-            _loanManager.repayLoan(
-                _liquidityPools,
-                _depositManager,
-                loanId,
-                repayAmount
-            );
+        return _loanManager.repayLoan(_liquidityPools, loanId, repayAmount);
     }
 
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
@@ -70,19 +55,12 @@ contract _LoanManagerMock {
             _loanManager.liquidateLoan(
                 _configuration,
                 _liquidityPools,
-                _depositManager,
                 loanId,
                 liquidateAmount
             );
     }
 
-    function getLoanTerms()
-        external
-        view
-        returns (uint256[] memory loanTermList)
-    {
-        return _loanManager.loanTermList;
-    }
+    // TODO(desmond): getMaxLoanTerm
 
     function getFreedCollateralsByAccount(address accountAddress)
         external
@@ -233,14 +211,6 @@ contract _LoanManagerMock {
         return _loanManager.getTokenAddressList(tokenType);
     }
 
-    function getLoanInterestRateByToken(address tokenAddress)
-        external
-        view
-        returns (uint256[] memory loanTerms, uint256[] memory loanInterestRates)
-    {
-        return _loanManager.getLoanInterestRateByToken(tokenAddress);
-    }
-
     /// --- Helpers ---
 
     function enableDepositTerm(uint256 term) external {
@@ -259,7 +229,6 @@ contract _LoanManagerMock {
         return
             _depositManager.deposit(
                 _liquidityPools,
-                _loanManager,
                 _accountManager,
                 tokenAddress,
                 depositAmount,
@@ -269,5 +238,11 @@ contract _LoanManagerMock {
 
     function setPriceOracleAddress(address priceOracleAddress) external {
         _configuration.setPriceOracleAddress(priceOracleAddress);
+    }
+
+    function initPoolGroupIfNeeded(address tokenAddress, uint256 numPools)
+        external
+    {
+        _liquidityPools.initPoolGroupIfNeeded(tokenAddress, numPools);
     }
 }

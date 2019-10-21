@@ -8,48 +8,32 @@ contract _LiquidityPoolsMock {
 
     _LiquidityPools.State _liquidityPools;
 
-    function initPoolGroupIfNeeded(address tokenAddress, uint256 depositTerm)
+    function initPoolGroupIfNeeded(address tokenAddress, uint256 numPools)
         external
     {
-        _liquidityPools.initPoolGroupIfNeeded(tokenAddress, depositTerm);
+        _liquidityPools.initPoolGroupIfNeeded(tokenAddress, numPools);
     }
 
-    function addDepositToPool(
-        address tokenAddress,
-        uint256 depositAmount,
-        uint256 depositTerm,
-        uint256[] calldata loanTermList
-    ) external returns (uint256 poolId) {
-        return
-            _liquidityPools.addDepositToPool(
-                tokenAddress,
-                depositAmount,
-                depositTerm,
-                loanTermList
-            );
+    function addDepositToPool(address tokenAddress, uint256 depositAmount)
+        external
+        returns (uint256 poolId)
+    {
+        return _liquidityPools.addDepositToPool(tokenAddress, depositAmount);
     }
 
     function subtractDepositFromPool(
         address tokenAddress,
         uint256 depositAmount,
-        uint256 depositTerm,
-        uint256 poolId,
-        uint256[] calldata loanTermList
+        uint256 poolId
     ) external {
         _liquidityPools.subtractDepositFromPool(
             tokenAddress,
             depositAmount,
-            depositTerm,
-            poolId,
-            loanTermList
+            poolId
         );
     }
 
-    function getPool(
-        address tokenAddress,
-        uint256 depositTerm,
-        uint256 poolIndex
-    )
+    function getPool(address tokenAddress, uint256 poolIndex)
         external
         view
         returns (
@@ -59,14 +43,10 @@ contract _LiquidityPoolsMock {
             uint256 loanInterest
         )
     {
-        return _liquidityPools.getPool(tokenAddress, depositTerm, poolIndex);
+        return _liquidityPools.getPool(tokenAddress, poolIndex);
     }
 
-    function getPoolById(
-        address tokenAddress,
-        uint256 depositTerm,
-        uint256 poolId
-    )
+    function getPoolById(address tokenAddress, uint256 poolId)
         external
         view
         returns (
@@ -76,18 +56,18 @@ contract _LiquidityPoolsMock {
             uint256 loanInterest
         )
     {
-        return _liquidityPools.getPoolById(tokenAddress, depositTerm, poolId);
+        return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 
     /// --- Helpers
 
-    function getPoolGroup(address tokenAddress, uint256 depositTerm)
+    function getPoolGroup(address tokenAddress)
         external
         view
         returns (bool isInitialized, uint256 firstPoolId, uint256 lastPoolId)
     {
         _LiquidityPools.PoolGroup memory poolGroup = _liquidityPools
-            .poolGroups[tokenAddress][depositTerm];
+            .poolGroups[tokenAddress];
 
         return (
             poolGroup.isInitialized,
@@ -95,16 +75,4 @@ contract _LiquidityPoolsMock {
             poolGroup.lastPoolId
         );
     }
-
-    function getPoolGroupAvailableAmountByTerm(
-        address tokenAddress,
-        uint256 depositTerm,
-        uint256 loanTerm
-    ) external view returns (uint256 availableAmountByTerm) {
-        _LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
-            .poolGroups[tokenAddress][depositTerm];
-
-        return poolGroup.availableAmountByTerm[loanTerm];
-    }
-
 }

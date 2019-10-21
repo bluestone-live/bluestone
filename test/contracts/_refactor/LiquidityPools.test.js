@@ -11,7 +11,6 @@ contract('LiquidityPools', function([owner]) {
   beforeEach(async () => {
     liquidityPools = await LiquidityPools.new();
     token = await createERC20Token(owner);
-    await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
   });
 
   describe('#initPoolGroupIfNeeded', () => {
@@ -20,7 +19,6 @@ contract('LiquidityPools', function([owner]) {
       await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
       const { isInitialized, lastPoolId } = await liquidityPools.getPoolGroup(
         token.address,
-        depositTerm,
       );
       expect(isInitialized).to.be.true;
       expect(lastPoolId).to.bignumber.equal(new BN(depositTerm));
@@ -36,36 +34,23 @@ contract('LiquidityPools', function([owner]) {
   });
 
   describe('#addDepositToPool', () => {
+    beforeEach(async () => {
+      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
+    });
+
     it('succeeds', async () => {
       const depositAmount = toFixedBN(100);
-      await liquidityPools.addDepositToPool(
-        token.address,
-        depositAmount,
-        depositTerm,
-        loanTermList,
-      );
+      await liquidityPools.addDepositToPool(token.address, depositAmount);
 
       const poolId = depositTerm;
-      const pool = await liquidityPools.getPoolById(
-        token.address,
-        depositTerm,
-        poolId,
-      );
+      const pool = await liquidityPools.getPoolById(token.address, poolId);
 
       expect(pool.depositAmount).to.bignumber.equal(depositAmount);
       expect(pool.borrowedAmount).to.bignumber.equal(new BN(0));
       expect(pool.availableAmount).to.bignumber.equal(depositAmount);
       expect(pool.loanInterest).to.bignumber.equal(new BN(0));
 
-      for (let loanTerm of loanTermList) {
-        expect(
-          await liquidityPools.getPoolGroupAvailableAmountByTerm(
-            token.address,
-            depositTerm,
-            loanTerm,
-          ),
-        ).to.bignumber.equal(depositAmount);
-      }
+      // TODO(desmond): check availableAmount
     });
   });
 
@@ -73,12 +58,8 @@ contract('LiquidityPools', function([owner]) {
     const depositAmount = toFixedBN(100);
 
     beforeEach(async () => {
-      await liquidityPools.addDepositToPool(
-        token.address,
-        depositAmount,
-        depositTerm,
-        loanTermList,
-      );
+      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
+      await liquidityPools.addDepositToPool(token.address, depositAmount);
     });
 
     it('succeeds', async () => {
@@ -87,31 +68,17 @@ contract('LiquidityPools', function([owner]) {
       await liquidityPools.subtractDepositFromPool(
         token.address,
         depositAmount,
-        depositTerm,
         poolId,
-        loanTermList,
       );
 
-      const pool = await liquidityPools.getPoolById(
-        token.address,
-        depositTerm,
-        poolId,
-      );
+      const pool = await liquidityPools.getPoolById(token.address, poolId);
 
       expect(pool.depositAmount).to.bignumber.equal(new BN(0));
       expect(pool.borrowedAmount).to.bignumber.equal(new BN(0));
       expect(pool.availableAmount).to.bignumber.equal(new BN(0));
       expect(pool.loanInterest).to.bignumber.equal(new BN(0));
 
-      for (let loanTerm of loanTermList) {
-        expect(
-          await liquidityPools.getPoolGroupAvailableAmountByTerm(
-            token.address,
-            depositTerm,
-            loanTerm,
-          ),
-        ).to.bignumber.equal(new BN(0));
-      }
+      // TODO(desmond): check availableAmount
     });
   });
 

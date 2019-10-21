@@ -10,8 +10,8 @@ library _LiquidityPools {
     using FixedMath for uint256;
 
     struct State {
-        // token -> deposit term -> PoolGroup
-        mapping(address => mapping(uint256 => PoolGroup)) poolGroups;
+        // token -> PoolGroup
+        mapping(address => PoolGroup) poolGroups;
     }
 
     struct PoolGroup {
@@ -20,8 +20,6 @@ library _LiquidityPools {
         uint256 lastPoolId;
         // pool id -> Pool
         mapping(uint256 => Pool) poolsById;
-        // loan term -> available amount to borrow
-        mapping(uint256 => uint256) availableAmountByTerm;
     }
 
     struct Pool {
@@ -53,75 +51,25 @@ library _LiquidityPools {
     function initPoolGroupIfNeeded(
         State storage self,
         address tokenAddress,
-        uint256 depositTerm
+        uint256 numPools
     ) external {
-        if (!self.poolGroups[tokenAddress][depositTerm].isInitialized) {
-            /// The length of the PoolGroup should be (depositTerm + 1) because
-            /// a deposit will mature in (depositTerm + 1) days.
-            /// In other words, lastPoolId - firstPoolId = depositTerm
-            self.poolGroups[tokenAddress][depositTerm] = PoolGroup({
+        if (!self.poolGroups[tokenAddress].isInitialized) {
+            /// The length of the PoolGroup should be (numPools + 1) because
+            /// a deposit will mature in (numPools + 1) days.
+            /// In other words, lastPoolId - firstPoolId = numPools
+            self.poolGroups[tokenAddress] = PoolGroup({
                 isInitialized: true,
                 firstPoolId: 0,
-                lastPoolId: depositTerm
+                lastPoolId: numPools
             });
-        }
-    }
-
-    // Update availableAmountByTerm for all pool groups of a deposit token
-    function updateAvailableAmountByTerm(
-        State storage self,
-        address depositTokenAddress,
-        uint256[] calldata depositTermList,
-        uint256 loanTerm
-    ) external {
-        for (uint256 i = 0; i < depositTermList.length; i++) {
-            uint256 depositTerm = depositTermList[i];
-            PoolGroup storage poolGroup = self
-                .poolGroups[depositTokenAddress][depositTerm];
-            uint256 totalAvailableAmount;
-
-            // Add up availableAmount from pools
-            for (
-                uint256 poolIndex = loanTerm;
-                poolIndex <= depositTerm;
-                poolIndex++
-            ) {
-                uint256 availableAmountOfPool = poolGroup.poolsById[poolGroup
-                    .firstPoolId +
-                    poolIndex]
-                    .availableAmount;
-
-                totalAvailableAmount = totalAvailableAmount.add(
-                    availableAmountOfPool
-                );
-            }
-
-            poolGroup.availableAmountByTerm[loanTerm] = totalAvailableAmount;
         }
     }
 
     function updatePoolGroupDepositMaturity(
         State storage self,
-        address tokenAddress,
-        uint256 depositTerm,
-        uint256[] calldata loanTermList
+        address tokenAddress
     ) external {
-        PoolGroup storage poolGroup = self
-            .poolGroups[tokenAddress][depositTerm];
-
-        /// For every loan term N <= current deposit term, subtract N-th pool's availableAmount from
-        /// availableAmountByTerm since that amount will not be available after shifting pools.
-        for (uint256 i = 0; i < loanTermList.length; i++) {
-            if (loanTermList[i] <= depositTerm) {
-                uint256 loanTerm = loanTermList[i];
-                uint256 poolId = poolGroup.firstPoolId + loanTerm;
-                uint256 availableAmountOfPool = poolGroup.poolsById[poolId]
-                    .availableAmount;
-                poolGroup.availableAmountByTerm[loanTerm] = poolGroup
-                    .availableAmountByTerm[loanTerm]
-                    .sub(availableAmountOfPool);
-            }
-        }
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
 
         // Free storage of pool to be removed and get some gas refund
         delete poolGroup.poolsById[poolGroup.firstPoolId];
@@ -134,26 +82,12 @@ library _LiquidityPools {
     function addDepositToPool(
         State storage self,
         address tokenAddress,
-        uint256 depositAmount,
-        uint256 depositTerm,
-        uint256[] calldata loanTermList
+        uint256 depositAmount
     ) external returns (uint256 poolId) {
-        PoolGroup storage poolGroup = self
-            .poolGroups[tokenAddress][depositTerm];
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
         Pool storage pool = poolGroup.poolsById[poolGroup.lastPoolId];
         pool.depositAmount = pool.depositAmount.add(depositAmount);
         pool.availableAmount = pool.availableAmount.add(depositAmount);
-
-        // Add deposit amount to availableAmountByTerm for every loan term <= this deposit term
-        for (uint256 i = 0; i < loanTermList.length; i++) {
-            uint256 loanTerm = loanTermList[i];
-
-            if (loanTerm <= depositTerm) {
-                poolGroup.availableAmountByTerm[loanTerm] = poolGroup
-                    .availableAmountByTerm[loanTerm]
-                    .add(depositAmount);
-            }
-        }
 
         return poolGroup.lastPoolId;
     }
@@ -162,151 +96,39 @@ library _LiquidityPools {
         State storage self,
         address tokenAddress,
         uint256 depositAmount,
-        uint256 depositTerm,
-        uint256 poolId,
-        uint256[] calldata loanTermList
+        uint256 poolId
     ) external {
-        PoolGroup storage poolGroup = self
-            .poolGroups[tokenAddress][depositTerm];
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
         Pool storage pool = poolGroup.poolsById[poolId];
         pool.depositAmount = pool.depositAmount.sub(depositAmount);
         pool.availableAmount = pool.availableAmount.sub(depositAmount);
-        uint256 daysBeforeMaturity = poolId - poolGroup.firstPoolId;
-
-        for (uint256 i = 0; i < loanTermList.length; i++) {
-            uint256 loanTerm = loanTermList[i];
-
-            if (loanTerm <= daysBeforeMaturity) {
-                poolGroup.availableAmountByTerm[loanTerm] = poolGroup
-                    .availableAmountByTerm[loanTerm]
-                    .sub(depositAmount);
-            }
-        }
     }
 
-    function loanFromPoolGroups(
+    function repayLoanToPools(
         State storage self,
         _LoanManager.State storage loanManager,
         bytes32 loanId,
-        uint256[] calldata depositTerms
-    ) external {
-        _LoanManager.LoanRecord storage loanRecord = loanManager
-            .loanRecordById[loanId];
-        LocalVars memory localVars;
-
-        // Calculate total loanable amount from available pool groups
-        for (uint256 i = 0; i < depositTerms.length; i++) {
-            localVars.depositTerm = depositTerms[i];
-
-            if (loanRecord.loanTerm > localVars.depositTerm) {
-                continue;
-            }
-
-            localVars.availableAmountFromThisPoolGroup = self
-                .poolGroups[loanRecord.loanTokenAddress][localVars.depositTerm]
-                .availableAmountByTerm[loanRecord.loanTerm];
-
-            localVars.availableAmountFromAllPoolGroups = localVars
-                .availableAmountFromAllPoolGroups
-                .add(localVars.availableAmountFromThisPoolGroup);
-
-            localVars.numAvailablePoolGroups++;
-        }
-
-        // Check if we have sufficient amount to lend out
-        require(
-            loanRecord.loanAmount <= localVars.availableAmountFromAllPoolGroups,
-            'Insufficient amount for loan'
-        );
-
-        localVars.remainingLoanAmount = loanRecord.loanAmount;
-
-        // Loan from available pool groups
-        for (uint256 i = 0; i < depositTerms.length; i++) {
-            localVars.depositTerm = depositTerms[i];
-
-            if (loanRecord.loanTerm > localVars.depositTerm) {
-                continue;
-            }
-
-            if (localVars.numAvailablePoolGroups == 1) {
-                // This is the last pool group left, so loan the remaining amount from it
-                _loanFromPoolGroup(
-                    self,
-                    loanManager,
-                    loanId,
-                    localVars.depositTerm
-                );
-                break;
-            }
-
-            localVars.availableAmountFromThisPoolGroup = self
-                .poolGroups[loanRecord.loanTokenAddress][localVars.depositTerm]
-                .availableAmountByTerm[loanRecord.loanTerm];
-
-            // Calculate amount to be loaned from this pool group, proportionally to its availableAmountByTerm
-            localVars.loanAmountFromThisPoolGroup = loanRecord
-                .loanAmount
-                .mulFixed(localVars.availableAmountFromThisPoolGroup)
-                .divFixed(localVars.availableAmountFromAllPoolGroups);
-
-            /// If there is non-zero remainder for the above calculation, it means we have precision-loss after
-            /// 18 decimal places. So loaners will receive loan amount less than what they asked for.
-            /// We fix this issue in the next step.
-            localVars.remainder = loanRecord
-                .loanAmount
-                .mulFixed(localVars.availableAmountFromThisPoolGroup)
-                .mod(localVars.availableAmountFromAllPoolGroups);
-
-            if (localVars.remainder > 0) {
-                /// Compensate the precision-loss by adding one (wei) to the loan amount. If the result exceeds the
-                /// maximum amount this pool group can provide, we take full loanable amount from this pool group.
-                /// This strategy fixes the precision-loss issue while prevents overdraw from any pool group.
-                localVars.loanAmountFromThisPoolGroup = Math.min(
-                    localVars.loanAmountFromThisPoolGroup.add(1),
-                    localVars.availableAmountFromThisPoolGroup
-                );
-            }
-
-            _loanFromPoolGroup(
-                self,
-                loanManager,
-                loanId,
-                localVars.depositTerm
-            );
-
-            localVars.remainingLoanAmount = localVars.remainingLoanAmount.sub(
-                localVars.loanAmountFromThisPoolGroup
-            );
-
-            localVars.numAvailablePoolGroups--;
-        }
-    }
-
-    function repayLoanToPoolGroup(
-        State storage self,
-        _LoanManager.State storage loanManager,
-        bytes32 loanId,
-        uint256 repayAmount,
-        uint256 depositTerm
+        uint256 repayAmount
     ) external {
         _LoanManager.LoanRecord storage loanRecord = loanManager
             .loanRecordById[loanId];
         PoolGroup storage poolGroup = self.poolGroups[loanRecord
-            .loanTokenAddress][depositTerm];
+            .loanTokenAddress];
 
         uint256 remainingRepayAmount = repayAmount;
 
         // Repay loan back to each pool, proportional to the total loan from all pools
-        for (uint256 poolIndex = 0; poolIndex < depositTerm; poolIndex++) {
+        for (
+            uint256 poolId = poolGroup.firstPoolId;
+            poolId <= poolGroup.lastPoolId;
+            poolId++
+        ) {
             if (remainingRepayAmount == 0) {
-                // Stop loop when remaining repay amount is cleared up
                 break;
             }
 
-            uint256 poolId = poolGroup.firstPoolId + poolIndex;
             uint256 loanAmountFromThisPool = loanRecord
-                .loanAmountByPool[depositTerm][poolId];
+                .loanAmountByPool[poolId];
 
             if (loanAmountFromThisPool == 0) {
                 // Skip this pool since it has no loan
@@ -331,25 +153,12 @@ library _LiquidityPools {
             remainingRepayAmount = remainingRepayAmount.sub(
                 repayAmountToThisPool
             );
-
-            // Add repay amount to availableAmountByTerm for every loan term <= current term the pool refers to
-            for (uint256 i = 0; i < loanManager.loanTermList.length; i++) {
-                uint256 loanTerm = loanManager.loanTermList[i];
-
-                if (loanTerm <= poolIndex + 1) {
-                    poolGroup.availableAmountByTerm[loanTerm] = poolGroup
-                        .availableAmountByTerm[loanTerm]
-                        .add(repayAmountToThisPool);
-                }
-            }
         }
-
     }
 
     function getPool(
         State storage self,
         address tokenAddress,
-        uint256 depositTerm,
         uint256 poolIndex
     )
         external
@@ -361,21 +170,14 @@ library _LiquidityPools {
             uint256 loanInterest
         )
     {
-        PoolGroup storage poolGroup = self
-            .poolGroups[tokenAddress][depositTerm];
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
         return
-            getPoolById(
-                self,
-                tokenAddress,
-                depositTerm,
-                poolGroup.firstPoolId + poolIndex
-            );
+            getPoolById(self, tokenAddress, poolGroup.firstPoolId + poolIndex);
     }
 
     function getPoolById(
         State storage self,
         address tokenAddress,
-        uint256 depositTerm,
         uint256 poolId
     )
         public
@@ -387,8 +189,7 @@ library _LiquidityPools {
             uint256 loanInterest
         )
     {
-        PoolGroup storage poolGroup = self
-            .poolGroups[tokenAddress][depositTerm];
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
         Pool storage pool = poolGroup.poolsById[poolId];
 
         return (
@@ -399,91 +200,51 @@ library _LiquidityPools {
         );
     }
 
-    /// Loan from pool on left-hand side, then right-hand side, move pointers towards middle
-    /// and repeat until loan amount is fulfilled.
-    ///
-    /// For example,
-    /// if loan term is 1 and deposit term is 7, the sequence is:
-    /// 0, 6, 1, 5, 2, 4, 3
-    ///
-    /// if loan term is 7 and deposit term is 30, the sequence is:
-    /// 6, 29, 7, 28, 8, 27, ..., 16, 19, 17, 18
-    function _loanFromPoolGroup(
+    function loanFromPools(
         State storage self,
         _LoanManager.State storage loanManager,
-        bytes32 loanId,
-        uint256 depositTerm
-    ) internal {
+        bytes32 loanId
+    ) external {
         _LoanManager.LoanRecord storage loanRecord = loanManager
             .loanRecordById[loanId];
         PoolGroup storage poolGroup = self.poolGroups[loanRecord
-            .loanTokenAddress][depositTerm];
+            .loanTokenAddress];
         uint256 remainingLoanAmount = loanRecord.loanAmount;
 
-        // Mark left, right and current pool id
-        uint256 left = poolGroup.firstPoolId + loanRecord.loanTerm;
-        uint256 right = poolGroup.lastPoolId;
-        uint256 poolId = left;
-        bool onLeftSide = true;
+        // TODO: check availableAmount >= loanAmount
 
-        while (remainingLoanAmount > 0 && left <= right) {
+        for (
+            uint256 poolId = poolGroup.firstPoolId + loanRecord.loanTerm;
+            poolId <= poolGroup.lastPoolId;
+            poolId++
+        ) {
+            if (remainingLoanAmount == 0) {
+                break;
+            }
+
             Pool storage pool = poolGroup.poolsById[poolId];
 
-            if (pool.availableAmount > 0) {
-                uint256 loanAmountFromPool = Math.min(
-                    remainingLoanAmount,
-                    pool.availableAmount
-                );
-                uint256 loanInterestToPool = loanRecord
-                    .interest
-                    .mulFixed(loanAmountFromPool)
-                    .divFixed(loanRecord.loanAmount);
-
-                pool.borrowedAmount = pool.borrowedAmount.add(
-                    loanAmountFromPool
-                );
-                pool.availableAmount = pool.availableAmount.sub(
-                    loanAmountFromPool
-                );
-                pool.loanInterest = pool.loanInterest.add(loanInterestToPool);
-
-                // Record the actual pool we loan from, so we know which pool to repay back later
-                loanRecord
-                    .loanAmountByPool[depositTerm][poolId] = loanAmountFromPool;
-
-                remainingLoanAmount = remainingLoanAmount.sub(
-                    loanAmountFromPool
-                );
+            if (pool.availableAmount == 0) {
+                continue;
             }
 
-            // Switch side
-            if (onLeftSide) {
-                // In an odd-number pool group, we need to stop when we reach the last pool in the middle
-                if (left == right) {
-                    break;
-                }
+            uint256 loanAmountFromPool = Math.min(
+                remainingLoanAmount,
+                pool.availableAmount
+            );
+            uint256 loanInterestToPool = loanRecord
+                .interest
+                .mulFixed(loanAmountFromPool)
+                .divFixed(loanRecord.loanAmount);
 
-                poolId = right;
-                onLeftSide = false;
-            } else {
-                // Update left and right pointers as both have been loaned
-                left++;
-                right--;
+            pool.borrowedAmount = pool.borrowedAmount.add(loanAmountFromPool);
+            pool.availableAmount = pool.availableAmount.sub(loanAmountFromPool);
+            pool.loanInterest = pool.loanInterest.add(loanInterestToPool);
 
-                poolId = left;
-                onLeftSide = true;
-            }
-        }
+            // Record the actual pool we loan from, so we know which pool to repay back later
+            loanRecord.loanAmountByPool[poolId] = loanAmountFromPool;
 
-        // Subtract loan amount from availableAmountByTerm for every loan term <= this loan term
-        for (uint256 i = 0; i < loanManager.loanTermList.length; i++) {
-            uint256 loanTerm = loanManager.loanTermList[i];
-
-            if (loanTerm <= loanRecord.loanTerm) {
-                poolGroup.availableAmountByTerm[loanTerm] = poolGroup
-                    .availableAmountByTerm[loanTerm]
-                    .sub(loanRecord.loanAmount);
-            }
+            remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
         }
     }
 }

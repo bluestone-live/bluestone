@@ -26,10 +26,8 @@ library _LoanManager {
     using SafeERC20 for ERC20;
 
     struct State {
-        uint256[] loanTermList;
         TokenStorage loanTokens;
         TokenStorage collateralTokens;
-        mapping(uint256 => bool) isLoanTermValid;
         // ID -> LoanRecord
         mapping(bytes32 => LoanRecord) loanRecordById;
         // accountAddress -> loanIds
@@ -88,9 +86,9 @@ library _LoanManager {
         uint256 lastRepaidAt;
         uint256 lastLiquidatedAt;
         bool isClosed;
-        // deposit term -> pool id -> loan amount
-        /// How much have one borrowed from a pool in a specific pool group
-        mapping(uint256 => mapping(uint256 => uint256)) loanAmountByPool;
+        // pool id -> loan amount
+        /// How much have one borrowed from a pool
+        mapping(uint256 => uint256) loanAmountByPool;
     }
 
     struct LoanRecordListView {
@@ -135,54 +133,7 @@ library _LoanManager {
         uint256 amount
     );
 
-    function addLoanTerm(
-        State storage self,
-        _LiquidityPools.State storage liquidityPools,
-        _DepositManager.State storage depositManager,
-        uint256 loanTerm
-    ) external {
-        require(
-            !self.isLoanTermValid[loanTerm],
-            'LoanManager: term already exists'
-        );
-
-        self.loanTermList.push(loanTerm);
-        self.isLoanTermValid[loanTerm] = true;
-
-        address[] memory depositTokenAddressList = depositManager
-            .enabledDepositTokenAddressList;
-
-        for (uint256 i = 0; i < depositTokenAddressList.length; i++) {
-            liquidityPools.updateAvailableAmountByTerm(
-                depositTokenAddressList[i],
-                depositManager.enabledDepositTermList,
-                loanTerm
-            );
-        }
-    }
-
-    function removeLoanTerm(State storage self, uint256 loanTerm) external {
-        require(
-            self.isLoanTermValid[loanTerm],
-            'LoanManager: term does not exist'
-        );
-
-        self.isLoanTermValid[loanTerm] = false;
-
-        for (uint256 i = 0; i < self.loanTermList.length; i++) {
-            if (self.loanTermList[i] == loanTerm) {
-                // Overwrite current term with the last term
-                self.loanTermList[i] = self.loanTermList[self
-                    .loanTermList
-                    .length -
-                    1];
-
-                // Shrink array size
-                delete self.loanTermList[self.loanTermList.length - 1];
-                self.loanTermList.length--;
-            }
-        }
-    }
+    // TODO(desmond): setMaxLoanTerm
 
     function getLoanRecordById(
         State storage self,
@@ -497,7 +448,6 @@ library _LoanManager {
         State storage self,
         _Configuration.State storage configuration,
         _LiquidityPools.State storage liquidityPools,
-        _DepositManager.State storage depositManager,
         address loanTokenAddress,
         address collateralTokenAddress,
         uint256 loanAmount,
@@ -513,10 +463,8 @@ library _LoanManager {
 
         require(loanAmount > 0, 'LoanManager: invalid loan amount');
         require(collateralAmount > 0, 'LoanManager: invalid collateral amount');
-        require(
-            self.isLoanTermValid[loanTerm],
-            'LoanManager: invalid loan term'
-        );
+
+        // TODO(desmond): check loan term is valid
 
         LocalVars memory localVars;
         localVars.remainingCollateralAmount = collateralAmount;
@@ -591,11 +539,7 @@ library _LoanManager {
             isClosed: false
         });
 
-        liquidityPools.loanFromPoolGroups(
-            self,
-            localVars.loanId,
-            depositManager.enabledDepositTermList
-        );
+        liquidityPools.loanFromPools(self, localVars.loanId);
 
         // Transfer collateral tokens from loaner to protocol
         ERC20(collateralTokenAddress).safeTransferFrom(
@@ -713,7 +657,6 @@ library _LoanManager {
     function repayLoan(
         State storage self,
         _LiquidityPools.State storage liquidityPools,
-        _DepositManager.State storage depositManager,
         bytes32 loanId,
         uint256 repayAmount
     ) external returns (uint256 remainingDebt) {
@@ -761,22 +704,7 @@ library _LoanManager {
             }
         }
 
-        for (
-            uint256 i = 0;
-            i < depositManager.enabledDepositTermList.length;
-            i++
-        ) {
-            uint256 depositTerm = depositManager.enabledDepositTermList[i];
-
-            if (loanRecord.loanTerm <= depositTerm) {
-                liquidityPools.repayLoanToPoolGroup(
-                    self,
-                    loanId,
-                    repayAmount,
-                    depositTerm
-                );
-            }
-        }
+        liquidityPools.repayLoanToPools(self, loanId, repayAmount);
 
         // Transfer loan tokens from user to protocol
         ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
@@ -794,7 +722,6 @@ library _LoanManager {
         State storage self,
         _Configuration.State storage configuration,
         _LiquidityPools.State storage liquidityPools,
-        _DepositManager.State storage depositManager,
         bytes32 loanId,
         uint256 liquidateAmount
     ) external returns (uint256 remainingCollateral, uint256 liquidatedAmount) {
@@ -885,22 +812,11 @@ library _LoanManager {
             }
         }
 
-        for (
-            uint256 i = 0;
-            i < depositManager.enabledDepositTermList.length;
-            i++
-        ) {
-            uint256 depositTerm = depositManager.enabledDepositTermList[i];
-
-            if (loanRecord.loanTerm <= depositTerm) {
-                liquidityPools.repayLoanToPoolGroup(
-                    self,
-                    loanId,
-                    localVars.liquidatedAmount,
-                    depositTerm
-                );
-            }
-        }
+        liquidityPools.repayLoanToPools(
+            self,
+            loanId,
+            localVars.liquidatedAmount
+        );
 
         // TODO(desmond): increment stat if loan is overdue
 
@@ -1079,23 +995,5 @@ library _LoanManager {
             }
         }
         return (tokenAddressList, isActive);
-    }
-
-    function getLoanInterestRateByToken(
-        State storage self,
-        address tokenAddress
-    )
-        external
-        view
-        returns (uint256[] memory loanTerms, uint256[] memory loanInterestRates)
-    {
-        loanTerms = self.loanTermList;
-        loanInterestRates = new uint256[](loanTerms.length);
-
-        for (uint256 i = 0; i < loanTerms.length; i++) {
-            loanInterestRates[i] = self
-                .loanInterestRates[tokenAddress][loanTerms[i]];
-        }
-        return (loanTerms, loanInterestRates);
     }
 }
