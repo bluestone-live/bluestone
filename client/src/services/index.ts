@@ -18,6 +18,7 @@ export interface IProtocolDepositRecord {
   withdrewAt: BigNumber;
   isMatured?: boolean;
   isWithdrawn?: boolean;
+  isEarlyWithdrawable?: boolean;
 }
 
 export interface IProtocolLoanRecord {

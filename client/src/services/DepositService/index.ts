@@ -26,9 +26,39 @@ export class DepositService {
   async getDepositRecordById(
     depositId: string,
   ): Promise<IProtocolDepositRecord> {
-    return this.provider.protocol.methods
+    const {
+      tokenAddress,
+      depositTerm,
+      depositAmount,
+      poolId,
+      createdAt,
+      maturedAt,
+      withdrewAt,
+      isMatured,
+      isWithdrawn,
+    } = await this.provider.protocol.methods
       .getDepositRecordById(depositId)
       .call();
+    const interest = await this.provider.protocol.methods
+      .getDepositInterestById(depositId)
+      .call();
+    const isEarlyWithdrawable = await this.provider.protocol.methods
+      .isDepositEarlyWithdrawable(depositId)
+      .call();
+    return {
+      depositId,
+      tokenAddress,
+      depositTerm,
+      depositAmount,
+      poolId,
+      createdAt,
+      maturedAt,
+      withdrewAt,
+      isMatured,
+      isWithdrawn,
+      interest,
+      isEarlyWithdrawable,
+    };
   }
 
   /**
@@ -62,6 +92,17 @@ export class DepositService {
   ): Promise<BigNumber> {
     return this.provider.protocol.methods
       .withdrawDeposit(depositId)
+      .send({ from: accountAddress });
+  }
+
+  /**
+   * Early withdraw deposit
+   * @param accountAddress account address
+   * @param depositId deposit id
+   */
+  async earlyWithdrawDeposit(accountAddress: string, depositId: string) {
+    return this.provider.protocol.methods
+      .earlyWithdrawDeposit(depositId)
       .send({ from: accountAddress });
   }
 }

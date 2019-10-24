@@ -21,6 +21,7 @@ export interface IDepositRecord {
   isWithdrawn?: boolean;
   interestIndex?: BigNumber;
   recordType: RecordType;
+  isEarlyWithdrawable?: boolean;
 }
 
 interface IDepositState {

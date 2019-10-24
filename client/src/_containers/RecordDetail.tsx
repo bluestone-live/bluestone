@@ -47,6 +47,14 @@ const RecordDetail = (props: IProps) => {
     setLoading(false);
   }, [setLoading]);
 
+  const earlyWithdraw = useCallback(async () => {
+    const { depositService } = await getService();
+
+    setLoading(true);
+    await depositService.earlyWithdrawDeposit(accountAddress, record.recordId);
+    setLoading(false);
+  }, [setLoading]);
+
   const renderDetail = useCallback(
     (r: IRecord) => {
       if (r.recordType === RecordType.Deposit) {
@@ -75,6 +83,20 @@ const RecordDetail = (props: IProps) => {
                     loading={loading}
                   >
                     {t('withdraw')}
+                  </Button>
+                </Button.Group>
+              </Form.Item>
+            )}
+            {depositRecord.isEarlyWithdrawable && (
+              <Form.Item>
+                <Button.Group>
+                  <Button
+                    primary
+                    onClick={earlyWithdraw}
+                    disabled={isUserActionsLocked}
+                    loading={loading}
+                  >
+                    {t('early_withdraw')}
                   </Button>
                 </Button.Group>
               </Form.Item>
