@@ -153,10 +153,6 @@ contract('DepositManager', function([_, depositor]) {
         expect(currPoolGroup.firstPoolId).to.bignumber.equal(
           prevPoolGroup.firstPoolId.add(new BN(1)),
         );
-
-        expect(currPoolGroup.lastPoolId).to.bignumber.equal(
-          prevPoolGroup.lastPoolId.add(new BN(1)),
-        );
       });
     });
 

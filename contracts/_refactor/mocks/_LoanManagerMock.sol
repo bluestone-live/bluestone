@@ -60,7 +60,19 @@ contract _LoanManagerMock {
             );
     }
 
-    // TODO(desmond): getMaxLoanTerm
+    function setMaxLoanTerm(address tokenAddress, uint256 maxLoanTerm)
+        external
+    {
+        _loanManager.setMaxLoanTerm(_liquidityPools, tokenAddress, maxLoanTerm);
+    }
+
+    function getMaxLoanTerm(address tokenAddress)
+        public
+        view
+        returns (uint256 maxLoanTerm)
+    {
+        return _loanManager.getMaxLoanTerm(_liquidityPools, tokenAddress);
+    }
 
     function getFreedCollateralsByAccount(address accountAddress)
         external

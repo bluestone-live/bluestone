@@ -133,7 +133,22 @@ library _LoanManager {
         uint256 amount
     );
 
-    // TODO(desmond): setMaxLoanTerm
+    function setMaxLoanTerm(
+        State storage self,
+        _LiquidityPools.State storage liquidityPools,
+        address tokenAddress,
+        uint256 maxLoanTerm
+    ) external {
+        liquidityPools.setPoolGroupSize(tokenAddress, maxLoanTerm);
+    }
+
+    function getMaxLoanTerm(
+        State storage self,
+        _LiquidityPools.State storage liquidityPools,
+        address tokenAddress
+    ) public view returns (uint256 maxLoanTerm) {
+        return liquidityPools.poolGroups[tokenAddress].numPools;
+    }
 
     function getLoanRecordById(
         State storage self,
@@ -464,7 +479,10 @@ library _LoanManager {
         require(loanAmount > 0, 'LoanManager: invalid loan amount');
         require(collateralAmount > 0, 'LoanManager: invalid collateral amount');
 
-        // TODO(desmond): check loan term is valid
+        require(
+            loanTerm <= getMaxLoanTerm(self, liquidityPools, loanTokenAddress),
+            'LoanManager: invalid loan term'
+        );
 
         LocalVars memory localVars;
         localVars.remainingCollateralAmount = collateralAmount;

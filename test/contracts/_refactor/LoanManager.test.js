@@ -17,6 +17,45 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
     priceOracle = await PriceOracle.new();
   });
 
+  describe('#setMaxLoanTerm', () => {
+    const initialSupply = toFixedBN(1000);
+    const maxLoanTerm = new BN(365);
+    let loanToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+    });
+
+    context('when pool group is not initialized', () => {
+      it('reverts', async () => {
+        expectRevert(
+          loanManager.setMaxLoanTerm(loanToken.address, maxLoanTerm),
+          'LiquidityPools: pool group is not initialized',
+        );
+      });
+    });
+
+    context('when pool group is initialized', () => {
+      const numPools = new BN(30);
+
+      beforeEach(async () => {
+        await loanManager.initPoolGroupIfNeeded(loanToken.address, numPools);
+      });
+
+      it('succeeds', async () => {
+        expect(
+          await loanManager.getMaxLoanTerm(loanToken.address),
+        ).to.bignumber.equal(numPools);
+
+        await loanManager.setMaxLoanTerm(loanToken.address, maxLoanTerm);
+
+        expect(
+          await loanManager.getMaxLoanTerm(loanToken.address),
+        ).to.bignumber.equal(maxLoanTerm);
+      });
+    });
+  });
+
   describe('#getLoanRecordById', () => {
     context('when loan id is valid', () => {
       // TODO(ZhangRGK): after the liquidityPools implement

@@ -205,7 +205,21 @@ contract Protocol is Ownable, Pausable {
 
     /// --- Loan
 
-    // TODO(desmond): setMaxLoanTerm
+    function setMaxLoanTerm(address tokenAddress, uint256 maxLoanTerm)
+        external
+        whenNotPaused
+        onlyOwner
+    {
+        _loanManager.setMaxLoanTerm(_liquidityPools, tokenAddress, maxLoanTerm);
+    }
+
+    function getMaxLoanTerm(address tokenAddress)
+        external
+        view
+        returns (uint256 maxLoanTerm)
+    {
+        return _loanManager.getMaxLoanTerm(_liquidityPools, tokenAddress);
+    }
 
     function loan(
         address loanTokenAddress,
@@ -256,8 +270,6 @@ contract Protocol is Ownable, Pausable {
                 liquidateAmount
             );
     }
-
-    // TODO(desmond): getMaxLoanTerm
 
     function getFreedCollateralsByAccount(address accountAddress)
         external

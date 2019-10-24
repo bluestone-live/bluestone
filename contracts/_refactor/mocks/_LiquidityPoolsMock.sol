@@ -64,15 +64,15 @@ contract _LiquidityPoolsMock {
     function getPoolGroup(address tokenAddress)
         external
         view
-        returns (bool isInitialized, uint256 firstPoolId, uint256 lastPoolId)
+        returns (bool isInitialized, uint256 numPools, uint256 firstPoolId)
     {
         _LiquidityPools.PoolGroup memory poolGroup = _liquidityPools
             .poolGroups[tokenAddress];
 
         return (
             poolGroup.isInitialized,
-            poolGroup.firstPoolId,
-            poolGroup.lastPoolId
+            poolGroup.numPools,
+            poolGroup.firstPoolId
         );
     }
 }

@@ -16,8 +16,8 @@ library _LiquidityPools {
 
     struct PoolGroup {
         bool isInitialized;
+        uint256 numPools;
         uint256 firstPoolId;
-        uint256 lastPoolId;
         // pool id -> Pool
         mapping(uint256 => Pool) poolsById;
     }
@@ -56,13 +56,34 @@ library _LiquidityPools {
         if (!self.poolGroups[tokenAddress].isInitialized) {
             /// The length of the PoolGroup should be (numPools + 1) because
             /// a deposit will mature in (numPools + 1) days.
-            /// In other words, lastPoolId - firstPoolId = numPools
+            /// We can get the last pool ID using (firstPoolId + numPools).
             self.poolGroups[tokenAddress] = PoolGroup({
                 isInitialized: true,
-                firstPoolId: 0,
-                lastPoolId: numPools
+                numPools: numPools,
+                firstPoolId: 0
             });
         }
+    }
+
+    function setPoolGroupSize(
+        State storage self,
+        address tokenAddress,
+        uint256 numPools
+    ) external {
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
+
+        require(
+            poolGroup.isInitialized,
+            'LiquidityPools: pool group is not initialized'
+        );
+
+        // Reduce number of pools is not allowed
+        require(
+            numPools > poolGroup.numPools,
+            'LiquidityPools: invalid numPools'
+        );
+
+        poolGroup.numPools = numPools;
     }
 
     function updatePoolGroupDepositMaturity(
@@ -76,7 +97,6 @@ library _LiquidityPools {
 
         // Increment pool IDs to reflect the deposit maturity change
         poolGroup.firstPoolId++;
-        poolGroup.lastPoolId++;
     }
 
     function addDepositToPool(
@@ -85,11 +105,12 @@ library _LiquidityPools {
         uint256 depositAmount
     ) external returns (uint256 poolId) {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
-        Pool storage pool = poolGroup.poolsById[poolGroup.lastPoolId];
+        uint256 lastPoolId = poolGroup.firstPoolId + poolGroup.numPools;
+        Pool storage pool = poolGroup.poolsById[lastPoolId];
         pool.depositAmount = pool.depositAmount.add(depositAmount);
         pool.availableAmount = pool.availableAmount.add(depositAmount);
 
-        return poolGroup.lastPoolId;
+        return lastPoolId;
     }
 
     function subtractDepositFromPool(
@@ -120,7 +141,7 @@ library _LiquidityPools {
         // Repay loan back to each pool, proportional to the total loan from all pools
         for (
             uint256 poolId = poolGroup.firstPoolId;
-            poolId <= poolGroup.lastPoolId;
+            poolId <= poolGroup.firstPoolId + poolGroup.numPools;
             poolId++
         ) {
             if (remainingRepayAmount == 0) {
@@ -215,7 +236,7 @@ library _LiquidityPools {
 
         for (
             uint256 poolId = poolGroup.firstPoolId + loanRecord.loanTerm;
-            poolId <= poolGroup.lastPoolId;
+            poolId <= poolGroup.firstPoolId + poolGroup.numPools;
             poolId++
         ) {
             if (remainingLoanAmount == 0) {

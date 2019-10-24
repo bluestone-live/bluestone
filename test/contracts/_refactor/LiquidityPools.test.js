@@ -17,11 +17,11 @@ contract('LiquidityPools', function([owner]) {
     it('succeed', async () => {
       const depositTerm = 30;
       await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
-      const { isInitialized, lastPoolId } = await liquidityPools.getPoolGroup(
+      const { isInitialized, numPools } = await liquidityPools.getPoolGroup(
         token.address,
       );
       expect(isInitialized).to.be.true;
-      expect(lastPoolId).to.bignumber.equal(new BN(depositTerm));
+      expect(numPools).to.bignumber.equal(new BN(depositTerm));
     });
   });
 
