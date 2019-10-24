@@ -42,7 +42,12 @@ contract('Deposit', ([owner]) => {
       const maturedAt = createdAt.add(
         secondsUntilMidnight.add(term.mul(dayInSeconds)),
       );
-      expect(await deposit.maturedAt()).to.be.bignumber.equal(maturedAt);
+
+      // To fix intermittent error: AssertionError: expected '1574812800' to equal '1574812799'
+      expect(await deposit.maturedAt()).to.be.bignumber.closeTo(
+        maturedAt,
+        new BN(1),
+      );
     });
   });
 

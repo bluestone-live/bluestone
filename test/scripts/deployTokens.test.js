@@ -2,7 +2,10 @@ const deployTokens = require('../../scripts/javascript/deployTokens.js');
 const { expect } = require('chai');
 const { loadNetworkConfig } = require('../../scripts/javascript/utils.js');
 
-describe('script: deployTokens', () => {
+describe('script: deployTokens', function() {
+  // To fix intermittent API not responding issue
+  this.retries(3);
+
   it('deploys ETH, DAI and USDT', async () => {
     const cb = () => {};
     const network = 'development';
