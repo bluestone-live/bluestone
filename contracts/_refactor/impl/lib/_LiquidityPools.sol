@@ -221,6 +221,26 @@ library _LiquidityPools {
         );
     }
 
+    function getAvailableAmountOfAllPools(
+        State storage self,
+        address tokenAddress
+    ) external view returns (uint256[] memory availableAmount) {
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
+        availableAmount = new uint256[](poolGroup.numPools + 1);
+
+        for (
+            uint256 poolIndex = 0;
+            poolIndex <= poolGroup.numPools;
+            poolIndex++
+        ) {
+            uint256 poolId = poolGroup.firstPoolId + poolIndex;
+            availableAmount[poolIndex] = poolGroup.poolsById[poolId]
+                .availableAmount;
+        }
+
+        return availableAmount;
+    }
+
     function loanFromPools(
         State storage self,
         _LoanManager.State storage loanManager,

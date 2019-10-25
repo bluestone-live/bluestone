@@ -456,6 +456,17 @@ contract Protocol is Ownable, Pausable {
 
     // TODO(desmond): refactor getLoanInterestRateByToken
 
+    /// --- LiquidityPools ---
+
+    function getAvailableAmountOfAllPools(address tokenAddress)
+        external
+        view
+        whenNotPaused
+        returns (uint256[] memory availableAmount)
+    {
+        return _liquidityPools.getAvailableAmountOfAllPools(tokenAddress);
+    }
+
     /// --- Configuration ---
     function setPriceOracleAddress(address priceOracleAddress)
         external

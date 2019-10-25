@@ -59,6 +59,14 @@ contract _LiquidityPoolsMock {
         return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 
+    function getAvailableAmountOfAllPools(address tokenAddress)
+        external
+        view
+        returns (uint256[] memory availableAmount)
+    {
+        return _liquidityPools.getAvailableAmountOfAllPools(tokenAddress);
+    }
+
     /// --- Helpers
 
     function getPoolGroup(address tokenAddress)
@@ -74,5 +82,37 @@ contract _LiquidityPoolsMock {
             poolGroup.numPools,
             poolGroup.firstPoolId
         );
+    }
+
+    function populatePoolGroup(
+        address tokenAddress,
+        uint256[] calldata depositAmountList,
+        uint256[] calldata borrowedAmountList
+    ) external {
+        _LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
+            .poolGroups[tokenAddress];
+
+        require(
+            depositAmountList.length <= poolGroup.numPools + 1,
+            'LiquidityPoolsMock: invalid depositAmountList length'
+        );
+        require(
+            borrowedAmountList.length <= poolGroup.numPools + 1,
+            'LiquidityPoolsMock: invalid borrowedAmountList length'
+        );
+        require(
+            depositAmountList.length == borrowedAmountList.length,
+            'LiquidityPoolsMock: depositAmountList and borrowedAmountList must have the same length'
+        );
+
+        uint256 poolId = poolGroup.firstPoolId;
+
+        for (uint256 i = 0; i < depositAmountList.length; i++) {
+            _LiquidityPools.Pool storage pool = poolGroup.poolsById[poolId];
+            pool.depositAmount = depositAmountList[i];
+            pool.borrowedAmount = borrowedAmountList[i];
+            pool.availableAmount = depositAmountList[i] - borrowedAmountList[i];
+            poolId++;
+        }
     }
 }
