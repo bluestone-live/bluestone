@@ -5,6 +5,7 @@ import '../impl/lib/_LiquidityPools.sol';
 import '../impl/lib/_DepositManager.sol';
 import '../impl/lib/_LoanManager.sol';
 import '../impl/lib/_AccountManager.sol';
+import '../interface/IInterestModel.sol';
 
 contract _DepositManagerMock {
     using _Configuration for _Configuration.State;
@@ -178,8 +179,7 @@ contract _DepositManagerMock {
         );
     }
 
-    function setInterestModelAddress(address interestModelAddress) external {
-        _configuration.setInterestModelAddress(interestModelAddress);
+    function setInterestModel(IInterestModel interestModel) external {
+        _configuration.setInterestModel(interestModel);
     }
-
 }

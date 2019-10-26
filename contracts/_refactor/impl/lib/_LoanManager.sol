@@ -43,8 +43,6 @@ library _LoanManager {
         /// can loan 100 DAI at most for colleteralize 1 ETH. And when the collateral coverage ratio of loan
         /// is below 1.5, the colleratal will be liquidated
         mapping(address => mapping(address => uint256)) minCollateralCoverageRatios;
-        /// loan token -> term -> loan interest rates
-        mapping(address => mapping(uint256 => uint256)) loanInterestRates;
         /// loan token -> collateral token -> liquidation discounts
         mapping(address => mapping(address => uint256)) liquidationDiscounts;
         uint256 numLoans;
@@ -116,6 +114,7 @@ library _LoanManager {
         uint256 loanInterest;
         uint256 soldCollateralAmount;
         uint256 availableFreedCollateral;
+        uint256 maxLoanTerm;
         bool isUnderCollateralCoverageRatio;
         bool isOverDue;
     }
@@ -479,12 +478,18 @@ library _LoanManager {
         require(loanAmount > 0, 'LoanManager: invalid loan amount');
         require(collateralAmount > 0, 'LoanManager: invalid collateral amount');
 
+        LocalVars memory localVars;
+        localVars.maxLoanTerm = getMaxLoanTerm(
+            self,
+            liquidityPools,
+            loanTokenAddress
+        );
+
         require(
-            loanTerm <= getMaxLoanTerm(self, liquidityPools, loanTokenAddress),
+            loanTerm <= localVars.maxLoanTerm,
             'LoanManager: invalid loan term'
         );
 
-        LocalVars memory localVars;
         localVars.remainingCollateralAmount = collateralAmount;
 
         if (useFreedCollateral) {
@@ -500,8 +505,13 @@ library _LoanManager {
                 .sub(localVars.availableFreedCollateral);
         }
 
-        localVars.loanInterestRate = self
-            .loanInterestRates[loanTokenAddress][loanTerm];
+        localVars.loanInterestRate = configuration
+            .interestModel
+            .getLoanInterestRate(
+            loanTokenAddress,
+            loanTerm,
+            localVars.maxLoanTerm
+        );
         localVars.liquidationDiscount = self
             .liquidationDiscounts[loanTokenAddress][collateralTokenAddress];
         localVars.minCollateralCoverageRatio = self
@@ -893,29 +903,6 @@ library _LoanManager {
         for (uint256 i = 0; i < minCollateralCoverageRatioList.length; i++) {
             self
                 .minCollateralCoverageRatios[loanTokenAddress][collateralTokenAddressList[i]] = minCollateralCoverageRatioList[i];
-        }
-    }
-
-    function setLoanInterestRatesForToken(
-        State storage self,
-        address tokenAddress,
-        uint256[] calldata loanTerms,
-        uint256[] calldata loanInterestRateList
-    ) external {
-        require(
-            loanTerms.length == loanInterestRateList.length,
-            "LoanManager: Arrays' length must be the same."
-        );
-        for (uint256 i = 0; i < loanInterestRateList.length; i++) {
-            require(
-                loanInterestRateList[i] < ONE,
-                'LoanManager: interest rate must be smaller than 1.'
-            );
-        }
-
-        for (uint256 i = 0; i < loanTerms.length; i++) {
-            self
-                .loanInterestRates[tokenAddress][loanTerms[i]] = loanInterestRateList[i];
         }
     }
 

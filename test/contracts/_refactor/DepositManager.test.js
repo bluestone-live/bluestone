@@ -20,7 +20,7 @@ contract('DepositManager', function([_, depositor]) {
     interestModel = await InterestModel.new();
     datetime = await DateTime.new();
     token = await createERC20Token(depositor);
-    await depositManager.setInterestModelAddress(interestModel.address);
+    await depositManager.setInterestModel(interestModel.address);
   });
 
   describe('#enableDepositTerm', () => {

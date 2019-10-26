@@ -5,6 +5,7 @@ import '../impl/lib/_LiquidityPools.sol';
 import '../impl/lib/_DepositManager.sol';
 import '../impl/lib/_LoanManager.sol';
 import '../impl/lib/_AccountManager.sol';
+import '../interface/IInterestModel.sol';
 
 contract _LoanManagerMock {
     using _Configuration for _Configuration.State;
@@ -177,18 +178,6 @@ contract _LoanManagerMock {
         );
     }
 
-    function setLoanInterestRatesForToken(
-        address tokenAddress,
-        uint256[] calldata loanTerms,
-        uint256[] calldata loanInterestRateList
-    ) external {
-        _loanManager.setLoanInterestRatesForToken(
-            tokenAddress,
-            loanTerms,
-            loanInterestRateList
-        );
-    }
-
     function setLiquidationDiscountsForToken(
         address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
@@ -259,8 +248,7 @@ contract _LoanManagerMock {
         _liquidityPools.initPoolGroupIfNeeded(tokenAddress, numPools);
     }
 
-    function setInterestModelAddress(address interestModelAddress) external {
-        _configuration.setInterestModelAddress(interestModelAddress);
+    function setInterestModel(IInterestModel interestModel) external {
+        _configuration.setInterestModel(interestModel);
     }
-
 }

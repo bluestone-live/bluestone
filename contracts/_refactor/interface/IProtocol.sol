@@ -1,5 +1,7 @@
 pragma solidity ^0.5.0;
 
+import './IInterestModel.sol';
+
 /// @title Interface for main protocol
 /// TODO (ZhangRGK): change to interface after all method implement
 contract IProtocol {
@@ -179,16 +181,6 @@ contract IProtocol {
         address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata liquidationDiscountList
-    ) external;
-
-    /// @notice Set loan interest rate for each loan term for specific token
-    /// @param tokenAddress A loan token address
-    /// @param loanTerms A list of loan terms
-    /// @param loanInterestRateList A list of loan interest rates
-    function setLoanInterestRatesForToken(
-        address tokenAddress,
-        uint256[] calldata loanTerms,
-        uint256[] calldata loanInterestRateList
     ) external;
 
     /// @notice Borrow token in a specific term
@@ -386,9 +378,9 @@ contract IProtocol {
     /// @param priceOracleAddress Price oracle address
     function setPriceOracleAddress(address priceOracleAddress) external;
 
-    /// @notice Set interest model address
-    /// @param interestModelAddress Deposit weight model address
-    function setInterestModelAddress(address interestModelAddress) external;
+    /// @notice Set interest model
+    /// @param interestModel Interest model
+    function setInterestModel(IInterestModel interestModel) external;
 
     /// @notice Set protocol address, which receives protocol reserve.
     /// @param protocolAddress Protocol address

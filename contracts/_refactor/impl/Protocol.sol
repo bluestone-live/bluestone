@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
 import '../interface/IProtocol.sol';
+import '../interface/IInterestModel.sol';
 import './lib/_Configuration.sol';
 import './lib/_LiquidityPools.sol';
 import './lib/_DepositManager.sol';
@@ -409,18 +410,6 @@ contract Protocol is Ownable, Pausable {
         );
     }
 
-    function setLoanInterestRatesForToken(
-        address tokenAddress,
-        uint256[] calldata loanTerms,
-        uint256[] calldata loanInterestRateList
-    ) external whenNotPaused onlyOwner {
-        _loanManager.setLoanInterestRatesForToken(
-            tokenAddress,
-            loanTerms,
-            loanInterestRateList
-        );
-    }
-
     function setLiquidationDiscountsForToken(
         address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
@@ -455,8 +444,6 @@ contract Protocol is Ownable, Pausable {
         return _loanManager.getTokenAddressList(tokenType);
     }
 
-    // TODO(desmond): refactor getLoanInterestRateByToken
-
     /// --- LiquidityPools ---
 
     function getAvailableAmountOfAllPools(address tokenAddress)
@@ -477,12 +464,12 @@ contract Protocol is Ownable, Pausable {
         _configuration.setPriceOracleAddress(priceOracleAddress);
     }
 
-    function setInterestModelAddress(address interestModelAddress)
+    function setInterestModel(IInterestModel interestModel)
         external
         whenNotPaused
         onlyOwner
     {
-        _configuration.setInterestModelAddress(interestModelAddress);
+        _configuration.setInterestModel(interestModel);
     }
 
     function setProtocolAddress(address protocolAddress)

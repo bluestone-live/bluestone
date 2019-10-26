@@ -1,5 +1,7 @@
 pragma solidity ^0.5.0;
 
+import '../../interface/IInterestModel.sol';
+
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _Configuration {
     struct State {
@@ -9,7 +11,7 @@ library _Configuration {
         bool isUserActionsLocked;
         address protocolAddress;
         address priceOracleAddress;
-        address interestModelAddress;
+        IInterestModel interestModel;
     }
 
     event LockUserActions();
@@ -38,16 +40,10 @@ library _Configuration {
         self.protocolAddress = protocolAddress;
     }
 
-    function setInterestModelAddress(
-        State storage self,
-        address interestModelAddress
-    ) external {
-        require(
-            interestModelAddress != address(0),
-            'Configuration: invalid interest model address'
-        );
-
-        self.interestModelAddress = interestModelAddress;
+    function setInterestModel(State storage self, IInterestModel interestModel)
+        external
+    {
+        self.interestModel = interestModel;
     }
 
     function setProtocolReserveRatio(

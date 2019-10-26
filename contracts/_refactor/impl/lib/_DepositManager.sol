@@ -9,7 +9,6 @@ import './_LoanManager.sol';
 import './_AccountManager.sol';
 import '../../lib/DateTime.sol';
 import '../../lib/FixedMath.sol';
-import '../InterestModel.sol';
 
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _DepositManager {
@@ -269,11 +268,7 @@ library _DepositManager {
 
         address accountAddress = msg.sender;
 
-        InterestModel interestModel = InterestModel(
-            configuration.interestModelAddress
-        );
-
-        uint256 depositWeight = interestModel.getDepositWeight(
+        uint256 depositWeight = configuration.interestModel.getDepositWeight(
             depositAmount,
             depositTerm
         );

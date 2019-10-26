@@ -18,7 +18,7 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
     priceOracle = await PriceOracle.new();
     interestModel = await InterestModel.new();
 
-    await loanManager.setInterestModelAddress(interestModel.address);
+    await loanManager.setInterestModel(interestModel.address);
   });
 
   describe('#setMaxLoanTerm', () => {
@@ -593,90 +593,6 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
           loanTokenAddress,
           collateralTokenAddressList,
           minCollateralCoverageRatioList,
-        );
-        // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
-      });
-    });
-  });
-
-  describe('#setLoanInterestRatesForToken', () => {
-    const initialSupply = toFixedBN(1000);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-    });
-
-    context("when arrays' lengths do not match", () => {
-      let tokenAddress, loanTerms, loanInterestRateList;
-
-      beforeEach(async () => {
-        tokenAddress = loanToken.address;
-        loanTerms = [7, 30];
-        loanInterestRateList = [toFixedBN(0.5)];
-      });
-
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.setLoanInterestRatesForToken(
-            tokenAddress,
-            loanTerms,
-            loanInterestRateList,
-          ),
-          "LoanManager: Arrays' length must be the same.",
-        );
-      });
-    });
-
-    context('when interest rate is not smaller than 1', () => {
-      let tokenAddress, loanTerms, loanInterestRateList0, loanInterestRateList1;
-
-      beforeEach(async () => {
-        tokenAddress = loanToken.address;
-        loanTerms = [7, 30];
-        loanInterestRateList0 = [toFixedBN(0.5), toFixedBN(1)];
-        loanInterestRateList1 = [toFixedBN(1.1), toFixedBN(0.1)];
-      });
-
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.setLoanInterestRatesForToken(
-            tokenAddress,
-            loanTerms,
-            loanInterestRateList0,
-          ),
-          'LoanManager: interest rate must be smaller than 1.',
-        );
-        await expectRevert(
-          loanManager.setLoanInterestRatesForToken(
-            tokenAddress,
-            loanTerms,
-            loanInterestRateList1,
-          ),
-          'LoanManager: interest rate must be smaller than 1.',
-        );
-      });
-    });
-
-    context('when loan interest rates are added', () => {
-      let tokenAddress, loanTerms, loanInterestRateList;
-
-      beforeEach(async () => {
-        tokenAddress = loanToken.address;
-        loanTerms = [7, 30];
-        loanInterestRateList = [toFixedBN(0.5), toFixedBN(0.01)];
-        await loanManager.enableLoanAndCollateralTokenPair(
-          loanToken.address,
-          collateralToken.address,
-        );
-      });
-
-      it('succeeds', async () => {
-        await loanManager.setLoanInterestRatesForToken(
-          tokenAddress,
-          loanTerms,
-          loanInterestRateList,
         );
         // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
       });
