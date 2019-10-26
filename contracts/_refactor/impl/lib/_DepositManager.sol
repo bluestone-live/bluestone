@@ -49,8 +49,8 @@ library _DepositManager {
     struct DepositToken {
         // Only enabled token can perform deposit-related transactions
         bool isEnabled;
-        // deposit term -> interest index history
-        mapping(uint256 => InterestIndexHistory) interestIndexHistoryByTerm;
+        // total deposit weight history
+        DepositInterestHistory depositInterestHistory;
     }
 
     struct DepositRecord {
@@ -67,13 +67,17 @@ library _DepositManager {
     }
 
     // Record interest index on a daily basis
-    struct InterestIndexHistory {
+    struct DepositInterestHistory {
         /// Each interest index corresponds to a snapshot of a particular pool state
         /// before updating deposit maturity of a PoolGroup.
         ///
-        /// depositInterest = loanInterest * (deposit / depositAmount) * (1 - protocolReserveRatio)
-        /// And interestIndex here refers to `loanInterest / depositAmount`.
-        mapping(uint256 => uint256) interestIndexByDay;
+        /// depositInterest = loanInterest * depositWeight / totalDepositWeight * (1 - protocolReserveRatio)
+        /// depositWeight refers to weight in deposit record
+
+        // days number -> total deposit weight
+        mapping(uint256 => uint256) totalDepositWeightByDay;
+        // days number -> total deposit interests
+        mapping(uint256 => uint256) totalInterestByDay;
         uint256 lastDay;
     }
 
@@ -223,27 +227,19 @@ library _DepositManager {
             address tokenAddress = self.allDepositTokenAddressList[i];
 
             for (uint256 j = 0; j < self.allDepositTermList.length; j++) {
-                uint256 depositTerm = self.allDepositTermList[j];
                 uint256 poolIndex = 0;
 
-                (uint256 depositAmount, , , uint256 loanInterest) = liquidityPools
+                (, , , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
                     .getPool(tokenAddress, poolIndex);
 
-                InterestIndexHistory storage history = self
+                DepositInterestHistory storage history = self
                     .depositTokenByAddress[tokenAddress]
-                    .interestIndexHistoryByTerm[depositTerm];
+                    .depositInterestHistory;
 
-                uint256 interestIndex;
-
-                if (depositAmount > 0) {
-                    interestIndex = loanInterest.divFixed(depositAmount);
-                } else {
-                    interestIndex = 0;
-                }
-
-                // Add a new interest index
                 history.lastDay++;
-                history.interestIndexByDay[history.lastDay] = interestIndex;
+                history.totalDepositWeightByDay[history
+                    .lastDay] = totalDepositWeight;
+                history.totalInterestByDay[history.lastDay] = loanInterest;
 
                 liquidityPools.updatePoolGroupDepositMaturity(tokenAddress);
             }
@@ -379,24 +375,19 @@ library _DepositManager {
 
         uint256 numDaysAgo = DateTime.toDays(now - depositRecord.maturedAt);
 
-        uint256 interestIndex = _getInterestIndexFromDaysAgo(
+        uint256 totalInterest = _getInterestFromDaysAgo(
             self,
             tokenAddress,
-            depositRecord.depositTerm,
+            depositRecord.weight,
             numDaysAgo
         );
 
-        uint256 totalInterests = depositRecord.depositAmount.mulFixed(
-            interestIndex
-        );
-        uint256 interestsForProtocol = totalInterests.mulFixed(
+        uint256 interestForProtocol = totalInterest.mulFixed(
             configuration.protocolReserveRatio
         );
-        uint256 interestsForDepositor = totalInterests.sub(
-            interestsForProtocol
-        );
+        uint256 interestForDepositor = totalInterest.sub(interestForProtocol);
         uint256 depositPlusInterestAmount = depositRecord.depositAmount.add(
-            interestsForDepositor
+            interestForDepositor
         );
 
         depositRecord.withdrewAt = now;
@@ -525,33 +516,29 @@ library _DepositManager {
             'DepositManager: Deposit ID is invalid'
         );
 
-        uint256 originalInterestIndex;
+        uint256 originalInterest;
 
         /// if deposit was matured, get interest index from history
         /// otherwise calculate by this formula: interestIndex = loanInterest / totalDeposit
         if (depositRecord.maturedAt < now) {
-            originalInterestIndex = _getInterestIndexFromDaysAgo(
+            originalInterest = _getInterestFromDaysAgo(
                 self,
                 depositRecord.tokenAddress,
-                depositRecord.depositTerm,
+                depositRecord.weight,
                 DateTime.toDays(now - depositRecord.maturedAt)
             );
         } else {
-            (uint256 totalDepositAmount, , , uint256 loanInterest) = liquidityPools
+            (, , , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
                 .getPoolById(depositRecord.tokenAddress, depositRecord.poolId);
 
-            if (totalDepositAmount != 0) {
-                originalInterestIndex = loanInterest.divFixed(
-                    totalDepositAmount
-                );
-            }
+            originalInterest = loanInterest
+                .mulFixed(depositRecord.weight)
+                .divFixed(totalDepositWeight);
         }
-        return (depositRecord.depositAmount *
-            originalInterestIndex.sub(
-                originalInterestIndex.mulFixed(
-                    configuration.protocolReserveRatio
-                )
-            ));
+        return
+            originalInterest.sub(
+                originalInterest.mulFixed(configuration.protocolReserveRatio)
+            );
     }
 
     function getDepositRecordsByAccount(State storage self, address account)
@@ -620,7 +607,7 @@ library _DepositManager {
             return false;
         }
 
-        (, , uint256 availableAmount, ) = liquidityPools.getPoolById(
+        (, , uint256 availableAmount, , ) = liquidityPools.getPoolById(
             depositRecord.tokenAddress,
             depositRecord.poolId
         );
@@ -628,17 +615,31 @@ library _DepositManager {
         return availableAmount >= depositRecord.depositAmount;
     }
 
-    function _getInterestIndexFromDaysAgo(
+    function _getInterestFromDaysAgo(
         State storage self,
         address tokenAddress,
-        uint256 depositTerm,
+        uint256 depositWeight,
         uint256 numDaysAgo
-    ) internal view returns (uint256 interestIndex) {
-        InterestIndexHistory storage history = self
+    ) internal view returns (uint256 interest) {
+        DepositInterestHistory storage history = self
             .depositTokenByAddress[tokenAddress]
-            .interestIndexHistoryByTerm[depositTerm];
+            .depositInterestHistory;
 
-        return history.interestIndexByDay[history.lastDay.sub(numDaysAgo)];
+        uint256 totalDepositWeight = history.totalDepositWeightByDay[history
+            .lastDay
+            .sub(numDaysAgo)];
+
+        if (totalDepositWeight == 0) {
+            return 0;
+        }
+
+        uint256 totalInterest = history.totalInterestByDay[history.lastDay.sub(
+            numDaysAgo
+        )];
+
+        // InterestPerDepositRecord = totalInterest * depositWeight / totalDepositWeight
+        return
+            totalInterest.mulFixed(depositWeight.divFixed(totalDepositWeight));
     }
 
 }

@@ -287,7 +287,9 @@ contract('DepositManager', function([_, depositor]) {
         });
 
         it('succeeds', async () => {
-          await depositManager.withdraw(depositId, { from: depositor });
+          await depositManager.withdraw(depositId, {
+            from: depositor,
+          });
         });
       });
     });

@@ -194,7 +194,8 @@ library _LiquidityPools {
             uint256 depositAmount,
             uint256 borrowedAmount,
             uint256 availableAmount,
-            uint256 loanInterest
+            uint256 loanInterest,
+            uint256 totalDepositWeight
         )
     {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
@@ -213,7 +214,8 @@ library _LiquidityPools {
             uint256 depositAmount,
             uint256 borrowedAmount,
             uint256 availableAmount,
-            uint256 loanInterest
+            uint256 loanInterest,
+            uint256 totalDepositWeight
         )
     {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
@@ -223,7 +225,8 @@ library _LiquidityPools {
             pool.depositAmount,
             pool.borrowedAmount,
             pool.availableAmount,
-            pool.loanInterest
+            pool.loanInterest,
+            pool.totalDepositWeight
         );
     }
 
