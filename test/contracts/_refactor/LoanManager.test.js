@@ -1,4 +1,5 @@
 const LoanManager = artifacts.require('_LoanManagerMock');
+const InterestModel = artifacts.require('InterestModel');
 const PriceOracle = artifacts.require('_PriceOracle');
 const { toFixedBN, createERC20Token } = require('../../utils/index.js');
 const {
@@ -10,11 +11,14 @@ const {
 const { expect } = require('chai');
 
 contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
-  let loanManager, priceOracle;
+  let loanManager, priceOracle, interestModel;
 
   beforeEach(async () => {
     loanManager = await LoanManager.new();
     priceOracle = await PriceOracle.new();
+    interestModel = await InterestModel.new();
+
+    await loanManager.setInterestModelAddress(interestModel.address);
   });
 
   describe('#setMaxLoanTerm', () => {

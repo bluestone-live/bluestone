@@ -1,4 +1,5 @@
 const DepositManager = artifacts.require('_DepositManagerMock');
+const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
 const {
   expectRevert,
@@ -12,11 +13,14 @@ const { createERC20Token, toFixedBN } = require('../../utils/index');
 contract('DepositManager', function([_, depositor]) {
   const depositTerm = 30;
   let token, depositManager, datetime;
+  let interestModel;
 
   beforeEach(async () => {
     depositManager = await DepositManager.new();
+    interestModel = await InterestModel.new();
     datetime = await DateTime.new();
     token = await createERC20Token(depositor);
+    await depositManager.setInterestModelAddress(interestModel.address);
   });
 
   describe('#enableDepositTerm', () => {
@@ -320,7 +324,9 @@ contract('DepositManager', function([_, depositor]) {
 
       context('when deposit is not matured', () => {
         it('succeeds', async () => {
-          await depositManager.earlyWithdraw(depositId, { from: depositor });
+          await depositManager.earlyWithdraw(depositId, {
+            from: depositor,
+          });
         });
       });
     });

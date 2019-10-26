@@ -386,6 +386,10 @@ contract IProtocol {
     /// @param priceOracleAddress Price oracle address
     function setPriceOracleAddress(address priceOracleAddress) external;
 
+    /// @notice Set interest model address
+    /// @param interestModelAddress Deposit weight model address
+    function setInterestModelAddress(address interestModelAddress) external;
+
     /// @notice Set protocol address, which receives protocol reserve.
     /// @param protocolAddress Protocol address
     function setProtocolAddress(address protocolAddress) external;

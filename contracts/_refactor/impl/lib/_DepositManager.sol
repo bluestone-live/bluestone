@@ -9,6 +9,7 @@ import './_LoanManager.sol';
 import './_AccountManager.sol';
 import '../../lib/DateTime.sol';
 import '../../lib/FixedMath.sol';
+import '../InterestModel.sol';
 
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _DepositManager {
@@ -62,6 +63,7 @@ library _DepositManager {
         uint256 createdAt;
         uint256 maturedAt;
         uint256 withdrewAt;
+        uint256 weight;
     }
 
     // Record interest index on a daily basis
@@ -254,6 +256,7 @@ library _DepositManager {
         State storage self,
         _LiquidityPools.State storage liquidityPools,
         _AccountManager.State storage accountManager,
+        _Configuration.State storage configuration,
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm
@@ -270,9 +273,19 @@ library _DepositManager {
 
         address accountAddress = msg.sender;
 
+        InterestModel interestModel = InterestModel(
+            configuration.interestModelAddress
+        );
+
+        uint256 depositWeight = interestModel.getDepositWeight(
+            depositAmount,
+            depositTerm
+        );
+
         uint256 poolId = liquidityPools.addDepositToPool(
             tokenAddress,
-            depositAmount
+            depositAmount,
+            depositWeight
         );
 
         self.numDeposits++;
@@ -297,7 +310,8 @@ library _DepositManager {
             poolId: poolId,
             createdAt: createdAt,
             maturedAt: maturedAt,
-            withdrewAt: 0
+            withdrewAt: 0,
+            weight: depositWeight
         });
 
         // Transfer token from user to protocol (`this` refers to Protocol contract)
@@ -424,6 +438,7 @@ library _DepositManager {
         liquidityPools.subtractDepositFromPool(
             depositRecord.tokenAddress,
             depositRecord.depositAmount,
+            depositRecord.weight,
             depositRecord.poolId
         );
 

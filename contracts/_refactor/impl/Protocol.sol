@@ -93,6 +93,7 @@ contract Protocol is Ownable, Pausable {
             _depositManager.deposit(
                 _liquidityPools,
                 _accountManager,
+                _configuration,
                 tokenAddress,
                 depositAmount,
                 depositTerm
@@ -474,6 +475,14 @@ contract Protocol is Ownable, Pausable {
         onlyOwner
     {
         _configuration.setPriceOracleAddress(priceOracleAddress);
+    }
+
+    function setInterestModelAddress(address interestModelAddress)
+        external
+        whenNotPaused
+        onlyOwner
+    {
+        _configuration.setInterestModelAddress(interestModelAddress);
     }
 
     function setProtocolAddress(address protocolAddress)

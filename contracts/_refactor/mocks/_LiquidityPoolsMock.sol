@@ -14,22 +14,30 @@ contract _LiquidityPoolsMock {
         _liquidityPools.initPoolGroupIfNeeded(tokenAddress, numPools);
     }
 
-    function addDepositToPool(address tokenAddress, uint256 depositAmount)
-        external
-        returns (uint256 poolId)
-    {
-        return _liquidityPools.addDepositToPool(tokenAddress, depositAmount);
+    function addDepositToPool(
+        address tokenAddress,
+        uint256 depositAmount,
+        uint256 depositWeight
+    ) external returns (uint256 poolId) {
+        return
+            _liquidityPools.addDepositToPool(
+                tokenAddress,
+                depositAmount,
+                depositWeight
+            );
     }
 
     function subtractDepositFromPool(
         address tokenAddress,
         uint256 depositAmount,
-        uint256 poolId
+        uint256 poolId,
+        uint256 depositWeight
     ) external {
         _liquidityPools.subtractDepositFromPool(
             tokenAddress,
             depositAmount,
-            poolId
+            poolId,
+            depositWeight
         );
     }
 

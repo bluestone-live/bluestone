@@ -9,6 +9,7 @@ library _Configuration {
         bool isUserActionsLocked;
         address protocolAddress;
         address priceOracleAddress;
+        address interestModelAddress;
     }
 
     event LockUserActions();
@@ -35,6 +36,18 @@ library _Configuration {
         );
 
         self.protocolAddress = protocolAddress;
+    }
+
+    function setInterestModelAddress(
+        State storage self,
+        address interestModelAddress
+    ) external {
+        require(
+            interestModelAddress != address(0),
+            'Configuration: invalid interest model address'
+        );
+
+        self.interestModelAddress = interestModelAddress;
     }
 
     function setProtocolReserveRatio(

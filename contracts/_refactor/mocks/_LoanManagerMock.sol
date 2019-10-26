@@ -242,6 +242,7 @@ contract _LoanManagerMock {
             _depositManager.deposit(
                 _liquidityPools,
                 _accountManager,
+                _configuration,
                 tokenAddress,
                 depositAmount,
                 depositTerm
@@ -257,4 +258,9 @@ contract _LoanManagerMock {
     {
         _liquidityPools.initPoolGroupIfNeeded(tokenAddress, numPools);
     }
+
+    function setInterestModelAddress(address interestModelAddress) external {
+        _configuration.setInterestModelAddress(interestModelAddress);
+    }
+
 }
