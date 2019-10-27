@@ -133,7 +133,7 @@ library _LoanManager {
     );
 
     function setMaxLoanTerm(
-        State storage self,
+        State storage,
         _LiquidityPools.State storage liquidityPools,
         address tokenAddress,
         uint256 maxLoanTerm
@@ -142,7 +142,7 @@ library _LoanManager {
     }
 
     function getMaxLoanTerm(
-        State storage self,
+        State storage,
         _LiquidityPools.State storage liquidityPools,
         address tokenAddress
     ) public view returns (uint256 maxLoanTerm) {
@@ -567,7 +567,7 @@ library _LoanManager {
             isClosed: false
         });
 
-        liquidityPools.loanFromPools(self, localVars.loanId);
+        liquidityPools.loanFromPools(self.loanRecordById[localVars.loanId]);
 
         // Transfer collateral tokens from loaner to protocol
         ERC20(collateralTokenAddress).safeTransferFrom(
@@ -732,7 +732,7 @@ library _LoanManager {
             }
         }
 
-        liquidityPools.repayLoanToPools(self, loanId, repayAmount);
+        liquidityPools.repayLoanToPools(loanRecord, repayAmount);
 
         // Transfer loan tokens from user to protocol
         ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
@@ -840,11 +840,7 @@ library _LoanManager {
             }
         }
 
-        liquidityPools.repayLoanToPools(
-            self,
-            loanId,
-            localVars.liquidatedAmount
-        );
+        liquidityPools.repayLoanToPools(loanRecord, localVars.liquidatedAmount);
 
         // TODO(desmond): increment stat if loan is overdue
 

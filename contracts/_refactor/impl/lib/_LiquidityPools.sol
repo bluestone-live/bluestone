@@ -131,14 +131,64 @@ library _LiquidityPools {
         pool.totalDepositWeight = pool.totalDepositWeight.sub(depositWeight);
     }
 
+    function loanFromPools(
+        State storage self,
+        _LoanManager.LoanRecord storage loanRecord
+    ) external {
+        PoolGroup storage poolGroup = self.poolGroups[loanRecord
+            .loanTokenAddress];
+        uint256 remainingLoanAmount = loanRecord.loanAmount;
+        uint256 availableAmount = getAvailableAmountByLoanTerm(
+            self,
+            loanRecord.loanTokenAddress,
+            loanRecord.loanTerm
+        );
+
+        require(
+            availableAmount >= remainingLoanAmount,
+            'LiquidityPools: invalid loan amount'
+        );
+
+        for (
+            uint256 poolId = poolGroup.firstPoolId + loanRecord.loanTerm;
+            poolId <= poolGroup.firstPoolId + poolGroup.numPools;
+            poolId++
+        ) {
+            if (remainingLoanAmount == 0) {
+                break;
+            }
+
+            Pool storage pool = poolGroup.poolsById[poolId];
+
+            if (pool.availableAmount == 0) {
+                continue;
+            }
+
+            uint256 loanAmountFromPool = Math.min(
+                remainingLoanAmount,
+                pool.availableAmount
+            );
+            uint256 loanInterestToPool = loanRecord
+                .interest
+                .mulFixed(loanAmountFromPool)
+                .divFixed(loanRecord.loanAmount);
+
+            pool.borrowedAmount = pool.borrowedAmount.add(loanAmountFromPool);
+            pool.availableAmount = pool.availableAmount.sub(loanAmountFromPool);
+            pool.loanInterest = pool.loanInterest.add(loanInterestToPool);
+
+            // Record the actual pool we loan from, so we know which pool to repay back later
+            loanRecord.loanAmountByPool[poolId] = loanAmountFromPool;
+
+            remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
+        }
+    }
+
     function repayLoanToPools(
         State storage self,
-        _LoanManager.State storage loanManager,
-        bytes32 loanId,
+        _LoanManager.LoanRecord storage loanRecord,
         uint256 repayAmount
     ) external {
-        _LoanManager.LoanRecord storage loanRecord = loanManager
-            .loanRecordById[loanId];
         PoolGroup storage poolGroup = self.poolGroups[loanRecord
             .loanTokenAddress];
 
@@ -233,9 +283,9 @@ library _LiquidityPools {
     function getAvailableAmountOfAllPools(
         State storage self,
         address tokenAddress
-    ) external view returns (uint256[] memory availableAmount) {
+    ) external view returns (uint256[] memory availableAmountList) {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
-        availableAmount = new uint256[](poolGroup.numPools + 1);
+        availableAmountList = new uint256[](poolGroup.numPools + 1);
 
         for (
             uint256 poolIndex = 0;
@@ -243,58 +293,32 @@ library _LiquidityPools {
             poolIndex++
         ) {
             uint256 poolId = poolGroup.firstPoolId + poolIndex;
-            availableAmount[poolIndex] = poolGroup.poolsById[poolId]
+            availableAmountList[poolIndex] = poolGroup.poolsById[poolId]
                 .availableAmount;
         }
 
-        return availableAmount;
+        return availableAmountList;
     }
 
-    function loanFromPools(
+    function getAvailableAmountByLoanTerm(
         State storage self,
-        _LoanManager.State storage loanManager,
-        bytes32 loanId
-    ) external {
-        _LoanManager.LoanRecord storage loanRecord = loanManager
-            .loanRecordById[loanId];
-        PoolGroup storage poolGroup = self.poolGroups[loanRecord
-            .loanTokenAddress];
-        uint256 remainingLoanAmount = loanRecord.loanAmount;
-
-        // TODO: check availableAmount >= loanAmount
+        address tokenAddress,
+        uint256 loanTerm
+    ) public view returns (uint256 availableAmountByLoanTerm) {
+        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
+        uint256 availableAmount;
 
         for (
-            uint256 poolId = poolGroup.firstPoolId + loanRecord.loanTerm;
-            poolId <= poolGroup.firstPoolId + poolGroup.numPools;
-            poolId++
+            uint256 poolIndex = loanTerm;
+            poolIndex <= poolGroup.numPools;
+            poolIndex++
         ) {
-            if (remainingLoanAmount == 0) {
-                break;
-            }
-
-            Pool storage pool = poolGroup.poolsById[poolId];
-
-            if (pool.availableAmount == 0) {
-                continue;
-            }
-
-            uint256 loanAmountFromPool = Math.min(
-                remainingLoanAmount,
-                pool.availableAmount
+            uint256 poolId = poolGroup.firstPoolId + poolIndex;
+            availableAmount = availableAmount.add(
+                poolGroup.poolsById[poolId].availableAmount
             );
-            uint256 loanInterestToPool = loanRecord
-                .interest
-                .mulFixed(loanAmountFromPool)
-                .divFixed(loanRecord.loanAmount);
-
-            pool.borrowedAmount = pool.borrowedAmount.add(loanAmountFromPool);
-            pool.availableAmount = pool.availableAmount.sub(loanAmountFromPool);
-            pool.loanInterest = pool.loanInterest.add(loanInterestToPool);
-
-            // Record the actual pool we loan from, so we know which pool to repay back later
-            loanRecord.loanAmountByPool[poolId] = loanAmountFromPool;
-
-            remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
         }
+
+        return availableAmount;
     }
 }
