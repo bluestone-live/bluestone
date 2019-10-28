@@ -2,7 +2,8 @@
   "license": "UNLICENSED",
   "private": "true",
   "scripts": {
-    "start": "DEBUG=* nodemon server/index.js",
+    "start:ganache": "npx ganache-cli -p 7545 -i 5777 -e 1000",
+    "start:server": "DEBUG=* nodemon server/index.js",
     "test:contract": "npx truffle test",
     "test:client": "jest client/"
   },
