@@ -39,14 +39,14 @@ contract _LiquidityPoolsMock {
     function subtractDepositFromPool(
         address tokenAddress,
         uint256 depositAmount,
-        uint256 poolId,
-        uint256 depositWeight
+        uint256 depositWeight,
+        uint256 poolId
     ) external {
         _liquidityPools.subtractDepositFromPool(
             tokenAddress,
             depositAmount,
-            poolId,
-            depositWeight
+            depositWeight,
+            poolId
         );
     }
 

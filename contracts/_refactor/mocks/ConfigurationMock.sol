@@ -1,11 +1,25 @@
 pragma solidity ^0.5.0;
 
 import '../impl/lib/_Configuration.sol';
+import '../impl/lib/_LiquidityPools.sol';
+import '../impl/lib/_DepositManager.sol';
+import '../impl/lib/_LoanManager.sol';
+import '../impl/lib/_AccountManager.sol';
 
 contract ConfigurationMock {
     using _Configuration for _Configuration.State;
+    using _LiquidityPools for _LiquidityPools.State;
+    using _DepositManager for _DepositManager.State;
+    using _LoanManager for _LoanManager.State;
+    using _AccountManager for _AccountManager.State;
 
     _Configuration.State _configuration;
+    _LiquidityPools.State _liquidityPools;
+    _DepositManager.State _depositManager;
+    _LoanManager.State _loanManager;
+    _AccountManager.State _accountManager;
+    _LoanManager.LoanParameters _loanParameters;
+    _DepositManager.DepositParameters _depositParameters;
 
     function setPriceOracleAddress(address priceOracleAddress) external {
         _configuration.setPriceOracleAddress(priceOracleAddress);
@@ -80,4 +94,23 @@ contract ConfigurationMock {
         );
     }
 
+    // -- Helpers --
+
+    function enableDepositToken(address tokenAddress) external {
+        _depositManager.enableDepositToken(_liquidityPools, tokenAddress);
+    }
+
+    function enableLoanAndCollateralTokenPair(
+        address loanTokenAddress,
+        address collateralTokenAddress
+    ) external {
+        _loanManager.enableLoanAndCollateralTokenPair(
+            loanTokenAddress,
+            collateralTokenAddress
+        );
+    }
+
+    function enableDepositTerm(uint256 term) external {
+        _depositManager.enableDepositTerm(_liquidityPools, term);
+    }
 }

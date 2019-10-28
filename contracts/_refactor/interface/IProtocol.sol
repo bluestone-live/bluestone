@@ -38,6 +38,21 @@ contract IProtocol {
         uint256 depositTerm
     ) external returns (bytes32 depositId);
 
+    /// @notice Deposit token with specific term and amount
+    /// @param tokenAddress Token address
+    /// @param depositAmount Deposit amount
+    /// @param depositTerm Deposit term
+    /// @param distributorAddress distributor account address
+    /// @param depositDistributorFeeRatio the ratio of interest that distributor will get
+    /// @return depositId ID that identifies the deposit
+    function deposit(
+        address tokenAddress,
+        uint256 depositAmount,
+        uint256 depositTerm,
+        address distributorAddress,
+        uint256 depositDistributorFeeRatio
+    ) external returns (bytes32 depositId);
+
     /// @notice Withdraw a deposit
     /// @param depositId Id that identifies the deposit
     /// @return withdrewAmount Total amount withdrew, including interest
@@ -139,14 +154,6 @@ contract IProtocol {
 
     /// --- Loan ---
 
-    /// @notice Add a loan term
-    /// @param loanTerm Loan term
-    function addLoanTerm(uint256 loanTerm) external;
-
-    /// @notice Remove a loan term
-    /// @param loanTerm Loan term
-    function removeLoanTerm(uint256 loanTerm) external;
-
     /// @notice Enable a loan and collateral token pair, e.g., ETH_DAI.
     /// @param loanTokenAddress Loan token address
     /// @param collateralTokenAddress Collateral token address
@@ -190,6 +197,7 @@ contract IProtocol {
     /// @param collateralAmount Amount to collateralize
     /// @param loanTerm Loan term
     /// @param useFreedCollateral Whether to use freed collateral in user's account
+    /// @param distributorAddress Distributor account address
     /// @return loanId ID that identifies the loan
     function loan(
         address loanTokenAddress,
@@ -197,7 +205,8 @@ contract IProtocol {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        bool useFreedCollateral
+        bool useFreedCollateral,
+        address distributorAddress
     ) external returns (bytes32 loanId);
 
     /// @notice Pay back a specific amount of loan

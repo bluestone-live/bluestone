@@ -87,6 +87,8 @@ library _LoanManager {
         // pool id -> loan amount
         /// How much have one borrowed from a pool
         mapping(uint256 => uint256) loanAmountByPool;
+        address distributorAddress;
+        uint256 loanDistributorFeeRatio;
     }
 
     struct LoanRecordListView {
@@ -117,6 +119,17 @@ library _LoanManager {
         uint256 maxLoanTerm;
         bool isUnderCollateralCoverageRatio;
         bool isOverDue;
+    }
+
+    struct LoanParameters {
+        address loanTokenAddress;
+        address collateralTokenAddress;
+        uint256 loanAmount;
+        uint256 collateralAmount;
+        uint256 loanTerm;
+        bool useFreedCollateral;
+        address distributorAddress;
+        uint256 loanDistributorFeeRatio;
     }
 
     event LoanSucceed(address indexed accountAddress, bytes32 loanId);
@@ -462,42 +475,52 @@ library _LoanManager {
         State storage self,
         _Configuration.State storage configuration,
         _LiquidityPools.State storage liquidityPools,
-        address loanTokenAddress,
-        address collateralTokenAddress,
-        uint256 loanAmount,
-        uint256 collateralAmount,
-        uint256 loanTerm,
-        bool useFreedCollateral
+        LoanParameters storage loanParameters
     ) external returns (bytes32 loanId) {
         require(
-            self
-                .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress],
+            self.isLoanTokenPairEnabled[loanParameters
+                .loanTokenAddress][loanParameters.collateralTokenAddress],
             'LoanManager: invalid loan and collateral token pair'
         );
 
-        require(loanAmount > 0, 'LoanManager: invalid loan amount');
-        require(collateralAmount > 0, 'LoanManager: invalid collateral amount');
+        require(
+            loanParameters.loanAmount > 0,
+            'LoanManager: invalid loan amount'
+        );
+        require(
+            loanParameters.collateralAmount > 0,
+            'LoanManager: invalid collateral amount'
+        );
 
         LocalVars memory localVars;
         localVars.maxLoanTerm = getMaxLoanTerm(
             self,
             liquidityPools,
-            loanTokenAddress
+            loanParameters.loanTokenAddress
         );
 
         require(
-            loanTerm <= localVars.maxLoanTerm,
+            loanParameters.loanTerm <= localVars.maxLoanTerm,
             'LoanManager: invalid loan term'
         );
+        require(
+            loanParameters.distributorAddress != address(0),
+            'LoanManager: invalid distributor address'
+        );
+        require(
+            loanParameters.loanDistributorFeeRatio <=
+                configuration.maxLoanDistributorFeeRatio,
+            'LoanManager: invalid loan distributor fee ratio'
+        );
 
-        localVars.remainingCollateralAmount = collateralAmount;
+        localVars.remainingCollateralAmount = loanParameters.collateralAmount;
 
-        if (useFreedCollateral) {
+        if (loanParameters.useFreedCollateral) {
             localVars.availableFreedCollateral = subtractFreedCollateral(
                 self,
                 msg.sender,
-                collateralTokenAddress,
-                collateralAmount
+                loanParameters.collateralTokenAddress,
+                loanParameters.collateralAmount
             );
 
             localVars.remainingCollateralAmount = localVars
@@ -508,30 +531,35 @@ library _LoanManager {
         localVars.loanInterestRate = configuration
             .interestModel
             .getLoanInterestRate(
-            loanTokenAddress,
-            loanTerm,
+            loanParameters.loanTokenAddress,
+            loanParameters.loanTerm,
             localVars.maxLoanTerm
         );
-        localVars.liquidationDiscount = self
-            .liquidationDiscounts[loanTokenAddress][collateralTokenAddress];
+        localVars.liquidationDiscount = self.liquidationDiscounts[loanParameters
+            .loanTokenAddress][loanParameters.collateralTokenAddress];
         localVars.minCollateralCoverageRatio = self
-            .minCollateralCoverageRatios[loanTokenAddress][collateralTokenAddress];
-        localVars.loanInterest = loanAmount
+            .minCollateralCoverageRatios[loanParameters
+            .loanTokenAddress][loanParameters.collateralTokenAddress];
+        localVars.loanInterest = loanParameters
+            .loanAmount
             .mulFixed(localVars.loanInterestRate)
-            .mul(loanTerm)
+            .mul(loanParameters.loanTerm)
             .div(365);
 
         _PriceOracle priceOracle = _PriceOracle(
             configuration.priceOracleAddress
         );
-        localVars.loanTokenPrice = priceOracle.getPrice(loanTokenAddress);
+        localVars.loanTokenPrice = priceOracle.getPrice(
+            loanParameters.loanTokenAddress
+        );
         localVars.collateralTokenPrice = priceOracle.getPrice(
-            collateralTokenAddress
+            loanParameters.collateralTokenAddress
         );
 
-        localVars.currCollateralCoverageRatio = collateralAmount
+        localVars.currCollateralCoverageRatio = loanParameters
+            .collateralAmount
             .mulFixed(localVars.collateralTokenPrice)
-            .divFixed(loanAmount.add(localVars.loanInterest))
+            .divFixed(loanParameters.loanAmount.add(localVars.loanInterest))
             .divFixed(localVars.loanTokenPrice);
 
         require(
@@ -548,11 +576,11 @@ library _LoanManager {
             isValid: true,
             loanId: localVars.loanId,
             ownerAddress: msg.sender,
-            loanTokenAddress: loanTokenAddress,
-            collateralTokenAddress: collateralTokenAddress,
-            loanAmount: loanAmount,
-            collateralAmount: collateralAmount,
-            loanTerm: loanTerm,
+            loanTokenAddress: loanParameters.loanTokenAddress,
+            collateralTokenAddress: loanParameters.collateralTokenAddress,
+            loanAmount: loanParameters.loanAmount,
+            collateralAmount: loanParameters.collateralAmount,
+            loanTerm: loanParameters.loanTerm,
             annualInterestRate: localVars.loanInterestRate,
             interest: localVars.loanInterest,
             minCollateralCoverageRatio: localVars.minCollateralCoverageRatio,
@@ -564,20 +592,25 @@ library _LoanManager {
             lastInterestUpdatedAt: now,
             lastRepaidAt: 0,
             lastLiquidatedAt: 0,
-            isClosed: false
+            isClosed: false,
+            distributorAddress: loanParameters.distributorAddress,
+            loanDistributorFeeRatio: loanParameters.loanDistributorFeeRatio
         });
 
         liquidityPools.loanFromPools(self.loanRecordById[localVars.loanId]);
 
         // Transfer collateral tokens from loaner to protocol
-        ERC20(collateralTokenAddress).safeTransferFrom(
+        ERC20(loanParameters.collateralTokenAddress).safeTransferFrom(
             msg.sender,
             address(this),
             localVars.remainingCollateralAmount
         );
 
         // Transfer loan tokens from protocol to loaner
-        ERC20(loanTokenAddress).safeTransfer(msg.sender, loanAmount);
+        ERC20(loanParameters.loanTokenAddress).safeTransfer(
+            msg.sender,
+            loanParameters.loanAmount
+        );
 
         emit LoanSucceed(msg.sender, localVars.loanId);
 
@@ -730,6 +763,18 @@ library _LoanManager {
                     freedCollateralAmount
                 );
             }
+
+            // Transfer loan distributor fee to distributor if distributor set
+            if (loanRecord.distributorAddress != address(this)) {
+                uint256 loanDistributorFee = loanRecord.interest.mulFixed(
+                    loanRecord.loanDistributorFeeRatio
+                );
+
+                ERC20(loanRecord.loanTokenAddress).safeTransfer(
+                    loanRecord.distributorAddress,
+                    loanDistributorFee
+                );
+            }
         }
 
         liquidityPools.repayLoanToPools(loanRecord, repayAmount);
@@ -836,6 +881,18 @@ library _LoanManager {
                     loanRecord.ownerAddress,
                     loanRecord.collateralTokenAddress,
                     freedCollateralAmount
+                );
+            }
+
+            // Transfer loan distributor fee to distributor
+            if (loanRecord.distributorAddress != address(this)) {
+                uint256 loanDistributorFee = loanRecord.interest.mulFixed(
+                    loanRecord.loanDistributorFeeRatio
+                );
+
+                ERC20(loanRecord.loanTokenAddress).safeTransfer(
+                    loanRecord.distributorAddress,
+                    loanDistributorFee
                 );
             }
         }

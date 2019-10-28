@@ -25,6 +25,8 @@ contract Protocol is Ownable, Pausable {
     _DepositManager.State _depositManager;
     _LoanManager.State _loanManager;
     _AccountManager.State _accountManager;
+    _LoanManager.LoanParameters _loanParameters;
+    _DepositManager.DepositParameters _depositParameters;
 
     event LockUserActions();
     event UnlockUserActions();
@@ -83,21 +85,28 @@ contract Protocol is Ownable, Pausable {
     function deposit(
         address tokenAddress,
         uint256 depositAmount,
-        uint256 depositTerm
+        uint256 depositTerm,
+        address distributorAddress,
+        uint256 depositDistributorFeeRatio
     )
         external
         whenNotPaused
         whenUserActionsUnlocked
         returns (bytes32 depositId)
     {
+        _depositParameters.tokenAddress = tokenAddress;
+        _depositParameters.depositAmount = depositAmount;
+        _depositParameters.depositTerm = depositTerm;
+        _depositParameters.distributorAddress = distributorAddress;
+        _depositParameters
+            .depositDistributorFeeRatio = depositDistributorFeeRatio;
+
         return
             _depositManager.deposit(
                 _liquidityPools,
                 _accountManager,
                 _configuration,
-                tokenAddress,
-                depositAmount,
-                depositTerm
+                _depositParameters
             );
     }
 
@@ -229,17 +238,24 @@ contract Protocol is Ownable, Pausable {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        bool useFreedCollateral
+        bool useFreedCollateral,
+        address distributorAddress
     ) external whenNotPaused whenUserActionsUnlocked returns (bytes32 loanId) {
+        _loanParameters.loanTokenAddress = loanTokenAddress;
+        _loanParameters.collateralTokenAddress = collateralTokenAddress;
+        _loanParameters.loanAmount = loanAmount;
+        _loanParameters.collateralAmount = collateralAmount;
+        _loanParameters.loanTerm = loanTerm;
+        _loanParameters.useFreedCollateral = useFreedCollateral;
+
+        _loanParameters.distributorAddress = distributorAddress;
+        _loanParameters.loanDistributorFeeRatio = _configuration
+            .maxLoanDistributorFeeRatio;
+
         loanId = _loanManager.loan(
             _configuration,
             _liquidityPools,
-            loanTokenAddress,
-            collateralTokenAddress,
-            loanAmount,
-            collateralAmount,
-            loanTerm,
-            useFreedCollateral
+            _loanParameters
         );
         _loanManager.addToLoanStat(
             _accountManager,

@@ -10,8 +10,10 @@ const {
 const { expect } = require('chai');
 const { createERC20Token, toFixedBN } = require('../../utils/index');
 
-contract('DepositManager', function([_, depositor]) {
+contract('DepositManager', function([_, depositor, distributorAddress]) {
   const depositTerm = 30;
+  const depositDistributorFeeRatio = toFixedBN(0.01);
+  const loanDistributorFeeRatio = toFixedBN(0.02);
   let token, depositManager, datetime;
   let interestModel;
 
@@ -21,6 +23,10 @@ contract('DepositManager', function([_, depositor]) {
     datetime = await DateTime.new();
     token = await createERC20Token(depositor);
     await depositManager.setInterestModel(interestModel.address);
+    await depositManager.setMaxDistributorFeeRatios(
+      depositDistributorFeeRatio,
+      loanDistributorFeeRatio,
+    );
   });
 
   describe('#enableDepositTerm', () => {
@@ -201,9 +207,16 @@ contract('DepositManager', function([_, depositor]) {
     context('when token is not enabled', () => {
       it('reverts', async () => {
         await expectRevert(
-          depositManager.deposit(token.address, depositAmount, depositTerm, {
-            from: depositor,
-          }),
+          depositManager.deposit(
+            token.address,
+            depositAmount,
+            depositTerm,
+            distributorAddress,
+            depositDistributorFeeRatio,
+            {
+              from: depositor,
+            },
+          ),
           'DepositManager: invalid deposit token',
         );
       });
@@ -217,9 +230,16 @@ contract('DepositManager', function([_, depositor]) {
       context('when term is not enabled', () => {
         it('reverts', async () => {
           await expectRevert(
-            depositManager.deposit(token.address, depositAmount, depositTerm, {
-              from: depositor,
-            }),
+            depositManager.deposit(
+              token.address,
+              depositAmount,
+              depositTerm,
+              distributorAddress,
+              depositDistributorFeeRatio,
+              {
+                from: depositor,
+              },
+            ),
             'DepositManager: invalid deposit term',
           );
         });
@@ -239,6 +259,8 @@ contract('DepositManager', function([_, depositor]) {
             token.address,
             depositAmount,
             depositTerm,
+            distributorAddress,
+            depositDistributorFeeRatio,
             {
               from: depositor,
             },
@@ -246,6 +268,24 @@ contract('DepositManager', function([_, depositor]) {
 
           expectEvent.inLogs(logs, 'DepositSucceed', {
             accountAddress: depositor,
+          });
+        });
+
+        context('when the fee ratio is greater than limit', () => {
+          it('reverts', async () => {
+            await expectRevert(
+              depositManager.deposit(
+                token.address,
+                depositAmount,
+                depositTerm,
+                distributorAddress,
+                depositDistributorFeeRatio.add(toFixedBN(0.5)),
+                {
+                  from: depositor,
+                },
+              ),
+              'DepositManager: invalid deposit distributor fee ratio',
+            );
           });
         });
       });
@@ -272,6 +312,8 @@ contract('DepositManager', function([_, depositor]) {
           token.address,
           depositAmount,
           depositTerm,
+          distributorAddress,
+          depositDistributorFeeRatio,
           {
             from: depositor,
           },
@@ -282,14 +324,32 @@ contract('DepositManager', function([_, depositor]) {
       });
 
       context('when deposit is matured', () => {
+        let originalBalanceInDistributorAccount;
+        let interestEarned;
+
         beforeEach(async () => {
           await time.increase(time.duration.days(depositTerm + 1));
+          originalBalanceInDistributorAccount = await token.balanceOf(
+            distributorAddress,
+          );
+          interestEarned = await depositManager.getDepositInterestById(
+            depositId,
+          );
         });
 
         it('succeeds', async () => {
           await depositManager.withdraw(depositId, {
             from: depositor,
           });
+        });
+
+        it('sent deposit distributor fee to distributor account', async () => {
+          const estimateDistributorBalance = originalBalanceInDistributorAccount.add(
+            interestEarned.mul(toFixedBN(0.01)),
+          );
+          expect(await token.balanceOf(distributorAddress)).to.bignumber.equal(
+            estimateDistributorBalance,
+          );
         });
       });
     });
@@ -315,6 +375,8 @@ contract('DepositManager', function([_, depositor]) {
           token.address,
           depositAmount,
           depositTerm,
+          distributorAddress,
+          depositDistributorFeeRatio,
           {
             from: depositor,
           },
@@ -354,6 +416,8 @@ contract('DepositManager', function([_, depositor]) {
         token.address,
         depositAmount,
         depositTerm,
+        distributorAddress,
+        depositDistributorFeeRatio,
         {
           from: depositor,
         },
@@ -401,6 +465,8 @@ contract('DepositManager', function([_, depositor]) {
         token.address,
         depositAmount,
         depositTerm,
+        distributorAddress,
+        depositDistributorFeeRatio,
         {
           from: depositor,
         },

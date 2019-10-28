@@ -19,6 +19,18 @@ contract _LoanManagerMock {
     _DepositManager.State _depositManager;
     _LoanManager.State _loanManager;
     _AccountManager.State _accountManager;
+    _LoanManager.LoanParameters _loanParameters;
+    _DepositManager.DepositParameters _depositParameters;
+
+    function setMaxDistributorFeeRatios(
+        uint256 maxDepositDistributorFeeRatio,
+        uint256 maxLoanDistributorFeeRatio
+    ) external {
+        _configuration.setMaxDistributorFeeRatios(
+            maxDepositDistributorFeeRatio,
+            maxLoanDistributorFeeRatio
+        );
+    }
 
     function loan(
         address loanTokenAddress,
@@ -26,19 +38,21 @@ contract _LoanManagerMock {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        bool useFreedCollateral
+        bool useFreedCollateral,
+        address distributorAddress
     ) external returns (bytes32 loanId) {
+        _loanParameters.loanTokenAddress = loanTokenAddress;
+        _loanParameters.collateralTokenAddress = collateralTokenAddress;
+        _loanParameters.loanAmount = loanAmount;
+        _loanParameters.collateralAmount = collateralAmount;
+        _loanParameters.loanTerm = loanTerm;
+        _loanParameters.useFreedCollateral = useFreedCollateral;
+        _loanParameters.distributorAddress = distributorAddress;
+        _loanParameters.loanDistributorFeeRatio = _configuration
+            .maxLoanDistributorFeeRatio;
+
         return
-            _loanManager.loan(
-                _configuration,
-                _liquidityPools,
-                loanTokenAddress,
-                collateralTokenAddress,
-                loanAmount,
-                collateralAmount,
-                loanTerm,
-                useFreedCollateral
-            );
+            _loanManager.loan(_configuration, _liquidityPools, _loanParameters);
     }
 
     function repayLoan(bytes32 loanId, uint256 repayAmount)
@@ -225,16 +239,22 @@ contract _LoanManagerMock {
     function deposit(
         address tokenAddress,
         uint256 depositAmount,
-        uint256 depositTerm
+        uint256 depositTerm,
+        address distributorAddress,
+        uint256 depositDistributorFeeRatio
     ) external returns (bytes32 depositId) {
+        _depositParameters.tokenAddress = tokenAddress;
+        _depositParameters.depositAmount = depositAmount;
+        _depositParameters.depositTerm = depositTerm;
+        _depositParameters.distributorAddress = distributorAddress;
+        _depositParameters
+            .depositDistributorFeeRatio = depositDistributorFeeRatio;
         return
             _depositManager.deposit(
                 _liquidityPools,
                 _accountManager,
                 _configuration,
-                tokenAddress,
-                depositAmount,
-                depositTerm
+                _depositParameters
             );
     }
 

@@ -63,6 +63,8 @@ library _DepositManager {
         uint256 maturedAt;
         uint256 withdrewAt;
         uint256 weight;
+        address distributorAddress;
+        uint256 depositDistributorFeeRatio;
     }
 
     // Record interest index on a daily basis
@@ -91,6 +93,14 @@ library _DepositManager {
         uint256[] createdAtList;
         uint256[] maturedAtList;
         uint256[] withdrewAtList;
+    }
+
+    struct DepositParameters {
+        address tokenAddress;
+        uint256 depositAmount;
+        uint256 depositTerm;
+        address distributorAddress;
+        uint256 depositDistributorFeeRatio;
     }
 
     function enableDepositTerm(
@@ -252,30 +262,40 @@ library _DepositManager {
         _LiquidityPools.State storage liquidityPools,
         _AccountManager.State storage accountManager,
         _Configuration.State storage configuration,
-        address tokenAddress,
-        uint256 depositAmount,
-        uint256 depositTerm
+        DepositParameters storage depositParameters
     ) external returns (bytes32 depositId) {
         require(
-            self.depositTokenByAddress[tokenAddress].isEnabled,
+            self.depositTokenByAddress[depositParameters.tokenAddress]
+                .isEnabled,
             'DepositManager: invalid deposit token'
         );
 
         require(
-            self.isDepositTermEnabled[depositTerm],
+            self.isDepositTermEnabled[depositParameters.depositTerm],
             'DepositManager: invalid deposit term'
+        );
+
+        require(
+            depositParameters.distributorAddress != address(0),
+            'DepositManager: invalid distributor address'
+        );
+
+        require(
+            depositParameters.depositDistributorFeeRatio <=
+                configuration.maxDepositDistributorFeeRatio,
+            'DepositManager: invalid deposit distributor fee ratio'
         );
 
         address accountAddress = msg.sender;
 
         uint256 depositWeight = configuration.interestModel.getDepositWeight(
-            depositAmount,
-            depositTerm
+            depositParameters.depositAmount,
+            depositParameters.depositTerm
         );
 
         uint256 poolId = liquidityPools.addDepositToPool(
-            tokenAddress,
-            depositAmount,
+            depositParameters.tokenAddress,
+            depositParameters.depositAmount,
             depositWeight
         );
 
@@ -289,27 +309,30 @@ library _DepositManager {
         uint256 createdAt = now;
         uint256 maturedAt = createdAt +
             DateTime.secondsUntilMidnight(createdAt) +
-            depositTerm *
+            depositParameters.depositTerm *
             DateTime.dayInSeconds();
 
         self.depositRecordById[currDepositId] = DepositRecord({
             depositId: currDepositId,
             ownerAddress: accountAddress,
-            tokenAddress: tokenAddress,
-            depositTerm: depositTerm,
-            depositAmount: depositAmount,
+            tokenAddress: depositParameters.tokenAddress,
+            depositTerm: depositParameters.depositTerm,
+            depositAmount: depositParameters.depositAmount,
             poolId: poolId,
             createdAt: createdAt,
             maturedAt: maturedAt,
             withdrewAt: 0,
-            weight: depositWeight
+            weight: depositWeight,
+            distributorAddress: depositParameters.distributorAddress,
+            depositDistributorFeeRatio: depositParameters
+                .depositDistributorFeeRatio
         });
 
         // Transfer token from user to protocol (`this` refers to Protocol contract)
-        ERC20(tokenAddress).safeTransferFrom(
+        ERC20(depositParameters.tokenAddress).safeTransferFrom(
             accountAddress,
             address(this),
-            depositAmount
+            depositParameters.depositAmount
         );
 
         accountManager.addToAccountGeneralStat(
@@ -319,15 +342,15 @@ library _DepositManager {
         );
         accountManager.addToAccountTokenStat(
             accountAddress,
-            tokenAddress,
+            depositParameters.tokenAddress,
             'totalDeposits',
             1
         );
         accountManager.addToAccountTokenStat(
             accountAddress,
-            tokenAddress,
+            depositParameters.tokenAddress,
             'totalDepositAmount',
-            depositAmount
+            depositParameters.depositAmount
         );
 
         emit DepositSucceed(accountAddress, currDepositId);
@@ -369,7 +392,6 @@ library _DepositManager {
         );
 
         uint256 numDaysAgo = DateTime.toDays(now - depositRecord.maturedAt);
-
         uint256 totalInterest = _getInterestFromDaysAgo(
             self,
             tokenAddress,
@@ -377,15 +399,33 @@ library _DepositManager {
             numDaysAgo
         );
 
+        uint256 depositDistributorFee = totalInterest.mulFixed(
+            depositRecord.depositDistributorFeeRatio
+        );
+
+        /// totalInterest = interestForDepositor + interestForProtocol + depositDistributorFee + loanDistributorFee
+        /// The loanDistributorFee has already sent in repay or liquidate process
         uint256 interestForProtocol = totalInterest.mulFixed(
             configuration.protocolReserveRatio
         );
-        uint256 interestForDepositor = totalInterest.sub(interestForProtocol);
+
+        uint256 interestForDepositor = totalInterest
+            .sub(depositDistributorFee)
+            .sub(interestForProtocol);
+
         uint256 depositPlusInterestAmount = depositRecord.depositAmount.add(
             interestForDepositor
         );
 
         depositRecord.withdrewAt = now;
+
+        // Transfer deposit distributor fee to distributor if distributor set
+        if (depositRecord.distributorAddress != address(this)) {
+            ERC20(tokenAddress).safeTransfer(
+                depositRecord.distributorAddress,
+                depositDistributorFee
+            );
+        }
 
         // Transfer deposit plus interest to depositor
         ERC20(tokenAddress).safeTransfer(

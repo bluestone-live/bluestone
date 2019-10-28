@@ -1,18 +1,20 @@
 const Configuration = artifacts.require('ConfigurationMock');
+const PriceOracle = artifacts.require('_PriceOracle');
 const {
   expectRevert,
   expectEvent,
   constants,
   BN,
 } = require('openzeppelin-test-helpers');
-const { toFixedBN } = require('../../utils/index');
+const { createERC20Token, toFixedBN } = require('../../utils/index');
 const { expect } = require('chai');
 
-contract('Configuration', function([owner]) {
+contract('Configuration', function([owner, depositor, loaner, distributor]) {
   let configuration;
 
   beforeEach(async () => {
     configuration = await Configuration.new();
+    priceOracle = await PriceOracle.new();
   });
 
   describe('#setPriceOracleAddress', () => {

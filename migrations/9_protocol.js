@@ -51,12 +51,14 @@ module.exports = async function(deployer, network) {
     ProtocolMock,
     DepositManagerMock,
     LoanManagerMock,
+    ConfigurationMock,
   ]);
   await deployer.link(LoanManager, [
     Protocol,
     ProtocolMock,
     DepositManagerMock,
     LoanManagerMock,
+    ConfigurationMock,
   ]);
   await deployer.link(AccountManager, [
     Protocol,

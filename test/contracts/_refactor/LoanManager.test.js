@@ -10,8 +10,16 @@ const {
 } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
 
-contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
+contract('LoanManager', function([
+  owner,
+  depositor,
+  loaner,
+  liquidator,
+  distributorAddress,
+]) {
   let loanManager, priceOracle, interestModel;
+  const depositDistributorFeeRatio = toFixedBN(0.01);
+  const loanDistributorFeeRatio = toFixedBN(0.02);
 
   beforeEach(async () => {
     loanManager = await LoanManager.new();
@@ -19,6 +27,10 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
     interestModel = await InterestModel.new();
 
     await loanManager.setInterestModel(interestModel.address);
+    await loanManager.setMaxDistributorFeeRatios(
+      depositDistributorFeeRatio,
+      loanDistributorFeeRatio,
+    );
   });
 
   describe('#setMaxLoanTerm', () => {
@@ -266,9 +278,16 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
         from: loaner,
       });
 
-      await loanManager.deposit(loanToken.address, depositAmount, depositTerm, {
-        from: depositor,
-      });
+      await loanManager.deposit(
+        loanToken.address,
+        depositAmount,
+        depositTerm,
+        distributorAddress,
+        depositDistributorFeeRatio,
+        {
+          from: depositor,
+        },
+      );
     });
 
     context('when loan and collateral token pair is enabled', () => {
@@ -292,6 +311,7 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
           collateralAmount,
           loanTerm,
           useFreedCollateral,
+          distributorAddress,
           {
             from: loaner,
           },
@@ -336,9 +356,16 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
         from: loaner,
       });
 
-      await loanManager.deposit(loanToken.address, depositAmount, depositTerm, {
-        from: depositor,
-      });
+      await loanManager.deposit(
+        loanToken.address,
+        depositAmount,
+        depositTerm,
+        distributorAddress,
+        depositDistributorFeeRatio,
+        {
+          from: depositor,
+        },
+      );
 
       const useFreedCollateral = false;
 
@@ -349,6 +376,7 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
         collateralAmount,
         loanTerm,
         useFreedCollateral,
+        distributorAddress,
         {
           from: loaner,
         },
@@ -357,9 +385,13 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
       loanId = logs.filter(log => log.event === 'LoanSucceed')[0].args.loanId;
     });
 
+    // How about if a loan pair disabled?
     context('when loan and collateral token pair is enabled', () => {
       it('repays fully', async () => {
         const prevLoanRecord = await loanManager.getLoanRecordById(loanId);
+        const prevDistributorBalance = await loanToken.balanceOf(
+          distributorAddress,
+        );
 
         await loanToken.approve(
           loanManager.address,
@@ -383,6 +415,15 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
         const currLoanRecord = await loanManager.getLoanRecordById(loanId);
         expect(currLoanRecord.remainingDebt).to.bignumber.equal(new BN(0));
         expect(currLoanRecord.isClosed).to.be.true;
+        expect(
+          await loanToken.balanceOf(distributorAddress),
+        ).to.bignumber.equal(
+          prevDistributorBalance.add(
+            prevLoanRecord.remainingDebt
+              .sub(loanAmount)
+              .mul(loanDistributorFeeRatio),
+          ),
+        );
       });
     });
   });
@@ -420,9 +461,16 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
         from: loaner,
       });
 
-      await loanManager.deposit(loanToken.address, depositAmount, depositTerm, {
-        from: depositor,
-      });
+      await loanManager.deposit(
+        loanToken.address,
+        depositAmount,
+        depositTerm,
+        distributorAddress,
+        depositDistributorFeeRatio,
+        {
+          from: depositor,
+        },
+      );
 
       const useFreedCollateral = false;
 
@@ -433,6 +481,7 @@ contract('LoanManager', function([owner, depositor, loaner, liquidator]) {
         collateralAmount,
         loanTerm,
         useFreedCollateral,
+        distributorAddress,
         {
           from: loaner,
         },
