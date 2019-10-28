@@ -319,10 +319,27 @@ library _LoanManager {
         LoanRecordListView memory loanRecordListView;
         loanRecordListView.loanIdList = self.loanIdsByAccount[accountAddress];
         if (loanRecordListView.loanIdList.length != 0) {
+            loanRecordListView.loanTokenAddressList = new address[](
+                loanRecordListView.loanIdList.length
+            );
+            loanRecordListView.collateralTokenAddressList = new address[](
+                loanRecordListView.loanIdList.length
+            );
+            loanRecordListView.loanTermList = new uint256[](
+                loanRecordListView.loanIdList.length
+            );
+            loanRecordListView.remainingDebtList = new uint256[](
+                loanRecordListView.loanIdList.length
+            );
+            loanRecordListView.createdAtList = new uint256[](
+                loanRecordListView.loanIdList.length
+            );
+            loanRecordListView.isClosedList = new bool[](
+                loanRecordListView.loanIdList.length
+            );
             for (uint256 i = 0; i < loanRecordListView.loanIdList.length; i++) {
                 LoanRecord memory loanRecord = self
                     .loanRecordById[loanRecordListView.loanIdList[i]];
-                loanRecordListView.loanIdList[i] = loanRecord.loanId;
                 loanRecordListView.loanTokenAddressList[i] = loanRecord
                     .loanTokenAddress;
                 loanRecordListView.collateralTokenAddressList[i] = loanRecord
@@ -612,6 +629,7 @@ library _LoanManager {
             loanParameters.loanAmount
         );
 
+        self.loanIdsByAccount[msg.sender].push(localVars.loanId);
         emit LoanSucceed(msg.sender, localVars.loanId);
 
         return localVars.loanId;

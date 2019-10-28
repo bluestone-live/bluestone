@@ -111,7 +111,85 @@ contract('LoanManager', function([
     });
 
     context('when user have loan records', () => {
-      it('succeeds');
+      const initialSupply = toFixedBN(1000);
+      const depositAmount = toFixedBN(10);
+      const depositTerm = 30;
+      const loanAmount = toFixedBN(10);
+      const collateralAmount = toFixedBN(30);
+      const loanTerm = 30;
+      const useFreedCollateral = false;
+
+      let loanToken, collateralToken, loanId;
+
+      beforeEach(async () => {
+        loanToken = await createERC20Token(depositor, initialSupply);
+        collateralToken = await createERC20Token(loaner, initialSupply);
+        await priceOracle.setPrice(loanToken.address, toFixedBN(10));
+        await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
+        await loanManager.setPriceOracleAddress(priceOracle.address);
+        await loanManager.enableDepositToken(loanToken.address);
+        await loanManager.enableDepositTerm(depositTerm);
+        await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
+        await loanToken.approve(loanManager.address, initialSupply, {
+          from: depositor,
+        });
+
+        await collateralToken.approve(loanManager.address, initialSupply, {
+          from: loaner,
+        });
+
+        await loanManager.deposit(
+          loanToken.address,
+          depositAmount,
+          depositTerm,
+          distributorAddress,
+          depositDistributorFeeRatio,
+          {
+            from: depositor,
+          },
+        );
+
+        await loanManager.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+        );
+
+        const { logs } = await loanManager.loan(
+          loanToken.address,
+          collateralToken.address,
+          loanAmount,
+          collateralAmount,
+          loanTerm,
+          useFreedCollateral,
+          distributorAddress,
+          {
+            from: loaner,
+          },
+        );
+
+        loanId = logs.filter(log => log.event === 'LoanSucceed')[0].args.loanId;
+      });
+
+      it('succeeds', async () => {
+        const {
+          loanIdList,
+          loanTokenAddressList,
+          collateralTokenAddressList,
+          loanTermList,
+          remainingDebtList,
+          createdAtList,
+          isClosedList,
+        } = await loanManager.getLoanRecordsByAccount(loaner);
+
+        expect(loanIdList.length).to.equal(1);
+        expect(loanTokenAddressList.length).to.equal(1);
+        expect(collateralTokenAddressList.length).to.equal(1);
+        expect(loanTermList.length).to.equal(1);
+        expect(remainingDebtList.length).to.equal(1);
+        expect(createdAtList.length).to.equal(1);
+        expect(isClosedList.length).to.equal(1);
+        expect(loanIdList[0]).to.equal(loanId);
+      });
     });
   });
 

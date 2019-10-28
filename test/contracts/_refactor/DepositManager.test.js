@@ -397,7 +397,20 @@ contract('DepositManager', function([_, depositor, distributorAddress]) {
   });
 
   describe('#getDepositTokens', () => {
-    it('succeeds');
+    beforeEach(async () => {
+      await depositManager.enableDepositToken(token.address);
+    });
+
+    it('succeeds', async () => {
+      const {
+        depositTokenAddressList,
+        isEnabledList,
+      } = await depositManager.getDepositTokens();
+      expect(depositTokenAddressList.length).to.equal(1);
+      expect(isEnabledList.length).to.equal(1);
+      expect(depositTokenAddressList[0]).to.equal(token.address);
+      expect(isEnabledList[0]).to.equal(true);
+    });
   });
 
   describe('#getDepositRecordById', () => {
@@ -530,12 +543,87 @@ contract('DepositManager', function([_, depositor, distributorAddress]) {
     });
 
     context('when user have deposit records', () => {
-      it('succeed');
+      const depositAmount = toFixedBN(10);
+      const depositTerm = 30;
+      let depositId;
+
+      beforeEach(async () => {
+        await depositManager.enableDepositToken(token.address);
+        await depositManager.enableDepositTerm(depositTerm);
+        await token.approve(depositManager.address, depositAmount, {
+          from: depositor,
+        });
+
+        const { logs } = await depositManager.deposit(
+          token.address,
+          depositAmount,
+          depositTerm,
+          distributorAddress,
+          depositDistributorFeeRatio,
+          {
+            from: depositor,
+          },
+        );
+        depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+          .depositId;
+      });
+
+      it('succeed', async () => {
+        const {
+          depositIdList,
+          tokenAddressList,
+          depositTermList,
+          depositAmountList,
+          createdAtList,
+          maturedAtList,
+          withdrewAtList,
+        } = await depositManager.getDepositRecordsByAccount(depositor);
+
+        expect(depositIdList.length).to.equal(1);
+        expect(tokenAddressList.length).to.equal(1);
+        expect(depositTermList.length).to.equal(1);
+        expect(depositAmountList.length).to.equal(1);
+        expect(createdAtList.length).to.equal(1);
+        expect(maturedAtList.length).to.equal(1);
+        expect(withdrewAtList.length).to.equal(1);
+        expect(depositIdList[0]).to.equal(depositId);
+      });
     });
   });
 
   describe('#isDepositEarlyWithdrawable', () => {
-    it('succeeds');
+    const depositAmount = toFixedBN(10);
+    const depositTerm = 30;
+    let depositId;
+
+    beforeEach(async () => {
+      await depositManager.enableDepositToken(token.address);
+      await depositManager.enableDepositTerm(depositTerm);
+      await token.approve(depositManager.address, depositAmount, {
+        from: depositor,
+      });
+
+      const { logs } = await depositManager.deposit(
+        token.address,
+        depositAmount,
+        depositTerm,
+        distributorAddress,
+        depositDistributorFeeRatio,
+        {
+          from: depositor,
+        },
+      );
+      depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+        .depositId;
+    });
+
+    it('succeeds', async () => {
+      const isDepositEarlyWithdrawable = await depositManager.isDepositEarlyWithdrawable(
+        depositId,
+      );
+
+      expect(isDepositEarlyWithdrawable).to.be.true;
+    });
   });
 
   describe('#_getInterestIndexFromDaysAgo', () => {

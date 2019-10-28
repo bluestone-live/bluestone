@@ -353,6 +353,7 @@ library _DepositManager {
             depositParameters.depositAmount
         );
 
+        self.depositIdsByAccountAddress[accountAddress].push(currDepositId);
         emit DepositSucceed(accountAddress, currDepositId);
 
         return currDepositId;
@@ -593,6 +594,24 @@ library _DepositManager {
         depositRecordListViewObject.depositIdList = self
             .depositIdsByAccountAddress[account];
         if (depositRecordListViewObject.depositIdList.length != 0) {
+            depositRecordListViewObject.tokenAddressList = new address[](
+                depositRecordListViewObject.depositIdList.length
+            );
+            depositRecordListViewObject.depositTermList = new uint256[](
+                depositRecordListViewObject.depositIdList.length
+            );
+            depositRecordListViewObject.depositAmountList = new uint256[](
+                depositRecordListViewObject.depositIdList.length
+            );
+            depositRecordListViewObject.createdAtList = new uint256[](
+                depositRecordListViewObject.depositIdList.length
+            );
+            depositRecordListViewObject.maturedAtList = new uint256[](
+                depositRecordListViewObject.depositIdList.length
+            );
+            depositRecordListViewObject.withdrewAtList = new uint256[](
+                depositRecordListViewObject.depositIdList.length
+            );
             for (
                 uint256 i = 0;
                 i < depositRecordListViewObject.depositIdList.length;
