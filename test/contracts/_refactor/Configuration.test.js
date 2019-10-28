@@ -5,6 +5,7 @@ const {
   constants,
   BN,
 } = require('openzeppelin-test-helpers');
+const { toFixedBN } = require('../../utils/index');
 const { expect } = require('chai');
 
 contract('Configuration', function([owner]) {
@@ -83,6 +84,40 @@ contract('Configuration', function([owner]) {
       const { logs } = await configuration.unlockUserActions();
       expect(await configuration.isUserActionsLocked()).to.false;
       expectEvent.inLogs(logs, 'UnlockUserActions');
+    });
+  });
+
+  describe('#getMaxDistributorFeeRatios', () => {
+    context("when the ratio limit didn't set", () => {
+      it('get ZERO', async () => {
+        const {
+          maxDepositDistributorFeeRatio,
+          maxLoanDistributorFeeRatio,
+        } = await configuration.getMaxDistributorFeeRatios();
+        expect(maxDepositDistributorFeeRatio).to.bignumber.equal(toFixedBN(0));
+        expect(maxLoanDistributorFeeRatio).to.bignumber.equal(toFixedBN(0));
+      });
+    });
+  });
+
+  describe('#setMaxDistributorFeeRatios', () => {
+    const estimateMaxDepositDistributorFeeRatio = toFixedBN(1);
+    const estimateMaxLoanDistributorFeeRatio = toFixedBN(2);
+    it('succeeds', async () => {
+      await configuration.setMaxDistributorFeeRatios(
+        estimateMaxDepositDistributorFeeRatio,
+        estimateMaxLoanDistributorFeeRatio,
+      );
+      const {
+        maxDepositDistributorFeeRatio,
+        maxLoanDistributorFeeRatio,
+      } = await configuration.getMaxDistributorFeeRatios();
+      expect(maxDepositDistributorFeeRatio).to.bignumber.equal(
+        estimateMaxDepositDistributorFeeRatio,
+      );
+      expect(maxLoanDistributorFeeRatio).to.bignumber.equal(
+        estimateMaxLoanDistributorFeeRatio,
+      );
     });
   });
 });

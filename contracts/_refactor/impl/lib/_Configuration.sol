@@ -5,6 +5,8 @@ import '../../interface/IInterestModel.sol';
 // TODO(desmond): remove `_` after contract refactor is complete.
 library _Configuration {
     struct State {
+        uint256 maxDepositDistributorFeeRatio;
+        uint256 maxLoanDistributorFeeRatio;
         // The percentage protocol takes from deposit interest as reserve.
         uint256 protocolReserveRatio;
         // Lock all functionalities related to deposit, loan and liquidating.
@@ -51,6 +53,15 @@ library _Configuration {
         uint256 protocolReserveRatio
     ) external {
         self.protocolReserveRatio = protocolReserveRatio;
+    }
+
+    function setMaxDistributorFeeRatios(
+        State storage self,
+        uint256 maxDepositDistributorFeeRatio,
+        uint256 maxLoanDistributorFeeRatio
+    ) external {
+        self.maxDepositDistributorFeeRatio = maxDepositDistributorFeeRatio;
+        self.maxLoanDistributorFeeRatio = maxLoanDistributorFeeRatio;
     }
 
     function lockUserActions(State storage self) external {

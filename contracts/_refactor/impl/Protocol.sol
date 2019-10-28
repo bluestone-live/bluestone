@@ -488,6 +488,16 @@ contract Protocol is Ownable, Pausable {
         _configuration.setProtocolReserveRatio(protocolReserveRatio);
     }
 
+    function setMaxDistributorFeeRatios(
+        uint256 maxDepositDistributorFeeRatio,
+        uint256 maxLoanDistributorFeeRatio
+    ) external whenNotPaused onlyOwner {
+        _configuration.setMaxDistributorFeeRatios(
+            maxDepositDistributorFeeRatio,
+            maxLoanDistributorFeeRatio
+        );
+    }
+
     function lockUserActions() external whenNotPaused onlyOwner {
         _configuration.lockUserActions();
     }

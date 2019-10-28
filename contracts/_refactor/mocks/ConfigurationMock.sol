@@ -54,4 +54,30 @@ contract ConfigurationMock {
     {
         return _configuration.priceOracleAddress;
     }
+
+    function setMaxDistributorFeeRatios(
+        uint256 maxDepositDistributorFeeRatio,
+        uint256 maxLoanDistributorFeeRatio
+    ) external {
+        return
+            _configuration.setMaxDistributorFeeRatios(
+                maxDepositDistributorFeeRatio,
+                maxLoanDistributorFeeRatio
+            );
+    }
+
+    function getMaxDistributorFeeRatios()
+        external
+        view
+        returns (
+            uint256 maxDepositDistributorFeeRatio,
+            uint256 maxLoanDistributorFeeRatio
+        )
+    {
+        return (
+            _configuration.maxDepositDistributorFeeRatio,
+            _configuration.maxLoanDistributorFeeRatio
+        );
+    }
+
 }

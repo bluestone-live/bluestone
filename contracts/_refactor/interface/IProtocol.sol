@@ -418,6 +418,14 @@ contract IProtocol {
         view
         returns (uint256 protocolReserveRatio);
 
+    /// @notice Set the maximum fee ratio for distributors
+    /// @param maxDepositDistributorFeeRatio deposit distributor fee ratio
+    /// @param maxLoanDistributorFeeRatio loan fee ratio
+    function setMaxDistributorFeeRatios(
+        uint256 maxDepositDistributorFeeRatio,
+        uint256 maxLoanDistributorFeeRatio
+    ) external;
+
     /// @notice Check if user actions are locked
     /// @param isLocked Return true if user actions are locked, else return false
     function isUserActionsLocked() external view returns (bool isLocked);
