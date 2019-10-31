@@ -200,4 +200,36 @@ contract _DepositManagerMock {
     function setInterestModel(IInterestModel interestModel) external {
         _configuration.setInterestModel(interestModel);
     }
+
+    function getInterestFromDaysAgo(
+        address tokenAddress,
+        uint256 depositWeight,
+        uint256 numDaysAgo
+    ) external view returns (uint256 interest) {
+        return
+            _depositManager._getInterestFromDaysAgo(
+                tokenAddress,
+                depositWeight,
+                numDaysAgo
+            );
+    }
+
+    // -- Helper
+
+    function setInterestHistoryByTokenAddress(
+        address tokenAddress,
+        uint256[] calldata totalDepositWeightList,
+        uint256[] calldata totalInterestList
+    ) external {
+        _DepositManager.DepositInterestHistory storage history = _depositManager
+            .depositTokenByAddress[tokenAddress]
+            .depositInterestHistory;
+
+        for (uint256 i = 0; i < totalDepositWeightList.length; i++) {
+            history.totalDepositWeightByDay[i] = totalDepositWeightList[i];
+            history.totalInterestByDay[i] = totalInterestList[i];
+        }
+
+        history.lastDay = totalDepositWeightList.length - 1;
+    }
 }

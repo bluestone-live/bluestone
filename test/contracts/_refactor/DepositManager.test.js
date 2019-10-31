@@ -626,7 +626,36 @@ contract('DepositManager', function([_, depositor, distributorAddress]) {
     });
   });
 
-  describe('#_getInterestIndexFromDaysAgo', () => {
-    it('succeeds');
+  describe('#_getInterestFromDaysAgo', () => {
+    const totalDepositWeightList = [100, 100, 100].map(weight =>
+      toFixedBN(weight),
+    );
+    const totalInterestList = [10, 0, 10].map(interest => toFixedBN(interest));
+    const depositWeightList = [100, 100, 50].map(weight => toFixedBN(weight));
+
+    beforeEach(async () => {
+      await depositManager.setInterestHistoryByTokenAddress(
+        token.address,
+        totalDepositWeightList,
+        totalInterestList,
+      );
+    });
+
+    it('succeeds', async () => {
+      for (let index in depositWeightList) {
+        const weight = depositWeightList[index];
+        const estimateInterest = weight
+          .mul(totalInterestList[index])
+          .div(totalDepositWeightList[index]);
+
+        const interest = await depositManager.getInterestFromDaysAgo(
+          token.address,
+          weight,
+          index,
+        );
+
+        expect(interest).to.bignumber.equal(estimateInterest);
+      }
+    });
   });
 });
