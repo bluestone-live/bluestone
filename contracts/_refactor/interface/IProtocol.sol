@@ -370,16 +370,12 @@ contract IProtocol {
         view
         returns (address[] memory tokenAddressList, bool[] memory isActive);
 
-    /// @notice Return loan interest rates for each loan term for given token
-    /// @return loanTerms A list of loan terms
-    /// @return loanInterestRates A list of loan interest rates
-    function getLoanInterestRateByToken(address tokenAddress)
+    /// @notice Return loan interest rate for given token
+    /// @return loanInterestRate loan interest rate
+    function getLoanInterestRatel(address tokenAddress, uint256 term)
         external
         view
-        returns (
-            uint256[] memory loanTerms,
-            uint256[] memory loanInterestRates
-        );
+        returns (uint256 loanInterestRate);
 
     /// --- Configuration ---
 

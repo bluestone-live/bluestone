@@ -415,6 +415,9 @@ library _LoanManager {
             uint256[] memory freedCollateralAmountList
         )
     {
+        freedCollateralAmountList = new uint256[](
+            self.collateralTokens.tokenList.length
+        );
         for (uint256 i = 0; i < self.collateralTokens.tokenList.length; i++) {
             freedCollateralAmountList[i] = self
                 .freedCollateralsByAccount[accountAddress][self
@@ -426,30 +429,28 @@ library _LoanManager {
 
     function withdrawFreedCollateral(
         State storage self,
-        address accountAddress,
         address tokenAddress,
         uint256 collateralAmount
     ) external {
-        uint256 availableFreedCollateral = self
-            .freedCollateralsByAccount[accountAddress][tokenAddress];
+        uint256 availableFreedCollateral = self.freedCollateralsByAccount[msg
+            .sender][tokenAddress];
+
         require(
             availableFreedCollateral >= collateralAmount,
-            'AccountManager: Availiable freed collateral amount is not enough'
+            'LoanManager: Freed collateral amount is not enough'
         );
 
-        self.freedCollateralsByAccount[accountAddress][tokenAddress] = self
-            .freedCollateralsByAccount[accountAddress][tokenAddress]
-            .sub(availableFreedCollateral);
+        self.freedCollateralsByAccount[msg.sender][tokenAddress] = self
+            .freedCollateralsByAccount[msg.sender][tokenAddress]
+            .sub(collateralAmount);
 
         // Transfer token from protocol to user.
-        ERC20(tokenAddress).safeTransfer(
-            accountAddress,
-            availableFreedCollateral
-        );
+        ERC20(tokenAddress).safeTransfer(msg.sender, collateralAmount);
 
+        // Emit the remaining freed collateral amount
         emit WithdrawFreedCollateralSucceed(
-            accountAddress,
-            availableFreedCollateral
+            msg.sender,
+            self.freedCollateralsByAccount[msg.sender][tokenAddress]
         );
     }
 
@@ -1071,5 +1072,20 @@ library _LoanManager {
             }
         }
         return (tokenAddressList, isActive);
+    }
+
+    function getLoanInterestRate(
+        State storage,
+        _Configuration.State storage configuration,
+        _LiquidityPools.State storage liquidityPools,
+        address tokenAddress,
+        uint256 loanTerm
+    ) external view returns (uint256 loanInterestRate) {
+        return
+            configuration.interestModel.getLoanInterestRate(
+                tokenAddress,
+                loanTerm,
+                liquidityPools.poolGroups[tokenAddress].numPools
+            );
     }
 }

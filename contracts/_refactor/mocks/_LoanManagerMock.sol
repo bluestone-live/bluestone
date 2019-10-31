@@ -104,12 +104,7 @@ contract _LoanManagerMock {
         address tokenAddress,
         uint256 collateralAmount
     ) external {
-        address accountAddress = msg.sender;
-        _loanManager.withdrawFreedCollateral(
-            accountAddress,
-            tokenAddress,
-            collateralAmount
-        );
+        _loanManager.withdrawFreedCollateral(tokenAddress, collateralAmount);
     }
 
     function getLoanRecordById(bytes32 loanId)
@@ -258,6 +253,20 @@ contract _LoanManagerMock {
             );
     }
 
+    function getLoanInterestRate(address tokenAddress, uint256 term)
+        external
+        view
+        returns (uint256 loanInterestRate)
+    {
+        return
+            _loanManager.getLoanInterestRate(
+                _configuration,
+                _liquidityPools,
+                tokenAddress,
+                term
+            );
+    }
+
     function setPriceOracleAddress(address priceOracleAddress) external {
         _configuration.setPriceOracleAddress(priceOracleAddress);
     }
@@ -270,5 +279,25 @@ contract _LoanManagerMock {
 
     function setInterestModel(IInterestModel interestModel) external {
         _configuration.setInterestModel(interestModel);
+    }
+
+    function addFreedCollateral(
+        address accountAddress,
+        address tokenAddress,
+        uint256 amount
+    ) external {
+        _loanManager.addFreedCollateral(accountAddress, tokenAddress, amount);
+    }
+
+    function subtractFreedCollateral(
+        address accountAddress,
+        address tokenAddress,
+        uint256 amount
+    ) external returns (uint256) {
+        _loanManager.subtractFreedCollateral(
+            accountAddress,
+            tokenAddress,
+            amount
+        );
     }
 }

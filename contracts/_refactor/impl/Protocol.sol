@@ -305,12 +305,23 @@ contract Protocol is Ownable, Pausable {
         address tokenAddress,
         uint256 collateralAmount
     ) external whenNotPaused whenUserActionsUnlocked {
-        address accountAddress = msg.sender;
-        _loanManager.withdrawFreedCollateral(
-            accountAddress,
-            tokenAddress,
-            collateralAmount
-        );
+        _loanManager.withdrawFreedCollateral(tokenAddress, collateralAmount);
+    }
+
+    function getLoanInterestRate(address tokenAddress, uint256 term)
+        external
+        view
+        whenNotPaused
+        whenUserActionsUnlocked
+        returns (uint256 loanInterestRate)
+    {
+        return
+            _loanManager.getLoanInterestRate(
+                _configuration,
+                _liquidityPools,
+                tokenAddress,
+                term
+            );
     }
 
     /// --- AccountManager ---

@@ -74,8 +74,88 @@ contract('LoanManager', function([
 
   describe('#getLoanRecordById', () => {
     context('when loan id is valid', () => {
-      // TODO(ZhangRGK): after the liquidityPools implement
-      it('succeed');
+      const initialSupply = toFixedBN(1000);
+      const depositAmount = toFixedBN(10);
+      const depositTerm = 30;
+      const loanAmount = toFixedBN(10);
+      const collateralAmount = toFixedBN(30);
+      const loanTerm = 30;
+      const useFreedCollateral = false;
+      const maxLoanTerm = new BN(365);
+      const numPools = new BN(60);
+
+      let loanToken, collateralToken, loanId;
+
+      beforeEach(async () => {
+        loanToken = await createERC20Token(depositor, initialSupply);
+        collateralToken = await createERC20Token(loaner, initialSupply);
+        await priceOracle.setPrice(loanToken.address, toFixedBN(10));
+        await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
+        await loanManager.setPriceOracleAddress(priceOracle.address);
+        await loanManager.enableDepositToken(loanToken.address);
+        await loanManager.enableDepositTerm(depositTerm);
+        await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
+        await loanToken.approve(loanManager.address, initialSupply, {
+          from: depositor,
+        });
+        await loanManager.initPoolGroupIfNeeded(loanToken.address, numPools);
+        await loanManager.setMaxLoanTerm(loanToken.address, maxLoanTerm);
+
+        await collateralToken.approve(loanManager.address, initialSupply, {
+          from: loaner,
+        });
+
+        await loanManager.deposit(
+          loanToken.address,
+          depositAmount,
+          depositTerm,
+          distributorAddress,
+          depositDistributorFeeRatio,
+          {
+            from: depositor,
+          },
+        );
+
+        await loanManager.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+        );
+
+        const { logs } = await loanManager.loan(
+          loanToken.address,
+          collateralToken.address,
+          loanAmount,
+          collateralAmount,
+          loanTerm,
+          useFreedCollateral,
+          distributorAddress,
+          {
+            from: loaner,
+          },
+        );
+
+        loanId = logs.filter(log => log.event === 'LoanSucceed')[0].args.loanId;
+      });
+
+      it('succeed', async () => {
+        const interestRate = await loanManager.getLoanInterestRate(
+          loanToken.address,
+          maxLoanTerm,
+        );
+        const interest = loanAmount.mul(interestRate);
+        const record = await loanManager.getLoanRecordById(loanId);
+
+        expect(record.loanTokenAddress).to.equal(loanToken.address);
+        expect(record.collateralTokenAddress).to.equal(collateralToken.address);
+        expect(record.loanTerm.toString()).to.equal(loanTerm.toString());
+        expect(record.collateralAmount).to.bignumber.equal(collateralAmount);
+        expect(record.remainingDebt).to.bignumber.equal(
+          loanAmount.add(interest),
+        );
+        expect(record.isLiquidatable).to.be.false;
+        expect(record.isOverDue).to.be.false;
+        expect(record.isClosed).to.be.false;
+      });
     });
 
     context('when loan id is invalid', () => {
@@ -194,29 +274,240 @@ contract('LoanManager', function([
   });
 
   describe('#addCollateral', () => {
-    it('succeeds');
+    const initialSupply = toFixedBN(1000);
+    const depositAmount = toFixedBN(10);
+    const depositTerm = 30;
+    const loanAmount = toFixedBN(10);
+    const collateralAmount = toFixedBN(30);
+    const loanTerm = 30;
+    const useFreedCollateral = false;
+
+    let loanToken, collateralToken, loanId;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+      await priceOracle.setPrice(loanToken.address, toFixedBN(10));
+      await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
+      await loanManager.setPriceOracleAddress(priceOracle.address);
+      await loanManager.enableDepositToken(loanToken.address);
+      await loanManager.enableDepositTerm(depositTerm);
+      await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
+      await loanToken.approve(loanManager.address, initialSupply, {
+        from: depositor,
+      });
+
+      await collateralToken.approve(loanManager.address, initialSupply, {
+        from: loaner,
+      });
+
+      await loanManager.deposit(
+        loanToken.address,
+        depositAmount,
+        depositTerm,
+        distributorAddress,
+        depositDistributorFeeRatio,
+        {
+          from: depositor,
+        },
+      );
+
+      await loanManager.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        collateralToken.address,
+      );
+
+      const { logs } = await loanManager.loan(
+        loanToken.address,
+        collateralToken.address,
+        loanAmount,
+        collateralAmount,
+        loanTerm,
+        useFreedCollateral,
+        distributorAddress,
+        {
+          from: loaner,
+        },
+      );
+
+      loanId = logs.filter(log => log.event === 'LoanSucceed')[0].args.loanId;
+    });
+
+    it('succeeds', async () => {
+      const useFreedCollateralInAddCollateral = false;
+      const collateralAmount = toFixedBN(10);
+      const { logs } = await loanManager.addCollateral(
+        loanId,
+        collateralAmount,
+        useFreedCollateralInAddCollateral,
+        {
+          from: loaner,
+        },
+      );
+
+      expectEvent.inLogs(logs, 'AddCollateralSucceed', {
+        accountAddress: loaner,
+        loanId: loanId,
+        amount: collateralAmount,
+      });
+    });
   });
 
   describe('#getFreedCollateralsByAccount', () => {
-    it('succeeds');
+    const initialSupply = toFixedBN(1000);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+
+      await loanManager.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        collateralToken.address,
+      );
+    });
+
+    context("when user didn't have freed collateral amount", () => {
+      it('get zero', async () => {
+        const {
+          tokenAddressList,
+          freedCollateralAmountList,
+        } = await loanManager.getFreedCollateralsByAccount(loaner);
+
+        expect(tokenAddressList[0]).to.equal(collateralToken.address);
+        expect(freedCollateralAmountList[0]).to.bignumber.equal(toFixedBN(0));
+      });
+    });
+
+    context('when user have freed collateral amount', () => {
+      const estimateFreedCollateralToken = toFixedBN(5);
+
+      beforeEach(async () => {
+        await loanManager.addFreedCollateral(
+          loaner,
+          collateralToken.address,
+          estimateFreedCollateralToken,
+        );
+      });
+
+      it('get correctly amount', async () => {
+        const {
+          tokenAddressList,
+          freedCollateralAmountList,
+        } = await loanManager.getFreedCollateralsByAccount(loaner);
+
+        expect(tokenAddressList[0]).to.equal(collateralToken.address);
+        expect(freedCollateralAmountList[0]).to.bignumber.equal(
+          estimateFreedCollateralToken,
+        );
+      });
+    });
   });
 
   describe('#withdrawFreedCollateral', () => {
+    const initialSupply = toFixedBN(1000);
+    const freedCollateralAmount = toFixedBN(100);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+      // Make sure there are enough token in protocol
+      await collateralToken.mint(loanManager.address, initialSupply);
+
+      await loanManager.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        collateralToken.address,
+      );
+      await loanManager.addFreedCollateral(
+        loaner,
+        collateralToken.address,
+        freedCollateralAmount,
+      );
+    });
+
     context('when amount is valid', () => {
-      it('succeeds');
+      it('succeeds', async () => {
+        const { logs } = await loanManager.withdrawFreedCollateral(
+          collateralToken.address,
+          freedCollateralAmount,
+          {
+            from: loaner,
+          },
+        );
+
+        expectEvent.inLogs(logs, 'WithdrawFreedCollateralSucceed', {
+          accountAddress: loaner,
+          amount: toFixedBN(0),
+        });
+      });
     });
 
     context('when amount is invalid', () => {
-      it('reverts');
+      it('reverts', async () => {
+        await expectRevert(
+          loanManager.withdrawFreedCollateral(
+            collateralToken.address,
+            freedCollateralAmount.add(toFixedBN(1)),
+            {
+              from: loaner,
+            },
+          ),
+          'LoanManager: Freed collateral amount is not enough',
+        );
+      });
     });
   });
 
   describe('#addFreedCollateral', () => {
-    it('succeeds');
+    const initialSupply = toFixedBN(1000);
+    const freedCollateralAmount = toFixedBN(100);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+
+      await loanManager.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        collateralToken.address,
+      );
+    });
+    it('succeeds', async () => {
+      await loanManager.addFreedCollateral(
+        loaner,
+        collateralToken.address,
+        freedCollateralAmount,
+      );
+    });
   });
 
   describe('#subtractFreedCollateral', () => {
-    it('succeeds');
+    const initialSupply = toFixedBN(1000);
+    const freedCollateralAmount = toFixedBN(100);
+    let loanToken, collateralToken;
+
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+
+      await loanManager.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        collateralToken.address,
+      );
+      await loanManager.addFreedCollateral(
+        loaner,
+        collateralToken.address,
+        freedCollateralAmount,
+      );
+    });
+    it('succeeds', async () => {
+      await loanManager.subtractFreedCollateral(
+        loaner,
+        collateralToken.address,
+        freedCollateralAmount,
+      );
+    });
   });
 
   describe('#enableLoanAndCollateralTokenPair', () => {
@@ -1010,19 +1301,28 @@ contract('LoanManager', function([
     );
   });
 
-  describe('#getLoanInterestRateByToken', () => {
-    it('succeeds');
-  });
+  describe('#getLoanInterestRate', () => {
+    const initialSupply = toFixedBN(1000);
+    const maxLoanTerm = new BN(365);
+    const numPools = new BN(60);
+    let loanToken, collateralToken;
 
-  describe('#_getLoanBasicInfoById', () => {
-    it('succeeds');
-  });
+    beforeEach(async () => {
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
 
-  describe('#_getLoanExtraInfoById', () => {
-    it('succeeds');
-  });
+      await loanManager.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        collateralToken.address,
+      );
 
-  describe('#_calculateRemainingDebt', () => {
-    it('succeeds');
+      await loanManager.initPoolGroupIfNeeded(loanToken.address, numPools);
+      await loanManager.setMaxLoanTerm(loanToken.address, maxLoanTerm);
+    });
+
+    it('succeeds', async () => {
+      // TODO(ZhangRGK): expect to the model result
+      await loanManager.getLoanInterestRate(loanToken.address, maxLoanTerm);
+    });
   });
 });
