@@ -371,6 +371,11 @@ library _DepositManager {
             'DepositManager: invalid deposit ID'
         );
 
+        require(
+            configuration.protocolAddress != address(0),
+            'DepositManager: protocolAddress is not set'
+        );
+
         address tokenAddress = depositRecord.tokenAddress;
         address accountAddress = msg.sender;
 
@@ -427,6 +432,12 @@ library _DepositManager {
                 depositDistributorFee
             );
         }
+
+        // Transfer protocol reserve to protocol address
+        ERC20(tokenAddress).safeTransfer(
+            configuration.protocolAddress,
+            interestForProtocol
+        );
 
         // Transfer deposit plus interest to depositor
         ERC20(tokenAddress).safeTransfer(

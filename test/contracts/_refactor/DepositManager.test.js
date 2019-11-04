@@ -10,7 +10,12 @@ const {
 const { expect } = require('chai');
 const { createERC20Token, toFixedBN } = require('../../utils/index');
 
-contract('DepositManager', function([_, depositor, distributorAddress]) {
+contract('DepositManager', function([
+  _,
+  depositor,
+  distributorAddress,
+  protocolAddress,
+]) {
   const depositTerm = 30;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
@@ -27,6 +32,7 @@ contract('DepositManager', function([_, depositor, distributorAddress]) {
       depositDistributorFeeRatio,
       loanDistributorFeeRatio,
     );
+    await depositManager.setProtocolAddress(protocolAddress);
   });
 
   describe('#enableDepositTerm', () => {

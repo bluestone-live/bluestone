@@ -214,6 +214,10 @@ contract _DepositManagerMock {
             );
     }
 
+    function setProtocolAddress(address protocolAddress) external {
+        _configuration.setProtocolAddress(protocolAddress);
+    }
+
     // -- Helper
 
     function setInterestHistoryByTokenAddress(
