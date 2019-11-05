@@ -38,7 +38,7 @@ contract _LoanManagerMock {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        bool useFreedCollateral,
+        bool useAvailableCollateral,
         address distributorAddress
     ) external returns (bytes32 loanId) {
         _loanParameters.loanTokenAddress = loanTokenAddress;
@@ -46,7 +46,7 @@ contract _LoanManagerMock {
         _loanParameters.loanAmount = loanAmount;
         _loanParameters.collateralAmount = collateralAmount;
         _loanParameters.loanTerm = loanTerm;
-        _loanParameters.useFreedCollateral = useFreedCollateral;
+        _loanParameters.useAvailableCollateral = useAvailableCollateral;
         _loanParameters.distributorAddress = distributorAddress;
         _loanParameters.loanDistributorFeeRatio = _configuration
             .maxLoanDistributorFeeRatio;
@@ -89,22 +89,25 @@ contract _LoanManagerMock {
         return _loanManager.getMaxLoanTerm(_liquidityPools, tokenAddress);
     }
 
-    function getFreedCollateralsByAccount(address accountAddress)
+    function getAvailableCollateralsByAccount(address accountAddress)
         external
         view
         returns (
             address[] memory tokenAddressList,
-            uint256[] memory freedCollateralAmountList
+            uint256[] memory availableCollateralAmountList
         )
     {
-        return _loanManager.getFreedCollateralsByAccount(accountAddress);
+        return _loanManager.getAvailableCollateralsByAccount(accountAddress);
     }
 
-    function withdrawFreedCollateral(
+    function withdrawAvailableCollateral(
         address tokenAddress,
         uint256 collateralAmount
     ) external {
-        _loanManager.withdrawFreedCollateral(tokenAddress, collateralAmount);
+        _loanManager.withdrawAvailableCollateral(
+            tokenAddress,
+            collateralAmount
+        );
     }
 
     function getLoanRecordById(bytes32 loanId)
@@ -145,13 +148,13 @@ contract _LoanManagerMock {
     function addCollateral(
         bytes32 loanId,
         uint256 collateralAmount,
-        bool useFreedCollateral
+        bool useAvailableCollateral
     ) external returns (uint256 totalCollateralAmount) {
         return
             _loanManager.addCollateral(
                 loanId,
                 collateralAmount,
-                useFreedCollateral
+                useAvailableCollateral
             );
     }
 
@@ -281,20 +284,24 @@ contract _LoanManagerMock {
         _configuration.setInterestModel(interestModel);
     }
 
-    function addFreedCollateral(
+    function addAvailableCollateral(
         address accountAddress,
         address tokenAddress,
         uint256 amount
     ) external {
-        _loanManager.addFreedCollateral(accountAddress, tokenAddress, amount);
+        _loanManager.addAvailableCollateral(
+            accountAddress,
+            tokenAddress,
+            amount
+        );
     }
 
-    function subtractFreedCollateral(
+    function subtractAvailableCollateral(
         address accountAddress,
         address tokenAddress,
         uint256 amount
     ) external returns (uint256) {
-        _loanManager.subtractFreedCollateral(
+        _loanManager.subtractAvailableCollateral(
             accountAddress,
             tokenAddress,
             amount

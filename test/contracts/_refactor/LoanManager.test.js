@@ -80,7 +80,7 @@ contract('LoanManager', function([
       const loanAmount = toFixedBN(10);
       const collateralAmount = toFixedBN(30);
       const loanTerm = 30;
-      const useFreedCollateral = false;
+      const useAvailableCollateral = false;
       const maxLoanTerm = new BN(365);
       const numPools = new BN(60);
 
@@ -127,7 +127,7 @@ contract('LoanManager', function([
           loanAmount,
           collateralAmount,
           loanTerm,
-          useFreedCollateral,
+          useAvailableCollateral,
           distributorAddress,
           {
             from: loaner,
@@ -197,7 +197,7 @@ contract('LoanManager', function([
       const loanAmount = toFixedBN(10);
       const collateralAmount = toFixedBN(30);
       const loanTerm = 30;
-      const useFreedCollateral = false;
+      const useAvailableCollateral = false;
 
       let loanToken, collateralToken, loanId;
 
@@ -240,7 +240,7 @@ contract('LoanManager', function([
           loanAmount,
           collateralAmount,
           loanTerm,
-          useFreedCollateral,
+          useAvailableCollateral,
           distributorAddress,
           {
             from: loaner,
@@ -280,7 +280,7 @@ contract('LoanManager', function([
     const loanAmount = toFixedBN(10);
     const collateralAmount = toFixedBN(30);
     const loanTerm = 30;
-    const useFreedCollateral = false;
+    const useAvailableCollateral = false;
 
     let loanToken, collateralToken, loanId;
 
@@ -323,7 +323,7 @@ contract('LoanManager', function([
         loanAmount,
         collateralAmount,
         loanTerm,
-        useFreedCollateral,
+        useAvailableCollateral,
         distributorAddress,
         {
           from: loaner,
@@ -334,12 +334,12 @@ contract('LoanManager', function([
     });
 
     it('succeeds', async () => {
-      const useFreedCollateralInAddCollateral = false;
+      const useAvailableCollateralInAddCollateral = false;
       const collateralAmount = toFixedBN(10);
       const { logs } = await loanManager.addCollateral(
         loanId,
         collateralAmount,
-        useFreedCollateralInAddCollateral,
+        useAvailableCollateralInAddCollateral,
         {
           from: loaner,
         },
@@ -353,7 +353,7 @@ contract('LoanManager', function([
     });
   });
 
-  describe('#getFreedCollateralsByAccount', () => {
+  describe('#getAvailableCollateralsByAccount', () => {
     const initialSupply = toFixedBN(1000);
     let loanToken, collateralToken;
 
@@ -367,46 +367,48 @@ contract('LoanManager', function([
       );
     });
 
-    context("when user didn't have freed collateral amount", () => {
+    context("when user didn't have available collateral amount", () => {
       it('get zero', async () => {
         const {
           tokenAddressList,
-          freedCollateralAmountList,
-        } = await loanManager.getFreedCollateralsByAccount(loaner);
+          availableCollateralAmountList,
+        } = await loanManager.getAvailableCollateralsByAccount(loaner);
 
         expect(tokenAddressList[0]).to.equal(collateralToken.address);
-        expect(freedCollateralAmountList[0]).to.bignumber.equal(toFixedBN(0));
+        expect(availableCollateralAmountList[0]).to.bignumber.equal(
+          toFixedBN(0),
+        );
       });
     });
 
-    context('when user have freed collateral amount', () => {
-      const estimateFreedCollateralToken = toFixedBN(5);
+    context('when user have available collateral amount', () => {
+      const estimateAvailableCollateralToken = toFixedBN(5);
 
       beforeEach(async () => {
-        await loanManager.addFreedCollateral(
+        await loanManager.addAvailableCollateral(
           loaner,
           collateralToken.address,
-          estimateFreedCollateralToken,
+          estimateAvailableCollateralToken,
         );
       });
 
       it('get correctly amount', async () => {
         const {
           tokenAddressList,
-          freedCollateralAmountList,
-        } = await loanManager.getFreedCollateralsByAccount(loaner);
+          availableCollateralAmountList,
+        } = await loanManager.getAvailableCollateralsByAccount(loaner);
 
         expect(tokenAddressList[0]).to.equal(collateralToken.address);
-        expect(freedCollateralAmountList[0]).to.bignumber.equal(
-          estimateFreedCollateralToken,
+        expect(availableCollateralAmountList[0]).to.bignumber.equal(
+          estimateAvailableCollateralToken,
         );
       });
     });
   });
 
-  describe('#withdrawFreedCollateral', () => {
+  describe('#withdrawAvailableCollateral', () => {
     const initialSupply = toFixedBN(1000);
-    const freedCollateralAmount = toFixedBN(100);
+    const availableCollateralAmount = toFixedBN(100);
     let loanToken, collateralToken;
 
     beforeEach(async () => {
@@ -419,24 +421,24 @@ contract('LoanManager', function([
         loanToken.address,
         collateralToken.address,
       );
-      await loanManager.addFreedCollateral(
+      await loanManager.addAvailableCollateral(
         loaner,
         collateralToken.address,
-        freedCollateralAmount,
+        availableCollateralAmount,
       );
     });
 
     context('when amount is valid', () => {
       it('succeeds', async () => {
-        const { logs } = await loanManager.withdrawFreedCollateral(
+        const { logs } = await loanManager.withdrawAvailableCollateral(
           collateralToken.address,
-          freedCollateralAmount,
+          availableCollateralAmount,
           {
             from: loaner,
           },
         );
 
-        expectEvent.inLogs(logs, 'WithdrawFreedCollateralSucceed', {
+        expectEvent.inLogs(logs, 'WithdrawAvailableCollateralSucceed', {
           accountAddress: loaner,
           amount: toFixedBN(0),
         });
@@ -446,22 +448,22 @@ contract('LoanManager', function([
     context('when amount is invalid', () => {
       it('reverts', async () => {
         await expectRevert(
-          loanManager.withdrawFreedCollateral(
+          loanManager.withdrawAvailableCollateral(
             collateralToken.address,
-            freedCollateralAmount.add(toFixedBN(1)),
+            availableCollateralAmount.add(toFixedBN(1)),
             {
               from: loaner,
             },
           ),
-          'LoanManager: Freed collateral amount is not enough',
+          'LoanManager: available collateral amount is not enough',
         );
       });
     });
   });
 
-  describe('#addFreedCollateral', () => {
+  describe('#addAvailableCollateral', () => {
     const initialSupply = toFixedBN(1000);
-    const freedCollateralAmount = toFixedBN(100);
+    const availableCollateralAmount = toFixedBN(100);
     let loanToken, collateralToken;
 
     beforeEach(async () => {
@@ -474,17 +476,17 @@ contract('LoanManager', function([
       );
     });
     it('succeeds', async () => {
-      await loanManager.addFreedCollateral(
+      await loanManager.addAvailableCollateral(
         loaner,
         collateralToken.address,
-        freedCollateralAmount,
+        availableCollateralAmount,
       );
     });
   });
 
-  describe('#subtractFreedCollateral', () => {
+  describe('#subtractAvailableCollateral', () => {
     const initialSupply = toFixedBN(1000);
-    const freedCollateralAmount = toFixedBN(100);
+    const availableCollateralAmount = toFixedBN(100);
     let loanToken, collateralToken;
 
     beforeEach(async () => {
@@ -495,17 +497,17 @@ contract('LoanManager', function([
         loanToken.address,
         collateralToken.address,
       );
-      await loanManager.addFreedCollateral(
+      await loanManager.addAvailableCollateral(
         loaner,
         collateralToken.address,
-        freedCollateralAmount,
+        availableCollateralAmount,
       );
     });
     it('succeeds', async () => {
-      await loanManager.subtractFreedCollateral(
+      await loanManager.subtractAvailableCollateral(
         loaner,
         collateralToken.address,
-        freedCollateralAmount,
+        availableCollateralAmount,
       );
     });
   });
@@ -671,7 +673,7 @@ contract('LoanManager', function([
         const loanAmount = toFixedBN(10);
         const collateralAmount = toFixedBN(30);
         const loanTerm = 30;
-        const useFreedCollateral = false;
+        const useAvailableCollateral = false;
 
         const { logs } = await loanManager.loan(
           loanToken.address,
@@ -679,7 +681,7 @@ contract('LoanManager', function([
           loanAmount,
           collateralAmount,
           loanTerm,
-          useFreedCollateral,
+          useAvailableCollateral,
           distributorAddress,
           {
             from: loaner,
@@ -736,7 +738,7 @@ contract('LoanManager', function([
         },
       );
 
-      const useFreedCollateral = false;
+      const useAvailableCollateral = false;
 
       const { logs } = await loanManager.loan(
         loanToken.address,
@@ -744,7 +746,7 @@ contract('LoanManager', function([
         loanAmount,
         collateralAmount,
         loanTerm,
-        useFreedCollateral,
+        useAvailableCollateral,
         distributorAddress,
         {
           from: loaner,
@@ -841,7 +843,7 @@ contract('LoanManager', function([
         },
       );
 
-      const useFreedCollateral = false;
+      const useAvailableCollateral = false;
 
       const { logs } = await loanManager.loan(
         loanToken.address,
@@ -849,7 +851,7 @@ contract('LoanManager', function([
         loanAmount,
         collateralAmount,
         loanTerm,
-        useFreedCollateral,
+        useAvailableCollateral,
         distributorAddress,
         {
           from: loaner,

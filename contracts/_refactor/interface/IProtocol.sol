@@ -196,7 +196,7 @@ contract IProtocol {
     /// @param loanAmount Amount to borrow
     /// @param collateralAmount Amount to collateralize
     /// @param loanTerm Loan term
-    /// @param useFreedCollateral Whether to use freed collateral in user's account
+    /// @param useAvailableCollateral Whether to use available collateral in user's account
     /// @param distributorAddress Distributor account address
     /// @return loanId ID that identifies the loan
     function loan(
@@ -205,7 +205,7 @@ contract IProtocol {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        bool useFreedCollateral,
+        bool useAvailableCollateral,
         address distributorAddress
     ) external returns (bytes32 loanId);
 
@@ -235,26 +235,26 @@ contract IProtocol {
     function addCollateral(
         bytes32 loanId,
         uint256 collateralAmount,
-        bool useFreedCollateral
+        bool useAvailableCollateral
     ) external returns (uint256 totalCollateralAmount);
 
-    /// @notice Withdraw freed collateral from caller's account
+    /// @notice Withdraw available collateral from caller's account
     /// @param tokenAddress The collateral token address
-    /// @param collateralAmount The freed collateral amount
-    function withdrawFreedCollateral(
+    /// @param collateralAmount The available collateral amount
+    function withdrawAvailableCollateral(
         address tokenAddress,
         uint256 collateralAmount
     ) external;
 
-    /// @notice Return amount of freed collateral for each token in caller's account
+    /// @notice Return amount of available collateral for each token in caller's account
     /// @return tokenAddressList A list of token addresses
-    /// @return freedCollateralAmountList A list of freed collateral amount for each token
-    function getFreedCollateralsByAccount(address accountAddress)
+    /// @return availableCollateralAmountList A list of available collateral amount for each token
+    function getAvailableCollateralsByAccount(address accountAddress)
         external
         view
         returns (
             address[] memory tokenAddressList,
-            uint256[] memory freedCollateralAmountList
+            uint256[] memory availableCollateralAmountList
         );
 
     /// @notice Return details of a loan

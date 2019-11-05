@@ -5,10 +5,10 @@ import Button from '../components/html/Button';
 import { RouteComponentProps, withRouter } from 'react-router';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
-import { IFreedCollateral, IToken } from '../_stores';
+import { IAvailableCollateral, IToken } from '../_stores';
 
 interface IProps extends WithTranslation, RouteComponentProps {
-  freedCollaterals: IFreedCollateral[];
+  availableCollaterals: IAvailableCollateral[];
   tokens: IToken[];
 }
 
@@ -43,8 +43,8 @@ const StyledActionCell = styled(Cell)`
   text-align: right;
 `;
 
-const FreedCollateralList = (props: IProps) => {
-  const { freedCollaterals, tokens, history, t } = props;
+const AvailableCollateralList = (props: IProps) => {
+  const { availableCollaterals, tokens, history, t } = props;
 
   // Callback
   const goTo = useCallback(
@@ -52,22 +52,22 @@ const FreedCollateralList = (props: IProps) => {
     [history],
   );
 
-  const renderFreedCollateralRow = useCallback(
-    (freedCollateral: IFreedCollateral) => {
+  const renderAvailableCollateralRow = useCallback(
+    (availableCollateral: IAvailableCollateral) => {
       const collateralToken = tokens.find(
-        token => token.tokenAddress === freedCollateral.tokenAddress,
+        token => token.tokenAddress === availableCollateral.tokenAddress,
       );
       return (
-        <StyledRow key={freedCollateral.tokenAddress}>
+        <StyledRow key={availableCollateral.tokenAddress}>
           <StyledSymbolCell>
             {collateralToken && collateralToken.tokenSymbol}
           </StyledSymbolCell>
           <StyledAmountCell scale={2}>
-            {freedCollateral.amount}
+            {availableCollateral.amount}
           </StyledAmountCell>
           <StyledActionCell>
-            <Button primary onClick={goTo(freedCollateral.tokenAddress)}>
-              {t('freed_collateral_list_withdraw')}
+            <Button primary onClick={goTo(availableCollateral.tokenAddress)}>
+              {t('available_collateral_list_withdraw')}
             </Button>
           </StyledActionCell>
         </StyledRow>
@@ -77,13 +77,15 @@ const FreedCollateralList = (props: IProps) => {
   );
 
   return (
-    <div className="freed-collateral-list">
-      <StyledPanelHeader>{t('freed_collateral_list_title')}</StyledPanelHeader>
-      {freedCollaterals.map(freedCollateral =>
-        renderFreedCollateralRow(freedCollateral),
+    <div className="available-collateral-list">
+      <StyledPanelHeader>
+        {t('available_collateral_list_title')}
+      </StyledPanelHeader>
+      {availableCollaterals.map(availableCollateral =>
+        renderAvailableCollateralRow(availableCollateral),
       )}
     </div>
   );
 };
 
-export default withTranslation()(withRouter(FreedCollateralList));
+export default withTranslation()(withRouter(AvailableCollateralList));

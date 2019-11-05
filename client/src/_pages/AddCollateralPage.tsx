@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   IState,
   ILoanRecord,
-  IFreedCollateral,
+  IAvailableCollateral,
   IToken,
   AccountActions,
 } from '../_stores';
@@ -32,8 +32,8 @@ const AddCollateralPage = (props: IProps) => {
     ),
   );
 
-  const freedCollaterals = useSelector<IState, IFreedCollateral[]>(
-    state => state.account.freedCollaterals,
+  const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
+    state => state.account.availableCollaterals,
   );
 
   const isUserActionsLocked = useSelector<IState, boolean>(
@@ -48,8 +48,8 @@ const AddCollateralPage = (props: IProps) => {
   useEffectAsync(async () => {
     const { accountService } = await getService();
 
-    AccountActions.setFreedCollaterals(
-      await accountService.getFreedCollaterals(accountAddress),
+    AccountActions.setAvailableCollaterals(
+      await accountService.getAvailableCollaterals(accountAddress),
     );
   });
 
@@ -57,7 +57,7 @@ const AddCollateralPage = (props: IProps) => {
     <AddCollateralForm
       accountAddress={accountAddress}
       record={record}
-      freedCollaterals={freedCollaterals}
+      availableCollaterals={availableCollaterals}
       isUserActionsLocked={isUserActionsLocked}
       tokens={tokens}
     />

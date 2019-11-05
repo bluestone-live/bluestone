@@ -238,7 +238,7 @@ contract Protocol is Ownable, Pausable {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        bool useFreedCollateral,
+        bool useAvailableCollateral,
         address distributorAddress
     ) external whenNotPaused whenUserActionsUnlocked returns (bytes32 loanId) {
         _loanParameters.loanTokenAddress = loanTokenAddress;
@@ -246,7 +246,7 @@ contract Protocol is Ownable, Pausable {
         _loanParameters.loanAmount = loanAmount;
         _loanParameters.collateralAmount = collateralAmount;
         _loanParameters.loanTerm = loanTerm;
-        _loanParameters.useFreedCollateral = useFreedCollateral;
+        _loanParameters.useAvailableCollateral = useAvailableCollateral;
 
         _loanParameters.distributorAddress = distributorAddress;
         _loanParameters.loanDistributorFeeRatio = _configuration
@@ -289,23 +289,26 @@ contract Protocol is Ownable, Pausable {
             );
     }
 
-    function getFreedCollateralsByAccount(address accountAddress)
+    function getAvailableCollateralsByAccount(address accountAddress)
         external
         view
         whenNotPaused
         returns (
             address[] memory tokenAddressList,
-            uint256[] memory freedCollateralAmountList
+            uint256[] memory availableCollateralAmountList
         )
     {
-        return _loanManager.getFreedCollateralsByAccount(accountAddress);
+        return _loanManager.getAvailableCollateralsByAccount(accountAddress);
     }
 
-    function withdrawFreedCollateral(
+    function withdrawAvailableCollateral(
         address tokenAddress,
         uint256 collateralAmount
     ) external whenNotPaused whenUserActionsUnlocked {
-        _loanManager.withdrawFreedCollateral(tokenAddress, collateralAmount);
+        _loanManager.withdrawAvailableCollateral(
+            tokenAddress,
+            collateralAmount
+        );
     }
 
     function getLoanInterestRate(address tokenAddress, uint256 term)
@@ -390,7 +393,7 @@ contract Protocol is Ownable, Pausable {
     function addCollateral(
         bytes32 loanId,
         uint256 collateralAmount,
-        bool useFreedCollateral
+        bool useAvailableCollateral
     )
         external
         whenNotPaused
@@ -401,7 +404,7 @@ contract Protocol is Ownable, Pausable {
             _loanManager.addCollateral(
                 loanId,
                 collateralAmount,
-                useFreedCollateral
+                useAvailableCollateral
             );
     }
 

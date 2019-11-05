@@ -12,13 +12,13 @@ import Toggle from '../components/common/Toggle';
 import { Row, Cell } from '../components/common/Layout';
 import TextBox from '../components/common/TextBox';
 import { getService } from '../services';
-import { IToken, ILoanRecord, IFreedCollateral } from '../_stores';
+import { IToken, ILoanRecord, IAvailableCollateral } from '../_stores';
 import { calcCollateralRatio } from '../utils/calcCollateralRatio';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
   record: ILoanRecord;
-  freedCollaterals: IFreedCollateral[];
+  availableCollaterals: IAvailableCollateral[];
   isUserActionsLocked: boolean;
   tokens: IToken[];
 }
@@ -27,7 +27,7 @@ const AddCollateralForm = (props: IProps) => {
   const {
     accountAddress,
     record,
-    freedCollaterals,
+    availableCollaterals,
     isUserActionsLocked,
     tokens,
     history,
@@ -36,7 +36,7 @@ const AddCollateralForm = (props: IProps) => {
 
   // State
   const [amount, setAmount] = useState(0);
-  const [useFreedCollateral, setUseFreedCollateral] = useState(false);
+  const [useAvailableCollateral, setUseAvailableCollateral] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Computed
@@ -48,7 +48,7 @@ const AddCollateralForm = (props: IProps) => {
     token => token.tokenAddress === record.collateralTokenAddress,
   );
 
-  const freedCollateral = freedCollaterals.find(
+  const availableCollateral = availableCollaterals.find(
     collateral => collateral.tokenAddress === record.collateralTokenAddress,
   );
 
@@ -56,8 +56,8 @@ const AddCollateralForm = (props: IProps) => {
   const onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setAmount(Number.parseFloat(e.currentTarget.value));
 
-  const onUseFreedCollateralChange = (value: boolean) =>
-    setUseFreedCollateral(value);
+  const onUseAvailableCollateralChange = (value: boolean) =>
+    setUseAvailableCollateral(value);
 
   const onSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -71,7 +71,7 @@ const AddCollateralForm = (props: IProps) => {
           accountAddress,
           record.recordId,
           convertDecimalToWei(amount),
-          useFreedCollateral,
+          useAvailableCollateral,
         );
         setLoading(false);
 
@@ -155,26 +155,28 @@ const AddCollateralForm = (props: IProps) => {
             </Cell>
           </Row>
         </Form.Item>
-        <Form.Item key="use_freed_collateral">
+        <Form.Item key="use_available_collateral">
           <Row>
             <Cell>
-              <label>{t('use_freed_collateral')}</label>
+              <label>{t('use_available_collateral')}</label>
             </Cell>
             <Cell scale={3}>
               <Toggle
-                defaultValue={useFreedCollateral}
-                onChange={onUseFreedCollateralChange}
+                defaultValue={useAvailableCollateral}
+                onChange={onUseAvailableCollateralChange}
               />
             </Cell>
           </Row>
         </Form.Item>
-        <Form.Item key="freed_collateral_amount">
+        <Form.Item key="available_collateral_amount">
           <Row>
             <Cell>
-              <label>{t('freed_collateral_amount')}</label>
+              <label>{t('available_collateral_amount')}</label>
             </Cell>
             <Cell scale={3}>
-              <TextBox>{convertWeiToDecimal(freedCollateral!.amount)}</TextBox>
+              <TextBox>
+                {convertWeiToDecimal(availableCollateral!.amount)}
+              </TextBox>
             </Cell>
           </Row>
         </Form.Item>

@@ -16,7 +16,7 @@ import Button from '../components/html/Button';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import Toggle from '../components/common/Toggle';
 import { calcCollateralRatio } from '../utils/calcCollateralRatio';
-import { ILoanPair, ITerm, IToken, IFreedCollateral } from '../_stores';
+import { ILoanPair, ITerm, IToken, IAvailableCollateral } from '../_stores';
 import { getService } from '../services';
 import { stringify } from 'querystring';
 import { calcEstimateRepayAmount } from '../utils/calcEstimateRepayAmount';
@@ -25,7 +25,7 @@ interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
   loanTerms: ITerm[];
   availableLoanPairs: ILoanPair[];
-  freedCollaterals: IFreedCollateral[];
+  availableCollaterals: IAvailableCollateral[];
   isUserActionsLocked: boolean;
 }
 
@@ -34,7 +34,7 @@ const LoanForm = (props: IProps) => {
     accountAddress,
     loanTerms,
     availableLoanPairs,
-    freedCollaterals,
+    availableCollaterals,
     isUserActionsLocked,
     t,
     history,
@@ -47,7 +47,7 @@ const LoanForm = (props: IProps) => {
 
   const [collateralAmount, setCollateralAmount] = useState(0);
 
-  const [useFreedCollateral, setUseFreedCollateral] = useState(false);
+  const [useAvailableCollateral, setUseAvailableCollateral] = useState(false);
 
   const [selectedLoanToken, setSelectedLoanToken] = useState(loanTokens[0]);
 
@@ -131,10 +131,11 @@ const LoanForm = (props: IProps) => {
     ).toFixed(2)}`;
   }
 
-  const selectedFreedCollateralItem = selectedCollateralToken
-    ? freedCollaterals.find(
-        freedCollateral =>
-          freedCollateral.tokenAddress === selectedCollateralToken.tokenAddress,
+  const selectedAvailableCollateralItem = selectedCollateralToken
+    ? availableCollaterals.find(
+        availableCollateral =>
+          availableCollateral.tokenAddress ===
+          selectedCollateralToken.tokenAddress,
       )
     : null;
 
@@ -182,9 +183,9 @@ const LoanForm = (props: IProps) => {
     [setCollateralAmount],
   );
 
-  const onUseFreedCollateralChange = useCallback(
-    (value: boolean) => setUseFreedCollateral(value),
-    [setUseFreedCollateral],
+  const onUseAvailableCollateralChange = useCallback(
+    (value: boolean) => setUseAvailableCollateral(value),
+    [setUseAvailableCollateral],
   );
 
   const onSubmit = useCallback(
@@ -205,7 +206,7 @@ const LoanForm = (props: IProps) => {
           convertDecimalToWei(loanAmount),
           convertDecimalToWei(collateralAmount),
           new BigNumber(selectedTerm.value),
-          useFreedCollateral,
+          useAvailableCollateral,
         );
         setLoading(false);
 
@@ -344,24 +345,24 @@ const LoanForm = (props: IProps) => {
           <Row>
             <Form.Item>
               <Cell>
-                <label htmlFor="">{t('use_freed_collateral')}</label>
+                <label htmlFor="">{t('use_available_collateral')}</label>
               </Cell>
               <Cell>
                 <Toggle
-                  disabled={!!selectedFreedCollateralItem}
-                  defaultValue={useFreedCollateral}
-                  onChange={onUseFreedCollateralChange}
+                  disabled={!!selectedAvailableCollateralItem}
+                  defaultValue={useAvailableCollateral}
+                  onChange={onUseAvailableCollateralChange}
                 />
               </Cell>
             </Form.Item>
-            <Form.Item key="freed_collateral_amount">
+            <Form.Item key="available_collateral_amount">
               <Cell>
-                <label>{t('freed_collateral_amount')}</label>
+                <label>{t('available_collateral_amount')}</label>
               </Cell>
               <Cell>
                 <StyledTextBox>
-                  {selectedFreedCollateralItem &&
-                    convertWeiToDecimal(selectedFreedCollateralItem.amount)}
+                  {selectedAvailableCollateralItem &&
+                    convertWeiToDecimal(selectedAvailableCollateralItem.amount)}
                 </StyledTextBox>
               </Cell>
             </Form.Item>

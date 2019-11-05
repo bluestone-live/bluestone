@@ -32,8 +32,8 @@ library _LoanManager {
         mapping(bytes32 => LoanRecord) loanRecordById;
         // accountAddress -> loanIds
         mapping(address => bytes32[]) loanIdsByAccount;
-        // account -> tokenAddress -> freedCollateralamount
-        mapping(address => mapping(address => uint256)) freedCollateralsByAccount;
+        // account -> tokenAddress -> availableCollateralamount
+        mapping(address => mapping(address => uint256)) availableCollateralsByAccount;
         /// loan token -> collateral token -> enabled
         /// An loan token pair refers to loan token A using collateral B, i.e., "B -> A",
         /// Loan-related transactions can happen only if "B -> A" is enabled.
@@ -115,7 +115,7 @@ library _LoanManager {
         uint256 liquidatedAmount;
         uint256 loanInterest;
         uint256 soldCollateralAmount;
-        uint256 availableFreedCollateral;
+        uint256 availableCollateral;
         uint256 maxLoanTerm;
         bool isUnderCollateralCoverageRatio;
         bool isOverDue;
@@ -127,7 +127,7 @@ library _LoanManager {
         uint256 loanAmount;
         uint256 collateralAmount;
         uint256 loanTerm;
-        bool useFreedCollateral;
+        bool useAvailableCollateral;
         address distributorAddress;
         uint256 loanDistributorFeeRatio;
     }
@@ -135,7 +135,7 @@ library _LoanManager {
     event LoanSucceed(address indexed accountAddress, bytes32 loanId);
     event RepayLoanSucceed(address indexed accountAddress, bytes32 loanId);
     event LiquidateLoanSucceed(address indexed accountAddress, bytes32 loanId);
-    event WithdrawFreedCollateralSucceed(
+    event WithdrawAvailableCollateralSucceed(
         address indexed accountAddress,
         uint256 amount
     );
@@ -369,20 +369,20 @@ library _LoanManager {
         State storage self,
         bytes32 loanId,
         uint256 collateralAmount,
-        bool useFreedCollateral
+        bool useAvailableCollateral
     ) external returns (uint256 totalCollateralAmount) {
         uint256 remainingCollateralAmount = collateralAmount;
         address collateralTokenAddress = self.loanRecordById[loanId]
             .collateralTokenAddress;
 
-        if (useFreedCollateral) {
-            uint256 availableFreedCollateral = subtractFreedCollateral(
+        if (useAvailableCollateral) {
+            uint256 availableCollateral = subtractAvailableCollateral(
                 self,
                 msg.sender,
                 collateralTokenAddress,
                 collateralAmount
             );
-            remainingCollateralAmount -= availableFreedCollateral;
+            remainingCollateralAmount -= availableCollateral;
         }
 
         // Transfer remaining amount from user account to protocol
@@ -404,7 +404,7 @@ library _LoanManager {
         return self.loanRecordById[loanId].collateralAmount;
     }
 
-    function getFreedCollateralsByAccount(
+    function getAvailableCollateralsByAccount(
         State storage self,
         address accountAddress
     )
@@ -412,60 +412,60 @@ library _LoanManager {
         view
         returns (
             address[] memory tokenAddressList,
-            uint256[] memory freedCollateralAmountList
+            uint256[] memory availableCollateralAmountList
         )
     {
-        freedCollateralAmountList = new uint256[](
+        availableCollateralAmountList = new uint256[](
             self.collateralTokens.tokenList.length
         );
         for (uint256 i = 0; i < self.collateralTokens.tokenList.length; i++) {
-            freedCollateralAmountList[i] = self
-                .freedCollateralsByAccount[accountAddress][self
+            availableCollateralAmountList[i] = self
+                .availableCollateralsByAccount[accountAddress][self
                 .collateralTokens
                 .tokenList[i]];
         }
-        return (self.collateralTokens.tokenList, freedCollateralAmountList);
+        return (self.collateralTokens.tokenList, availableCollateralAmountList);
     }
 
-    function withdrawFreedCollateral(
+    function withdrawAvailableCollateral(
         State storage self,
         address tokenAddress,
         uint256 collateralAmount
     ) external {
-        uint256 availableFreedCollateral = self.freedCollateralsByAccount[msg
+        uint256 availableCollateral = self.availableCollateralsByAccount[msg
             .sender][tokenAddress];
 
         require(
-            availableFreedCollateral >= collateralAmount,
-            'LoanManager: Freed collateral amount is not enough'
+            availableCollateral >= collateralAmount,
+            'LoanManager: available collateral amount is not enough'
         );
 
-        self.freedCollateralsByAccount[msg.sender][tokenAddress] = self
-            .freedCollateralsByAccount[msg.sender][tokenAddress]
+        self.availableCollateralsByAccount[msg.sender][tokenAddress] = self
+            .availableCollateralsByAccount[msg.sender][tokenAddress]
             .sub(collateralAmount);
 
         // Transfer token from protocol to user.
         ERC20(tokenAddress).safeTransfer(msg.sender, collateralAmount);
 
-        // Emit the remaining freed collateral amount
-        emit WithdrawFreedCollateralSucceed(
+        // Emit the remaining available collateral amount
+        emit WithdrawAvailableCollateralSucceed(
             msg.sender,
-            self.freedCollateralsByAccount[msg.sender][tokenAddress]
+            self.availableCollateralsByAccount[msg.sender][tokenAddress]
         );
     }
 
-    function addFreedCollateral(
+    function addAvailableCollateral(
         State storage self,
         address accountAddress,
         address tokenAddress,
         uint256 amount
     ) public {
-        self.freedCollateralsByAccount[accountAddress][tokenAddress] = self
-            .freedCollateralsByAccount[accountAddress][tokenAddress]
+        self.availableCollateralsByAccount[accountAddress][tokenAddress] = self
+            .availableCollateralsByAccount[accountAddress][tokenAddress]
             .add(amount);
     }
 
-    function subtractFreedCollateral(
+    function subtractAvailableCollateral(
         State storage self,
         address accountAddress,
         address tokenAddress,
@@ -473,19 +473,19 @@ library _LoanManager {
     ) public returns (uint256) {
         require(
             amount > 0,
-            'LoanManager: The decrease in freed collateral amount must be greater than 0.'
+            'LoanManager: The decrease in available collateral amount must be greater than 0.'
         );
 
-        uint256 availableFreedCollateral = Math.min(
-            self.freedCollateralsByAccount[accountAddress][tokenAddress],
+        uint256 availableCollateral = Math.min(
+            self.availableCollateralsByAccount[accountAddress][tokenAddress],
             amount
         );
 
-        self.freedCollateralsByAccount[accountAddress][tokenAddress] = self
-            .freedCollateralsByAccount[accountAddress][tokenAddress]
-            .sub(availableFreedCollateral);
+        self.availableCollateralsByAccount[accountAddress][tokenAddress] = self
+            .availableCollateralsByAccount[accountAddress][tokenAddress]
+            .sub(availableCollateral);
 
-        return availableFreedCollateral;
+        return availableCollateral;
     }
 
     // TODO(ZhangRGK): We may need to combining params into one parameter struct
@@ -533,8 +533,8 @@ library _LoanManager {
 
         localVars.remainingCollateralAmount = loanParameters.collateralAmount;
 
-        if (loanParameters.useFreedCollateral) {
-            localVars.availableFreedCollateral = subtractFreedCollateral(
+        if (loanParameters.useAvailableCollateral) {
+            localVars.availableCollateral = subtractAvailableCollateral(
                 self,
                 msg.sender,
                 loanParameters.collateralTokenAddress,
@@ -543,7 +543,7 @@ library _LoanManager {
 
             localVars.remainingCollateralAmount = localVars
                 .remainingCollateralAmount
-                .sub(localVars.availableFreedCollateral);
+                .sub(localVars.availableCollateral);
         }
 
         localVars.loanInterestRate = configuration
@@ -769,17 +769,17 @@ library _LoanManager {
 
         if (_calculateRemainingDebt(loanRecord) == 0) {
             loanRecord.isClosed = true;
-            uint256 freedCollateralAmount = loanRecord.collateralAmount.sub(
+            uint256 availableCollateralAmount = loanRecord.collateralAmount.sub(
                 loanRecord.soldCollateralAmount
             );
 
-            if (freedCollateralAmount > 0) {
-                // Add freed collateral to loaner's account
-                addFreedCollateral(
+            if (availableCollateralAmount > 0) {
+                // Add available collateral to loaner's account
+                addAvailableCollateral(
                     self,
                     msg.sender,
                     loanRecord.collateralTokenAddress,
-                    freedCollateralAmount
+                    availableCollateralAmount
                 );
             }
 
@@ -889,17 +889,17 @@ library _LoanManager {
             // Close the loan if debt is clear
             loanRecord.isClosed = true;
 
-            uint256 freedCollateralAmount = loanRecord.collateralAmount.sub(
+            uint256 availableCollateralAmount = loanRecord.collateralAmount.sub(
                 loanRecord.soldCollateralAmount
             );
 
-            if (freedCollateralAmount > 0) {
-                // Add freed collateral to loaner's account
-                addFreedCollateral(
+            if (availableCollateralAmount > 0) {
+                // Add available collateral to loaner's account
+                addAvailableCollateral(
                     self,
                     loanRecord.ownerAddress,
                     loanRecord.collateralTokenAddress,
-                    freedCollateralAmount
+                    availableCollateralAmount
                 );
             }
 

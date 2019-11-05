@@ -7,21 +7,21 @@ import Form from '../components/html/Form';
 import { convertDecimalToWei } from '../utils/BigNumber';
 import { Cell } from '../components/common/Layout';
 import StyledTextBox from '../components/common/TextBox';
-import { IFreedCollateral, IToken } from '../_stores';
+import { IAvailableCollateral, IToken } from '../_stores';
 import { getService } from '../services';
 
 interface IProps extends WithTranslation {
   accountAddress: string;
   token: IToken;
-  freedCollaterals: IFreedCollateral[];
+  availableCollaterals: IAvailableCollateral[];
   isUserActionsLocked: boolean;
 }
 
-const WithdrawFreedCollateralForm = (props: IProps) => {
+const WithdrawAvailableCollateralForm = (props: IProps) => {
   const {
     accountAddress,
     token,
-    freedCollaterals,
+    availableCollaterals,
     isUserActionsLocked,
     t,
   } = props;
@@ -31,7 +31,7 @@ const WithdrawFreedCollateralForm = (props: IProps) => {
   const [loading, setLoading] = useState(false);
 
   // Computed
-  const freedCollateral = freedCollaterals.find(
+  const availableCollateral = availableCollaterals.find(
     collateral => collateral.tokenAddress === token.tokenAddress,
   );
 
@@ -49,7 +49,7 @@ const WithdrawFreedCollateralForm = (props: IProps) => {
       try {
         const { accountService } = await getService();
 
-        await accountService.withdrawFreedCollateral(
+        await accountService.withdrawAvailableCollateral(
           accountAddress,
           token.tokenAddress,
           convertDecimalToWei(amount),
@@ -85,7 +85,7 @@ const WithdrawFreedCollateralForm = (props: IProps) => {
           </Cell>
           <Cell scale={4}>
             <StyledTextBox>
-              {freedCollateral ? freedCollateral.amount.toString() : 0}{' '}
+              {availableCollateral ? availableCollateral.amount.toString() : 0}{' '}
               {token.tokenSymbol}
             </StyledTextBox>
           </Cell>
@@ -110,4 +110,4 @@ const WithdrawFreedCollateralForm = (props: IProps) => {
   );
 };
 
-export default withTranslation()(WithdrawFreedCollateralForm);
+export default withTranslation()(WithdrawAvailableCollateralForm);

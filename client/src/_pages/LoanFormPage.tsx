@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   IState,
   ITerm,
-  IFreedCollateral,
+  IAvailableCollateral,
   CommonActions,
   ILoanPair,
 } from '../_stores';
@@ -39,8 +39,8 @@ const LoanFormPage = (props: IProps) => {
     state => state.common.availableLoanPairs,
   );
 
-  const freedCollaterals = useSelector<IState, IFreedCollateral[]>(
-    state => state.account.freedCollaterals,
+  const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
+    state => state.account.availableCollaterals,
   );
 
   const isUserActionsLocked = useSelector<IState, boolean>(
@@ -96,7 +96,7 @@ const LoanFormPage = (props: IProps) => {
       accountAddress={defaultAccount}
       loanTerms={loanTerms}
       availableLoanPairs={availableLoanPairs}
-      freedCollaterals={freedCollaterals}
+      availableCollaterals={availableCollaterals}
       isUserActionsLocked={isUserActionsLocked}
     />
   );

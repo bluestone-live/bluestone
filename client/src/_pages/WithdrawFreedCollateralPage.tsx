@@ -1,12 +1,12 @@
 import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
-import WithdrawFreedCollateralForm from '../_containers/WithdrawFreedCollateralForm';
+import WithdrawAvailableCollateralForm from '../_containers/WithdrawAvailableCollateralForm';
 import { useSelector } from 'react-redux';
-import { IState, IToken, IFreedCollateral } from '../_stores';
+import { IState, IToken, IAvailableCollateral } from '../_stores';
 
 interface IProps extends RouteComponentProps<{ tokenAddress: string }> {}
 
-const WithdrawFreedCollateralPage = (props: IProps) => {
+const WithdrawAvailableCollateralPage = (props: IProps) => {
   const {
     match: {
       params: { tokenAddress },
@@ -26,8 +26,8 @@ const WithdrawFreedCollateralPage = (props: IProps) => {
     state => state.common.availableDepositTokens,
   );
 
-  const freedCollaterals = useSelector<IState, IFreedCollateral[]>(
-    state => state.account.freedCollaterals,
+  const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
+    state => state.account.availableCollaterals,
   );
 
   // Computed
@@ -35,13 +35,13 @@ const WithdrawFreedCollateralPage = (props: IProps) => {
 
   // TODO: show placeholder when token is invalid
   return token ? (
-    <WithdrawFreedCollateralForm
+    <WithdrawAvailableCollateralForm
       accountAddress={accountAddress}
       token={token}
-      freedCollaterals={freedCollaterals}
+      availableCollaterals={availableCollaterals}
       isUserActionsLocked={isUserActionsLocked}
     />
   ) : null;
 };
 
-export default withRouter(WithdrawFreedCollateralPage);
+export default withRouter(WithdrawAvailableCollateralPage);

@@ -19,12 +19,16 @@ contract ProtocolMock is Protocol {
         );
     }
 
-    function addFreedCollateral(
+    function addAvailableCollateral(
         address accountAddress,
         address tokenAddress,
         uint256 amount
     ) external {
-        _loanManager.addFreedCollateral(accountAddress, tokenAddress, amount);
+        _loanManager.addAvailableCollateral(
+            accountAddress,
+            tokenAddress,
+            amount
+        );
     }
 
     function getPoolById(address tokenAddress, uint256 poolId)

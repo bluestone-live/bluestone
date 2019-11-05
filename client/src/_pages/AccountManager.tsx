@@ -1,11 +1,16 @@
 import * as React from 'react';
 import Card from '../components/common/Card';
 import { Row, Cell } from '../components/common/Layout';
-import FreedCollateralList from '../_containers/FreedCollateralList';
+import AvailableCollateralList from '../_containers/AvailableCollateralList';
 import { useEffectAsync } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import { useSelector } from 'react-redux';
-import { IState, IFreedCollateral, AccountActions, IToken } from '../_stores';
+import {
+  IState,
+  IAvailableCollateral,
+  AccountActions,
+  IToken,
+} from '../_stores';
 
 export default () => {
   // Selector
@@ -13,8 +18,8 @@ export default () => {
     state => state.account.accounts[0],
   );
 
-  const freedCollaterals = useSelector<IState, IFreedCollateral[]>(
-    state => state.account.freedCollaterals,
+  const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
+    state => state.account.availableCollaterals,
   );
 
   const tokens = useSelector<IState, IToken[]>(
@@ -25,8 +30,8 @@ export default () => {
   useEffectAsync(async () => {
     const { accountService } = await getService();
 
-    AccountActions.setFreedCollaterals(
-      await accountService.getFreedCollaterals(defaultAccount),
+    AccountActions.setAvailableCollaterals(
+      await accountService.getAvailableCollaterals(defaultAccount),
     );
   });
 
@@ -35,8 +40,8 @@ export default () => {
       <Cell>{/* Statistics placeholder*/}</Cell>
       <Cell>
         <Card>
-          <FreedCollateralList
-            freedCollaterals={freedCollaterals}
+          <AvailableCollateralList
+            availableCollaterals={availableCollaterals}
             tokens={tokens}
           />
         </Card>

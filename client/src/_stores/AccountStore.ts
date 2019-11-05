@@ -6,10 +6,10 @@ enum AccountActionType {
   SetAccounts = 'SET_ACCOUNTS',
   SetGeneralStat = 'SET_GENERAL_STAT',
   SetTokenStat = 'SET_TOKEN_STAT',
-  SetFreedCollaterals = 'SET_FREED_COLLATERALS',
+  SetAvailableCollaterals = 'SET_FREED_COLLATERALS',
 }
 
-export interface IFreedCollateral {
+export interface IAvailableCollateral {
   tokenAddress: string;
   amount: BigNumber;
 }
@@ -34,7 +34,7 @@ interface IAccountState {
   accounts: string[];
   generalStats: IGeneralStats;
   tokenStats: ITokenStats[];
-  freedCollaterals: IFreedCollateral[];
+  availableCollaterals: IAvailableCollateral[];
 }
 
 const initState: IAccountState = {
@@ -45,7 +45,7 @@ const initState: IAccountState = {
     totalDefaults: '0',
   },
   tokenStats: [],
-  freedCollaterals: [],
+  availableCollaterals: [],
 };
 
 export const AccountReducer = (
@@ -55,10 +55,10 @@ export const AccountReducer = (
   switch (action.type) {
     case AccountActionType.SetAccounts:
       return replaceBy(state, { accounts: action.payload.accounts });
-    case AccountActionType.SetFreedCollaterals:
+    case AccountActionType.SetAvailableCollaterals:
       return {
         ...state,
-        freedCollaterals: action.payload.freedCollaterals,
+        availableCollaterals: action.payload.availableCollaterals,
       };
     case AccountActionType.SetGeneralStat:
       return {
@@ -86,11 +86,11 @@ export class AccountActions {
       payload: { accounts },
     };
   }
-  static setFreedCollaterals(freedCollaterals: IFreedCollateral[]) {
+  static setAvailableCollaterals(availableCollaterals: IAvailableCollateral[]) {
     return {
-      type: AccountActionType.SetFreedCollaterals,
+      type: AccountActionType.SetAvailableCollaterals,
       payload: {
-        freedCollaterals,
+        availableCollaterals,
       },
     };
   }
