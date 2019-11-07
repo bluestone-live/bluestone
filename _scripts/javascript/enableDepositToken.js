@@ -1,10 +1,10 @@
 const debug = require('debug')('script:enableDepositToken');
 const ERC20Mock = artifacts.require('./ERC20Mock.sol');
 const Protocol = artifacts.require('./Protocol.sol');
-const { loadNetworkConfig, makeTruffleScript } = require('../utils.js');
+const { loadConfig, makeTruffleScript } = require('../utils.js');
 
 module.exports = makeTruffleScript(async network => {
-  const { tokens } = loadNetworkConfig(network);
+  const { tokens } = loadConfig(network);
   const tokenSymbolList = Object.keys(tokens);
   for (symbol of tokenSymbolList) {
     let token = tokens[symbol];
