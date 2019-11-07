@@ -10,6 +10,7 @@ const LiquidityPoolsMock = artifacts.require('_LiquidityPoolsMock');
 const DepositManagerMock = artifacts.require('_DepositManagerMock');
 const LoanManagerMock = artifacts.require('_LoanManagerMock');
 const AccountManagerMock = artifacts.require('AccountManagerMock');
+const InterestModel = artifacts.require('InterestModel');
 const { deploy } = require('../_scripts/utils');
 
 module.exports = async function(deployer, network) {
@@ -57,4 +58,5 @@ module.exports = async function(deployer, network) {
   await deployer.link(AccountManager, [Protocol, AccountManagerMock]);
 
   await deploy(deployer, network, Protocol);
+  await deploy(deployer, network, InterestModel);
 };
