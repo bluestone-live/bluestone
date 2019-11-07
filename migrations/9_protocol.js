@@ -10,6 +10,7 @@ const LiquidityPoolsMock = artifacts.require('_LiquidityPoolsMock');
 const DepositManagerMock = artifacts.require('_DepositManagerMock');
 const LoanManagerMock = artifacts.require('_LoanManagerMock');
 const AccountManagerMock = artifacts.require('AccountManagerMock');
+const { deploy } = require('../_scripts/utils');
 
 // TODO(desmond): remove it after we mock every lib
 const ProtocolMock = artifacts.require('ProtocolMock');
@@ -65,4 +66,6 @@ module.exports = async function(deployer, network) {
     ProtocolMock,
     AccountManagerMock,
   ]);
+
+  await deploy(deployer, network, Protocol);
 };

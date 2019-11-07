@@ -28,6 +28,20 @@ const loadNetwork = network => {
   }
 };
 
+const saveNetwork = (network, path, value) => {
+  const debug = _debug.extend('saveNetwork');
+
+  const filePath = getNetworkFile(network);
+  const prevNetworkConfig = loadNetwork(network);
+  const updatedNetworkConfig = Immutable.setIn(prevNetworkConfig, path, value);
+
+  debug('Merging network file...');
+  fs.writeFileSync(
+    filePath,
+    `${JSON.stringify(updatedNetworkConfig, null, 2)}\n`,
+  );
+};
+
 // Deploy a contract and save contract address
 const deploy = async (deployer, network, contract, ...args) => {
   const debug = _debug.extend('deploy');
