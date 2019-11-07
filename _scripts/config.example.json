@@ -4,7 +4,8 @@
       "tokenName": "",
       "tokenAddress": null,
       "minCollateralCoverageRatio": 1.5,
-      "liquidateDiscount": 0.03
+      "liquidateDiscount": 0.03,
+      "maxLoanTerm": 365
     }
   },
   "depositTerms": [30, 60, 90],
