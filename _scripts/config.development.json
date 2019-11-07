@@ -3,19 +3,16 @@
     "DAI": {
       "tokenName": "Dai",
       "tokenAddress": "0xF551EaeaB1dA3E48E9D6DaD58be585BEE6CD679A",
-      "liquidateDiscount": 0.03,
       "maxLoanTerm": 365
     },
     "USDT": {
       "tokenName": "Tether",
       "tokenAddress": "0xaC8652B1f6605DaF980e0563b8682bf8c54c6395",
-      "liquidateDiscount": 0.03,
       "maxLoanTerm": 365
     },
     "WETH": {
       "tokenName": "Wrapped ETH",
       "tokenAddress": "0x75ce94490DA3fF115B8DE3Ae3952Aa681B569763",
-      "liquidateDiscount": 0.03,
       "maxLoanTerm": 365
     }
   },
@@ -24,22 +21,26 @@
     {
       "loanTokenSymbol": "DAI",
       "collateralTokenSymbol": "WETH",
-      "minCollateralCoverageRatio": 1.2
+      "minCollateralCoverageRatio": 1.2,
+      "liquidationDiscount": 0.03
     },
     {
       "loanTokenSymbol": "USDT",
       "collateralTokenSymbol": "WETH",
-      "minCollateralCoverageRatio": 1.5
+      "minCollateralCoverageRatio": 1.5,
+      "liquidationDiscount": 0.03
     },
     {
       "loanTokenSymbol": "USDT",
       "collateralTokenSymbol": "DAI",
-      "minCollateralCoverageRatio": 1.5
+      "minCollateralCoverageRatio": 1.5,
+      "liquidationDiscount": 0.03
     },
     {
       "loanTokenSymbol": "DAI",
       "collateralTokenSymbol": "USDT",
-      "minCollateralCoverageRatio": 1.2
+      "minCollateralCoverageRatio": 1.2,
+      "liquidationDiscount": 0.03
     }
   ],
   "protocolReserveRatio": 0.1,
