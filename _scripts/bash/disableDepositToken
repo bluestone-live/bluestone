@@ -1,0 +1,15 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+source $DIR/utils
+
+required_args=( network token_symbol )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Disable an asset for deposit. The target asset must not be already disabled."
+  example_args="development DAI"
+  show_help_message "$description" $required_args "$example_args"
+  exit 1
+fi
+
+run_truffle_script "$@"
