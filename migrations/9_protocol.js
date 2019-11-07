@@ -12,9 +12,6 @@ const LoanManagerMock = artifacts.require('_LoanManagerMock');
 const AccountManagerMock = artifacts.require('AccountManagerMock');
 const { deploy } = require('../_scripts/utils');
 
-// TODO(desmond): remove it after we mock every lib
-const ProtocolMock = artifacts.require('ProtocolMock');
-
 module.exports = async function(deployer, network) {
   // TODO(desmond): remove it once contract refactor is complete
   if (network !== 'development') {
@@ -30,7 +27,6 @@ module.exports = async function(deployer, network) {
     DepositManager,
     LoanManager,
     Protocol,
-    ProtocolMock,
     LiquidityPoolsMock,
     DepositManagerMock,
     LoanManagerMock,
@@ -42,30 +38,23 @@ module.exports = async function(deployer, network) {
 
   await deployer.link(Configuration, [
     Protocol,
-    ProtocolMock,
     ConfigurationMock,
     LoanManagerMock,
     DepositManagerMock,
   ]);
   await deployer.link(DepositManager, [
     Protocol,
-    ProtocolMock,
     DepositManagerMock,
     LoanManagerMock,
     ConfigurationMock,
   ]);
   await deployer.link(LoanManager, [
     Protocol,
-    ProtocolMock,
     DepositManagerMock,
     LoanManagerMock,
     ConfigurationMock,
   ]);
-  await deployer.link(AccountManager, [
-    Protocol,
-    ProtocolMock,
-    AccountManagerMock,
-  ]);
+  await deployer.link(AccountManager, [Protocol, AccountManagerMock]);
 
   await deploy(deployer, network, Protocol);
 };
