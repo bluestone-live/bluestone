@@ -1,0 +1,15 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+source $DIR/utils
+
+required_args=( network )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Pause protocol contract."
+  example_args="development"
+  show_help_message "$description" $required_args "$example_args"
+  exit 1
+fi
+
+run_truffle_script "$@"
