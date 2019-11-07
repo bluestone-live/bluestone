@@ -29,9 +29,7 @@
     { "loanTokenSymbol": "USDT", "collateralTokenSymbol": "DAI" },
     { "loanTokenSymbol": "DAI", "collateralTokenSymbol": "USDT" }
   ],
-  "interestModelAddress": "",
   "protocolReserveRatio": 0.1,
-  "priceOracleAddress": "",
   "maxDepositDistributorFeeRatio": 0.01,
   "maxLoanDistributorFeeRatio": 0.02
 }

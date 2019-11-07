@@ -4,6 +4,7 @@ const config = require('../config.js');
 const fs = require('fs');
 const path = require('path');
 const Immutable = require('seamless-immutable');
+const { BN } = require('web3-utils');
 
 const constants = {
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
@@ -165,6 +166,19 @@ const makeTruffleScript = fn => {
   };
 };
 
+function toFixedBN(num, significant = 18) {
+  let decimalPlaces = (num.toString().split('.')[1] || []).length;
+
+  if (decimalPlaces === 0) {
+    return new BN(num).mul(new BN(10).pow(new BN(significant)));
+  } else {
+    const integer = num * Math.pow(10, decimalPlaces);
+    return new BN(integer).mul(
+      new BN(10).pow(new BN(significant - decimalPlaces)),
+    );
+  }
+}
+
 module.exports = {
   constants,
   getTokenAddress,
@@ -174,4 +188,5 @@ module.exports = {
   loadConfig,
   mergeConfig,
   deploy,
+  toFixedBN,
 };
