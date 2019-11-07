@@ -1,0 +1,18 @@
+{
+  "tokens": {
+    "DAI": {
+      "tokenName": "",
+      "tokenAddress": null,
+      "minCollateralCoverageRatio": 1.5,
+      "liquidateDiscount": 0.03
+    }
+  },
+  "depositTerms": [30, 60, 90],
+  "loanAndCollateralTokenPairs": [],
+  "maxLoanTerm": 365,
+  "interestModelAddress": "",
+  "protocolReserveRatio": 0.1,
+  "priceOracleAddress": "",
+  "maxDepositDistributorFeeRatio": 0.01,
+  "maxLoanDistributorFeeRatio": 0.02
+}
