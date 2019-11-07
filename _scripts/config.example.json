@@ -8,7 +8,12 @@
     }
   },
   "depositTerms": [30, 60, 90],
-  "loanAndCollateralTokenPairs": [],
+  "loanAndCollateralTokenPairs": [
+    { "loanTokenSymbol": "DAI", "collateralTokenSymbol": "WETH" },
+    { "loanTokenSymbol": "USDT", "collateralTokenSymbol": "WETH" },
+    { "loanTokenSymbol": "USDT", "collateralTokenSymbol": "DAI" },
+    { "loanTokenSymbol": "DAI", "collateralTokenSymbol": "USDT" }
+  ],
   "maxLoanTerm": 365,
   "interestModelAddress": "",
   "protocolReserveRatio": 0.1,
