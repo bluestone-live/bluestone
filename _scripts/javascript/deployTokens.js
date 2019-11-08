@@ -1,10 +1,11 @@
-const debug = require('debug')('script:deployTokens');
-const ERC20Mock = artifacts.require('./ERC20Mock.sol');
-const USDTMock = artifacts.require('./USDTMock.sol');
-const WrappedEther = artifacts.require('./WrappedEther.sol');
 const { makeTruffleScript, mergeConfig, loadConfig } = require('../utils.js');
 
 module.exports = makeTruffleScript(async network => {
+  const debug = require('debug')('script:deployTokens');
+  const ERC20Mock = artifacts.require('./ERC20Mock.sol');
+  const USDTMock = artifacts.require('./USDTMock.sol');
+  const WrappedEther = artifacts.require('./WrappedEther.sol');
+
   const { tokens } = loadConfig(network);
 
   const tokenSymbolList = Object.keys(tokens);

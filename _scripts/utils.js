@@ -133,7 +133,7 @@ const makeTruffleScript = fn => {
   // The following function will be executed by truffle, the first argument
   // must be a callback function according to the doc:
   // https://truffleframework.com/docs/truffle/getting-started/writing-external-scripts
-  return async (callback = () => {}, ...testArgs) => {
+  return async (callback = () => {}, ...restArgs) => {
     const isInvokedFromCmd = process.argv[2] === 'exec';
 
     let args;
@@ -147,7 +147,7 @@ const makeTruffleScript = fn => {
       args = process.argv.slice(5);
     } else {
       // Get arguments from test suite
-      args = testArgs;
+      args = restArgs;
     }
 
     debug('Received arguments: %o', args);

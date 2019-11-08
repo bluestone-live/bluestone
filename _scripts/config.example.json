@@ -1,24 +1,22 @@
 {
   "tokens": {
     "DAI": {
-      "tokenName": "",
-      "tokenAddress": null,
-      "minCollateralCoverageRatio": 1.5,
-      "liquidateDiscount": 0.03,
+      "tokenName": "Dai",
+      "tokenAddress": "",
       "maxLoanTerm": 365
     }
   },
   "depositTerms": [30, 60, 90],
   "loanAndCollateralTokenPairs": [
-    { "loanTokenSymbol": "DAI", "collateralTokenSymbol": "WETH" },
-    { "loanTokenSymbol": "USDT", "collateralTokenSymbol": "WETH" },
-    { "loanTokenSymbol": "USDT", "collateralTokenSymbol": "DAI" },
-    { "loanTokenSymbol": "DAI", "collateralTokenSymbol": "USDT" }
+    {
+      "loanTokenSymbol": "DAI",
+      "collateralTokenSymbol": "WETH",
+      "minCollateralCoverageRatio": 1.2,
+      "liquidationDiscount": 0.03
+    }
   ],
-  "maxLoanTerm": 365,
-  "interestModelAddress": "",
   "protocolReserveRatio": 0.1,
-  "priceOracleAddress": "",
   "maxDepositDistributorFeeRatio": 0.01,
-  "maxLoanDistributorFeeRatio": 0.02
+  "maxLoanDistributorFeeRatio": 0.02,
+  "protocolAddress": ""
 }

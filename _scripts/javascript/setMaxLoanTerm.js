@@ -13,6 +13,6 @@ module.exports = makeTruffleScript(async network => {
     }
     const protocol = await Protocol.deployed();
     await protocol.setMaxLoanTerm(token.tokenAddress, token.maxLoanTerm);
-    debug(`Set max loan term: ${token.tokenSymbol} - ${token.maxLoanTerm}`);
+    debug(`Set max loan term: ${symbol} - ${token.maxLoanTerm}`);
   }
 });
