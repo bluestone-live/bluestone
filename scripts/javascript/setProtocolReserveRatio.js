@@ -1,11 +1,12 @@
 const debug = require('debug')('script:setProtocolReserveRatio');
-const Configuration = artifacts.require('./Configuration.sol');
-const { makeTruffleScript } = require('./utils.js');
+const ERC20Mock = artifacts.require('./ERC20Mock.sol');
+const Protocol = artifacts.require('./Protocol.sol');
+const { loadConfig, makeTruffleScript, toFixedBN } = require('../utils.js');
 
-module.exports = makeTruffleScript(async (_, decimalValue) => {
-  const configuration = await Configuration.deployed();
-  const scaledValue = web3.utils.toBN(decimalValue * Math.pow(10, 18));
-
-  debug(`Setting protocol reserve ratio to ${decimalValue}...`);
-  await configuration.setProtocolReserveRatio(scaledValue);
+module.exports = makeTruffleScript(async network => {
+  const { protocolReserveRatio } = loadConfig(network);
+  const protocol = await Protocol.deployed();
+  debug(`Set protocol reserve ratio to ${protocolReserveRatio}`);
+  await protocol.setProtocolReserveRatio(toFixedBN(protocolReserveRatio));
+  debug(`Protocol reserve ratio is set`);
 });

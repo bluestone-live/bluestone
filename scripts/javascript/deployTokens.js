@@ -1,30 +1,32 @@
-const debug = require('debug')('script:deployTokens');
-const ERC20Mock = artifacts.require('./ERC20Mock.sol');
-const WrappedEther = artifacts.require('./WrappedEther.sol');
-const { makeTruffleScript, mergeNetworkConfig } = require('./utils.js');
-const { configuration } = require('../../config.js');
+const { makeTruffleScript, mergeConfig, loadConfig } = require('../utils.js');
 
 module.exports = makeTruffleScript(async network => {
-  const { tokens } = configuration;
+  const debug = require('debug')('script:deployTokens');
+  const ERC20Mock = artifacts.require('./ERC20Mock.sol');
+  const USDTMock = artifacts.require('./USDTMock.sol');
+  const WrappedEther = artifacts.require('./WrappedEther.sol');
+
+  const { tokens } = loadConfig(network);
 
   const tokenSymbolList = Object.keys(tokens);
-
-  for (let i = 0; i < tokenSymbolList.length; i++) {
-    const symbol = tokenSymbolList[i];
-    const { name } = tokens[symbol];
-    let deployedToken;
-
+  for (symbol of tokenSymbolList) {
+    let token = tokens[symbol];
     if (symbol === 'WETH') {
       deployedToken = await WrappedEther.new();
+    } else if (symbol === 'USDT') {
+      deployedToken = await USDTMock.new(token.tokenName, symbol);
     } else {
-      deployedToken = await ERC20Mock.new(name, symbol);
+      deployedToken = await ERC20Mock.new(token.tokenName, symbol);
     }
-
     debug(`Deployed ${symbol} at ${deployedToken.address}`);
-    tokens[symbol].address = deployedToken.address;
-  }
+    tokens[symbol].tokenAddress = deployedToken.address;
 
-  mergeNetworkConfig(network, ['tokens'], tokens);
+    mergeConfig(
+      network,
+      ['tokens', symbol, 'tokenAddress'],
+      deployedToken.address,
+    );
+  }
 
   return tokens;
 });

@@ -1,17 +1,16 @@
 const debug = require('debug')('script:setUserActionsLock');
-const { makeTruffleScript } = require('./utils.js');
-const Configuration = artifacts.require('./Configuration.sol');
+const { makeTruffleScript } = require('../utils.js');
+const Protocol = artifacts.require('./Protocol.sol');
 
 module.exports = makeTruffleScript(async (_, isLockUserActions) => {
-  const configuration = await Configuration.deployed();
+  const protocol = await Protocol.deployed();
 
-  if (isLockUserActions === '1') {
-    await configuration.lockAllUserActions();
-  } else if (isLockUserActions === '0') {
-    await configuration.unlockAllUserActions();
+  if (isLockUserActions === 'lock') {
+    await protocol.lockUserActions();
+  } else if (isLockUserActions === 'unlock') {
+    await protocol.unlockUserActions();
   } else {
-    throw new Error(
-      'User actions lock status number should be: 0 - unlock, 1 - lock ',
-    );
+    throw new Error('Invalid user actions lock status, expect lock / unlock');
   }
+  debug(`User actions ${isLockUserActions}ed`);
 });

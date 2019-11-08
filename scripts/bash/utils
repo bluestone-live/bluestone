@@ -6,12 +6,12 @@ function show_help_message {
   example_args=$3
 
   echo "Description: $description"
-  
+
   formatted_args=""
 
   for arg in "${required_args[@]}"
   do
-    formatted_args="$formatted_args<$arg> " 
+    formatted_args="$formatted_args<$arg> "
   done
 
   curr_bash_file=`basename "$0"`

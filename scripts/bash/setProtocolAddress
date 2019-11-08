@@ -3,11 +3,12 @@
 DIR=`dirname $0`
 source $DIR/utils
 
-required_args=( network address )
+required_args=( network )
 
 if [ $# -ne ${#required_args[@]} ]; then
   description="Set protocol address."
-  show_help_message "$description" $required_args
+  example_args="development"
+  show_help_message "$description" $required_args "$example_args"
   exit 1
 fi
 

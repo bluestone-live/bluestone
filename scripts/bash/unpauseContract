@@ -3,11 +3,11 @@
 DIR=`dirname $0`
 source $DIR/utils
 
-required_args=( network contract_name )
+required_args=( network )
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Unpause a contract that inherits from Pausable contract."
-  example_args="development DepositManager"
+  description="Unpause Protocol contract."
+  example_args="development"
   show_help_message "$description" $required_args "$example_args"
   exit 1
 fi

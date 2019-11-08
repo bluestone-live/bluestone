@@ -3,7 +3,7 @@
 DIR=`dirname $0`
 source $DIR/utils
 
-required_args=( network decimal_value )
+required_args=( network )
 
 if [ $# -ne ${#required_args[@]} ]; then
   description="Set protocol reserve ratio."

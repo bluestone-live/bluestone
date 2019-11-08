@@ -1,10 +1,11 @@
 const debug = require('debug')('script:postTokenPrices');
-const PriceOracle = artifacts.require('./PriceOracle.sol');
+const PriceOracle = artifacts.require('./_PriceOracle.sol');
 const {
+  loadConfig,
   fetchTokenPrices,
-  getTokenAddress,
   makeTruffleScript,
-} = require('./utils.js');
+  toFixedBN,
+} = require('../utils.js');
 
 /**
  * Given a list of tokens, each with name and deployed address,
@@ -13,21 +14,16 @@ const {
  * 2. Scale the price by 10**18 and convert to BN instance
  * 3. Post the price to PriceOracle contract
  */
-module.exports = makeTruffleScript(async () => {
-  const tokenSymbolList = ['ETH', 'DAI', 'USDT'];
-  let tokenAddressList = [];
-
-  for (let i = 0; i < tokenSymbolList.length; i++) {
-    const symbol = tokenSymbolList[i];
-    const address = await getTokenAddress(symbol);
-    tokenAddressList.push(address);
-  }
+module.exports = makeTruffleScript(async network => {
+  const { tokens } = loadConfig(network);
+  const tokenSymbolList = Object.keys(tokens);
+  const tokenAddressList = tokenSymbolList.map(
+    tokenSymbol => tokens[tokenSymbol].tokenAddress,
+  );
 
   const priceList = await fetchTokenPrices(tokenSymbolList, 'USD');
 
-  const scaledPriceList = priceList
-    .map(decimal => decimal * Math.pow(10, 18))
-    .map(web3.utils.toBN);
+  const scaledPriceList = priceList.map(price => toFixedBN(price).toString());
 
   const priceOracle = await PriceOracle.deployed();
 

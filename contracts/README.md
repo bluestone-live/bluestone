@@ -2,8 +2,6 @@
 
 This directory contains smart contracts written in [Solidity](https://solidity.readthedocs.io/en/latest/).
 
-Notice that the `_refactor` folder contains the latest contract code to address the first round of auditing feedback. Old code will be removed shortly.
-
 ### Current state
 
 Core functionalities have been implemented and unit tested, but further work is needed to test and optimize gas usage. We are working with our auditing team to ensure the security and quality of our contracts.

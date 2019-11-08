@@ -6,7 +6,7 @@ source $DIR/utils
 required_args=( network is_lock_user_actions )
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Set user actions lock status to 0 - unlock, 1 - lock"
+  description="Set user actions lock status to unlock or lock"
   show_help_message "$description" $required_args
   exit 1
 fi
