@@ -545,6 +545,39 @@ contract Protocol is Ownable, Pausable {
         return _configuration.protocolAddress;
     }
 
+    function getInterestModelAddress()
+        external
+        view
+        whenNotPaused
+        returns (address interestModel)
+    {
+        return address(_configuration.interestModel);
+    }
+
+    function getPriceOracleAddress()
+        external
+        view
+        whenNotPaused
+        returns (address priceOracleAddress)
+    {
+        return _configuration.priceOracleAddress;
+    }
+
+    function getMaxDistributorFeeRatios()
+        external
+        view
+        whenNotPaused
+        returns (
+            uint256 maxDepositDistributorFeeRatio,
+            uint256 maxLoanDistributorFeeRatio
+        )
+    {
+        return (
+            _configuration.maxDepositDistributorFeeRatio,
+            _configuration.maxLoanDistributorFeeRatio
+        );
+    }
+
     function getProtocolReserveRatio()
         external
         view

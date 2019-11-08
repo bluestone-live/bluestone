@@ -1029,6 +1029,7 @@ library LoanManager {
                 k++;
             }
         }
+        // The returned result needs to be matched by Cartesian product
         return (
             loanTokenAddressList,
             collateralTokenAddressList,
