@@ -5,6 +5,7 @@ import '../impl/lib/LiquidityPools.sol';
 import '../impl/lib/DepositManager.sol';
 import '../impl/lib/LoanManager.sol';
 import '../impl/lib/AccountManager.sol';
+import '../interface/IPriceOracle.sol';
 
 contract ConfigurationMock {
     using Configuration for Configuration.State;
@@ -21,8 +22,8 @@ contract ConfigurationMock {
     LoanManager.LoanParameters _loanParameters;
     DepositManager.DepositParameters _depositParameters;
 
-    function setPriceOracleAddress(address priceOracleAddress) external {
-        _configuration.setPriceOracleAddress(priceOracleAddress);
+    function setPriceOracle(IPriceOracle priceOracle) external {
+        _configuration.setPriceOracle(priceOracle);
     }
 
     function setProtocolAddress(address protocolAddress) external {
@@ -66,7 +67,7 @@ contract ConfigurationMock {
         view
         returns (address priceOracleAddress)
     {
-        return _configuration.priceOracleAddress;
+        return address(_configuration.priceOracle);
     }
 
     function setMaxDistributorFeeRatios(

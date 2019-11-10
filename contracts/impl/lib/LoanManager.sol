@@ -161,70 +161,14 @@ library LoanManager {
         return liquidityPools.poolGroups[tokenAddress].numPools;
     }
 
-    function getLoanRecordById(
-        State storage self,
-        Configuration.State storage configuration,
-        bytes32 loanId
-    )
+    function getLoanRecordById(State storage self, bytes32 loanId)
         external
         view
         returns (
             address loanTokenAddress,
             address collateralTokenAddress,
             uint256 loanTerm,
-            uint256 collateralAmount,
-            uint256 createdAt,
-            uint256 remainingDebt,
-            uint256 currentCollateralRatio,
-            bool isLiquidatable,
-            bool isOverDue,
-            bool isClosed
-        )
-    {
-        (
-            loanTokenAddress,
-            collateralTokenAddress,
-            loanTerm,
-            collateralAmount,
-            createdAt
-        ) = _getLoanBasicInfoById(self, loanId);
-
-        PriceOracle priceOracle = PriceOracle(configuration.priceOracleAddress);
-
-        (
-            remainingDebt,
-            currentCollateralRatio,
-            isLiquidatable,
-            isOverDue,
-            isClosed
-        ) = _getLoanExtraInfoById(
-            self,
-            loanId,
-            priceOracle.getPrice(loanTokenAddress),
-            priceOracle.getPrice(collateralTokenAddress)
-        );
-
-        return (
-            loanTokenAddress,
-            collateralTokenAddress,
-            loanTerm,
-            collateralAmount,
-            createdAt,
-            remainingDebt,
-            currentCollateralRatio,
-            isLiquidatable,
-            isOverDue,
-            isClosed
-        );
-    }
-
-    function _getLoanBasicInfoById(State storage self, bytes32 loanId)
-        internal
-        view
-        returns (
-            address loanTokenAddress,
-            address collateralTokenAddress,
-            uint256 loanTerm,
+            uint256 loanAmount,
             uint256 collateralAmount,
             uint256 createdAt
         )
@@ -240,16 +184,16 @@ library LoanManager {
             loanRecord.loanTokenAddress,
             loanRecord.collateralTokenAddress,
             loanRecord.loanTerm,
+            loanRecord.loanAmount,
             loanRecord.collateralAmount,
             loanRecord.createdAt
         );
     }
 
-    function _getLoanExtraInfoById(
+    function getLoanRecordDetailsById(
         State storage self,
-        bytes32 loanId,
-        uint256 loanTokenPrice,
-        uint256 collateralTokenPrice
+        Configuration.State storage configuration,
+        bytes32 loanId
     )
         internal
         view
@@ -273,6 +217,12 @@ library LoanManager {
             // If loan is closed, collateral coverage ratio becomes meaningless
             currentCollateralRatio = 0;
         } else {
+            uint256 collateralTokenPrice = configuration.priceOracle.getPrice(
+                loanRecord.collateralTokenAddress
+            );
+            uint256 loanTokenPrice = configuration.priceOracle.getPrice(
+                loanRecord.loanTokenAddress
+            );
             currentCollateralRatio = loanRecord
                 .collateralAmount
                 .sub(loanRecord.soldCollateralAmount)
@@ -561,11 +511,10 @@ library LoanManager {
             .mul(loanParameters.loanTerm)
             .div(365);
 
-        PriceOracle priceOracle = PriceOracle(configuration.priceOracleAddress);
-        localVars.loanTokenPrice = priceOracle.getPrice(
+        localVars.loanTokenPrice = configuration.priceOracle.getPrice(
             loanParameters.loanTokenAddress
         );
-        localVars.collateralTokenPrice = priceOracle.getPrice(
+        localVars.collateralTokenPrice = configuration.priceOracle.getPrice(
             loanParameters.collateralTokenAddress
         );
 
@@ -827,13 +776,11 @@ library LoanManager {
 
         require(!loanRecord.isClosed, 'LoanManager: loan already closed');
 
-        PriceOracle priceOracle = PriceOracle(configuration.priceOracleAddress);
-
         LocalVars memory localVars;
-        localVars.loanTokenPrice = priceOracle.getPrice(
+        localVars.loanTokenPrice = configuration.priceOracle.getPrice(
             loanRecord.loanTokenAddress
         );
-        localVars.collateralTokenPrice = priceOracle.getPrice(
+        localVars.collateralTokenPrice = configuration.priceOracle.getPrice(
             loanRecord.collateralTokenAddress
         );
 

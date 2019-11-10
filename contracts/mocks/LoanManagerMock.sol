@@ -6,6 +6,7 @@ import '../impl/lib/DepositManager.sol';
 import '../impl/lib/LoanManager.sol';
 import '../impl/lib/AccountManager.sol';
 import '../interface/IInterestModel.sol';
+import '../interface/IPriceOracle.sol';
 
 contract LoanManagerMock {
     using Configuration for Configuration.State;
@@ -117,8 +118,18 @@ contract LoanManagerMock {
             address loanTokenAddress,
             address collateralTokenAddress,
             uint256 loanTerm,
+            uint256 loanAmount,
             uint256 collateralAmount,
-            uint256 createdAt,
+            uint256 createdAt
+        )
+    {
+        return _loanManager.getLoanRecordById(loanId);
+    }
+
+    function getLoanRecordDetailsById(bytes32 loanId)
+        external
+        view
+        returns (
             uint256 remainingDebt,
             uint256 currentCollateralRatio,
             bool isLiquidatable,
@@ -126,7 +137,7 @@ contract LoanManagerMock {
             bool isClosed
         )
     {
-        return _loanManager.getLoanRecordById(_configuration, loanId);
+        return _loanManager.getLoanRecordDetailsById(_configuration, loanId);
     }
 
     function getLoanRecordsByAccount(address accountAddress)
@@ -270,8 +281,8 @@ contract LoanManagerMock {
             );
     }
 
-    function setPriceOracleAddress(address priceOracleAddress) external {
-        _configuration.setPriceOracleAddress(priceOracleAddress);
+    function setPriceOracle(IPriceOracle priceOracle) external {
+        _configuration.setPriceOracle(priceOracle);
     }
 
     function initPoolGroupIfNeeded(address tokenAddress, uint256 numPools)

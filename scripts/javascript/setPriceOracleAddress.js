@@ -9,6 +9,6 @@ module.exports = makeTruffleScript(async network => {
     return debug('Price oracle is not deployed yet');
   }
   const protocol = await Protocol.deployed();
-  await protocol.setPriceOracleAddress(PriceOracleAddress);
+  await protocol.setPriceOracle(PriceOracleAddress);
   return debug('Price oracle is set');
 });

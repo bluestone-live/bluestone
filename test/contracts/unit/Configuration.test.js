@@ -17,20 +17,13 @@ contract('Configuration', function([owner]) {
     priceOracle = await PriceOracle.new();
   });
 
-  describe('#setPriceOracleAddress', () => {
-    context('when address is invalid', () => {
-      it('reverts', async () => {
-        await expectRevert(
-          configuration.setProtocolAddress(constants.ZERO_ADDRESS),
-          'Configuration: invalid protocol address',
-        );
-      });
-    });
-
+  describe('#setPriceOracle', () => {
     context('when address is valid', () => {
       it('succeeds', async () => {
-        await configuration.setPriceOracleAddress(owner);
-        expect(await configuration.getPriceOracleAddress()).to.equal(owner);
+        await configuration.setPriceOracle(priceOracle.address);
+        expect(await configuration.getPriceOracleAddress()).to.equal(
+          priceOracle.address,
+        );
       });
     });
   });

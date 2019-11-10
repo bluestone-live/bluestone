@@ -1,9 +1,9 @@
 pragma solidity ^0.5.0;
 
 import './IInterestModel.sol';
+import './IPriceOracle.sol';
 
 /// @title Interface for main protocol
-/// TODO (ZhangRGK): change to interface after all method implement
 contract IProtocol {
     /// --- Deposit ---
 
@@ -90,8 +90,6 @@ contract IProtocol {
     /// @return tokenAddress
     /// @return depositTerm
     /// @return depositAmount
-    /// @return withdrewAmount
-    /// @return protocolReserveRatio
     /// @return poolId
     /// @return createdAt
     /// @return maturedAt
@@ -105,8 +103,6 @@ contract IProtocol {
             address tokenAddress,
             uint256 depositTerm,
             uint256 depositAmount,
-            uint256 withdrewAmount,
-            uint256 protocolReserveRatio,
             uint256 poolId,
             uint256 createdAt,
             uint256 maturedAt,
@@ -169,6 +165,19 @@ contract IProtocol {
         address loanTokenAddress,
         address collateralTokenAddress
     ) external;
+
+    /// @notice Set maximum loan term for a token
+    /// @param tokenAddress Token address
+    /// @param maxLoanTerm Maximum loan term
+    function setMaxLoanTerm(address tokenAddress, uint256 maxLoanTerm) external;
+
+    /// @notice Get maximum loan term of a token
+    /// @param tokenAddress Token address
+    /// @return maxLoanTerm
+    function getMaxLoanTerm(address tokenAddress)
+        external
+        view
+        returns (uint256 maxLoanTerm);
 
     /// @notice Set minimum collateral coverage ratio for each loan and collateral token pair
     /// @param loanTokenAddress A loan token addresses
@@ -257,16 +266,15 @@ contract IProtocol {
             uint256[] memory availableCollateralAmountList
         );
 
-    /// @notice Return details of a loan
-    /// @param loanId ID that identifies the loan
+    /// @notice Return basic info of a loan record
+    /// @param loanId ID that identifies the loan record
     /// @return loanTokenAddress
     /// @return collateralTokenAddress
     /// @return loanTerm
     /// @return loanAmount
     /// @return collateralAmount
-    /// @return interest
-    /// @return remainingDebt
     /// @return createdAt
+    /// @return remainingDebt
     /// @return isLiquidatable
     /// @return isOverDue
     /// @return isClose
@@ -279,9 +287,21 @@ contract IProtocol {
             uint256 loanTerm,
             uint256 loanAmount,
             uint256 collateralAmount,
-            uint256 interest,
+            uint256 createdAt
+        );
+
+    /// @notice Return extra details of a loan record
+    /// @param loanId ID that identifies the loan record
+    /// @return remainingDebt
+    /// @return currentCollateralRatio,
+    /// @return isLiquidatable
+    /// @return isOverDue
+    /// @return isClosed
+    function getLoanRecordDetailsById(bytes32 loanId)
+        external
+        view
+        returns (
             uint256 remainingDebt,
-            uint256 createdAt,
             uint256 currentCollateralRatio,
             bool isLiquidatable,
             bool isOverDue,
@@ -293,22 +313,8 @@ contract IProtocol {
     /// @return loanTokenAddressList
     /// @return collateralTokenAddressList
     /// @return loanTermList
-    /// @return loanAmountList
-    /// @return collateralAmountList
-    /// @return annualInterestRateList
-    /// @return interestList
-    /// @return minCollateralRatioList
-    /// @return liquidationDiscountList
-    /// @return alreadyPaidAmountList
-    /// @return liquidatedAmountList
-    /// @return soldCollateralAmountList
     /// @return remainingDebtList
     /// @return createdAtList
-    /// @return lastInterestUpdatedAtList
-    /// @return lastRepaidAtList
-    /// @return lastLiquidatedAtList
-    /// @return isLiquidatableList
-    /// @return isOverDueList
     /// @return isCloseList
     function getLoanRecordsByAccount(address accountAddress)
         external
@@ -318,31 +324,10 @@ contract IProtocol {
             address[] memory loanTokenAddressList,
             address[] memory collateralTokenAddressList,
             uint256[] memory loanTermList,
-            uint256[] memory loanAmountList,
-            uint256[] memory collateralAmountList,
-            uint256[] memory annualInterestRateList,
-            uint256[] memory interestList,
-            uint256[] memory minCollateralRatioList,
-            uint256[] memory liquidationDiscountList,
-            uint256[] memory alreadyPaidAmountList,
-            uint256[] memory liquidatedAmountList,
-            uint256[] memory soldCollateralAmountList,
             uint256[] memory remainingDebtList,
             uint256[] memory createdAtList,
-            uint256[] memory lastInterestUpdatedAtList,
-            uint256[] memory lastRepaidAtList,
-            uint256[] memory lastLiquidatedAtList,
-            bool[] memory isLiquidatableList,
-            bool[] memory isOverDueList,
             bool[] memory isCloseList
         );
-
-    /// @notice Return a list of enabled loan terms
-    /// @return loanTermList A list of enabled loan terms
-    function getLoanTerms()
-        external
-        view
-        returns (uint256[] memory loanTermList);
 
     /// @notice Return details for each loan and collateral token pair
     /// @return loanTokenAddressList A list of loan token addresses
@@ -372,7 +357,7 @@ contract IProtocol {
 
     /// @notice Return loan interest rate for given token
     /// @return loanInterestRate loan interest rate
-    function getLoanInterestRatel(address tokenAddress, uint256 term)
+    function getLoanInterestRate(address tokenAddress, uint256 term)
         external
         view
         returns (uint256 loanInterestRate);
@@ -380,8 +365,8 @@ contract IProtocol {
     /// --- Configuration ---
 
     /// @notice Set price oracle address
-    /// @param priceOracleAddress Price oracle address
-    function setPriceOracleAddress(address priceOracleAddress) external;
+    /// @param priceOracle Price oracle
+    function setPriceOracle(IPriceOracle priceOracle) external;
 
     /// @notice Set interest model
     /// @param interestModel Interest model

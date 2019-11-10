@@ -1,6 +1,7 @@
 pragma solidity ^0.5.0;
 
 import '../../interface/IInterestModel.sol';
+import '../../interface/IPriceOracle.sol';
 
 library Configuration {
     struct State {
@@ -11,23 +12,17 @@ library Configuration {
         // Lock all functionalities related to deposit, loan and liquidating.
         bool isUserActionsLocked;
         address protocolAddress;
-        address priceOracleAddress;
+        IPriceOracle priceOracle;
         IInterestModel interestModel;
     }
 
     event LockUserActions();
     event UnlockUserActions();
 
-    function setPriceOracleAddress(
-        State storage self,
-        address priceOracleAddress
-    ) external {
-        require(
-            priceOracleAddress != address(0),
-            'Configuration: invalid price oracle address'
-        );
-
-        self.priceOracleAddress = priceOracleAddress;
+    function setPriceOracle(State storage self, IPriceOracle priceOracle)
+        external
+    {
+        self.priceOracle = priceOracle;
     }
 
     function setProtocolAddress(State storage self, address protocolAddress)

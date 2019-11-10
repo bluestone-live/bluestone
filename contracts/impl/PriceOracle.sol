@@ -1,10 +1,11 @@
 pragma solidity ^0.5.0;
 
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import '../interface/IPriceOracle.sol';
 
 /// Stores token prices submitted by a poster.
 /// Note this is a minimal implementation, expect to add more sophiscated price check.
-contract PriceOracle is Ownable {
+contract PriceOracle is IPriceOracle, Ownable {
     // Token address -> USD price in the scale of 1e18
     mapping(address => uint256) private _priceByTokenAddress;
 

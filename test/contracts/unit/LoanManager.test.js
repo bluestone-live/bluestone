@@ -91,7 +91,7 @@ contract('LoanManager', function([
         collateralToken = await createERC20Token(loaner, initialSupply);
         await priceOracle.setPrice(loanToken.address, toFixedBN(10));
         await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-        await loanManager.setPriceOracleAddress(priceOracle.address);
+        await loanManager.setPriceOracle(priceOracle.address);
         await loanManager.enableDepositToken(loanToken.address);
         await loanManager.enableDepositTerm(depositTerm);
         await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
@@ -148,13 +148,8 @@ contract('LoanManager', function([
         expect(record.loanTokenAddress).to.equal(loanToken.address);
         expect(record.collateralTokenAddress).to.equal(collateralToken.address);
         expect(record.loanTerm.toString()).to.equal(loanTerm.toString());
+        expect(record.loanAmount).to.bignumber.equal(loanAmount);
         expect(record.collateralAmount).to.bignumber.equal(collateralAmount);
-        expect(record.remainingDebt).to.bignumber.equal(
-          loanAmount.add(interest),
-        );
-        expect(record.isLiquidatable).to.be.false;
-        expect(record.isOverDue).to.be.false;
-        expect(record.isClosed).to.be.false;
       });
     });
 
@@ -206,7 +201,7 @@ contract('LoanManager', function([
         collateralToken = await createERC20Token(loaner, initialSupply);
         await priceOracle.setPrice(loanToken.address, toFixedBN(10));
         await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-        await loanManager.setPriceOracleAddress(priceOracle.address);
+        await loanManager.setPriceOracle(priceOracle.address);
         await loanManager.enableDepositToken(loanToken.address);
         await loanManager.enableDepositTerm(depositTerm);
         await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
@@ -289,7 +284,7 @@ contract('LoanManager', function([
       collateralToken = await createERC20Token(loaner, initialSupply);
       await priceOracle.setPrice(loanToken.address, toFixedBN(10));
       await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-      await loanManager.setPriceOracleAddress(priceOracle.address);
+      await loanManager.setPriceOracle(priceOracle.address);
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableDepositTerm(depositTerm);
       await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
@@ -637,7 +632,7 @@ contract('LoanManager', function([
       collateralToken = await createERC20Token(loaner, initialSupply);
       await priceOracle.setPrice(loanToken.address, toFixedBN(10));
       await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-      await loanManager.setPriceOracleAddress(priceOracle.address);
+      await loanManager.setPriceOracle(priceOracle.address);
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableDepositTerm(depositTerm);
       await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
@@ -709,7 +704,7 @@ contract('LoanManager', function([
       collateralToken = await createERC20Token(loaner, initialSupply);
       await priceOracle.setPrice(loanToken.address, toFixedBN(10));
       await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-      await loanManager.setPriceOracleAddress(priceOracle.address);
+      await loanManager.setPriceOracle(priceOracle.address);
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableLoanAndCollateralTokenPair(
         loanToken.address,
@@ -759,7 +754,9 @@ contract('LoanManager', function([
     // How about if a loan pair disabled?
     context('when loan and collateral token pair is enabled', () => {
       it('repays fully', async () => {
-        const prevLoanRecord = await loanManager.getLoanRecordById(loanId);
+        const prevLoanRecord = await loanManager.getLoanRecordDetailsById(
+          loanId,
+        );
         const prevDistributorBalance = await loanToken.balanceOf(
           distributorAddress,
         );
@@ -783,7 +780,9 @@ contract('LoanManager', function([
           loanId: loanId,
         });
 
-        const currLoanRecord = await loanManager.getLoanRecordById(loanId);
+        const currLoanRecord = await loanManager.getLoanRecordDetailsById(
+          loanId,
+        );
         expect(currLoanRecord.remainingDebt).to.bignumber.equal(new BN(0));
         expect(currLoanRecord.isClosed).to.be.true;
         expect(
@@ -814,7 +813,7 @@ contract('LoanManager', function([
       await loanToken.mint(liquidator, initialSupply);
       await priceOracle.setPrice(loanToken.address, toFixedBN(10));
       await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-      await loanManager.setPriceOracleAddress(priceOracle.address);
+      await loanManager.setPriceOracle(priceOracle.address);
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableLoanAndCollateralTokenPair(
         loanToken.address,
@@ -867,7 +866,9 @@ contract('LoanManager', function([
       });
 
       it('liquidates fully', async () => {
-        const prevLoanRecord = await loanManager.getLoanRecordById(loanId);
+        const prevLoanRecord = await loanManager.getLoanRecordDetailsById(
+          loanId,
+        );
 
         await loanToken.approve(
           loanManager.address,
@@ -888,7 +889,9 @@ contract('LoanManager', function([
           loanId: loanId,
         });
 
-        const currLoanRecord = await loanManager.getLoanRecordById(loanId);
+        const currLoanRecord = await loanManager.getLoanRecordDetailsById(
+          loanId,
+        );
         expect(currLoanRecord.remainingDebt).to.bignumber.equal(new BN(0));
         expect(currLoanRecord.isClosed).to.be.true;
       });

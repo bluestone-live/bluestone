@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
 import '../interface/IProtocol.sol';
+import '../interface/IPriceOracle.sol';
 import '../interface/IInterestModel.sol';
 import './lib/Configuration.sol';
 import './lib/LiquidityPools.sol';
@@ -12,8 +13,7 @@ import './lib/AccountManager.sol';
 import './PriceOracle.sol';
 
 /// @title Main contract
-/// TODO(ZhangRGK): add IProtocol to interface implemention after all method implement
-contract Protocol is Ownable, Pausable {
+contract Protocol is IProtocol, Ownable, Pausable {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
     using DepositManager for DepositManager.State;
@@ -80,6 +80,29 @@ contract Protocol is Ownable, Pausable {
         onlyOwner
     {
         _depositManager.updateDepositMaturity(_liquidityPools);
+    }
+
+    function deposit(
+        address tokenAddress,
+        uint256 depositAmount,
+        uint256 depositTerm
+    )
+        external
+        whenNotPaused
+        whenUserActionsUnlocked
+        returns (bytes32 depositId)
+    {
+        _depositParameters.tokenAddress = tokenAddress;
+        _depositParameters.depositAmount = depositAmount;
+        _depositParameters.depositTerm = depositTerm;
+
+        return
+            _depositManager.deposit(
+                _liquidityPools,
+                _accountManager,
+                _configuration,
+                _depositParameters
+            );
     }
 
     function deposit(
@@ -289,6 +312,16 @@ contract Protocol is Ownable, Pausable {
             );
     }
 
+    function withdrawAvailableCollateral(
+        address tokenAddress,
+        uint256 collateralAmount
+    ) external whenNotPaused whenUserActionsUnlocked {
+        _loanManager.withdrawAvailableCollateral(
+            tokenAddress,
+            collateralAmount
+        );
+    }
+
     function getAvailableCollateralsByAccount(address accountAddress)
         external
         view
@@ -299,16 +332,6 @@ contract Protocol is Ownable, Pausable {
         )
     {
         return _loanManager.getAvailableCollateralsByAccount(accountAddress);
-    }
-
-    function withdrawAvailableCollateral(
-        address tokenAddress,
-        uint256 collateralAmount
-    ) external whenNotPaused whenUserActionsUnlocked {
-        _loanManager.withdrawAvailableCollateral(
-            tokenAddress,
-            collateralAmount
-        );
     }
 
     function getLoanInterestRate(address tokenAddress, uint256 term)
@@ -361,8 +384,19 @@ contract Protocol is Ownable, Pausable {
             address loanTokenAddress,
             address collateralTokenAddress,
             uint256 loanTerm,
+            uint256 loanAmount,
             uint256 collateralAmount,
-            uint256 createdAt,
+            uint256 createdAt
+        )
+    {
+        return _loanManager.getLoanRecordById(loanId);
+    }
+
+    function getLoanRecordDetailsById(bytes32 loanId)
+        external
+        view
+        whenNotPaused
+        returns (
             uint256 remainingDebt,
             uint256 currentCollateralRatio,
             bool isLiquidatable,
@@ -370,7 +404,7 @@ contract Protocol is Ownable, Pausable {
             bool isClosed
         )
     {
-        return _loanManager.getLoanRecordById(_configuration, loanId);
+        return _loanManager.getLoanRecordDetailsById(_configuration, loanId);
     }
 
     function getLoanRecordsByAccount(address accountAddress)
@@ -486,12 +520,12 @@ contract Protocol is Ownable, Pausable {
     }
 
     /// --- Configuration ---
-    function setPriceOracleAddress(address priceOracleAddress)
+    function setPriceOracle(IPriceOracle priceOracle)
         external
         whenNotPaused
         onlyOwner
     {
-        _configuration.setPriceOracleAddress(priceOracleAddress);
+        _configuration.setPriceOracle(priceOracle);
     }
 
     function setInterestModel(IInterestModel interestModel)
@@ -560,7 +594,7 @@ contract Protocol is Ownable, Pausable {
         whenNotPaused
         returns (address priceOracleAddress)
     {
-        return _configuration.priceOracleAddress;
+        return address(_configuration.priceOracle);
     }
 
     function getMaxDistributorFeeRatios()
