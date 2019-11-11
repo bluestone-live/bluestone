@@ -4,7 +4,7 @@ const { loadNetwork, makeTruffleScript } = require('../utils.js');
 
 module.exports = makeTruffleScript(async network => {
   const { contracts } = loadNetwork(network);
-  let PriceOracleAddress = contracts._PriceOracle;
+  let PriceOracleAddress = contracts.PriceOracle;
   if (!PriceOracleAddress) {
     return debug('Price oracle is not deployed yet');
   }

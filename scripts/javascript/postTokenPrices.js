@@ -1,5 +1,5 @@
 const debug = require('debug')('script:postTokenPrices');
-const PriceOracle = artifacts.require('./_PriceOracle.sol');
+const PriceOracle = artifacts.require('./PriceOracle.sol');
 const {
   loadConfig,
   fetchTokenPrices,

@@ -16,7 +16,7 @@ config.js
 
 # ethereum network configs
 networks/development.json
-_scripts/config.development.json
+scripts/config.development.json
 
 # contract build files
 client/src/contracts

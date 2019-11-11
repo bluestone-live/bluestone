@@ -163,9 +163,9 @@ module.exports = makeTruffleScript(async network => {
 
   const priceOracleAddress = await protocol.getPriceOracleAddress();
 
-  if (contracts._PriceOracle !== priceOracleAddress) {
+  if (contracts.PriceOracle !== priceOracleAddress) {
     return debug(
-      `PriceOracleAddress: expect ${contracts._PriceOracle}, got ${priceOracleAddress}`,
+      `PriceOracleAddress: expect ${contracts.PriceOracle}, got ${priceOracleAddress}`,
     );
   }
 
