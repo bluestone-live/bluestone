@@ -11,7 +11,7 @@ import {
   IState,
   IToken,
   ILoanRecord,
-} from '../_stores';
+} from '../stores';
 import { useSelector } from 'react-redux';
 import { calcCollateralRatio } from '../utils/calcCollateralRatio';
 import { convertWeiToDecimal } from '../utils/BigNumber';

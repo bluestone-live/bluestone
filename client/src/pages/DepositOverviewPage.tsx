@@ -4,12 +4,11 @@ import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import Button from '../components/html/Button';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { TokenStore, AccountStore, DepositManagerStore } from '../stores';
+import { CommonActions, IState, IToken, ITerm } from '../stores';
 import Card from '../components/common/Card';
 import Radio from '../components/common/Radio';
 import { getService } from '../services';
 import { useDispatch, useSelector } from 'react-redux';
-import { CommonActions, IState, IToken, ITerm } from '../_stores';
 import { BigNumber } from '../utils/BigNumber';
 import { useEffectAsync } from '../utils/useEffectAsync';
 
@@ -60,11 +59,7 @@ const StyledButton = styled(Button)`
   margin: 0 ${(props: ThemedProps) => props.theme.gap.small};
 `;
 
-interface IProps extends WithTranslation, RouteComponentProps {
-  tokenStore: TokenStore;
-  accountStore: AccountStore;
-  depositManagerStore: DepositManagerStore;
-}
+interface IProps extends WithTranslation, RouteComponentProps {}
 
 const DepositOverviewPage = (props: IProps) => {
   const { t } = props;

@@ -1,7 +1,7 @@
 import { BigNumber } from '../../utils/BigNumber';
 import { EventName, MetaMaskProvider } from '../../utils/MetaMaskProvider';
-import { IFreedCollateral } from '../../_stores';
-import { freedCollateralPipe } from './Pipes';
+import { IAvailableCollateral } from '../../stores';
+import { availableCollateralPipe } from './Pipes';
 
 export class AccountService {
   constructor(private readonly provider: MetaMaskProvider) {}
@@ -47,41 +47,41 @@ export class AccountService {
   }
 
   /**
-   * Get freed collateral amount per token
+   * Get available collateral amount per token
    * @param accountAddress account address
    * @returns tokenAddressList: all available collateral token address
-   * @returns freedCollateralAmountList: freed collateral amount of each token
+   * @returns availableCollateralAmountList: available collateral amount of each token
    */
-  async getFreedCollaterals(
+  async getAvailableCollaterals(
     accountAddress: string,
-  ): Promise<IFreedCollateral[]> {
-    return freedCollateralPipe(
+  ): Promise<IAvailableCollateral[]> {
+    return availableCollateralPipe(
       this.provider.protocol.methods
-        .getFreedCollateralsByAccount(accountAddress)
+        .getAvailableCollateralsByAccount(accountAddress)
         .call(),
     );
   }
 
   /**
-   * Withdraw freed collateral
+   * Withdraw available collateral
    * @param accountAddress Account address
    * @param tokenAddress The token user want to withdraw
    * @param collateralAmount withdraw amount
    */
-  async withdrawFreedCollateral(
+  async withdrawAvailableCollateral(
     accountAddress: string,
     tokenAddress: string,
     collateralAmount: BigNumber,
   ) {
     const flow = await this.provider.getContractEventFlow(
-      EventName.WithdrawFreedCollateralSuccessful,
+      EventName.WithdrawAvailableCollateralSuccessful,
       {
         filter: { user: accountAddress },
       },
     );
     return flow(protocol =>
       protocol.methods
-        .withdrawFreedCollateral(tokenAddress, collateralAmount)
+        .withdrawAvailableCollateral(tokenAddress, collateralAmount)
         .send({ from: accountAddress }),
     );
   }

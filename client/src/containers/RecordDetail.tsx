@@ -11,7 +11,7 @@ import {
   IDepositRecord,
   ITransaction,
   ILoanRecord,
-} from '../_stores';
+} from '../stores';
 import { getService } from '../services';
 import { ZERO } from '../utils/BigNumber';
 import { withRouter, RouteComponentProps } from 'react-router';

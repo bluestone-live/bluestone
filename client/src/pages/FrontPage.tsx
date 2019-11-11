@@ -46,12 +46,12 @@ const FrontPage = (props: WithTranslation) => {
   return (
     <Portal>
       <StyledEntry>
-        <Anchor to="/deposit-assets">
+        <Anchor to="/deposit-overview">
           <StyledTextBox>{props.t('portal_page_deposit')}</StyledTextBox>
         </Anchor>
       </StyledEntry>
       <StyledEntry>
-        <Anchor to="/loan-assets">
+        <Anchor to="/loan-overview">
           <StyledTextBox>{props.t('portal_page_borrow')}</StyledTextBox>
         </Anchor>
       </StyledEntry>

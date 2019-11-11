@@ -1,6 +1,6 @@
 import { BigNumber } from '../../utils/BigNumber';
 import { depositTokenPipe } from './Pipes';
-import { IToken, ILoanPair } from '../../_stores';
+import { IToken, ILoanPair } from '../../stores';
 import { EventName, MetaMaskProvider } from '../../utils/MetaMaskProvider';
 
 export class CommonService {

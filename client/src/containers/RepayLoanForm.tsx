@@ -16,7 +16,7 @@ import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import { Cell } from '../components/common/Layout';
 import { getService } from '../services';
-import { ILoanRecord, IToken } from '../_stores';
+import { ILoanRecord, IToken } from '../stores';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;

@@ -5,7 +5,7 @@ import Button from '../components/html/Button';
 import { RouteComponentProps, withRouter } from 'react-router';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
-import { IAvailableCollateral, IToken } from '../_stores';
+import { IAvailableCollateral, IToken } from '../stores';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   availableCollaterals: IAvailableCollateral[];

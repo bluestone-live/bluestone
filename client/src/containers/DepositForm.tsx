@@ -1,172 +1,138 @@
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
+import React, { useCallback, useState } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import {
-  RecordStore,
-  TokenStore,
-  ConfigurationStore,
-  DepositManagerStore,
-} from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Radio from '../components/common/Radio';
-import { ITerm } from '../constants/Term';
 import Button from '../components/html/Button';
 import { convertDecimalToWei, BigNumber } from '../utils/BigNumber';
 import Form from '../components/html/Form';
 import { Cell } from '../components/common/Layout';
 import { stringify } from 'querystring';
+import { IToken, ITerm } from '../stores';
+import { getService } from '../services';
 
-interface IProps
-  extends WithTranslation,
-    RouteComponentProps<{ tokenSymbol: string }> {
-  recordStore?: RecordStore;
-  tokenStore?: TokenStore;
-  configurationStore?: ConfigurationStore;
-  depositManagerStore?: DepositManagerStore;
+interface IProps extends WithTranslation, RouteComponentProps {
+  accountAddress: string;
+  currentToken: IToken;
+  depositTerms: ITerm[];
+  isUserActionsLocked: boolean;
 }
 
-interface IState {
-  selectedTerm: ITerm;
-  amount: number;
-  loading: boolean;
-}
+const DepositForm = (props: IProps) => {
+  const {
+    accountAddress,
+    currentToken,
+    depositTerms,
+    isUserActionsLocked,
+    history,
+    t,
+  } = props;
 
-@inject(
-  'recordStore',
-  'tokenStore',
-  'configurationStore',
-  'depositManagerStore',
-)
-@observer
-class DepositForm extends React.Component<IProps, IState> {
-  state = {
-    selectedTerm: this.props.depositManagerStore!.depositTerms[0],
-    amount: 0,
-    loading: false,
-  };
+  // State
+  const [depositAmount, setDepositAmount] = useState(0);
 
-  componentDidMount() {
-    const { match, history } = this.props;
+  const [selectedTerm, setSelectedTerm] = useState();
 
-    if (!match.params.tokenSymbol) {
-      history.replace(`/deposit/ETH`);
-    }
-  }
+  const [loading, setLoading] = useState(false);
 
-  onTermSelect = (value: number) => {
-    this.setState({
-      selectedTerm: {
+  // Callback
+  const onAmountChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setDepositAmount(Number.parseFloat(e.currentTarget.value)),
+    [],
+  );
+
+  const onTermSelect = useCallback(
+    (value: number) =>
+      setSelectedTerm({
         text: `${value}-Day`,
         value,
-      },
-    });
-  };
+      }),
+    [setSelectedTerm],
+  );
 
-  onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    this.setState({
-      amount: Number.parseFloat(e.currentTarget.value),
-    });
+  const onSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
 
-  onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+      setLoading(true);
+      try {
+        const { depositService } = await getService();
 
-    const { recordStore, tokenStore, match, history } = this.props;
-    const currentToken = tokenStore!.getToken(match.params.tokenSymbol);
-    const { selectedTerm, amount } = this.state;
+        const recordId = await depositService.deposit(
+          accountAddress,
+          currentToken.tokenAddress,
+          convertDecimalToWei(depositAmount),
+          new BigNumber(selectedTerm.value),
+        );
 
-    this.setState({
-      loading: true,
-    });
+        setLoading(false);
 
-    try {
-      const record = await recordStore!.deposit(
-        currentToken!,
-        new BigNumber(selectedTerm.value),
-        convertDecimalToWei(amount),
-      );
+        history.push({
+          pathname: '/records/deposit',
+          search: stringify({
+            currentToken: currentToken.tokenAddress,
+            recordId,
+          }),
+        });
+      } catch (e) {
+        setLoading(false);
+      }
+    },
+    [setLoading],
+  );
 
-      this.setState({
-        loading: false,
-      });
-
-      history.push({
-        pathname: '/records/deposit',
-        search: stringify({
-          currentToken: currentToken!.address,
-          recordAddress: record!.recordAddress,
-        }),
-      });
-    } catch (e) {
-      this.setState({
-        loading: false,
-      });
-    }
-  };
-
-  render() {
-    const {
-      tokenStore,
-      configurationStore,
-      depositManagerStore,
-      match,
-      t,
-    } = this.props;
-    const currentToken = tokenStore!.getToken(match.params.tokenSymbol);
-    const { selectedTerm, loading } = this.state;
-
-    return (
-      <Card>
-        <Form onSubmit={this.onSubmit}>
-          <Form.Item>
-            <Cell>
-              <label htmlFor="amount">{t('deposit_amount')}</label>
-            </Cell>
-            <Cell scale={4}>
-              <Input
-                fullWidth
-                id="amount"
-                type="number"
-                step={1e-18}
-                min={1e-18}
-                onChange={this.onAmountChange}
-                suffix={currentToken!.symbol}
-              />
-            </Cell>
-          </Form.Item>
-          <Form.Item>
-            <Cell>
-              <label>{t('select_term')}</label>
-            </Cell>
-            <Cell scale={4}>
-              <Radio<number>
-                name="term"
-                options={depositManagerStore!.depositTerms}
-                onChange={this.onTermSelect}
-                selectedOption={selectedTerm}
-              />
-            </Cell>
-          </Form.Item>
-          <Form.Item>
-            <Cell>
-              <label />
-            </Cell>
-            <Cell scale={4}>
-              <Button
-                primary
-                fullWidth
-                disabled={configurationStore!.isUserActionsLocked}
-                loading={loading}
-              >
-                {t('submit')}
-              </Button>
-            </Cell>
-          </Form.Item>
-        </Form>
-      </Card>
-    );
-  }
-}
+  return (
+    <Card>
+      <Form onSubmit={onSubmit}>
+        <Form.Item>
+          <Cell>
+            <label htmlFor="amount">{t('deposit_amount')}</label>
+          </Cell>
+          <Cell scale={4}>
+            <Input
+              fullWidth
+              id="amount"
+              type="number"
+              step={1e-18}
+              min={1e-18}
+              onChange={onAmountChange}
+              suffix={currentToken.tokenSymbol}
+            />
+          </Cell>
+        </Form.Item>
+        <Form.Item>
+          <Cell>
+            <label>{t('select_term')}</label>
+          </Cell>
+          <Cell scale={4}>
+            <Radio<number>
+              name="term"
+              options={depositTerms}
+              onChange={onTermSelect}
+              selectedOption={selectedTerm}
+            />
+          </Cell>
+        </Form.Item>
+        <Form.Item>
+          <Cell>
+            <label />
+          </Cell>
+          <Cell scale={4}>
+            <Button
+              primary
+              fullWidth
+              disabled={isUserActionsLocked}
+              loading={loading}
+            >
+              {t('submit')}
+            </Button>
+          </Cell>
+        </Form.Item>
+      </Form>
+    </Card>
+  );
+};
 
 export default withTranslation()(withRouter(DepositForm));

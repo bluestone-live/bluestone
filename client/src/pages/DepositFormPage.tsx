@@ -3,9 +3,9 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffectAsync } from '../utils/useEffectAsync';
-import { IState, IToken, CommonActions, ITerm } from '../_stores';
+import { IState, IToken, CommonActions, ITerm } from '../stores';
 import { getService } from '../services';
-import DepositForm from '../_containers/DepositForm';
+import DepositForm from '../containers/DepositForm';
 
 interface IProps
   extends WithTranslation,

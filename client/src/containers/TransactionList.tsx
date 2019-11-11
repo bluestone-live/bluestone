@@ -1,14 +1,20 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { ITransaction } from '../constants/Transaction';
 import { Row, Cell } from '../components/common/Layout';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import dayjs from 'dayjs';
-import { IRecord, IDepositRecord, ILoanRecord } from '../constants/Record';
 import { EventName } from '../constants/Event';
+import {
+  IRecord,
+  ILoanRecord,
+  IToken,
+  IDepositRecord,
+  ITransaction,
+} from '../stores';
 
 interface IProps extends WithTranslation {
+  tokens: IToken[];
   record: IRecord;
   transactions: ITransaction[];
 }
@@ -46,6 +52,7 @@ const renderTransactionDescription = (
   t: any,
   transaction: ITransaction,
   record: IRecord,
+  tokens: IToken[],
 ) => {
   if (
     [EventName.RepayLoanSuccessful, EventName.LoanSuccessful].indexOf(
@@ -53,23 +60,34 @@ const renderTransactionDescription = (
     ) >= 0
   ) {
     const loanRecord = record as ILoanRecord;
+    const loanToken = tokens.find(
+      token => token.tokenAddress === loanRecord.loanTokenAddress,
+    );
     return t(`transaction_list_${transaction.event}`, {
       amount: transaction.amount,
-      symbol: loanRecord.loanToken.symbol,
+      symbol: loanToken && loanToken.tokenSymbol,
     });
   } else if (
     [EventName.AddCollateralSuccessful].indexOf(transaction.event) >= 0
   ) {
     const loanRecord = record as ILoanRecord;
+    const collateralToken = tokens.find(
+      token => token.tokenAddress === loanRecord.collateralTokenAddress,
+    );
+
     return t(`transaction_list_${transaction.event}`, {
       amount: transaction.amount,
-      symbol: loanRecord.collateralToken.symbol,
+      symbol: collateralToken && collateralToken.tokenSymbol,
     });
   } else {
     const depositRecord = record as IDepositRecord;
+    const depositToken = tokens.find(
+      token => token.tokenAddress === depositRecord.tokenAddress,
+    );
+
     return t(`transaction_list_${transaction.event}`, {
       amount: transaction.amount,
-      symbol: depositRecord.token.symbol,
+      symbol: depositToken && depositToken.tokenSymbol,
     });
   }
 };
@@ -83,7 +101,12 @@ const TransactionList = (props: IProps) => {
       {props.transactions.map(transaction => (
         <StyledRow key={transaction.transactionHash}>
           <Cell>
-            {renderTransactionDescription(props.t, transaction, props.record)}
+            {renderTransactionDescription(
+              props.t,
+              transaction,
+              props.record,
+              props.tokens,
+            )}
           </Cell>
           <Cell>
             <StyledExternalLink

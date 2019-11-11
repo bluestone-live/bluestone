@@ -1,8 +1,8 @@
 import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
-import RepayLoanForm from '../_containers/RepayLoanForm';
+import RepayLoanForm from '../containers/RepayLoanForm';
 import { useSelector } from 'react-redux';
-import { IState, ILoanRecord, IToken } from '../_stores';
+import { IState, ILoanRecord, IToken } from '../stores';
 
 interface IProps extends RouteComponentProps<{ recordId: string }> {}
 

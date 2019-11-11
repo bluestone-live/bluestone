@@ -7,7 +7,7 @@ import Form from '../components/html/Form';
 import { convertDecimalToWei } from '../utils/BigNumber';
 import { Cell } from '../components/common/Layout';
 import StyledTextBox from '../components/common/TextBox';
-import { IAvailableCollateral, IToken } from '../_stores';
+import { IAvailableCollateral, IToken } from '../stores';
 import { getService } from '../services';
 
 interface IProps extends WithTranslation {

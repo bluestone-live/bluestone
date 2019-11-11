@@ -37,7 +37,7 @@ export class LoanService {
     loanAmount: BigNumber,
     collateralAmount: BigNumber,
     loanTerm: BigNumber,
-    useFreedCollateral: boolean,
+    useAvailableCollateral: boolean,
   ): Promise<string> {
     return this.provider.protocol.methods
       .loan(
@@ -46,7 +46,7 @@ export class LoanService {
         loanAmount,
         collateralAmount,
         loanTerm,
-        useFreedCollateral,
+        useAvailableCollateral,
       )
       .send({ from: accountAddress });
   }
@@ -67,10 +67,10 @@ export class LoanService {
     accountAddress: string,
     loanId: string,
     collateralAmount: BigNumber,
-    useFreedCollateral: boolean,
+    useAvailableCollateral: boolean,
   ): Promise<BigNumber> {
     return this.provider.protocol.methods
-      .addCollateral(loanId, collateralAmount, useFreedCollateral)
+      .addCollateral(loanId, collateralAmount, useAvailableCollateral)
       .send({ from: accountAddress });
   }
 }

@@ -1,8 +1,8 @@
 import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
-import WithdrawAvailableCollateralForm from '../_containers/WithdrawAvailableCollateralForm';
+import WithdrawAvailableCollateralForm from '../containers/WithdrawAvailableCollateralForm';
 import { useSelector } from 'react-redux';
-import { IState, IToken, IAvailableCollateral } from '../_stores';
+import { IState, IToken, IAvailableCollateral } from '../stores';
 
 interface IProps extends RouteComponentProps<{ tokenAddress: string }> {}
 

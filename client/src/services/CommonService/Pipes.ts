@@ -1,4 +1,4 @@
-import { IToken, ILoanPair } from '../../_stores';
+import { IToken, ILoanPair } from '../../stores';
 import { ERC20Factory } from '../../utils/MetaMaskProvider';
 import { BigNumber } from '../../utils/BigNumber';
 import { isAllEqual } from '../../utils/isAllEqual';

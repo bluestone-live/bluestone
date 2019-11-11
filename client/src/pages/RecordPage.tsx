@@ -1,38 +1,36 @@
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
+import React, { useCallback } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { withRouter, RouteComponentProps } from 'react-router';
-import {
-  RecordStore,
-  TransactionStore,
-  TokenStore,
-  AccountStore,
-  ConfigurationStore,
-} from '../stores';
 import Card from '../components/common/Card';
 import Radio from '../components/common/Radio';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
-import DepositDetailPanel from '../containers/DepositDetailPanel';
-import { toJS } from 'mobx';
 import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
-import { IDropdownOption } from '../components/common/Dropdown';
-import LoanDetailPanel from '../containers/LoanDetailPanel';
-import Button from '../components/html/Button';
+import { useEffectAsync } from '../utils/useEffectAsync';
+import { useSelector } from 'react-redux';
+import {
+  IState,
+  IToken,
+  IDepositRecord,
+  ILoanRecord,
+  IRecord,
+  ITransaction,
+} from '../stores';
+import { getService } from '../services';
+import { Row, Cell } from '../components/common/Layout';
+import Dropdown, { IDropdownOption } from '../components/common/Dropdown';
+import RecordList from '../containers/RecordList';
+import RecordItem from '../containers/RecordItem';
+import RecordDetail from '../containers/RecordDetail';
 
 interface IProps
   extends WithTranslation,
-    RouteComponentProps<{ recordType: string }> {
-  recordStore: RecordStore;
-  transactionStore: TransactionStore;
-  tokenStore: TokenStore;
-  accountStore: AccountStore;
-  configurationStore: ConfigurationStore;
-}
+    RouteComponentProps<{ recordType: string }> {}
 
-interface IState {
-  recordType: string;
+enum RecordType {
+  Deposit = 'deposit',
+  Loan = 'loan',
 }
 
 const StyledCard = styled(Card)`
@@ -43,203 +41,217 @@ const StyledCard = styled(Card)`
   justify-content: space-between;
 `;
 
-const StyledBox = styled.div`
-  width: 100px;
-  flex: 1;
-  text-align: right;
+const StyledRow = styled(Row)`
+  width: 100%;
 `;
 
-const StyledButton = styled(Button)`
-  margin-left: ${(props: ThemedProps) => props.theme.gap.medium};
+const StyledListWrapper = styled(Cell)`
+  border-right: 1px solid
+    ${(props: ThemedProps) => props.theme.borderColor.primary};
 `;
 
-@inject(
-  'recordStore',
-  'transactionStore',
-  'tokenStore',
-  'accountStore',
-  'configurationStore',
-)
-@observer
-class RecordPage extends React.Component<IProps, IState> {
-  componentDidMount() {
-    this.setDefaultToken();
-    this.getDetailRecords();
-    this.getFreedCollateral();
-  }
+const StyledDropDown = styled(Dropdown)`
+  border-radius: 0;
+  border-width: 0 0 1px 0;
+`;
 
-  componentDidUpdate() {
-    this.setDefaultToken();
-    this.getDetailRecords();
-    this.getFreedCollateral();
-  }
+const RecordPage = (props: IProps) => {
+  const {
+    location,
+    history,
+    match: {
+      params: { recordType },
+    },
+    t,
+  } = props;
 
-  getDetailRecords = async () => {
-    const {
-      match: {
-        params: { recordType },
-      },
-      recordStore,
-    } = this.props;
-    if (recordType === 'loan') {
-      return recordStore.getLoanRecords();
-    } else if (recordType === 'deposit') {
-      return recordStore.getDepositRecords();
-    }
-  };
+  const recordTypeOptions = [
+    {
+      text: t('deposit'),
+      value: RecordType.Deposit,
+    },
+    {
+      text: t('loan'),
+      value: RecordType.Loan,
+    },
+  ];
 
-  getFreedCollateral = () => {
-    const { tokenStore, accountStore } = this.props;
-    const { currentToken } = parseQuery(location.search);
+  const selectedOption = recordTypeOptions.find(
+    type => type.value === recordType,
+  );
 
-    const selectedToken = tokenStore.getTokenByAddress(currentToken);
+  // Selector
+  const depositTokens = useSelector<IState, IToken[]>(
+    state => state.common.availableDepositTokens,
+  );
 
+  const defaultAccount = useSelector<IState, string>(
+    state => state.account.accounts[0],
+  );
+
+  const depositRecords = useSelector<IState, IDepositRecord[]>(
+    state => state.deposit.depositRecords,
+  );
+
+  const loanRecords = useSelector<IState, ILoanRecord[]>(
+    state => state.loan.loanRecords,
+  );
+
+  const transactions = useSelector<IState, ITransaction[]>(
+    state => state.transaction.transactions,
+  );
+
+  const isUserActionsLocked = useSelector<IState, boolean>(
+    state => state.common.isUserActionsLocked,
+  );
+
+  // Initialize
+  useEffectAsync(async () => {
+    const { depositService, loanService } = await getService();
+
+    // Set default token if needed
     if (!selectedToken) {
-      return;
-    }
-
-    return accountStore.getFreedCollateral(selectedToken);
-  };
-
-  setDefaultToken = () => {
-    const { location, history, tokenStore } = this.props;
-
-    const { currentToken } = parseQuery(location.search);
-
-    const selectedToken = tokenStore.getTokenByAddress(currentToken);
-
-    if (!selectedToken) {
-      const defaultToken = tokenStore.validTokens[0];
+      const defaultToken = depositTokens[0];
 
       history.push({
         pathname: location.pathname,
         search: stringify({
-          currentToken: defaultToken.address,
+          tokenAddress: defaultToken.tokenAddress,
         }),
       });
     }
-  };
 
-  recordTypeChangeHandler = (recordType: string) => {
-    const { location, history } = this.props;
+    // Get records
+    await depositService.getDepositRecordsByAccount(defaultAccount);
+    await loanService.getLoanRecordsByAccount(defaultAccount);
+  });
 
-    const { currentToken } = parseQuery(location.search);
+  // State
 
-    history.push({
-      pathname: `/records/${recordType}`,
-      search: stringify({
-        currentToken,
-      }),
-    });
-  };
+  // Computed
 
-  recordTypeOptions = [
-    {
-      text: this.props.t('deposit'),
-      value: 'deposit',
-    },
-    {
-      text: this.props.t('loan'),
-      value: 'loan',
-    },
+  const { tokenAddress, recordId } = parseQuery(location.search);
+
+  const selectedToken = depositTokens.find(
+    token => token.tokenAddress === tokenAddress,
+  );
+
+  const selectedRecord = (depositRecords as IRecord[])
+    .concat(loanRecords)
+    .find(record => record.recordId === recordId);
+
+  const depositColumns = ['token', 'term', 'amount', 'matured_at'];
+
+  const loanColumns = [
+    'borrow',
+    'collateral',
+    'collateral_ratio',
+    'expired_at',
   ];
 
-  onRecordSelected = (recordAddress: string) => {
-    const { history, location } = this.props;
-    history.push({
-      pathname: location.pathname,
-      search: stringify({
-        ...parseQuery(location.search),
-        recordAddress,
+  // Callback
+  const onRecordTypeChange = useCallback(
+    (type: RecordType) => {
+      history.push({
+        pathname: `/records/${type}`,
+        search: stringify({
+          tokenAddress,
+        }),
+      });
+    },
+    [RecordType, tokenAddress],
+  );
+
+  const onCurrentTokenChange = useCallback(
+    (token: IDropdownOption) => {
+      history.push({
+        pathname: location.pathname,
+        search: stringify({
+          ...parseQuery(location.search),
+          tokenAddress: token.key,
+        }),
+      });
+    },
+    [history],
+  );
+
+  const onRecordSelected = useCallback(
+    (record: IRecord) =>
+      history.push({
+        pathname: location.pathname,
+        search: stringify({
+          ...parseQuery(location.search),
+          recordId: record.recordId,
+        }),
       }),
-    });
-  };
+    [history],
+  );
 
-  onCurrentTokenChange = (token: IDropdownOption) => {
-    const { history, location } = this.props;
-
-    history.push({
-      pathname: location.pathname,
-      search: stringify({
-        ...parseQuery(location.search),
-        currentToken: token.key,
-      }),
-    });
-  };
-
-  showDetailPanel = () => {
-    const {
-      match: {
-        params: { recordType },
-      },
-      location: { search },
-      recordStore,
-      tokenStore,
-    } = this.props;
-
-    const { currentToken, recordAddress } = parseQuery(search);
-
-    if (recordType === 'deposit') {
-      return (
-        <DepositDetailPanel
-          onRecordSelected={this.onRecordSelected}
-          selectedRecordAddress={recordAddress}
-          recordStore={recordStore}
-          depositRecords={toJS(recordStore.depositRecords)}
-          validTokens={toJS(tokenStore.validTokens)}
-          currentToken={currentToken}
-          onCurrentTokenChange={this.onCurrentTokenChange}
-        />
-      );
-    }
-    return (
-      <LoanDetailPanel
-        onRecordSelected={this.onRecordSelected}
-        selectedRecordAddress={recordAddress}
-        recordStore={recordStore}
-        loanRecords={toJS(recordStore.loanRecords)}
-        validTokens={toJS(tokenStore.validTokens)}
-        currentToken={currentToken}
-        onCurrentTokenChange={this.onCurrentTokenChange}
+  const renderRow = useCallback(
+    (record: IRecord) => (
+      <RecordItem
+        record={record}
+        selectedRecordId={recordId}
+        onRecordSelected={onRecordSelected}
       />
-    );
-  };
+    ),
+    [onRecordSelected],
+  );
 
-  goTo = (path: string) => () => {
-    this.props.history.push(path);
-  };
-
-  render() {
-    const {
-      match: {
-        params: { recordType },
-      },
-      location,
-    } = this.props;
-    const selectedOption = this.recordTypeOptions.find(
-      option => option.value === recordType,
-    );
-
-    const { currentToken } = parseQuery(location.search);
-
-    if (!currentToken) {
-      return null;
-    }
-
-    return (
-      <div className="detail-page">
-        <StyledCard>
-          <Radio<string>
-            name="recordType"
-            onChange={this.recordTypeChangeHandler}
-            options={this.recordTypeOptions}
-            selectedOption={selectedOption}
-          />
-        </StyledCard>
-        <StyledCard>{this.showDetailPanel()}</StyledCard>
-      </div>
-    );
-  }
-}
-
+  return (
+    <div className="detail-page">
+      <StyledCard>
+        <Radio<RecordType>
+          name="recordType"
+          onChange={onRecordTypeChange}
+          options={recordTypeOptions}
+          selectedOption={selectedOption}
+        />
+      </StyledCard>
+      <StyledCard>
+        <StyledRow>
+          <StyledListWrapper>
+            <StyledDropDown
+              options={depositTokens.map(token => ({
+                text: token.tokenSymbol,
+                key: token.tokenAddress,
+              }))}
+              onSelected={onCurrentTokenChange}
+            >
+              {selectedToken ? selectedToken.tokenSymbol : ''}
+            </StyledDropDown>
+            {selectedOption && (
+              <RecordList
+                columns={
+                  selectedOption.value === RecordType.Deposit
+                    ? depositColumns
+                    : loanColumns
+                }
+                records={
+                  selectedOption && selectedOption.value === RecordType.Deposit
+                    ? depositRecords
+                    : loanRecords
+                }
+                renderRow={renderRow}
+              />
+            )}
+          </StyledListWrapper>
+          <Cell scale={1.5}>
+            {recordId && selectedRecord && (
+              <RecordDetail
+                accountAddress={defaultAccount}
+                record={selectedRecord}
+                transactionsForRecord={transactions.filter(
+                  tx => tx.recordId === recordId,
+                )}
+                tokens={depositTokens}
+                isUserActionsLocked={isUserActionsLocked}
+              />
+            )}
+          </Cell>
+        </StyledRow>
+      </StyledCard>
+    </div>
+  );
+};
 export default withTranslation()(withRouter(RecordPage));

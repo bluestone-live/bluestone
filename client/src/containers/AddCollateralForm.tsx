@@ -1,258 +1,205 @@
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
+import React, { useCallback, useState } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { RecordStore, ConfigurationStore, AccountStore } from '../stores';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
-import { RecordType } from '../constants/Record';
-import { toJS } from 'mobx';
 import dayjs from 'dayjs';
-import {
-  convertDecimalToWei,
-  convertWeiToDecimal,
-  BigNumber,
-} from '../utils/BigNumber';
+import { convertDecimalToWei, convertWeiToDecimal } from '../utils/BigNumber';
 import { stringify } from 'querystring';
 import Toggle from '../components/common/Toggle';
 import { Row, Cell } from '../components/common/Layout';
 import TextBox from '../components/common/TextBox';
+import { getService } from '../services';
+import { IToken, ILoanRecord, IAvailableCollateral } from '../stores';
 import { calcCollateralRatio } from '../utils/calcCollateralRatio';
 
-interface IProps
-  extends WithTranslation,
-    RouteComponentProps<{ recordAddress: string }> {
-  recordStore?: RecordStore;
-  configurationStore?: ConfigurationStore;
-  accountStore?: AccountStore;
+interface IProps extends WithTranslation, RouteComponentProps {
+  accountAddress: string;
+  record: ILoanRecord;
+  availableCollaterals: IAvailableCollateral[];
+  isUserActionsLocked: boolean;
+  tokens: IToken[];
 }
 
-interface IState {
-  amount: number;
-  useFreedCollateral: boolean;
-  formSubmitting: boolean;
-}
+const AddCollateralForm = (props: IProps) => {
+  const {
+    accountAddress,
+    record,
+    availableCollaterals,
+    isUserActionsLocked,
+    tokens,
+    history,
+    t,
+  } = props;
 
-@inject('accountStore', 'recordStore', 'configurationStore')
-@observer
-class AddCollateralForm extends React.Component<IProps, IState> {
-  state = {
-    amount: 0,
-    useFreedCollateral: false,
-    formSubmitting: false,
-  };
+  // State
+  const [amount, setAmount] = useState(0);
+  const [useAvailableCollateral, setUseAvailableCollateral] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  async componentDidMount() {
-    const { recordStore, match } = this.props;
-    await recordStore!.updateLoanRecordByAddress(match.params.recordAddress);
-    await this.getFreedCollateral();
-  }
+  // Computed
+  const loanToken = tokens.find(
+    token => token.tokenAddress === record.loanTokenAddress,
+  );
 
-  getFreedCollateral = () => {
-    const { accountStore, recordStore, match } = this.props;
-    const record = recordStore!.getLoanRecordByAddress(
-      match.params.recordAddress,
-    )!;
+  const collateralToken = tokens.find(
+    token => token.tokenAddress === record.collateralTokenAddress,
+  );
 
-    return accountStore!.getFreedCollateral(record.collateralToken);
-  };
+  const availableCollateral = availableCollaterals.find(
+    collateral => collateral.tokenAddress === record.collateralTokenAddress,
+  );
 
-  onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    this.setState({
-      amount: Number.parseFloat(e.currentTarget.value),
-    });
+  // Callback
+  const onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setAmount(Number.parseFloat(e.currentTarget.value));
 
-  onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const { recordStore, match, history } = this.props;
-    const { amount, useFreedCollateral } = this.state;
+  const onUseAvailableCollateralChange = (value: boolean) =>
+    setUseAvailableCollateral(value);
 
-    this.setState({
-      formSubmitting: true,
-    });
+  const onSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const { loanService } = await getService();
 
-    try {
-      await recordStore!.addCollateral(
-        match.params.recordAddress,
-        convertDecimalToWei(amount),
-        useFreedCollateral,
-      );
-      await recordStore!.updateLoanRecordByAddress(match.params.recordAddress);
-      const record = recordStore!.getLoanRecordByAddress(
-        match.params.recordAddress,
-      )!;
-      this.setState({
-        formSubmitting: false,
-      });
+      setLoading(true);
 
-      history.push({
-        pathname: '/records/loan',
-        search: stringify({
-          currentToken: record.loanToken.address,
-          recordAddress: record.recordAddress,
-        }),
-      });
-    } catch (e) {
-      this.setState({
-        formSubmitting: false,
-      });
-    }
-  };
+      try {
+        await loanService.addCollateral(
+          accountAddress,
+          record.recordId,
+          convertDecimalToWei(amount),
+          useAvailableCollateral,
+        );
+        setLoading(false);
 
-  onUseFreedCollateralChange = (useFreedCollateral: boolean) =>
-    this.setState({
-      useFreedCollateral,
-    });
+        history.push({
+          pathname: '/records/loan',
+          search: stringify({
+            tokenAddress: loanToken!.tokenAddress,
+            recordId: record.recordId,
+          }),
+        });
+      } catch (e) {
+        setLoading(false);
+      }
+    },
+    [history, setLoading, getService],
+  );
 
-  renderFreedCollateralItems = (freedCollateral: BigNumber | undefined) => {
-    const { t } = this.props;
-
-    return (
-      <div className="freed-collateral">
-        <Form.Item key="use_freed_collateral">
+  return (
+    <Card>
+      <Form onSubmit={onSubmit}>
+        <Form.Item>
           <Row>
             <Cell>
-              <label>{t('use_freed_collateral')}</label>
+              <label>{t('current_collateral')}</label>
             </Cell>
             <Cell scale={3}>
-              <Toggle
-                defaultValue={this.state.useFreedCollateral}
-                onChange={this.onUseFreedCollateralChange}
+              <Input
+                type="text"
+                disabled
+                value={record.collateralAmount}
+                suffix={collateralToken!.tokenSymbol}
               />
             </Cell>
           </Row>
         </Form.Item>
-        <Form.Item key="freed_collateral_amount">
+        <Form.Item>
           <Row>
             <Cell>
-              <label>{t('freed_collateral_amount')}</label>
+              <label htmlFor="amount">{t('add_collateral_amount')}</label>
             </Cell>
             <Cell scale={3}>
-              <TextBox>{convertWeiToDecimal(freedCollateral)}</TextBox>
+              <Input
+                id="amount"
+                type="number"
+                step={1e-18}
+                min={1e-18}
+                onChange={onAmountChange}
+                suffix={collateralToken!.tokenSymbol}
+              />
             </Cell>
           </Row>
         </Form.Item>
-      </div>
-    );
-  };
-
-  render() {
-    const {
-      t,
-      accountStore,
-      recordStore,
-      configurationStore,
-      match,
-    } = this.props;
-    const record = toJS(
-      recordStore!.loanRecords.find(
-        tx => tx.recordAddress === match.params.recordAddress,
-      ),
-    );
-
-    if (!record || record.type !== RecordType.Loan) {
-      return null;
-    }
-
-    const freedCollateral = accountStore!.getFreedCollateralByAddress(
-      record.collateralToken.address,
-    );
-
-    const couldUseFreedCollateral = freedCollateral
-      ? Number.parseFloat(convertWeiToDecimal(freedCollateral)) !== 0
-      : false;
-
-    return (
-      <Card>
-        <Form onSubmit={this.onSubmit}>
-          <Form.Item>
-            <Row>
-              <Cell>
-                <label>{t('current_collateral')}</label>
-              </Cell>
-              <Cell scale={3}>
-                <Input
-                  type="text"
-                  disabled
-                  value={record.collateralAmount}
-                  suffix={record.collateralToken.symbol}
-                />
-              </Cell>
-            </Row>
-          </Form.Item>
-          <Form.Item>
-            <Row>
-              <Cell>
-                <label htmlFor="amount">{t('add_collateral_amount')}</label>
-              </Cell>
-              <Cell scale={3}>
-                <Input
-                  id="amount"
-                  type="number"
-                  step={1e-18}
-                  min={1e-18}
-                  onChange={this.onAmountChange}
-                  suffix={record.collateralToken.symbol}
-                />
-              </Cell>
-            </Row>
-          </Form.Item>
-          <Form.Item>
-            <Row>
-              <Cell>
-                <label>{t('collateral_ratio')}</label>
-              </Cell>
-              <Cell scale={3}>
-                <TextBox>{`${calcCollateralRatio(
-                  record.collateralAmount,
-                  record.remainingDebt,
-                  record.collateralToken.price,
-                  record.loanToken.price,
-                )} %`}</TextBox>
-              </Cell>
-            </Row>
-          </Form.Item>
-          <Form.Item>
-            <Row>
-              <Cell>
-                <label>{t('expired_at')}</label>
-              </Cell>
-              <Cell scale={3}>
-                <Input
-                  type="text"
-                  disabled
-                  value={dayjs(record.createdAt)
-                    .add(record.term.value, 'day')
-                    .format('YYYY-MM-DD')}
-                />
-              </Cell>
-            </Row>
-          </Form.Item>
-          {couldUseFreedCollateral &&
-            this.renderFreedCollateralItems(freedCollateral)}
-          <Form.Item>
-            <Row>
-              <Cell>
-                <label />
-              </Cell>
-              <Cell scale={3}>
-                <Button
-                  primary
-                  fullWidth
-                  disabled={configurationStore!.isUserActionsLocked}
-                  loading={this.state.formSubmitting}
-                >
-                  {t('add_collateral')}
-                </Button>
-              </Cell>
-            </Row>
-          </Form.Item>
-        </Form>
-      </Card>
-    );
-  }
-}
+        <Form.Item>
+          <Row>
+            <Cell>
+              <label>{t('collateral_ratio')}</label>
+            </Cell>
+            <Cell scale={3}>
+              <TextBox>{`${calcCollateralRatio(
+                record.collateralAmount.toString(),
+                record.remainingDebt.toString(),
+                collateralToken!.price,
+                loanToken!.price,
+              )} %`}</TextBox>
+            </Cell>
+          </Row>
+        </Form.Item>
+        <Form.Item>
+          <Row>
+            <Cell>
+              <label>{t('expired_at')}</label>
+            </Cell>
+            <Cell scale={3}>
+              <Input
+                type="text"
+                disabled
+                value={dayjs(record.createdAt)
+                  .add(record.loanTerm.value, 'day')
+                  .format('YYYY-MM-DD')}
+              />
+            </Cell>
+          </Row>
+        </Form.Item>
+        <Form.Item key="use_available_collateral">
+          <Row>
+            <Cell>
+              <label>{t('use_available_collateral')}</label>
+            </Cell>
+            <Cell scale={3}>
+              <Toggle
+                defaultValue={useAvailableCollateral}
+                onChange={onUseAvailableCollateralChange}
+              />
+            </Cell>
+          </Row>
+        </Form.Item>
+        <Form.Item key="available_collateral_amount">
+          <Row>
+            <Cell>
+              <label>{t('available_collateral_amount')}</label>
+            </Cell>
+            <Cell scale={3}>
+              <TextBox>
+                {convertWeiToDecimal(availableCollateral!.amount)}
+              </TextBox>
+            </Cell>
+          </Row>
+        </Form.Item>
+        <Form.Item>
+          <Row>
+            <Cell>
+              <label />
+            </Cell>
+            <Cell scale={3}>
+              <Button
+                primary
+                fullWidth
+                disabled={isUserActionsLocked}
+                loading={loading}
+              >
+                {t('add_collateral')}
+              </Button>
+            </Cell>
+          </Row>
+        </Form.Item>
+      </Form>
+    </Card>
+  );
+};
 
 export default withTranslation()(withRouter(AddCollateralForm));

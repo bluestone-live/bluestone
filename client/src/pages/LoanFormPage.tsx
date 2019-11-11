@@ -9,10 +9,10 @@ import {
   IAvailableCollateral,
   CommonActions,
   ILoanPair,
-} from '../_stores';
+} from '../stores';
 import { useEffectAsync } from '../utils/useEffectAsync';
 import { getService } from '../services';
-import LoanForm from '../_containers/LoanForm';
+import LoanForm from '../containers/LoanForm';
 
 interface IProps extends RouteComponentProps {
   term: number;

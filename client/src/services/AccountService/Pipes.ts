@@ -1,16 +1,16 @@
 import { BigNumber } from '../../utils/BigNumber';
-import { IFreedCollateral } from '../../_stores';
+import { IAvailableCollateral } from '../../stores';
 
-interface IGetFreedCollateralResultSet {
+interface IGetAvailableCollateralResultSet {
   tokenAddressList: string[];
-  freedCollateralAmountList: BigNumber[];
+  availableCollateralAmountList: BigNumber[];
 }
 
-export const freedCollateralPipe = ({
+export const availableCollateralPipe = ({
   tokenAddressList,
-  freedCollateralAmountList,
-}: IGetFreedCollateralResultSet): IFreedCollateral[] =>
+  availableCollateralAmountList,
+}: IGetAvailableCollateralResultSet): IAvailableCollateral[] =>
   tokenAddressList.map((tokenAddress, i) => ({
     tokenAddress,
-    amount: freedCollateralAmountList[i],
+    amount: availableCollateralAmountList[i],
   }));

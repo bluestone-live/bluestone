@@ -3,14 +3,6 @@ import Loading from '../components/common/Loading';
 
 const routes = [
   {
-    name: 'monitor',
-    path: '/monitor',
-    component: Loadable({
-      loader: () => import('../pages/MonitorPage'),
-      loading: Loading,
-    }),
-  },
-  {
     name: 'index',
     path: '/',
     component: Loadable({
@@ -27,18 +19,18 @@ const routes = [
     }),
   },
   {
-    name: 'deposit-assets',
-    path: '/deposit-assets',
+    name: 'deposit-overview',
+    path: '/deposit-overview',
     component: Loadable({
-      loader: () => import('../pages/DepositAssetsPage'),
+      loader: () => import('../pages/DepositOverviewPage'),
       loading: Loading,
     }),
   },
   {
-    name: 'loan-assets',
-    path: '/loan-assets',
+    name: 'loan-overview',
+    path: '/loan-overview',
     component: Loadable({
-      loader: () => import('../pages/LoanAssetsPage'),
+      loader: () => import('../pages/LoanOverviewPage'),
       loading: Loading,
     }),
   },
@@ -46,7 +38,7 @@ const routes = [
     name: 'loan',
     path: '/loan',
     component: Loadable({
-      loader: () => import('../pages/LoanPage'),
+      loader: () => import('../pages/LoanFormPage'),
       loading: Loading,
     }),
   },
@@ -54,15 +46,15 @@ const routes = [
     name: 'deposit',
     path: ['/deposit', '/deposit/:tokenSymbol'],
     component: Loadable({
-      loader: () => import('../pages/DepositPage'),
+      loader: () => import('../pages/DepositFormPage'),
       loading: Loading,
     }),
   },
   {
-    name: 'withdraw-freed-collateral',
+    name: 'withdraw-available-collateral',
     path: '/withdraw/:tokenAddress',
     component: Loadable({
-      loader: () => import('../pages/WithdrawFreedCollateralPage'),
+      loader: () => import('../pages/WithdrawAvailableCollateralPage'),
       loading: Loading,
     }),
   },
@@ -78,7 +70,7 @@ const routes = [
     name: 'loan-withdraw-collateral',
     path: '/loan/collateral/withdraw/:recordAddress',
     component: Loadable({
-      loader: () => import('../pages/WithdrawFreedCollateralPage'),
+      loader: () => import('../pages/WithdrawAvailableCollateralPage'),
       loading: Loading,
     }),
   },
@@ -86,7 +78,7 @@ const routes = [
     name: 'loan-repay',
     path: '/loan/repay/:recordAddress',
     component: Loadable({
-      loader: () => import('../pages/RepayPage'),
+      loader: () => import('../pages/RepayLoanPage'),
       loading: Loading,
     }),
   },

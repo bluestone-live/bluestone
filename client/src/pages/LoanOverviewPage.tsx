@@ -8,7 +8,7 @@ import Card from '../components/common/Card';
 import Button from '../components/html/Button';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { IState, ILoanPair, CommonActions, IToken } from '../_stores';
+import { IState, ILoanPair, CommonActions, IToken, ITerm } from '../stores';
 import { BigNumber } from '../utils/BigNumber';
 import { useEffectAsync } from '../utils/useEffectAsync';
 import { getService } from '../services';
@@ -71,14 +71,13 @@ const LoanOverviewPage = (props: IProps) => {
     state => state.account.accounts[0],
   );
 
-  const loanTerms = useSelector<IState, Array<{ text: string; value: number }>>(
-    state =>
-      state.common.loanTerms
-        .map((bigNumber: BigNumber) => ({ value: bigNumber.toString() }))
-        .map(({ value }: { value: string }) => ({
-          text: `${value}-Day`,
-          value: Number.parseInt(value, 10),
-        })),
+  const loanTerms = useSelector<IState, ITerm[]>(state =>
+    state.common.loanTerms
+      .map((bigNumber: BigNumber) => ({ value: bigNumber.toString() }))
+      .map(({ value }: { value: string }) => ({
+        text: `${value}-Day`,
+        value: Number.parseInt(value, 10),
+      })),
   );
 
   const availableLoanPairs = useSelector<IState, ILoanPair[]>(
@@ -157,7 +156,7 @@ const LoanOverviewPage = (props: IProps) => {
             <StyledButton
               primary
               onClick={goTo(
-                `/loan?loanTokenSymbol=${loanToken.tokenSymbol}&collateralTokenSymbol=${collateralToken.tokenSymbol}&term=${defaultTerm}`,
+                `/loan?loanTokenAddress=${loanToken.tokenAddress}&collateralTokenAddress=${collateralToken.tokenAddress}&term=${defaultTerm}`,
               )}
             >
               {t('loan')}
