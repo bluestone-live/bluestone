@@ -4,7 +4,6 @@ import { Row, Cell } from '../components/common/Layout';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import dayjs from 'dayjs';
-import { EventName } from '../constants/Event';
 import {
   IRecord,
   ILoanRecord,
@@ -12,6 +11,7 @@ import {
   IDepositRecord,
   ITransaction,
 } from '../stores';
+import { EventName } from '../utils/MetaMaskProvider';
 
 interface IProps extends WithTranslation {
   tokens: IToken[];

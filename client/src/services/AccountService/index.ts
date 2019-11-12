@@ -13,7 +13,6 @@ export class AccountService {
   async getAccounts(): Promise<string[]> {
     return this.provider.web3.eth.getAccounts();
   }
-
   /**
    * Get general statistics by account address
    * @param accountAddress account address

@@ -1,6 +1,7 @@
-import { IAction } from '.';
+import { IAction, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
 import { BigNumber } from '../utils/BigNumber';
+import { useSelector } from 'react-redux';
 
 enum AccountActionType {
   SetAccounts = 'SET_ACCOUNTS',
@@ -111,3 +112,8 @@ export class AccountActions {
     };
   }
 }
+
+// Selectors
+
+export const useDefaultAccount = () =>
+  useSelector((state: IState) => state.account.accounts[0]);

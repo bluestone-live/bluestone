@@ -1,7 +1,8 @@
 import { BigNumber } from '../utils/BigNumber';
-import { IAction } from '.';
+import { IAction, IState } from '.';
 import { Contract } from 'web3-eth-contract';
 import { replaceBy } from '../utils/replaceBy';
+import { useSelector } from 'react-redux';
 
 const enum CommonActionType {
   SetCurrentNetwork = 'SET_CURRENT_NETWORK',
@@ -11,6 +12,7 @@ const enum CommonActionType {
   SetAllowance = 'SET_ALLOWANCE',
   SetDepositTerms = 'SET_DEPOSIT_TERMS',
   SetLoanTerms = 'SET_LOAN_TERMS',
+  SetProtocolContractAddress = 'SET_PROTOCOL_CONTRACT_ADDRESS',
 }
 
 export interface IToken {
@@ -40,6 +42,7 @@ interface ICommonState {
   availableDepositTokens: IToken[];
   loanTerms: BigNumber[];
   availableLoanPairs: ILoanPair[];
+  protocolContractAddress?: string;
 }
 
 const initState: ICommonState = {
@@ -49,6 +52,7 @@ const initState: ICommonState = {
   availableDepositTokens: [],
   loanTerms: [],
   availableLoanPairs: [],
+  protocolContractAddress: undefined,
 };
 
 export const CommonReducer = (
@@ -91,6 +95,11 @@ export const CommonReducer = (
       return {
         ...state,
         loanTerms: action.payload.loanTerms,
+      };
+    case CommonActionType.SetProtocolContractAddress:
+      return {
+        ...state,
+        protocolContractAddress: action.payload.protocolContractAddress,
       };
     default:
       return state;
@@ -162,4 +171,18 @@ export class CommonActions {
       },
     };
   }
+
+  static setProtocolContractAddress(protocolContractAddress: string) {
+    return {
+      type: CommonActionType.SetProtocolContractAddress,
+      payload: {
+        protocolContractAddress,
+      },
+    };
+  }
 }
+
+// Selectors
+
+export const useAvailableDepositTokens = () =>
+  useSelector((state: IState) => state.common.availableDepositTokens);

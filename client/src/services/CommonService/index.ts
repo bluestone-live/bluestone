@@ -13,6 +13,17 @@ export class CommonService {
     return this.provider.web3.eth.net.getNetworkType();
   }
 
+  async enableEthereumNetwork() {
+    return this.provider.enableEthereumNetwork();
+  }
+
+  /**
+   * @returns protocol contract address
+   */
+  async getProtocolContractAddress(): Promise<string> {
+    return this.provider.protocol.address;
+  }
+
   /**
    * TODO: Don't have this method yet
    */
@@ -20,13 +31,20 @@ export class CommonService {
     return this.provider.protocol.methods.getUserActionLock().call();
   }
 
+  /**
+   * Get Allowance for each token
+   * @param token IToken instance
+   * @param accountAddress user account address
+   * @param protocolContractAddress protocol contract address
+   * @returns Allowance values
+   */
   async getTokenAllowance(
+    token: IToken,
     accountAddress: string,
-    tokenAddress: string,
+    protocolContractAddress: string,
   ): Promise<BigNumber> {
-    return this.provider
-      .getERC20ByTokenAddress(tokenAddress)
-      .methods.allowance(accountAddress, tokenAddress)
+    return token.erc20Instance.methods
+      .allowance(accountAddress, protocolContractAddress)
       .call();
   }
 

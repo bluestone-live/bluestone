@@ -1,19 +1,24 @@
-import * as React from 'react';
+import React, { useCallback } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
-import { AccountStore } from '../stores';
 import Header from '../components/common/Header';
-import AuthorizationReminder from '../containers/AuthorizationReminder';
 import Card from '../components/common/Card';
 import Container from '../components/common/Container';
 import { ThemedProps } from '../styles/themes';
-import Message from '../components/common/Message';
 import { RouteComponentProps, withRouter } from 'react-router';
+import {
+  useDefaultAccount,
+  CommonActions,
+  useAvailableDepositTokens,
+  IToken,
+  AccountActions,
+} from '../stores';
+import { useEffectAsync } from '../utils/useEffectAsync';
+import { getService } from '../services';
+import { useDispatch } from 'react-redux';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
-  accountStore: AccountStore;
   title?: React.ReactChild | React.ReactChild[];
 }
 
@@ -38,49 +43,63 @@ const StyledMain = styled.main`
   width: 1024px;
 `;
 
-@inject('accountStore')
-@observer
-class Default extends React.Component<IProps> {
-  async componentDidMount() {
-    const { accountStore } = this.props;
-    // auto connect after first time
-    const isMetaMaskConnected = await accountStore.isMetaMaskConnected();
-    if (isMetaMaskConnected) {
-      await accountStore.getAccounts();
-      accountStore.bindOnUpdateEvent();
-      await accountStore.initAllowance();
-    }
-  }
+const DefaultLayout = (props: IProps) => {
+  const { children, history } = props;
+  const dispatch = useDispatch();
 
-  onAccountClickHandler = async () => {
-    const { accountStore, history } = this.props;
-    if (accountStore.defaultAccount) {
+  // Selector
+  const defaultAccount = useDefaultAccount();
+  const availableDepositTokens = useAvailableDepositTokens();
+
+  // Initialize
+  useEffectAsync(async () => {
+    const { commonService } = await getService();
+    const protocolContractAddress = await commonService.getProtocolContractAddress();
+    CommonActions.setProtocolContractAddress(protocolContractAddress);
+    CommonActions.setAllowance(
+      availableDepositTokens.map(async (token: IToken) => ({
+        tokenAddress: token.tokenAddress,
+        allowance: await commonService.getTokenAllowance(
+          token,
+          defaultAccount,
+          protocolContractAddress,
+        ),
+      })),
+    );
+
+    if (!defaultAccount) {
+      getAccounts();
+    }
+  });
+
+  // Callback
+
+  const getAccounts = useCallback(async () => {
+    const { accountService, commonService } = await getService();
+    await commonService.enableEthereumNetwork();
+    dispatch(AccountActions.setAccounts(await accountService.getAccounts()));
+  }, [getService]);
+
+  const onAccountClickHandler = useCallback(async () => {
+    if (defaultAccount) {
       return history.push('/account');
     }
-    await accountStore.connectToMetaMask();
-    await accountStore.getAccounts();
-  };
+    getAccounts();
+  }, [getService]);
 
-  showMessage = () => Message.info('message');
+  return (
+    <StyledDefaultLayout className="layout default">
+      <StyledHeaderCard>
+        <Header
+          defaultAccount={defaultAccount}
+          onAccountClick={onAccountClickHandler}
+        />
+      </StyledHeaderCard>
+      <StyledMain>
+        <Container>{defaultAccount && children}</Container>
+      </StyledMain>
+    </StyledDefaultLayout>
+  );
+};
 
-  render() {
-    const { children, accountStore } = this.props;
-    return (
-      <StyledDefaultLayout className="layout default">
-        <StyledHeaderCard>
-          <Header
-            defaultAccount={accountStore.defaultAccount}
-            onAccountClick={this.onAccountClickHandler}
-          />
-        </StyledHeaderCard>
-        <StyledMain>
-          <Container>
-            {accountStore.defaultAccount ? children : <AuthorizationReminder />}
-          </Container>
-        </StyledMain>
-      </StyledDefaultLayout>
-    );
-  }
-}
-
-export default withTranslation()(withRouter(Default));
+export default withTranslation()(withRouter(DefaultLayout));

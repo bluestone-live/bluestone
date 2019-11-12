@@ -15,17 +15,6 @@ export enum RecordType {
   Loan,
 }
 
-export enum EventName {
-  LoanSuccessful = 'LoanSuccessful',
-  RepayLoanSuccessful = 'RepayLoanSuccessful',
-  AddCollateralSuccessful = 'AddCollateralSuccessful',
-  WithdrawAvailableCollateralSuccessful = 'WithdrawAvailableCollateralSuccessful',
-  DepositSuccessful = 'DepositSuccessful',
-  WithdrawDepositSuccessful = 'WithdrawDepositSuccessful',
-  LockUserActions = 'LockUserActions',
-  UnlockUserActions = 'UnlockUserActions',
-}
-
 const reducers = combineReducers({
   account: AccountReducer,
   common: CommonReducer,

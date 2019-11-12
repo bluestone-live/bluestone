@@ -69,6 +69,10 @@ export class MetaMaskProvider {
     );
   }
 
+  async enableEthereumNetwork() {
+    return (global as any).ethereum.enable();
+  }
+
   private async getNetworkFile(web3: Web3): Promise<INetworkFile> {
     const networkType = await web3.eth.net.getNetworkType();
 

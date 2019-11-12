@@ -55,21 +55,19 @@ const StyledAccountItem = styled(StyledMenuItem)`
   overflow: hidden;
 `;
 
-class Header extends React.PureComponent<IProps> {
-  render() {
-    const { defaultAccount, t, onAccountClick } = this.props;
-    return (
-      <StyledHeader>
-        <StyledBrand to="/">BlueStone</StyledBrand>
-        <StyledMenu>
-          <StyledMenuItem>{t('faq')}</StyledMenuItem>
-          <StyledAccountItem onClick={onAccountClick}>
-            {defaultAccount ? defaultAccount : t('no_account')}
-          </StyledAccountItem>
-        </StyledMenu>
-      </StyledHeader>
-    );
-  }
-}
+const Header = (props: IProps) => {
+  const { defaultAccount, t, onAccountClick } = props;
+  return (
+    <StyledHeader>
+      <StyledBrand to="/">BlueStone</StyledBrand>
+      <StyledMenu>
+        <StyledMenuItem>{t('faq')}</StyledMenuItem>
+        <StyledAccountItem onClick={onAccountClick}>
+          {defaultAccount ? defaultAccount : t('no_account')}
+        </StyledAccountItem>
+      </StyledMenu>
+    </StyledHeader>
+  );
+};
 
 export default withTranslation()(Header);
