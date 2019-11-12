@@ -67,6 +67,10 @@ const DefaultLayout = (props: IProps) => {
       })),
     );
 
+    commonService.bindEthereumStateChangeEvent(getAccounts, () => {
+      window.location.reload();
+    });
+
     if (!defaultAccount) {
       getAccounts();
     }
@@ -85,7 +89,7 @@ const DefaultLayout = (props: IProps) => {
       return history.push('/account');
     }
     getAccounts();
-  }, [getService]);
+  }, [defaultAccount]);
 
   return (
     <StyledDefaultLayout className="layout default">

@@ -43,13 +43,23 @@ export type EventFlowFactory = (
 export class MetaMaskProvider {
   private web3Instance?: Web3;
   private protocolInstance?: Contract;
+  private eventBound: boolean = false;
 
   /**
    * Init protocolInstance by global Web3 provider and network configs
    */
   async init() {
     if ((global as any).ethereum) {
-      this.web3Instance = new Web3((global as any).ethereum);
+      const ethereum = (global as any).ethereum;
+      // This property to be removed in the future
+      if (ethereum.autoRefreshOnNetworkChange) {
+        /*
+         * stopped the meta mask warning:
+         * https://metamask.github.io/metamask-docs/API_Reference/Ethereum_Provider#ethereum.autorefreshonnetworkchange
+         */
+        ethereum.autoRefreshOnNetworkChange = false;
+      }
+      this.web3Instance = new Web3(ethereum);
     } else if ((global as any).web3) {
       this.web3Instance = new Web3((global as any).web3.currentProvider);
     } else {
@@ -71,6 +81,17 @@ export class MetaMaskProvider {
 
   async enableEthereumNetwork() {
     return (global as any).ethereum.enable();
+  }
+
+  async bindEthereumStateChangeEvent(
+    onAccountChanged: (...args: any[]) => any,
+    onNetworkChanged: (...args: any[]) => any,
+  ) {
+    if ((global as any).ethereum && !this.eventBound) {
+      (global as any).ethereum.on('accountsChanged', onAccountChanged);
+      (global as any).ethereum.on('networkChanged', onNetworkChanged);
+      this.eventBound = true;
+    }
   }
 
   private async getNetworkFile(web3: Web3): Promise<INetworkFile> {

@@ -35,7 +35,7 @@ export interface IProtocolLoanRecord {
   isClosed: boolean;
 }
 
-export const getService = async () => {
+const generateService = async () => {
   const provider = new MetaMaskProvider();
   await provider.init();
 
@@ -45,4 +45,18 @@ export const getService = async () => {
     depositService: new DepositService(provider),
     loanService: new LoanService(provider),
   };
+};
+
+let promise: Promise<{
+  accountService: AccountService;
+  commonService: CommonService;
+  depositService: DepositService;
+  loanService: LoanService;
+}>;
+
+export const getService = () => {
+  if (!promise) {
+    promise = generateService();
+  }
+  return promise;
 };

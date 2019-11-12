@@ -17,6 +17,16 @@ export class CommonService {
     return this.provider.enableEthereumNetwork();
   }
 
+  async bindEthereumStateChangeEvent(
+    onAccountChanged: (...args: any[]) => any,
+    onNetworkChanged: (...args: any[]) => any,
+  ) {
+    return this.provider.bindEthereumStateChangeEvent(
+      onAccountChanged,
+      onNetworkChanged,
+    );
+  }
+
   /**
    * @returns protocol contract address
    */
