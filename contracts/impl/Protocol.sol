@@ -28,6 +28,20 @@ contract Protocol is IProtocol, Ownable, Pausable {
     LoanManager.LoanParameters _loanParameters;
     DepositManager.DepositParameters _depositParameters;
 
+    event DepositSucceed(address indexed accountAddress, bytes32 depositId);
+    event WithdrawSucceed(address indexed accountAddress, bytes32 depositId);
+    event LoanSucceed(address indexed accountAddress, bytes32 loanId);
+    event RepayLoanSucceed(address indexed accountAddress, bytes32 loanId);
+    event LiquidateLoanSucceed(address indexed accountAddress, bytes32 loanId);
+    event WithdrawAvailableCollateralSucceed(
+        address indexed accountAddress,
+        uint256 amount
+    );
+    event AddCollateralSucceed(
+        address indexed accountAddress,
+        bytes32 indexed loanId,
+        uint256 amount
+    );
     event LockUserActions();
     event UnlockUserActions();
 
