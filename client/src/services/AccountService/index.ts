@@ -73,7 +73,7 @@ export class AccountService {
     collateralAmount: BigNumber,
   ) {
     const flow = await this.provider.getContractEventFlow(
-      EventName.WithdrawAvailableCollateralSuccessful,
+      EventName.WithdrawAvailableCollateralSucceed,
       {
         filter: { user: accountAddress },
       },

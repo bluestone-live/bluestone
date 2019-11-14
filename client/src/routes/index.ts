@@ -44,7 +44,7 @@ const routes = [
   },
   {
     name: 'deposit',
-    path: ['/deposit', '/deposit/:tokenSymbol'],
+    path: ['/deposit', '/deposit/:tokenAddress'],
     component: Loadable({
       loader: () => import('../pages/DepositFormPage'),
       loading: Loading,

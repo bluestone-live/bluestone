@@ -1,59 +1,55 @@
 import React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
 import { useComponentMounted } from '../utils/useEffectAsync';
-import { IState, IToken, CommonActions, ITerm } from '../stores';
-import { getService } from '../services';
+import {
+  useDefaultAccount,
+  useDepositTerms,
+  useDepositTokens,
+  useUserActionLock,
+} from '../stores';
 import DepositForm from '../containers/DepositForm';
 
 interface IProps
   extends WithTranslation,
-    RouteComponentProps<{ tokenSymbol: string }> {}
+    RouteComponentProps<{ tokenAddress: string }> {}
 
 const DepositFormPage = (props: IProps) => {
-  const dispatch = useDispatch();
+  const { match, history } = props;
 
   // Selector
 
-  const defaultAccount = useSelector<IState, string>(
-    state => state.account.accounts[0],
-  );
+  const defaultAccount = useDefaultAccount();
 
-  const defaultToken = useSelector<IState, IToken>(
-    state => state.common.depositTokens[0],
-  );
+  const depositTokens = useDepositTokens();
 
-  const depositTerms = useSelector<IState, ITerm[]>(
-    state => state.common.depositTerms,
-  );
+  const defaultToken = depositTokens[0];
 
-  const isUserActionsLocked = useSelector<IState, boolean>(
-    state => state.common.isUserActionsLocked,
-  );
+  const depositTerms = useDepositTerms();
+
+  const isUserActionsLocked = useUserActionLock();
 
   // Initialize
 
   useComponentMounted(async () => {
-    const { match, history } = props;
-    const { commonService } = await getService();
-
-    const depositTokens = await commonService.getDepositTokens();
-    dispatch(CommonActions.setDepositTokens(depositTokens));
-
-    if (!match.params.tokenSymbol && defaultToken) {
+    if (!match.params.tokenAddress && defaultToken) {
       history.replace(`/deposit/${defaultToken.tokenAddress}`);
     }
   });
 
-  return (
+  const currentToken =
+    depositTokens.find(
+      token => token.tokenAddress === match.params.tokenAddress,
+    ) || defaultToken;
+
+  return currentToken ? (
     <DepositForm
       accountAddress={defaultAccount}
-      currentToken={defaultToken}
+      currentToken={currentToken}
       depositTerms={depositTerms}
       isUserActionsLocked={isUserActionsLocked}
     />
-  );
+  ) : null;
 };
 
 export default withTranslation()(withRouter(DepositFormPage));

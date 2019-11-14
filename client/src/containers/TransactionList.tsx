@@ -55,7 +55,7 @@ const renderTransactionDescription = (
   tokens: IToken[],
 ) => {
   if (
-    [EventName.RepayLoanSuccessful, EventName.LoanSuccessful].indexOf(
+    [EventName.RepayLoanSucceed, EventName.LoanSucceed].indexOf(
       transaction.event,
     ) >= 0
   ) {
@@ -67,9 +67,7 @@ const renderTransactionDescription = (
       amount: transaction.amount,
       symbol: loanToken && loanToken.tokenSymbol,
     });
-  } else if (
-    [EventName.AddCollateralSuccessful].indexOf(transaction.event) >= 0
-  ) {
+  } else if ([EventName.AddCollateralSucceed].indexOf(transaction.event) >= 0) {
     const loanRecord = record as ILoanRecord;
     const collateralToken = tokens.find(
       token => token.tokenAddress === loanRecord.collateralTokenAddress,

@@ -16,12 +16,12 @@ interface INetworkFile {
 }
 
 export enum EventName {
-  LoanSuccessful = 'LoanSuccessful',
-  RepayLoanSuccessful = 'RepayLoanSuccessful',
-  AddCollateralSuccessful = 'AddCollateralSuccessful',
-  WithdrawAvailableCollateralSuccessful = 'WithdrawAvailableCollateralSuccessful',
-  DepositSuccessful = 'DepositSuccessful',
-  WithdrawDepositSuccessful = 'WithdrawDepositSuccessful',
+  LoanSucceed = 'LoanSucceed',
+  RepayLoanSucceed = 'RepayLoanSucceed',
+  AddCollateralSucceed = 'AddCollateralSucceed',
+  WithdrawAvailableCollateralSucceed = 'WithdrawAvailableCollateralSucceed',
+  DepositSucceed = 'DepositSucceed',
+  WithdrawSucceed = 'WithdrawSucceed',
   LockUserActions = 'LockUserActions',
   UnlockUserActions = 'UnlockUserActions',
   Approval = 'Approval',

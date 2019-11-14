@@ -11,6 +11,7 @@ import { Cell } from '../components/common/Layout';
 import { stringify } from 'querystring';
 import { IToken, ITerm } from '../stores';
 import { getService } from '../services';
+import { useDepsUpdated } from '../utils/useEffectAsync';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -35,6 +36,11 @@ const DepositForm = (props: IProps) => {
   const [selectedTerm, setSelectedTerm] = useState();
 
   const [loading, setLoading] = useState(false);
+
+  // Initialize
+  useDepsUpdated(async () => {
+    setSelectedTerm(depositTerms[0]);
+  }, [depositTerms]);
 
   // Callback
   const onAmountChange = useCallback(
@@ -80,7 +86,14 @@ const DepositForm = (props: IProps) => {
         setLoading(false);
       }
     },
-    [setLoading],
+    [
+      selectedTerm,
+      depositAmount,
+      accountAddress,
+      currentToken,
+      depositTerms,
+      isUserActionsLocked,
+    ],
   );
 
   return (
@@ -126,7 +139,7 @@ const DepositForm = (props: IProps) => {
               disabled={isUserActionsLocked}
               loading={loading}
             >
-              {t('submit')}
+              {t('deposit')}
             </Button>
           </Cell>
         </Form.Item>

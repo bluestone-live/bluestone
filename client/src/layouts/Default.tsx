@@ -74,6 +74,13 @@ const DefaultLayout = (props: IProps) => {
     const protocolContractAddress = await commonService.getProtocolContractAddress();
     dispatch(CommonActions.setProtocolContractAddress(protocolContractAddress));
 
+    // Get User action lock
+    dispatch(
+      CommonActions.setUserActionsLock(
+        await commonService.isUserActionsLocked(),
+      ),
+    );
+
     // Get deposit terms
     dispatch(
       CommonActions.setDepositTerms(await commonService.getDepositTerms()),

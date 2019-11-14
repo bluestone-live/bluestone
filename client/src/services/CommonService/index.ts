@@ -37,8 +37,8 @@ export class CommonService {
   /**
    * TODO: Don't have this method yet
    */
-  async getUserActionLock(): Promise<boolean> {
-    return this.provider.protocol.methods.getUserActionLock().call();
+  async isUserActionsLocked(): Promise<boolean> {
+    return this.provider.protocol.methods.isUserActionsLocked().call();
   }
 
   /**

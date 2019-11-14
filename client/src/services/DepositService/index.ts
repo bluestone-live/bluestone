@@ -1,6 +1,6 @@
-import { BigNumber } from '../../utils/BigNumber';
+import { BigNumber, convertDecimalToWei } from '../../utils/BigNumber';
 import { IProtocolDepositRecord } from '..';
-import { MetaMaskProvider } from '../../utils/MetaMaskProvider';
+import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
 
 export class DepositService {
   constructor(private readonly provider: MetaMaskProvider) {}
@@ -75,9 +75,29 @@ export class DepositService {
     depositAmount: BigNumber,
     depositTerm: BigNumber,
   ): Promise<string> {
-    return this.provider.protocol.methods
-      .deposit(tokenAddress, depositAmount, depositTerm)
-      .send({ from: accountAddress });
+    const flow = await this.provider.getContractEventFlow(
+      EventName.DepositSucceed,
+      {
+        filter: {
+          accountAddress,
+        },
+      },
+    );
+    const {
+      returnValues: { depositId },
+    } = await flow(async protocol => {
+      return protocol.methods
+        .deposit(
+          tokenAddress,
+          depositAmount.toString(),
+          depositTerm.toString(),
+          '0x3dd5A7c19C2226961dF1f97644ab0c6Dd8d2Daa8',
+          convertDecimalToWei(0.01).toString(),
+        )
+        .send({ from: accountAddress });
+    });
+
+    return depositId;
   }
 
   /**

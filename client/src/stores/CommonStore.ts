@@ -226,3 +226,6 @@ export const useDepositTerms = () =>
 
 export const useLoanPairs = () =>
   useSelector<IState, ILoanPair[]>(state => state.common.loanPairs);
+
+export const useUserActionLock = () =>
+  useSelector<IState, boolean>(state => state.common.isUserActionsLocked);
