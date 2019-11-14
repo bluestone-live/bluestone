@@ -102,24 +102,27 @@ export class CommonService {
       .call();
   }
 
-  async approveFullAllowance(accountAddress: string, token: IToken) {
+  async approveFullAllowance(
+    accountAddress: string,
+    token: IToken,
+    protocolContractAddress: string,
+  ) {
     const flow = await this.provider.getContractEventFlow(
       EventName.Approval,
       {
         filter: {
           owner: accountAddress,
-          spender: token.tokenAddress,
+          spender: protocolContractAddress,
         },
       },
       token.erc20Instance,
     );
 
     return flow(async erc20 => {
-      erc20.methods.Approval();
       const amount = (await erc20.methods.totalSupply.call()) || 19000;
 
       return erc20.methods
-        .approve(token.tokenAddress, amount.toString())
+        .approve(protocolContractAddress, amount.toString())
         .send({ from: accountAddress });
     });
   }

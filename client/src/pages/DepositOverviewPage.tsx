@@ -4,13 +4,19 @@ import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import Button from '../components/html/Button';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { CommonActions, IState, IToken, ITerm } from '../stores';
+import {
+  IToken,
+  useDepositTokens,
+  useDefaultAccount,
+  useDepositTerms,
+  IState,
+  CommonActions,
+} from '../stores';
 import Card from '../components/common/Card';
 import Radio from '../components/common/Radio';
 import { getService } from '../services';
-import { useDispatch, useSelector } from 'react-redux';
-import { BigNumber } from '../utils/BigNumber';
-import { useEffectAsync } from '../utils/useEffectAsync';
+import { useDepsUpdated } from '../utils/useEffectAsync';
+import { useSelector, useDispatch } from 'react-redux';
 
 const StyledTokenList = styled.table`
   width: 100%;
@@ -66,41 +72,23 @@ const DepositOverviewPage = (props: IProps) => {
   const dispatch = useDispatch();
 
   // Selectors
-  const defaultAccount = useSelector<IState, string>(
-    state => state.account.accounts[0],
-  );
+  const defaultAccount = useDefaultAccount();
 
-  const availableDepositTokens = useSelector<IState, IToken[]>(
-    state => state.common.availableDepositTokens,
-  );
+  const depositTokens = useDepositTokens();
 
-  const depositTerms = useSelector<IState, ITerm[]>(state =>
-    state.common.depositTerms
-      .map((bigNumber: BigNumber) => ({ value: bigNumber.toString() }))
-      .map(({ value }: { value: string }) => ({
-        text: `${value}-Day`,
-        value: Number.parseInt(value, 10),
-      })),
+  const depositTerms = useDepositTerms();
+
+  const protocolContractAddress = useSelector<IState, string>(
+    state => state.common.protocolContractAddress,
   );
 
   // Initialize
-  useEffectAsync(async () => {
-    const { commonService } = await getService();
-
-    const depositTokens = await commonService.getDepositTokens();
-    dispatch(CommonActions.setAvailableDepositTokens(depositTokens));
-
-    const allowance = await Promise.all(
-      depositTokens.map(async (token: IToken) => ({
-        tokenAddress: token.tokenAddress,
-        allowance: await commonService.getTokenAllowance(
-          defaultAccount,
-          token.tokenAddress,
-        ),
-      })),
-    );
-    dispatch(CommonActions.setAllowance(allowance));
-  });
+  useDepsUpdated(async () => {
+    // Set default value of selectedTerm
+    if (depositTerms.length > 0) {
+      setSelectedTerm(depositTerms[0]);
+    }
+  }, [depositTerms.length]);
 
   // States
   const [selectedTerm, setSelectedTerm] = useState();
@@ -109,10 +97,8 @@ const DepositOverviewPage = (props: IProps) => {
   const onTermSelect = useCallback(
     (value: number) => {
       setSelectedTerm({
-        selectedTerm: {
-          text: `${value}-Day`,
-          value,
-        },
+        text: `${value}-Day`,
+        value,
       });
     },
     [setSelectedTerm],
@@ -125,21 +111,37 @@ const DepositOverviewPage = (props: IProps) => {
       e.stopPropagation();
       props.history.push(path);
     },
-    availableDepositTokens,
+    [useDepositTokens],
   );
 
   const onEnableToken = useCallback(
-    (token: IToken) => async (
-      e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    ) => {
-      const { commonService } = await getService();
-      e.stopPropagation();
-      await commonService.approveFullAllowance(defaultAccount, token);
+    (token: IToken) => {
+      return async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        e.stopPropagation();
+        const { commonService } = await getService();
+
+        await commonService.approveFullAllowance(
+          defaultAccount,
+          token,
+          protocolContractAddress,
+        );
+
+        dispatch(
+          CommonActions.setAllowance({
+            tokenAddress: token.tokenAddress,
+            allowanceAmount: await commonService.getTokenAllowance(
+              token,
+              defaultAccount,
+              protocolContractAddress,
+            ),
+          }),
+        );
+      };
     },
-    [availableDepositTokens],
+    [protocolContractAddress],
   );
 
-  const renderActions = useCallback((token: IToken) => {
+  const renderActions = (token: IToken) => {
     const allowanceValid = token.allowance ? !token.allowance.isZero() : false;
     if (allowanceValid) {
       return (
@@ -161,7 +163,7 @@ const DepositOverviewPage = (props: IProps) => {
         </Fragment>
       );
     }
-  }, availableDepositTokens);
+  };
 
   return (
     <div>
@@ -185,21 +187,17 @@ const DepositOverviewPage = (props: IProps) => {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              {useSelector<IState, IToken[]>(
-                state => state.common.availableDepositTokens,
-              ).map(token => (
-                <StyledTokenListRow
-                  key={token.tokenSymbol}
-                  onClick={goTo(
-                    `/records/deposit?currentToken=${token.tokenAddress}`,
-                  )}
-                >
-                  <td>{token.tokenSymbol}</td>
-                  <td>{renderActions(token)}</td>
-                </StyledTokenListRow>
-              ))}
-            </tr>
+            {depositTokens.map(token => (
+              <StyledTokenListRow
+                key={token.tokenSymbol}
+                onClick={goTo(
+                  `/records/deposit?currentToken=${token.tokenAddress}`,
+                )}
+              >
+                <td>{token.tokenSymbol}</td>
+                <td>{renderActions(token)}</td>
+              </StyledTokenListRow>
+            ))}
           </tbody>
         </StyledTokenList>
       </Card>

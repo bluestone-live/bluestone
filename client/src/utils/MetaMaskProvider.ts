@@ -2,7 +2,7 @@ import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { Contract, EventOptions, EventData } from 'web3-eth-contract';
 import protocolDeclareFile from '../contracts/Protocol.json';
-import ERC20 from '../contracts/ERC20.json';
+import ERC20 from '../contracts/ERC20Mock.json';
 
 interface ITokenDeclaration {
   name: string;
@@ -118,6 +118,7 @@ export class MetaMaskProvider {
   }
 
   getERC20ByTokenAddress: ERC20Factory = (tokenAddress: string) => {
+    // TODO ZhangRGK: we may need to use their own abi file for each token
     return new this.web3.eth.Contract(ERC20.abi as AbiItem[], tokenAddress);
   };
 

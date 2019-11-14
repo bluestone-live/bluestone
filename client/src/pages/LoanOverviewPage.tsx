@@ -10,7 +10,7 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { IState, ILoanPair, CommonActions, IToken, ITerm } from '../stores';
 import { BigNumber } from '../utils/BigNumber';
-import { useEffectAsync } from '../utils/useEffectAsync';
+import { useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
 
 const StyledTokenList = styled.table`
@@ -88,24 +88,17 @@ const LoanOverviewPage = (props: IProps) => {
     (loanPair: ILoanPair) => loanPair.loanToken,
   );
 
+  const protocolContractAddress = useSelector<IState, string>(
+    state => state.common.protocolContractAddress,
+  );
+
   // Initialize
 
-  useEffectAsync(async () => {
+  useComponentMounted(async () => {
     const { commonService } = await getService();
 
     const loanPairs = await commonService.getLoanAndCollateralTokenPairs();
     dispatch(CommonActions.setAvailableLoanPairs(loanPairs));
-
-    const allowance = await Promise.all(
-      availableLoanTokens.map(async (token: IToken) => ({
-        tokenAddress: token.tokenAddress,
-        allowance: await commonService.getTokenAllowance(
-          defaultAccount,
-          token.tokenAddress,
-        ),
-      })),
-    );
-    dispatch(CommonActions.setAllowance(allowance));
   });
 
   // States
@@ -140,7 +133,11 @@ const LoanOverviewPage = (props: IProps) => {
     ) => {
       const { commonService } = await getService();
       e.stopPropagation();
-      await commonService.approveFullAllowance(defaultAccount, token);
+      await commonService.approveFullAllowance(
+        defaultAccount,
+        token,
+        protocolContractAddress,
+      );
     },
     [availableLoanTokens],
   );

@@ -47,7 +47,7 @@ const RecordItem = (props: IProps) => {
 
   // Selector
   const tokens = useSelector<IState, IToken[]>(
-    state => state.common.availableDepositTokens,
+    state => state.common.depositTokens,
   );
 
   // Callback

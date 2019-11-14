@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
-import { useEffectAsync } from '../utils/useEffectAsync';
+import { useComponentMounted } from '../utils/useEffectAsync';
 import { useSelector } from 'react-redux';
 import {
   IState,
@@ -82,7 +82,7 @@ const RecordPage = (props: IProps) => {
 
   // Selector
   const depositTokens = useSelector<IState, IToken[]>(
-    state => state.common.availableDepositTokens,
+    state => state.common.depositTokens,
   );
 
   const defaultAccount = useSelector<IState, string>(
@@ -106,7 +106,7 @@ const RecordPage = (props: IProps) => {
   );
 
   // Initialize
-  useEffectAsync(async () => {
+  useComponentMounted(async () => {
     const { depositService, loanService } = await getService();
 
     // Set default token if needed

@@ -2,7 +2,7 @@ import React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffectAsync } from '../utils/useEffectAsync';
+import { useComponentMounted } from '../utils/useEffectAsync';
 import { IState, IToken, CommonActions, ITerm } from '../stores';
 import { getService } from '../services';
 import DepositForm from '../containers/DepositForm';
@@ -21,7 +21,7 @@ const DepositFormPage = (props: IProps) => {
   );
 
   const defaultToken = useSelector<IState, IToken>(
-    state => state.common.availableDepositTokens[0],
+    state => state.common.depositTokens[0],
   );
 
   const depositTerms = useSelector<IState, ITerm[]>(
@@ -34,12 +34,12 @@ const DepositFormPage = (props: IProps) => {
 
   // Initialize
 
-  useEffectAsync(async () => {
+  useComponentMounted(async () => {
     const { match, history } = props;
     const { commonService } = await getService();
 
     const depositTokens = await commonService.getDepositTokens();
-    dispatch(CommonActions.setAvailableDepositTokens(depositTokens));
+    dispatch(CommonActions.setDepositTokens(depositTokens));
 
     if (!match.params.tokenSymbol && defaultToken) {
       history.replace(`/deposit/${defaultToken.tokenAddress}`);

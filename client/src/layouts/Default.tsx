@@ -9,11 +9,10 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import {
   useDefaultAccount,
   CommonActions,
-  useAvailableDepositTokens,
   IToken,
   AccountActions,
 } from '../stores';
-import { useEffectAsync } from '../utils/useEffectAsync';
+import { useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import { useDispatch } from 'react-redux';
 
@@ -46,48 +45,59 @@ const StyledMain = styled.main`
 const DefaultLayout = (props: IProps) => {
   const { children, history } = props;
   const dispatch = useDispatch();
+  const enableEthereumNetwork = async () => {
+    const { commonService } = await getService();
+    await commonService.enableEthereumNetwork();
+  };
+  const getAccounts = async () => {
+    const { accountService } = await getService();
+    const accounts = await accountService.getAccounts();
+    dispatch(AccountActions.setAccounts(accounts));
+    return accounts;
+  };
 
   // Selector
   const defaultAccount = useDefaultAccount();
-  const availableDepositTokens = useAvailableDepositTokens();
 
   // Initialize
-  useEffectAsync(async () => {
+  useComponentMounted(async () => {
     const { commonService } = await getService();
+
+    await enableEthereumNetwork();
+    const accounts = await getAccounts();
+
     const protocolContractAddress = await commonService.getProtocolContractAddress();
-    CommonActions.setProtocolContractAddress(protocolContractAddress);
-    CommonActions.setAllowance(
-      availableDepositTokens.map(async (token: IToken) => ({
-        tokenAddress: token.tokenAddress,
+    dispatch(CommonActions.setProtocolContractAddress(protocolContractAddress));
+
+    // Get deposit terms
+    dispatch(
+      CommonActions.setDepositTerms(await commonService.getDepositTerms()),
+    );
+
+    // Get deposit tokens
+    const depositTokens = await Promise.all(
+      (await commonService.getDepositTokens()).map(async (token: IToken) => ({
+        ...token,
         allowance: await commonService.getTokenAllowance(
           token,
-          defaultAccount,
+          accounts[0],
           protocolContractAddress,
         ),
       })),
     );
+    dispatch(CommonActions.setDepositTokens(depositTokens));
 
     commonService.bindEthereumStateChangeEvent(getAccounts, () => {
       window.location.reload();
     });
-
-    if (!defaultAccount) {
-      getAccounts();
-    }
   });
 
   // Callback
-
-  const getAccounts = useCallback(async () => {
-    const { accountService, commonService } = await getService();
-    await commonService.enableEthereumNetwork();
-    dispatch(AccountActions.setAccounts(await accountService.getAccounts()));
-  }, [getService]);
-
   const onAccountClickHandler = useCallback(async () => {
     if (defaultAccount) {
       return history.push('/account');
     }
+    enableEthereumNetwork();
     getAccounts();
   }, [defaultAccount]);
 

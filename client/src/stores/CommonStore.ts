@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 const enum CommonActionType {
   SetCurrentNetwork = 'SET_CURRENT_NETWORK',
   SetUserActionsLock = 'SET_USER_ACTIONS_LOCK',
-  SetAvailableDepositTokens = 'SET_AVAILABLE_DEPOSIT_TOKENS',
+  SetDepositTokens = 'SET_DEPOSIT_TOKENS',
   SetAvailableLoanPairs = 'SET_AVAILABLE_LOAN_PAIRS',
   SetAllowance = 'SET_ALLOWANCE',
   SetDepositTerms = 'SET_DEPOSIT_TERMS',
@@ -39,7 +39,7 @@ interface ICommonState {
   currentNetwork?: number;
   isUserActionsLocked: boolean;
   depositTerms: BigNumber[];
-  availableDepositTokens: IToken[];
+  depositTokens: IToken[];
   loanTerms: BigNumber[];
   availableLoanPairs: ILoanPair[];
   protocolContractAddress?: string;
@@ -49,7 +49,7 @@ const initState: ICommonState = {
   currentNetwork: undefined,
   isUserActionsLocked: true,
   depositTerms: [],
-  availableDepositTokens: [],
+  depositTokens: [],
   loanTerms: [],
   availableLoanPairs: [],
   protocolContractAddress: undefined,
@@ -67,10 +67,10 @@ export const CommonReducer = (
         ...state,
         isUserActionsLocked: action.payload.isUserActionsLocked,
       };
-    case CommonActionType.SetAvailableDepositTokens:
+    case CommonActionType.SetDepositTokens:
       return {
         ...state,
-        availableDepositTokens: action.payload.availableDepositTokens,
+        depositTokens: action.payload.depositTokens,
       };
     case CommonActionType.SetAvailableLoanPairs:
       return {
@@ -80,10 +80,10 @@ export const CommonReducer = (
     case CommonActionType.SetAllowance:
       return {
         ...state,
-        availableLoanPairs: replaceBy(
-          state.availableLoanPairs,
-          action.payload.allowance,
-          'allowance',
+        depositTokens: state.depositTokens.map(token =>
+          token.tokenAddress === action.payload.allowance.tokenAddress
+            ? { ...token, allowance: action.payload.allowance.allowanceAmount }
+            : token,
         ),
       };
     case CommonActionType.SetDepositTerms:
@@ -125,11 +125,11 @@ export class CommonActions {
     };
   }
 
-  static setAvailableDepositTokens(availableDepositTokens: IToken[]) {
+  static setDepositTokens(depositTokens: IToken[]) {
     return {
-      type: CommonActionType.SetAvailableDepositTokens,
+      type: CommonActionType.SetDepositTokens,
       payload: {
-        availableDepositTokens,
+        depositTokens,
       },
     };
   }
@@ -143,9 +143,10 @@ export class CommonActions {
     };
   }
 
-  static setAllowance(
-    allowance: Array<{ tokenAddress: string; allowance: BigNumber }>,
-  ) {
+  static setAllowance(allowance: {
+    tokenAddress: string;
+    allowanceAmount: BigNumber;
+  }) {
     return {
       type: CommonActionType.SetAllowance,
       payload: {
@@ -184,5 +185,15 @@ export class CommonActions {
 
 // Selectors
 
-export const useAvailableDepositTokens = () =>
-  useSelector((state: IState) => state.common.availableDepositTokens);
+export const useDepositTokens = (): IToken[] =>
+  useSelector((state: IState) => state.common.depositTokens);
+
+export const useDepositTerms = (): ITerm[] =>
+  useSelector<IState, ITerm[]>(state =>
+    state.common.depositTerms
+      .map((bigNumber: BigNumber) => ({ value: bigNumber.toString() }))
+      .map(({ value }: { value: string }) => ({
+        text: `${value}-Day`,
+        value: Number.parseInt(value, 10),
+      })),
+  );

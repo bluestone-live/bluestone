@@ -2,7 +2,7 @@ import * as React from 'react';
 import Card from '../components/common/Card';
 import { Row, Cell } from '../components/common/Layout';
 import AvailableCollateralList from '../containers/AvailableCollateralList';
-import { useEffectAsync } from '../utils/useEffectAsync';
+import { useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import { useSelector } from 'react-redux';
 import {
@@ -23,11 +23,11 @@ export default () => {
   );
 
   const tokens = useSelector<IState, IToken[]>(
-    state => state.common.availableDepositTokens,
+    state => state.common.depositTokens,
   );
 
   // Initialize
-  useEffectAsync(async () => {
+  useComponentMounted(async () => {
     const { accountService } = await getService();
 
     AccountActions.setAvailableCollaterals(

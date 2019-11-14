@@ -10,7 +10,7 @@ import {
   CommonActions,
   ILoanPair,
 } from '../stores';
-import { useEffectAsync } from '../utils/useEffectAsync';
+import { useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import LoanForm from '../containers/LoanForm';
 
@@ -49,7 +49,7 @@ const LoanFormPage = (props: IProps) => {
 
   // Initialize
 
-  useEffectAsync(async () => {
+  useComponentMounted(async () => {
     const {
       history,
       location: { search },

@@ -9,7 +9,7 @@ import {
   AccountActions,
 } from '../stores';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { useEffectAsync } from '../utils/useEffectAsync';
+import { useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
 
 interface IProps extends RouteComponentProps<{ recordId: string }> {}
@@ -41,11 +41,11 @@ const AddCollateralPage = (props: IProps) => {
   );
 
   const tokens = useSelector<IState, IToken[]>(
-    state => state.common.availableDepositTokens,
+    state => state.common.depositTokens,
   );
 
   // Initialize
-  useEffectAsync(async () => {
+  useComponentMounted(async () => {
     const { accountService } = await getService();
 
     AccountActions.setAvailableCollaterals(

@@ -29,7 +29,7 @@ const RepayLoanPage = (props: IProps) => {
   );
 
   const tokens = useSelector<IState, IToken[]>(
-    state => state.common.availableDepositTokens,
+    state => state.common.depositTokens,
   );
 
   return (
