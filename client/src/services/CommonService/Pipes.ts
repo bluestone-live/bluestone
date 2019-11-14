@@ -40,7 +40,7 @@ interface IGetLoanAndCollateralTokenPairsResultSet {
   loanTokenAddressList: string[];
   collateralTokenAddressList: string[];
   isEnabledList: string[];
-  collateralCoverageRatioList: BigNumber[];
+  minCollateralCoverageRatioList: BigNumber[];
   liquidationDiscountList: BigNumber[];
 }
 
@@ -49,17 +49,16 @@ export const loanPairPipe = async (
     loanTokenAddressList,
     collateralTokenAddressList,
     isEnabledList,
-    collateralCoverageRatioList,
+    minCollateralCoverageRatioList,
     liquidationDiscountList,
   }: IGetLoanAndCollateralTokenPairsResultSet,
   getERC20ByTokenAddress: ERC20Factory,
 ): Promise<ILoanPair[]> => {
   if (
     isAllEqual(
-      loanTokenAddressList.length,
-      collateralTokenAddressList.length,
+      loanTokenAddressList.length * collateralTokenAddressList.length,
       isEnabledList.length,
-      collateralCoverageRatioList.length,
+      minCollateralCoverageRatioList.length,
       liquidationDiscountList.length,
     )
   ) {
@@ -67,22 +66,35 @@ export const loanPairPipe = async (
   }
   return Promise.all(
     loanTokenAddressList
+      .reduce<
+        Array<{
+          loanTokenAddress: string;
+          collateralTokenAddress: string;
+        }>
+      >((loanPairs, loanTokenAddress) => {
+        return [
+          ...loanPairs,
+          ...collateralTokenAddressList.map(collateralTokenAddress => ({
+            loanTokenAddress,
+            collateralTokenAddress,
+          })),
+        ];
+      }, [])
       .filter((_, index: number) => isEnabledList[index])
-      .map((loanTokenAddress: string, index: number) => ({
-        loanTokenAddress,
-        collateralTokenAddress: collateralTokenAddressList[index],
-        collateralCoverageRatio: collateralCoverageRatioList[index],
+      .map((loanPair, index: number) => ({
+        ...loanPair,
+        minCollateralCoverageRatio: minCollateralCoverageRatioList[index],
       }))
       .map(
         ({
           loanTokenAddress,
           collateralTokenAddress,
-          collateralCoverageRatio,
+          minCollateralCoverageRatio,
         }) => ({
           loanToken: {
             tokenAddress: loanTokenAddress,
             erc20Instance: getERC20ByTokenAddress(loanTokenAddress),
-            collateralCoverageRatio,
+            minCollateralCoverageRatio,
           },
           collateralToken: {
             tokenAddress: collateralTokenAddress,
@@ -94,11 +106,11 @@ export const loanPairPipe = async (
       .map(async ({ loanToken, collateralToken, annualPercentageRate }) => ({
         loanToken: {
           ...loanToken,
-          tokenSymbol: (await loanToken.erc20Instance.methods.symbol()) as string,
+          tokenSymbol: (await loanToken.erc20Instance.methods.symbol.call()) as string,
         },
         collateralToken: {
           ...collateralToken,
-          tokenSymbol: (await collateralToken.erc20Instance.methods.symbol()) as string,
+          tokenSymbol: (await collateralToken.erc20Instance.methods.symbol.call()) as string,
         },
         annualPercentageRate,
       })),

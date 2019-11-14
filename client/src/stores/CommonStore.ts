@@ -1,17 +1,18 @@
 import { BigNumber } from '../utils/BigNumber';
 import { IAction, IState } from '.';
 import { Contract } from 'web3-eth-contract';
-import { replaceBy } from '../utils/replaceBy';
 import { useSelector } from 'react-redux';
+import { replaceBy } from '../utils/replaceBy';
 
 const enum CommonActionType {
   SetCurrentNetwork = 'SET_CURRENT_NETWORK',
   SetUserActionsLock = 'SET_USER_ACTIONS_LOCK',
   SetDepositTokens = 'SET_DEPOSIT_TOKENS',
-  SetAvailableLoanPairs = 'SET_AVAILABLE_LOAN_PAIRS',
+  SetLoanPairs = 'SET_LOAN_PAIRS',
   SetAllowance = 'SET_ALLOWANCE',
   SetDepositTerms = 'SET_DEPOSIT_TERMS',
-  SetLoanTerms = 'SET_LOAN_TERMS',
+  SetMaxLoanTerm = 'SET_LOAN_TERMS',
+  SetLoanAPR = 'SET_LOAN_APR',
   SetProtocolContractAddress = 'SET_PROTOCOL_CONTRACT_ADDRESS',
 }
 
@@ -33,6 +34,7 @@ export interface ILoanPair {
   loanToken: IToken;
   collateralToken: IToken;
   annualPercentageRate?: BigNumber;
+  maxLoanTerm?: BigNumber;
 }
 
 interface ICommonState {
@@ -40,8 +42,7 @@ interface ICommonState {
   isUserActionsLocked: boolean;
   depositTerms: BigNumber[];
   depositTokens: IToken[];
-  loanTerms: BigNumber[];
-  availableLoanPairs: ILoanPair[];
+  loanPairs: ILoanPair[];
   protocolContractAddress?: string;
 }
 
@@ -50,8 +51,7 @@ const initState: ICommonState = {
   isUserActionsLocked: true,
   depositTerms: [],
   depositTokens: [],
-  loanTerms: [],
-  availableLoanPairs: [],
+  loanPairs: [],
   protocolContractAddress: undefined,
 };
 
@@ -72,10 +72,10 @@ export const CommonReducer = (
         ...state,
         depositTokens: action.payload.depositTokens,
       };
-    case CommonActionType.SetAvailableLoanPairs:
+    case CommonActionType.SetLoanPairs:
       return {
         ...state,
-        availableLoanPairs: action.payload.availableLoanPairs,
+        loanPairs: action.payload.loanPairs,
       };
     case CommonActionType.SetAllowance:
       return {
@@ -91,10 +91,25 @@ export const CommonReducer = (
         ...state,
         depositTerms: action.payload.depositTerms,
       };
-    case CommonActionType.SetLoanTerms:
+    case CommonActionType.SetMaxLoanTerm:
       return {
         ...state,
-        loanTerms: action.payload.loanTerms,
+        loanPairs: state.loanPairs.map(loanPair =>
+          loanPair.loanToken.tokenAddress === action.payload.tokenAddress
+            ? replaceBy(loanPair, { maxLoanTerm: action.payload.maxLoanTerm })
+            : loanPair,
+        ),
+      };
+    case CommonActionType.SetLoanAPR:
+      return {
+        ...state,
+        loanPairs: state.loanPairs.map(loanPair =>
+          loanPair.loanToken.tokenAddress === action.payload.tokenAddress
+            ? replaceBy(loanPair, {
+                annualPercentageRate: action.payload.annualPercentageRate,
+              })
+            : loanPair,
+        ),
       };
     case CommonActionType.SetProtocolContractAddress:
       return {
@@ -134,11 +149,11 @@ export class CommonActions {
     };
   }
 
-  static setAvailableLoanPairs(availableLoanPairs: ILoanPair[]) {
+  static setLoanPairs(loanPairs: ILoanPair[]) {
     return {
-      type: CommonActionType.SetAvailableLoanPairs,
+      type: CommonActionType.SetLoanPairs,
       payload: {
-        availableLoanPairs,
+        loanPairs,
       },
     };
   }
@@ -164,11 +179,22 @@ export class CommonActions {
     };
   }
 
-  static setLoanTerms(loanTerms: BigNumber[]) {
+  static setMaxLoanTerm(tokenAddress: string, maxLoanTerm: BigNumber) {
     return {
-      type: CommonActionType.SetLoanTerms,
+      type: CommonActionType.SetMaxLoanTerm,
       payload: {
-        loanTerms,
+        tokenAddress,
+        maxLoanTerm,
+      },
+    };
+  }
+
+  static setLoanAPR(tokenAddress: string, annualPercentageRate: BigNumber) {
+    return {
+      type: CommonActionType.SetLoanAPR,
+      payload: {
+        tokenAddress,
+        annualPercentageRate,
       },
     };
   }
@@ -185,10 +211,10 @@ export class CommonActions {
 
 // Selectors
 
-export const useDepositTokens = (): IToken[] =>
-  useSelector((state: IState) => state.common.depositTokens);
+export const useDepositTokens = () =>
+  useSelector<IState, IToken[]>(state => state.common.depositTokens);
 
-export const useDepositTerms = (): ITerm[] =>
+export const useDepositTerms = () =>
   useSelector<IState, ITerm[]>(state =>
     state.common.depositTerms
       .map((bigNumber: BigNumber) => ({ value: bigNumber.toString() }))
@@ -197,3 +223,6 @@ export const useDepositTerms = (): ITerm[] =>
         value: Number.parseInt(value, 10),
       })),
   );
+
+export const useLoanPairs = () =>
+  useSelector<IState, ILoanPair[]>(state => state.common.loanPairs);

@@ -66,6 +66,11 @@ const DefaultLayout = (props: IProps) => {
     await enableEthereumNetwork();
     const accounts = await getAccounts();
 
+    // Bind account and network change event
+    commonService.bindEthereumStateChangeEvent(getAccounts, () => {
+      window.location.reload();
+    });
+
     const protocolContractAddress = await commonService.getProtocolContractAddress();
     dispatch(CommonActions.setProtocolContractAddress(protocolContractAddress));
 
@@ -87,9 +92,20 @@ const DefaultLayout = (props: IProps) => {
     );
     dispatch(CommonActions.setDepositTokens(depositTokens));
 
-    commonService.bindEthereumStateChangeEvent(getAccounts, () => {
-      window.location.reload();
-    });
+    // Get loan pairs
+    const loanAndCollateralTokenPairs = await commonService.getLoanAndCollateralTokenPairs();
+    dispatch(
+      CommonActions.setLoanPairs(
+        await Promise.all(
+          loanAndCollateralTokenPairs.map(async pair => ({
+            ...pair,
+            maxLoanTerm: await commonService.getMaxLoanTerm(
+              pair.loanToken.tokenAddress,
+            ),
+          })),
+        ),
+      ),
+    );
   });
 
   // Callback

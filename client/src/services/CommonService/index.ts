@@ -1,5 +1,5 @@
 import { BigNumber } from '../../utils/BigNumber';
-import { depositTokenPipe } from './Pipes';
+import { depositTokenPipe, loanPairPipe } from './Pipes';
 import { IToken, ILoanPair } from '../../stores';
 import { EventName, MetaMaskProvider } from '../../utils/MetaMaskProvider';
 
@@ -76,13 +76,16 @@ export class CommonService {
    * @returns available loan-collateral token pairs
    */
   async getLoanAndCollateralTokenPairs(): Promise<ILoanPair[]> {
-    return this.provider.protocol.methods
-      .getLoanAndCollateralTokenPairs()
-      .call();
+    return loanPairPipe(
+      await this.provider.protocol.methods
+        .getLoanAndCollateralTokenPairs()
+        .call(),
+      this.provider.getERC20ByTokenAddress,
+    );
   }
 
-  async getLoanTerms(): Promise<BigNumber[]> {
-    return this.provider.protocol.methods.getLoanTerms().call();
+  async getMaxLoanTerm(tokenAddress: string): Promise<BigNumber> {
+    return this.provider.protocol.methods.getMaxLoanTerm(tokenAddress).call();
   }
 
   /**
@@ -91,14 +94,12 @@ export class CommonService {
    * @returns loanTerms: available terms for this token
    * @returns loanInterestRates: loan interest for each term
    */
-  async getLoanInterestRateByToken(
+  async getLoanInterestRate(
     tokenAddress: string,
-  ): Promise<{
-    loanTerms: BigNumber[];
-    loanInterestRates: BigNumber[];
-  }> {
+    maxLoanTerm: BigNumber,
+  ): Promise<BigNumber> {
     return this.provider.protocol.methods
-      .getLoanInterestRateByToken(tokenAddress)
+      .getLoanInterestRate(tokenAddress, maxLoanTerm.toString())
       .call();
   }
 

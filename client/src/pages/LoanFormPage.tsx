@@ -31,12 +31,8 @@ const LoanFormPage = (props: IProps) => {
     state => state.account.accounts[0],
   );
 
-  const loanTerms = useSelector<IState, ITerm[]>(
-    state => state.common.loanTerms,
-  );
-
-  const availableLoanPairs = useSelector<IState, ILoanPair[]>(
-    state => state.common.availableLoanPairs,
+  const loanPairs = useSelector<IState, ILoanPair[]>(
+    state => state.common.loanPairs,
   );
 
   const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
@@ -56,14 +52,14 @@ const LoanFormPage = (props: IProps) => {
     } = props;
     const { commonService } = await getService();
 
-    const loanPairs = await commonService.getLoanAndCollateralTokenPairs();
-    dispatch(CommonActions.setAvailableLoanPairs(loanPairs));
+    const loanAndCollateralPairs = await commonService.getLoanAndCollateralTokenPairs();
+    dispatch(CommonActions.setLoanPairs(loanAndCollateralPairs));
 
     const { term, loanTokenAddress, collateralTokenAddress } = parseQuery(
       search,
     );
 
-    const selectedLoanPair = availableLoanPairs.find(
+    const selectedLoanPair = loanPairs.find(
       loanPair =>
         loanPair.loanToken.tokenAddress === loanTokenAddress &&
         loanPair.collateralToken.tokenAddress === collateralTokenAddress,
@@ -76,8 +72,7 @@ const LoanFormPage = (props: IProps) => {
       loanTokenAddress === collateralTokenAddress ||
       selectedLoanPair
     ) {
-      const defaultLoanPair = availableLoanPairs[0];
-      const defaultTerm = loanTerms[0].value.toString();
+      const defaultLoanPair = loanPairs[0];
 
       history.replace({
         pathname: window.location.pathname,
@@ -85,7 +80,7 @@ const LoanFormPage = (props: IProps) => {
           ...parseQuery(search),
           loanTokenAddress: defaultLoanPair.loanToken.tokenAddress,
           collateralTokenAddress: defaultLoanPair.collateralToken.tokenAddress,
-          term: defaultTerm,
+          term: selectedLoanPair!.maxLoanTerm,
         }),
       });
     }
@@ -95,7 +90,7 @@ const LoanFormPage = (props: IProps) => {
     <LoanForm
       accountAddress={defaultAccount}
       loanTerms={loanTerms}
-      availableLoanPairs={availableLoanPairs}
+      availableLoanPairs={loanPairs}
       availableCollaterals={availableCollaterals}
       isUserActionsLocked={isUserActionsLocked}
     />
