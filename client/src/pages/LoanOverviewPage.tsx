@@ -126,38 +126,39 @@ const LoanOverviewPage = (props: IProps) => {
     [protocolContractAddress],
   );
 
-  const renderActions = (loanToken: IToken, collateralToken: IToken) => {
-    const token = depositTokens.find(
-      depositToken =>
-        collateralToken.tokenAddress === depositToken.tokenAddress,
-    );
-
-    const allowanceValid =
-      token && token.allowance ? !token.allowance.isZero() : false;
-
-    if (allowanceValid) {
-      return (
-        <Fragment>
-          <StyledButton
-            primary
-            onClick={goTo(
-              `/loan?loanTokenAddress=${loanToken.tokenAddress}&collateralTokenAddress=${collateralToken.tokenAddress}`,
-            )}
-          >
-            {t('loan')}
-          </StyledButton>
-        </Fragment>
+  const renderActions = useCallback(
+    (loanToken: IToken, collateralToken: IToken) => {
+      const token = depositTokens.find(
+        depositToken => loanToken.tokenAddress === depositToken.tokenAddress,
       );
-    } else {
-      return (
-        <Fragment>
-          <StyledButton primary onClick={onEnableToken(collateralToken)}>
-            {t('enable')}
-          </StyledButton>
-        </Fragment>
-      );
-    }
-  };
+
+      const allowanceValid =
+        token && token.allowance ? !token.allowance.isZero() : false;
+      if (allowanceValid) {
+        return (
+          <Fragment>
+            <StyledButton
+              primary
+              onClick={goTo(
+                `/loan?loanTokenAddress=${loanToken.tokenAddress}&collateralTokenAddress=${collateralToken.tokenAddress}`,
+              )}
+            >
+              {t('loan')}
+            </StyledButton>
+          </Fragment>
+        );
+      } else {
+        return (
+          <Fragment>
+            <StyledButton primary onClick={onEnableToken(loanToken)}>
+              {t('enable')}
+            </StyledButton>
+          </Fragment>
+        );
+      }
+    },
+    [protocolContractAddress, depositTokens],
+  );
 
   return (
     <Card>
