@@ -2,6 +2,7 @@ import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { Contract, EventOptions, EventData } from 'web3-eth-contract';
 import protocolDeclareFile from '../contracts/Protocol.json';
+import priceOracleDeclareFile from '../contracts/PriceOracle.json';
 import ERC20 from '../contracts/ERC20Mock.json';
 
 interface ITokenDeclaration {
@@ -43,6 +44,7 @@ export type EventFlowFactory = (
 export class MetaMaskProvider {
   private web3Instance?: Web3;
   private protocolInstance?: Contract;
+  private priceOracleInstance?: Contract;
   private eventBound: boolean = false;
 
   /**
@@ -76,6 +78,15 @@ export class MetaMaskProvider {
     this.protocolInstance = new this.web3Instance.eth.Contract(
       protocolDeclareFile.abi as AbiItem[],
       protocolAddress,
+    );
+
+    const priceOracleAddress = await this.protocolInstance.methods
+      .getPriceOracleAddress()
+      .call();
+
+    this.priceOracleInstance = new this.web3Instance.eth.Contract(
+      priceOracleDeclareFile.abi as AbiItem[],
+      priceOracleAddress,
     );
   }
 
@@ -115,6 +126,13 @@ export class MetaMaskProvider {
       throw new Error('MetaMaskProvider: Init failed');
     }
     return this.web3Instance;
+  }
+
+  get priceOracle() {
+    if (!this.priceOracleInstance) {
+      throw new Error('MetaMaskProvider: Can not init priceOracle instance');
+    }
+    return this.priceOracleInstance;
   }
 
   getERC20ByTokenAddress: ERC20Factory = (tokenAddress: string) => {

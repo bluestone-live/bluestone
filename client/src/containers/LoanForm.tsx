@@ -1,12 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import Card from '../components/common/Card';
 import { withRouter, RouteComponentProps } from 'react-router';
+import dayjs from 'dayjs';
 import {
   convertDecimalToWei,
   convertWeiToDecimal,
   BigNumber,
 } from '../utils/BigNumber';
-import dayjs from 'dayjs';
 import Form from '../components/html/Form';
 import { Row, Cell } from '../components/common/Layout';
 import Select from '../components/html/Select';
@@ -16,31 +16,43 @@ import Button from '../components/html/Button';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import Toggle from '../components/common/Toggle';
 import { calcCollateralRatio } from '../utils/calcCollateralRatio';
-import { ILoanPair, ITerm, IToken, IAvailableCollateral } from '../stores';
+import { ILoanPair, IAvailableCollateral, IToken } from '../stores';
 import { getService } from '../services';
 import { stringify } from 'querystring';
 import { calcEstimateRepayAmount } from '../utils/calcEstimateRepayAmount';
+import { useDepsUpdated } from '../utils/useEffectAsync';
+import parseQuery from '../utils/parseQuery';
 
 interface IProps extends WithTranslation, RouteComponentProps {
-  accountAddress: string;
-  loanTerms: ITerm[];
-  availableLoanPairs: ILoanPair[];
+  accountAddress?: string;
+  loanTokens: IToken[];
+  collateralTokens: IToken[];
+  selectedLoanPair?: ILoanPair;
   availableCollaterals: IAvailableCollateral[];
-  isUserActionsLocked: boolean;
+  isUserActionsLocked?: boolean;
 }
 
 const LoanForm = (props: IProps) => {
   const {
     accountAddress,
-    loanTerms,
-    availableLoanPairs,
+    loanTokens,
+    collateralTokens,
+    selectedLoanPair,
     availableCollaterals,
     isUserActionsLocked,
     t,
     history,
+    location: { search },
   } = props;
 
-  const loanTokens = availableLoanPairs.map(loanPair => loanPair.loanToken);
+  // Initialize
+  useDepsUpdated(async () => {
+    const { accountService } = await getService();
+
+    if (accountAddress) {
+      await accountService.getAvailableCollaterals(accountAddress);
+    }
+  }, [accountAddress]);
 
   // State
   const [loanAmount, setLoanAmount] = useState(0);
@@ -49,33 +61,23 @@ const LoanForm = (props: IProps) => {
 
   const [useAvailableCollateral, setUseAvailableCollateral] = useState(false);
 
-  const [selectedLoanToken, setSelectedLoanToken] = useState(loanTokens[0]);
-
-  const [selectedCollateralToken, setSelectedCollateralToken] = useState<
-    IToken
-  >();
-
-  const [selectedTerm, setSelectedTerm] = useState(loanTerms[0]);
+  const [selectedLoanTerm, setSelectedLoanTerm] = useState(1);
 
   const [loading, setLoading] = useState(false);
 
   // Computed
-
-  const loanTokenOptions = loanTokens.map(loanToken => (
-    <option
-      key={`loan_${loanToken.tokenAddress}`}
-      value={loanToken.tokenAddress}
-    >
-      {loanToken.tokenSymbol}
-    </option>
-  ));
-
-  const collateralTokens = availableLoanPairs
-    .filter(
-      loanPair =>
-        loanPair.loanToken.tokenAddress === selectedLoanToken.tokenAddress,
-    )
-    .map(loanPair => loanPair.collateralToken);
+  const loanTokenOptions = useMemo(
+    () =>
+      loanTokens.map(loanToken => (
+        <option
+          key={`loan_${loanToken.tokenAddress}`}
+          value={loanToken.tokenAddress}
+        >
+          {loanToken.tokenSymbol}
+        </option>
+      )),
+    [loanTokens],
+  );
 
   const collateralTokenOptions = collateralTokens.map(collateralToken => (
     <option
@@ -86,89 +88,92 @@ const LoanForm = (props: IProps) => {
     </option>
   ));
 
-  const selectedLoanPair = availableLoanPairs.find(
-    loanPair =>
-      loanPair.loanToken.tokenAddress === selectedLoanToken.tokenAddress &&
-      selectedCollateralToken &&
-      loanPair.collateralToken.tokenAddress ===
-        selectedCollateralToken.tokenAddress,
+  const estimatedRepayDate = useMemo(
+    () =>
+      dayjs()
+        .endOf('day')
+        .add(selectedLoanTerm, 'day')
+        .format('DD/MM/YYYY'),
+    [selectedLoanTerm],
   );
 
-  let currCollateralRatio = '0';
-  let minCollateralRatio = '0';
+  const estimateRepayAmount = useMemo(() => {
+    if (
+      selectedLoanPair &&
+      selectedLoanPair.annualPercentageRate &&
+      selectedLoanPair.collateralToken
+    ) {
+      return calcEstimateRepayAmount(
+        loanAmount,
+        Number.parseInt(selectedLoanPair.annualPercentageRate.toString(), 10),
+      ).toString();
+    }
+    return '0';
+  }, [selectedLoanPair, loanAmount]);
 
-  let estimateRepayAmount = '0';
+  const minCollateralRatio = useMemo(() => {
+    if (selectedLoanPair) {
+      return `${(
+        Number.parseFloat(
+          convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio, 2),
+        ) * 100
+      ).toFixed(2)}`;
+    }
+    return '0';
+  }, [selectedLoanPair]);
 
-  const estimatedRepayDate = dayjs()
-    .endOf('day')
-    .add(selectedTerm.value, 'day')
-    .format('DD/MM/YYYY');
+  const currCollateralRatio = useMemo(() => {
+    if (estimateRepayAmount && selectedLoanPair) {
+      return calcCollateralRatio(
+        collateralAmount.toString(),
+        estimateRepayAmount,
+        selectedLoanPair.collateralToken.price,
+        selectedLoanPair.loanToken.price,
+      );
+    }
+    return '0';
+  }, [collateralAmount, minCollateralRatio, estimateRepayAmount]);
 
-  if (
-    selectedLoanPair &&
-    selectedLoanPair.annualPercentageRate &&
-    selectedCollateralToken
-  ) {
-    estimateRepayAmount = calcEstimateRepayAmount(
-      loanAmount,
-      Number.parseInt(selectedLoanPair.annualPercentageRate.toString(), 10),
-    ).toString();
-
-    currCollateralRatio = calcCollateralRatio(
-      collateralAmount.toString(),
-      estimateRepayAmount,
-      selectedCollateralToken.price,
-      selectedLoanToken.price,
+  const selectedAvailableCollateralItem = useMemo(() => {
+    if (!selectedLoanPair || availableCollaterals.length === 0) {
+      return null;
+    }
+    return availableCollaterals.find(
+      availableCollateral =>
+        availableCollateral.tokenAddress ===
+        selectedLoanPair.collateralToken.tokenAddress,
     );
-
-    minCollateralRatio = `${(
-      Number.parseFloat(
-        convertWeiToDecimal(
-          selectedLoanPair.loanToken.collateralCoverageRatio,
-          2,
-        ),
-      ) * 100
-    ).toFixed(2)}`;
-  }
-
-  const selectedAvailableCollateralItem = selectedCollateralToken
-    ? availableCollaterals.find(
-        availableCollateral =>
-          availableCollateral.tokenAddress ===
-          selectedCollateralToken.tokenAddress,
-      )
-    : null;
+  }, [selectedLoanPair, availableCollaterals]);
 
   // Callback
   const onLoanTokenSelect = useCallback(
     ({ currentTarget: { value } }: React.ChangeEvent<HTMLSelectElement>) => {
-      const loanToken = loanTokens.find(token => token.tokenAddress === value);
-      if (loanToken) {
-        setSelectedLoanToken(loanToken);
+      if (loanTokens.find(token => token.tokenAddress === value)) {
+        history.replace({
+          pathname: window.location.pathname,
+          search: stringify({
+            ...parseQuery(search),
+            loanTokenAddress: value,
+          }),
+        });
       }
     },
-    [setSelectedLoanToken],
+    [loanTokens],
   );
 
   const onCollateralTokenSelect = useCallback(
     ({ currentTarget: { value } }: React.ChangeEvent<HTMLSelectElement>) => {
-      const collateralToken = collateralTokens.find(
-        token => token.tokenAddress === value,
-      );
-      if (collateralToken) {
-        setSelectedCollateralToken(collateralToken);
+      if (collateralTokens.find(token => token.tokenAddress === value)) {
+        history.replace({
+          pathname: window.location.pathname,
+          search: stringify({
+            ...parseQuery(search),
+            collateralTokenAddress: value,
+          }),
+        });
       }
     },
-    [setSelectedCollateralToken],
-  );
-
-  const onTermSelect = useCallback(
-    ({ currentTarget: { value } }: React.ChangeEvent<HTMLSelectElement>) =>
-      setSelectedTerm({
-        text: `${value}-Day`,
-        value: Number.parseInt(value, 10),
-      }),
-    [setSelectedTerm],
+    [collateralTokens],
   );
 
   const onLoanAmountChange = useCallback(
@@ -183,6 +188,12 @@ const LoanForm = (props: IProps) => {
     [setCollateralAmount],
   );
 
+  const onLoanTermChange = useCallback(
+    ({ currentTarget: { value } }: React.ChangeEvent<HTMLInputElement>) =>
+      setSelectedLoanTerm(Number.parseInt(value, 10)),
+    [setLoanAmount],
+  );
+
   const onUseAvailableCollateralChange = useCallback(
     (value: boolean) => setUseAvailableCollateral(value),
     [setUseAvailableCollateral],
@@ -193,7 +204,7 @@ const LoanForm = (props: IProps) => {
       e.preventDefault();
       setLoading(true);
 
-      if (!selectedLoanToken || !selectedCollateralToken || !selectedTerm) {
+      if (!accountAddress || !selectedLoanPair || !selectedLoanTerm) {
         return;
       }
 
@@ -201,11 +212,11 @@ const LoanForm = (props: IProps) => {
         const { loanService } = await getService();
         const recordId = await loanService.loan(
           accountAddress,
-          selectedLoanToken.tokenAddress,
-          selectedCollateralToken.tokenAddress,
+          selectedLoanPair.loanToken.tokenAddress,
+          selectedLoanPair.collateralToken.tokenAddress,
           convertDecimalToWei(loanAmount),
           convertDecimalToWei(collateralAmount),
-          new BigNumber(selectedTerm.value),
+          new BigNumber(selectedLoanTerm),
           useAvailableCollateral,
         );
         setLoading(false);
@@ -213,7 +224,7 @@ const LoanForm = (props: IProps) => {
         history.push({
           pathname: '/records/loan',
           search: stringify({
-            currentToken: selectedLoanToken.tokenAddress,
+            currentToken: selectedLoanPair.loanToken.tokenAddress,
             recordId,
           }),
         });
@@ -221,7 +232,14 @@ const LoanForm = (props: IProps) => {
         setLoading(false);
       }
     },
-    [setLoading],
+    [
+      accountAddress,
+      selectedLoanPair,
+      loanAmount,
+      collateralAmount,
+      selectedLoanTerm,
+      useAvailableCollateral,
+    ],
   );
 
   return (
@@ -237,7 +255,11 @@ const LoanForm = (props: IProps) => {
                 <Select
                   id="loanTokenSymbol"
                   name="loanTokenSymbol"
-                  value={selectedLoanToken.tokenAddress}
+                  value={
+                    selectedLoanPair
+                      ? selectedLoanPair.loanToken.tokenAddress
+                      : ''
+                  }
                   onChange={onLoanTokenSelect}
                 >
                   {loanTokenOptions}
@@ -267,23 +289,32 @@ const LoanForm = (props: IProps) => {
                 <label htmlFor="term">{t('term')}:</label>
               </Cell>
               <Cell>
-                <Select
-                  id="term"
-                  name="term"
-                  value={selectedTerm.value}
-                  onChange={onTermSelect}
-                >
-                  {loanTerms}
-                </Select>
+                <Input
+                  id="loanTerm"
+                  name="loanTerm"
+                  type="number"
+                  step="any"
+                  min="1"
+                  max={Number.parseInt(
+                    selectedLoanPair && selectedLoanPair.maxLoanTerm
+                      ? selectedLoanPair.maxLoanTerm.toString()
+                      : '1',
+                    10,
+                  )}
+                  onChange={onLoanTermChange}
+                  value={selectedLoanTerm}
+                />
               </Cell>
             </Form.Item>
             <Form.Item>
               <Cell>
-                <label htmlFor="apr">{t('apr')}:</label>{' '}
+                <label htmlFor="apr">{t('apr')}:</label>
               </Cell>
               <Cell>
                 <StyledTextBox id="apr">
-                  {selectedLoanPair && selectedLoanPair.annualPercentageRate} %
+                  {selectedLoanPair &&
+                    convertWeiToDecimal(selectedLoanPair.annualPercentageRate)}
+                  %
                 </StyledTextBox>
               </Cell>
             </Form.Item>
@@ -300,8 +331,8 @@ const LoanForm = (props: IProps) => {
                   id="collateralTokenSymbol"
                   name="collateralTokenSymbol"
                   value={
-                    selectedCollateralToken
-                      ? selectedCollateralToken.tokenSymbol
+                    selectedLoanPair
+                      ? selectedLoanPair.collateralToken.tokenAddress
                       : ''
                   }
                   onChange={onCollateralTokenSelect}
@@ -373,8 +404,9 @@ const LoanForm = (props: IProps) => {
                 <Form.Item>
                   <StyledTextBox>
                     You need to pay back {estimateRepayAmount}
-                    {selectedLoanToken.tokenSymbol} in estimation before{' '}
-                    {estimatedRepayDate}.
+                    {selectedLoanPair &&
+                      selectedLoanPair.loanToken.tokenSymbol}{' '}
+                    in estimation before {estimatedRepayDate}.
                   </StyledTextBox>
                 </Form.Item>
               </Cell>

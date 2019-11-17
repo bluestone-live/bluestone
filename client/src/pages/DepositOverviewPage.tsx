@@ -127,14 +127,14 @@ const DepositOverviewPage = (props: IProps) => {
         );
 
         dispatch(
-          CommonActions.setAllowance({
-            tokenAddress: token.tokenAddress,
-            allowanceAmount: await commonService.getTokenAllowance(
+          CommonActions.setAllowance(
+            token.tokenAddress,
+            await commonService.getTokenAllowance(
               token,
               defaultAccount,
               protocolContractAddress,
             ),
-          }),
+          ),
         );
       };
     },

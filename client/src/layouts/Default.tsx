@@ -104,12 +104,35 @@ const DefaultLayout = (props: IProps) => {
     dispatch(
       CommonActions.setLoanPairs(
         await Promise.all(
-          loanAndCollateralTokenPairs.map(async pair => ({
-            ...pair,
-            maxLoanTerm: await commonService.getMaxLoanTerm(
+          loanAndCollateralTokenPairs.map(async pair => {
+            const { loanToken, collateralToken } = pair;
+            const maxLoanTerm = await commonService.getMaxLoanTerm(
               pair.loanToken.tokenAddress,
-            ),
-          })),
+            );
+            const annualPercentageRate = await commonService.getLoanInterestRate(
+              pair.loanToken.tokenAddress,
+              maxLoanTerm,
+            );
+            const loanTokenPrice = await commonService.getPrice(
+              loanToken.tokenAddress,
+            );
+            const collateralTokenPrice = await commonService.getPrice(
+              collateralToken.tokenAddress,
+            );
+            return {
+              ...pair,
+              loanToken: {
+                ...loanToken,
+                price: loanTokenPrice,
+              },
+              collateralToken: {
+                ...collateralToken,
+                price: collateralTokenPrice,
+              },
+              maxLoanTerm,
+              annualPercentageRate,
+            };
+          }),
         ),
       ),
     );

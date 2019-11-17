@@ -94,25 +94,33 @@ export const loanPairPipe = async (
           loanToken: {
             tokenAddress: loanTokenAddress,
             erc20Instance: getERC20ByTokenAddress(loanTokenAddress),
-            minCollateralCoverageRatio,
           },
           collateralToken: {
             tokenAddress: collateralTokenAddress,
             erc20Instance: getERC20ByTokenAddress(collateralTokenAddress),
           },
+          minCollateralCoverageRatio,
           annualPercentageRate: new BigNumber(0),
         }),
       )
-      .map(async ({ loanToken, collateralToken, annualPercentageRate }) => ({
-        loanToken: {
-          ...loanToken,
-          tokenSymbol: (await loanToken.erc20Instance.methods.symbol.call()) as string,
-        },
-        collateralToken: {
-          ...collateralToken,
-          tokenSymbol: (await collateralToken.erc20Instance.methods.symbol.call()) as string,
-        },
-        annualPercentageRate,
-      })),
+      .map(
+        async ({
+          loanToken,
+          collateralToken,
+          annualPercentageRate,
+          minCollateralCoverageRatio,
+        }) => ({
+          loanToken: {
+            ...loanToken,
+            tokenSymbol: (await loanToken.erc20Instance.methods.symbol.call()) as string,
+          },
+          collateralToken: {
+            ...collateralToken,
+            tokenSymbol: (await collateralToken.erc20Instance.methods.symbol.call()) as string,
+          },
+          minCollateralCoverageRatio,
+          annualPercentageRate,
+        }),
+      ),
   );
 };

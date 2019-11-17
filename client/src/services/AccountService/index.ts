@@ -55,7 +55,7 @@ export class AccountService {
     accountAddress: string,
   ): Promise<IAvailableCollateral[]> {
     return availableCollateralPipe(
-      this.provider.protocol.methods
+      await this.provider.protocol.methods
         .getAvailableCollateralsByAccount(accountAddress)
         .call(),
     );

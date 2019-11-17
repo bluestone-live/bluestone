@@ -1,7 +1,7 @@
 import React, { useCallback, Fragment } from 'react';
 import styled from 'styled-components';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { calculateRate } from '../utils/interestRateCalculateHelper';
+import { calculateRate } from '../utils/calculateRate';
 import { ThemedProps } from '../styles/themes';
 import Card from '../components/common/Card';
 import Button from '../components/html/Button';
@@ -113,14 +113,14 @@ const LoanOverviewPage = (props: IProps) => {
         protocolContractAddress,
       );
       dispatch(
-        CommonActions.setAllowance({
-          tokenAddress: collateralToken.tokenAddress,
-          allowanceAmount: await commonService.getTokenAllowance(
+        CommonActions.setAllowance(
+          collateralToken.tokenAddress,
+          await commonService.getTokenAllowance(
             collateralToken,
             defaultAccount,
             protocolContractAddress,
           ),
-        }),
+        ),
       );
     },
     [protocolContractAddress],

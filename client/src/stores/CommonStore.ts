@@ -14,6 +14,7 @@ const enum CommonActionType {
   SetMaxLoanTerm = 'SET_LOAN_TERMS',
   SetLoanAPR = 'SET_LOAN_APR',
   SetProtocolContractAddress = 'SET_PROTOCOL_CONTRACT_ADDRESS',
+  SetTokenPrice = 'SET_TOKEN_PRICE',
 }
 
 export interface IToken {
@@ -22,7 +23,6 @@ export interface IToken {
   allowance?: BigNumber;
   price?: BigNumber;
   erc20Instance: Contract;
-  collateralCoverageRatio?: BigNumber;
 }
 
 export interface ITerm {
@@ -35,6 +35,7 @@ export interface ILoanPair {
   collateralToken: IToken;
   annualPercentageRate?: BigNumber;
   maxLoanTerm?: BigNumber;
+  minCollateralCoverageRatio: BigNumber;
 }
 
 interface ICommonState {
@@ -71,6 +72,32 @@ export const CommonReducer = (
       return {
         ...state,
         depositTokens: action.payload.depositTokens,
+      };
+    case CommonActionType.SetTokenPrice:
+      const {
+        loanTokenAddress,
+        loanTokenPrice,
+        collateralTokenAddress,
+        collateralTokenPrice,
+      } = action.payload;
+      return {
+        ...state,
+        loanPairs: state.loanPairs.map(pair => {
+          if (
+            pair.loanToken.tokenAddress === loanTokenAddress &&
+            pair.collateralToken.tokenAddress === collateralTokenAddress
+          ) {
+            return {
+              ...pair,
+              loanToken: { ...pair.loanToken, price: loanTokenPrice },
+              collateralToken: {
+                ...pair.collateralToken,
+                price: collateralTokenPrice,
+              },
+            };
+          }
+          return pair;
+        }),
       };
     case CommonActionType.SetLoanPairs:
       return {
@@ -158,14 +185,29 @@ export class CommonActions {
     };
   }
 
-  static setAllowance(allowance: {
-    tokenAddress: string;
-    allowanceAmount: BigNumber;
-  }) {
+  static setAllowance(tokenAddress: string, allowanceAmount: BigNumber) {
     return {
       type: CommonActionType.SetAllowance,
       payload: {
-        allowance,
+        tokenAddress,
+        allowanceAmount,
+      },
+    };
+  }
+
+  static setTokenPrice(
+    loanTokenAddress: string,
+    loanPrice: BigNumber,
+    collateralTokenAddress: string,
+    collateralTokenPrice: BigNumber,
+  ) {
+    return {
+      type: CommonActionType.SetTokenPrice,
+      payload: {
+        loanTokenAddress,
+        loanPrice,
+        collateralTokenAddress,
+        collateralTokenPrice,
       },
     };
   }

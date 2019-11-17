@@ -1,18 +1,12 @@
-import * as React from 'react';
+import React, { useMemo } from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  IState,
-  ITerm,
-  IAvailableCollateral,
-  CommonActions,
-  ILoanPair,
-} from '../stores';
+import { useSelector } from 'react-redux';
+import { IState, IAvailableCollateral, ILoanPair } from '../stores';
 import { useComponentMounted } from '../utils/useEffectAsync';
-import { getService } from '../services';
 import LoanForm from '../containers/LoanForm';
+import { uniqueBy } from '../utils/uniqueBy';
 
 interface IProps extends RouteComponentProps {
   term: number;
@@ -24,7 +18,12 @@ interface IProps extends RouteComponentProps {
 }
 
 const LoanFormPage = (props: IProps) => {
-  const dispatch = useDispatch();
+  const {
+    history,
+    location: { search },
+  } = props;
+
+  const { term, loanTokenAddress, collateralTokenAddress } = parseQuery(search);
 
   // Selector
   const defaultAccount = useSelector<IState, string>(
@@ -44,33 +43,13 @@ const LoanFormPage = (props: IProps) => {
   );
 
   // Initialize
-
   useComponentMounted(async () => {
-    const {
-      history,
-      location: { search },
-    } = props;
-    const { commonService } = await getService();
-
-    const loanAndCollateralPairs = await commonService.getLoanAndCollateralTokenPairs();
-    dispatch(CommonActions.setLoanPairs(loanAndCollateralPairs));
-
-    const { term, loanTokenAddress, collateralTokenAddress } = parseQuery(
-      search,
-    );
-
-    const selectedLoanPair = loanPairs.find(
-      loanPair =>
-        loanPair.loanToken.tokenAddress === loanTokenAddress &&
-        loanPair.collateralToken.tokenAddress === collateralTokenAddress,
-    );
-
     if (
-      !loanTokenAddress ||
-      !collateralTokenAddress ||
-      !term ||
-      loanTokenAddress === collateralTokenAddress ||
-      selectedLoanPair
+      (!loanTokenAddress ||
+        !collateralTokenAddress ||
+        !term ||
+        loanTokenAddress === collateralTokenAddress) &&
+      loanPairs.length > 0
     ) {
       const defaultLoanPair = loanPairs[0];
 
@@ -80,17 +59,71 @@ const LoanFormPage = (props: IProps) => {
           ...parseQuery(search),
           loanTokenAddress: defaultLoanPair.loanToken.tokenAddress,
           collateralTokenAddress: defaultLoanPair.collateralToken.tokenAddress,
-          term: selectedLoanPair!.maxLoanTerm,
         }),
       });
     }
   });
 
+  // Computed
+  const loanTokens = useMemo(
+    () =>
+      loanPairs
+        ? uniqueBy(
+            loanPairs.map(loanPair => loanPair.loanToken),
+            'tokenAddress',
+          )
+        : [],
+    [loanPairs],
+  );
+
+  const selectedLoanToken = useMemo(
+    () => loanTokens.find(token => token.tokenAddress === loanTokenAddress),
+    [loanTokens, loanTokenAddress],
+  );
+
+  const collateralTokens = useMemo(() => {
+    if (loanPairs.length === 0 || !selectedLoanToken) {
+      return [];
+    }
+    return loanPairs
+      .filter(
+        loanPair =>
+          loanPair.loanToken.tokenAddress === selectedLoanToken.tokenAddress,
+      )
+      .map(loanPair => loanPair.collateralToken);
+  }, [loanPairs, selectedLoanToken]);
+
+  const selectedCollateralToken = useMemo(
+    () =>
+      collateralTokens.find(
+        token => token.tokenAddress === collateralTokenAddress,
+      ),
+    [collateralTokens, collateralTokenAddress],
+  );
+
+  const selectedLoanPair = useMemo(() => {
+    if (
+      loanPairs.length === 0 ||
+      !selectedLoanToken ||
+      !selectedCollateralToken
+    ) {
+      return undefined;
+    }
+    return loanPairs.find(
+      loanPair =>
+        loanPair.loanToken.tokenAddress === selectedLoanToken.tokenAddress &&
+        selectedCollateralToken &&
+        loanPair.collateralToken.tokenAddress ===
+          selectedCollateralToken.tokenAddress,
+    );
+  }, [loanPairs, selectedLoanToken, selectedCollateralToken]);
+
   return (
     <LoanForm
       accountAddress={defaultAccount}
-      loanTerms={loanTerms}
-      availableLoanPairs={loanPairs}
+      selectedLoanPair={selectedLoanPair}
+      loanTokens={loanTokens}
+      collateralTokens={collateralTokens}
       availableCollaterals={availableCollaterals}
       isUserActionsLocked={isUserActionsLocked}
     />

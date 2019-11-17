@@ -46,10 +46,11 @@ export class LoanService {
       .loan(
         loanTokenAddress,
         collateralTokenAddress,
-        loanAmount,
-        collateralAmount,
-        loanTerm,
+        loanAmount.toString(),
+        collateralAmount.toString(),
+        loanTerm.toString(),
         useAvailableCollateral,
+        '0x3dd5A7c19C2226961dF1f97644ab0c6Dd8d2Daa8',
       )
       .send({ from: accountAddress });
   }
