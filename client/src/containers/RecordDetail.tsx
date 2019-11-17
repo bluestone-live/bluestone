@@ -11,10 +11,12 @@ import {
   IDepositRecord,
   ITransaction,
   ILoanRecord,
+  DepositActions,
 } from '../stores';
 import { getService } from '../services';
-import { ZERO } from '../utils/BigNumber';
+import { ZERO, convertWeiToDecimal } from '../utils/BigNumber';
 import { withRouter, RouteComponentProps } from 'react-router';
+import { useDispatch } from 'react-redux';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -34,51 +36,57 @@ const RecordDetail = (props: IProps) => {
     t,
     history,
   } = props;
+  const dispatch = useDispatch();
 
   // State
   const [loading, setLoading] = useState(false);
 
   // Callback
-  const withdraw = useCallback(async () => {
+  const withdrawDeposit = useCallback(async () => {
     const { depositService } = await getService();
 
     setLoading(true);
     await depositService.withdrawDeposit(accountAddress, record.recordId);
+    dispatch(
+      DepositActions.UpdateDepositRecord(
+        await depositService.getDepositRecordById(record.recordId),
+      ),
+    );
     setLoading(false);
-  }, [setLoading]);
+  }, [setLoading, record]);
 
-  const earlyWithdraw = useCallback(async () => {
+  const earlyWithdrawDeposit = useCallback(async () => {
     const { depositService } = await getService();
 
     setLoading(true);
     await depositService.earlyWithdrawDeposit(accountAddress, record.recordId);
     setLoading(false);
-  }, [setLoading]);
+  }, [setLoading, record]);
 
   const renderDetail = useCallback(
     (r: IRecord) => {
       if (r.recordType === RecordType.Deposit) {
         const depositRecord = record as IDepositRecord;
-        const interestEarned = depositRecord.interestIndex
-          ? depositRecord.depositAmount.mul(depositRecord.interestIndex)
-          : ZERO;
+        const interestEarned = depositRecord.interest || ZERO;
 
         return (
           <Fragment>
             <Form.Item>
               <label htmlFor="amount">{t('deposit_amount')}</label>
-              <TextBox>{depositRecord.depositAmount}</TextBox>
+              <TextBox>
+                {convertWeiToDecimal(depositRecord.depositAmount)}
+              </TextBox>
             </Form.Item>
             <Form.Item>
               <label>{t('interest_earned')}</label>
-              <TextBox>{interestEarned}</TextBox>
+              <TextBox>{convertWeiToDecimal(interestEarned)}</TextBox>
             </Form.Item>
             {depositRecord.isMatured && (
               <Form.Item>
                 <Button.Group>
                   <Button
                     primary
-                    onClick={withdraw}
+                    onClick={withdrawDeposit}
                     disabled={isUserActionsLocked}
                     loading={loading}
                   >
@@ -92,7 +100,7 @@ const RecordDetail = (props: IProps) => {
                 <Button.Group>
                   <Button
                     primary
-                    onClick={earlyWithdraw}
+                    onClick={earlyWithdrawDeposit}
                     disabled={isUserActionsLocked}
                     loading={loading}
                   >
@@ -142,7 +150,7 @@ const RecordDetail = (props: IProps) => {
         );
       }
     },
-    [withdraw],
+    [withdrawDeposit],
   );
 
   const goTo = useCallback(path => () => history.push(path), [history]);

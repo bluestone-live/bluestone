@@ -19,6 +19,7 @@ import {
   DepositActions,
   useDepositTokens,
   useDefaultAccount,
+  TransactionActions,
 } from '../stores';
 import { getService } from '../services';
 import { Row, Cell } from '../components/common/Layout';
@@ -68,6 +69,7 @@ const RecordPage = (props: IProps) => {
     t,
   } = props;
   const dispatch = useDispatch();
+  const { tokenAddress, recordId } = parseQuery(location.search);
 
   const recordTypeOptions = useMemo(
     () => [
@@ -132,9 +134,24 @@ const RecordPage = (props: IProps) => {
     }
   }, [defaultAccount]);
 
-  // Computed
+  useDepsUpdated(async () => {
+    const { depositService, transactionService } = await getService();
 
-  const { tokenAddress, recordId } = parseQuery(location.search);
+    if (recordId) {
+      dispatch(
+        DepositActions.UpdateDepositRecord(
+          await depositService.getDepositRecordById(recordId),
+        ),
+      );
+      dispatch(
+        TransactionActions.replaceTransactions(
+          await transactionService.getActionTransactions(defaultAccount),
+        ),
+      );
+    }
+  }, [recordId]);
+
+  // Computed
 
   const selectedToken = depositTokens.find(
     token => token.tokenAddress === tokenAddress,

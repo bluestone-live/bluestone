@@ -3,6 +3,7 @@ import { MetaMaskProvider } from '../utils/MetaMaskProvider';
 import { CommonService } from './CommonService';
 import { DepositService } from './DepositService';
 import { LoanService } from './LoanService';
+import { TransactionService } from './TransactionService';
 
 const generateService = async () => {
   const provider = new MetaMaskProvider();
@@ -13,6 +14,7 @@ const generateService = async () => {
     commonService: new CommonService(provider),
     depositService: new DepositService(provider),
     loanService: new LoanService(provider),
+    transactionService: new TransactionService(provider),
   };
 };
 
@@ -21,6 +23,7 @@ let promise: Promise<{
   commonService: CommonService;
   depositService: DepositService;
   loanService: LoanService;
+  transactionService: TransactionService;
 }>;
 
 export const getService = () => {

@@ -1,7 +1,7 @@
 import { BigNumber, convertDecimalToWei } from '../../utils/BigNumber';
 import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
-import { IDepositRecord, RecordType } from '../../stores';
-import { depositRecordsPipe } from './Pipes';
+import { IDepositRecord } from '../../stores';
+import { depositRecordsPipe, depositRecordPipe } from './Pipes';
 
 export class DepositService {
   constructor(private readonly provider: MetaMaskProvider) {}
@@ -27,17 +27,7 @@ export class DepositService {
    * @returns deposit detail information
    */
   async getDepositRecordById(depositId: string): Promise<IDepositRecord> {
-    const {
-      tokenAddress,
-      depositTerm,
-      depositAmount,
-      poolId,
-      createdAt,
-      maturedAt,
-      withdrewAt,
-      isMatured,
-      isWithdrawn,
-    } = await this.provider.protocol.methods
+    const record = await this.provider.protocol.methods
       .getDepositRecordById(depositId)
       .call();
     const interest = await this.provider.protocol.methods
@@ -46,21 +36,8 @@ export class DepositService {
     const isEarlyWithdrawable = await this.provider.protocol.methods
       .isDepositEarlyWithdrawable(depositId)
       .call();
-    return {
-      recordId: depositId,
-      tokenAddress,
-      depositTerm,
-      depositAmount,
-      poolId,
-      createdAt,
-      maturedAt,
-      withdrewAt,
-      isMatured,
-      isWithdrawn,
-      interest,
-      isEarlyWithdrawable,
-      recordType: RecordType.Deposit,
-    };
+
+    return depositRecordPipe(depositId, record, interest, isEarlyWithdrawable);
   }
 
   /**
@@ -113,7 +90,7 @@ export class DepositService {
     depositId: string,
   ): Promise<BigNumber> {
     return this.provider.protocol.methods
-      .withdrawDeposit(depositId)
+      .withdraw(depositId)
       .send({ from: accountAddress });
   }
 
@@ -124,7 +101,7 @@ export class DepositService {
    */
   async earlyWithdrawDeposit(accountAddress: string, depositId: string) {
     return this.provider.protocol.methods
-      .earlyWithdrawDeposit(depositId)
+      .earlyWithdraw(depositId)
       .send({ from: accountAddress });
   }
 }

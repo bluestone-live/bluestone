@@ -77,10 +77,10 @@ const RecordItem = (props: IProps) => {
         </StyledItemCell>
         <StyledItemCell>{depositRecord.depositTerm.text}</StyledItemCell>
         <StyledItemCell>
-          {depositRecord.depositAmount.toString()}
+          {convertWeiToDecimal(depositRecord.depositAmount)}
         </StyledItemCell>
         <StyledItemCell>
-          {dayjs(depositRecord.maturedAt).format('YYYY-MM-DD')}
+          {depositRecord.maturedAt.format('YYYY-MM-DD')}
         </StyledItemCell>
       </StyledRow>
     );

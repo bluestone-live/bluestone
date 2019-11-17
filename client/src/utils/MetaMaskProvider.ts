@@ -122,6 +122,11 @@ export class MetaMaskProvider {
     return new this.web3.eth.Contract(ERC20.abi as AbiItem[], tokenAddress);
   };
 
+  getTimestampByBlockHash = async (
+    blockHash: string,
+  ): Promise<string | number> =>
+    (await this.web3.eth.getBlock(blockHash)).timestamp;
+
   /**
    * Create a flow that could converts contract.method.send() to promise by pass a callback function
    *
@@ -176,5 +181,18 @@ export class MetaMaskProvider {
     };
 
     return eventFlow;
+  };
+
+  getPastEvents = async (
+    accountAddress: string,
+    eventName: EventName,
+  ): Promise<EventData[]> => {
+    return this.protocol.getPastEvents(eventName, {
+      filter: {
+        user: accountAddress,
+      },
+      fromBlock: 0,
+      toBlock: 'latest',
+    });
   };
 }

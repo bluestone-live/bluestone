@@ -15,6 +15,18 @@ interface IGetDepositRecordsResultSet {
   withdrewAtList: BigNumber[];
 }
 
+interface IGetDepositRecordByIdResult {
+  tokenAddress: string;
+  depositTerm: BigNumber;
+  depositAmount: BigNumber;
+  poolId: BigNumber;
+  createdAt: BigNumber;
+  maturedAt: BigNumber;
+  withdrewAt: BigNumber;
+  isMatured: boolean;
+  isWithdrawn: boolean;
+}
+
 export const depositRecordsPipe = ({
   depositIdList,
   tokenAddressList,
@@ -48,4 +60,39 @@ export const depositRecordsPipe = ({
     withdrewAt: dayjs(formatSolidityTime(withdrewAtList[index])),
     recordType: RecordType.Deposit,
   }));
+};
+
+export const depositRecordPipe = (
+  depositId: string,
+  record: IGetDepositRecordByIdResult,
+  interest: BigNumber,
+  isEarlyWithdrawable: boolean,
+): IDepositRecord => {
+  const {
+    tokenAddress,
+    depositTerm,
+    depositAmount,
+    poolId,
+    createdAt,
+    maturedAt,
+    withdrewAt,
+    isMatured,
+    isWithdrawn,
+  } = record;
+
+  return {
+    recordId: depositId,
+    tokenAddress,
+    depositTerm: getTermObjectByValue(depositTerm.toString()),
+    depositAmount,
+    poolId,
+    createdAt: dayjs(formatSolidityTime(createdAt)),
+    maturedAt: dayjs(formatSolidityTime(maturedAt)),
+    withdrewAt: dayjs(formatSolidityTime(withdrewAt)),
+    isMatured,
+    isWithdrawn,
+    interest,
+    isEarlyWithdrawable,
+    recordType: RecordType.Deposit,
+  };
 };
