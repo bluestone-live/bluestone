@@ -1,7 +1,7 @@
 import React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { useComponentMounted } from '../utils/useEffectAsync';
+import { useDepsUpdated } from '../utils/useEffectAsync';
 import {
   useDefaultAccount,
   useDepositTerms,
@@ -30,12 +30,11 @@ const DepositFormPage = (props: IProps) => {
   const isUserActionsLocked = useUserActionLock();
 
   // Initialize
-
-  useComponentMounted(async () => {
+  useDepsUpdated(async () => {
     if (!match.params.tokenAddress && defaultToken) {
       history.replace(`/deposit/${defaultToken.tokenAddress}`);
     }
-  });
+  }, [defaultToken]);
 
   const currentToken =
     depositTokens.find(

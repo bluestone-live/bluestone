@@ -19,7 +19,7 @@ export interface IDepositRecord {
   withdrewAt: Dayjs;
   isMatured?: boolean;
   isWithdrawn?: boolean;
-  interestIndex?: BigNumber;
+  interest?: BigNumber;
   recordType: RecordType;
   isEarlyWithdrawable?: boolean;
 }
@@ -66,3 +66,22 @@ export const DepositReducer = (
       return state;
   }
 };
+
+export class DepositActions {
+  static replaceDepositRecords(depositRecords: IDepositRecord[]) {
+    return {
+      type: DepositActionType.ReplaceDepositRecords,
+      payload: {
+        depositRecords,
+      },
+    };
+  }
+  static UpdateDepositRecord(depositRecord: IDepositRecord) {
+    return {
+      type: DepositActionType.UpdateDepositRecord,
+      payload: {
+        depositRecord,
+      },
+    };
+  }
+}

@@ -1,6 +1,7 @@
-import { IProtocolLoanRecord } from '..';
 import { BigNumber } from '../../utils/BigNumber';
 import { MetaMaskProvider } from '../../utils/MetaMaskProvider';
+import { loanRecordsPipe } from './Pipes';
+import { ILoanRecord } from '../../stores';
 
 export class LoanService {
   constructor(private readonly provider: MetaMaskProvider) {}
@@ -12,10 +13,12 @@ export class LoanService {
    */
   async getLoanRecordsByAccount(
     accountAddress: string,
-  ): Promise<IProtocolLoanRecord[]> {
-    return this.provider.protocol.methods
-      .getLoanRecordsByAccount(accountAddress)
-      .call();
+  ): Promise<ILoanRecord[]> {
+    return loanRecordsPipe(
+      await this.provider.protocol.methods
+        .getLoanRecordsByAccount(accountAddress)
+        .call(),
+    );
   }
 
   /**
@@ -23,7 +26,7 @@ export class LoanService {
    * @param loanId loan id
    * @returns loan detail information
    */
-  async getLoanRecordById(loanId: string): Promise<IProtocolLoanRecord> {
+  async getLoanRecordById(loanId: string): Promise<ILoanRecord> {
     return this.provider.protocol.methods.getLoanRecordById(loanId).call();
   }
 

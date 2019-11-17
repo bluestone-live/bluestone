@@ -70,6 +70,7 @@ const RecordItem = (props: IProps) => {
             ? 'active'
             : ''
         }
+        key={`item-${depositRecord.recordId}`}
       >
         <StyledItemCell>
           {depositToken ? depositToken.tokenSymbol : depositRecord.tokenAddress}

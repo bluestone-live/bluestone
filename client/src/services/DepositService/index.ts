@@ -1,6 +1,7 @@
 import { BigNumber, convertDecimalToWei } from '../../utils/BigNumber';
-import { IProtocolDepositRecord } from '..';
 import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
+import { IDepositRecord, RecordType } from '../../stores';
+import { depositRecordsPipe } from './Pipes';
 
 export class DepositService {
   constructor(private readonly provider: MetaMaskProvider) {}
@@ -12,10 +13,12 @@ export class DepositService {
    */
   async getDepositRecordsByAccount(
     accountAddress: string,
-  ): Promise<IProtocolDepositRecord[]> {
-    return this.provider.protocol.methods
-      .getDepositRecordsByAccount(accountAddress)
-      .call();
+  ): Promise<IDepositRecord[]> {
+    return depositRecordsPipe(
+      await this.provider.protocol.methods
+        .getDepositRecordsByAccount(accountAddress)
+        .call(),
+    );
   }
 
   /**
@@ -23,9 +26,7 @@ export class DepositService {
    * @param depositId deposit id
    * @returns deposit detail information
    */
-  async getDepositRecordById(
-    depositId: string,
-  ): Promise<IProtocolDepositRecord> {
+  async getDepositRecordById(depositId: string): Promise<IDepositRecord> {
     const {
       tokenAddress,
       depositTerm,
@@ -46,7 +47,7 @@ export class DepositService {
       .isDepositEarlyWithdrawable(depositId)
       .call();
     return {
-      depositId,
+      recordId: depositId,
       tokenAddress,
       depositTerm,
       depositAmount,
@@ -58,6 +59,7 @@ export class DepositService {
       isWithdrawn,
       interest,
       isEarlyWithdrawable,
+      recordType: RecordType.Deposit,
     };
   }
 

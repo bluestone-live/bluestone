@@ -18,14 +18,14 @@ const StyledHeaderCell = styled(Cell)`
   color: ${(props: ThemedProps) => props.theme.fontColors.secondary};
 `;
 
-const DepositRecordList = (props: IProps) => {
+const RecordList = (props: IProps) => {
   const { columns, records, renderRow, t } = props;
 
   return (
-    <div className="deposit-record-list">
+    <div className="record-list">
       <Row>
         {columns.map(column => (
-          <StyledHeaderCell key={`th_${column}`}>{t(column)!}</StyledHeaderCell>
+          <StyledHeaderCell key={`th_${column}`}>{t(column)}</StyledHeaderCell>
         ))}
       </Row>
       {records.map(record => renderRow(record))}
@@ -33,4 +33,4 @@ const DepositRecordList = (props: IProps) => {
   );
 };
 
-export default withTranslation()(DepositRecordList);
+export default withTranslation()(RecordList);

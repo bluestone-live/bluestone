@@ -12,15 +12,15 @@ export interface ILoanRecord {
   recordId: string;
   loanTokenAddress: string;
   collateralTokenAddress: string;
+  loanAmount?: BigNumber;
   loanTerm: ITerm;
-  loanAmount: BigNumber;
-  collateralAmount: BigNumber;
-  currentCollateralRatio: BigNumber;
-  interest: BigNumber;
+  collateralAmount?: BigNumber;
+  currentCollateralRatio?: BigNumber;
+  interest?: BigNumber;
   remainingDebt: BigNumber;
   createdAt: Dayjs;
   isOverDue?: boolean;
-  isClosed?: boolean;
+  isClosed: boolean;
   isLiquidatable?: boolean;
   recordType: RecordType;
 }

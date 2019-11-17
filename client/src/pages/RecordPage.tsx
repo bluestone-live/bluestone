@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { withRouter, RouteComponentProps } from 'react-router';
 import Card from '../components/common/Card';
@@ -7,15 +7,18 @@ import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
-import { useComponentMounted } from '../utils/useEffectAsync';
-import { useSelector } from 'react-redux';
+import { useComponentMounted, useDepsUpdated } from '../utils/useEffectAsync';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   IState,
-  IToken,
   IDepositRecord,
   ILoanRecord,
   IRecord,
   ITransaction,
+  useUserActionLock,
+  DepositActions,
+  useDepositTokens,
+  useDefaultAccount,
 } from '../stores';
 import { getService } from '../services';
 import { Row, Cell } from '../components/common/Layout';
@@ -64,30 +67,31 @@ const RecordPage = (props: IProps) => {
     },
     t,
   } = props;
+  const dispatch = useDispatch();
 
-  const recordTypeOptions = [
-    {
-      text: t('deposit'),
-      value: RecordType.Deposit,
-    },
-    {
-      text: t('loan'),
-      value: RecordType.Loan,
-    },
-  ];
+  const recordTypeOptions = useMemo(
+    () => [
+      {
+        text: t('deposit'),
+        value: RecordType.Deposit,
+      },
+      {
+        text: t('loan'),
+        value: RecordType.Loan,
+      },
+    ],
+    [],
+  );
 
   const selectedOption = recordTypeOptions.find(
     type => type.value === recordType,
   );
 
   // Selector
-  const depositTokens = useSelector<IState, IToken[]>(
-    state => state.common.depositTokens,
-  );
+  const defaultAccount = useDefaultAccount();
 
-  const defaultAccount = useSelector<IState, string>(
-    state => state.account.accounts[0],
-  );
+  const depositTokens = useDepositTokens();
+  const defaultToken = depositTokens[0];
 
   const depositRecords = useSelector<IState, IDepositRecord[]>(
     state => state.deposit.depositRecords,
@@ -101,18 +105,24 @@ const RecordPage = (props: IProps) => {
     state => state.transaction.transactions,
   );
 
-  const isUserActionsLocked = useSelector<IState, boolean>(
-    state => state.common.isUserActionsLocked,
-  );
+  const isUserActionsLocked = useUserActionLock();
 
   // Initialize
   useComponentMounted(async () => {
     const { depositService, loanService } = await getService();
 
-    // Set default token if needed
-    if (!selectedToken) {
-      const defaultToken = depositTokens[0];
+    // Get records
+    dispatch(
+      DepositActions.replaceDepositRecords(
+        await depositService.getDepositRecordsByAccount(defaultAccount),
+      ),
+    );
+    await loanService.getLoanRecordsByAccount(defaultAccount);
+  });
 
+  useDepsUpdated(async () => {
+    // Set default token if needed
+    if (!selectedToken && defaultToken) {
       history.push({
         pathname: location.pathname,
         search: stringify({
@@ -120,13 +130,7 @@ const RecordPage = (props: IProps) => {
         }),
       });
     }
-
-    // Get records
-    await depositService.getDepositRecordsByAccount(defaultAccount);
-    await loanService.getLoanRecordsByAccount(defaultAccount);
-  });
-
-  // State
+  }, [defaultAccount]);
 
   // Computed
 
@@ -190,6 +194,7 @@ const RecordPage = (props: IProps) => {
   const renderRow = useCallback(
     (record: IRecord) => (
       <RecordItem
+        key={`record_${record.recordId}`}
         record={record}
         selectedRecordId={recordId}
         onRecordSelected={onRecordSelected}
