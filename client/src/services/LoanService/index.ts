@@ -1,6 +1,6 @@
 import { BigNumber } from '../../utils/BigNumber';
 import { MetaMaskProvider } from '../../utils/MetaMaskProvider';
-import { loanRecordsPipe } from './Pipes';
+import { loanRecordsPipe, loanRecordPipe } from './Pipes';
 import { ILoanRecord } from '../../stores';
 
 export class LoanService {
@@ -23,11 +23,17 @@ export class LoanService {
 
   /**
    * Get loan detail by ID
-   * @param loanId loan id
+   * @param recordId loan id
    * @returns loan detail information
    */
-  async getLoanRecordById(loanId: string): Promise<ILoanRecord> {
-    return this.provider.protocol.methods.getLoanRecordById(loanId).call();
+  async getLoanRecordById(recordId: string): Promise<ILoanRecord> {
+    return loanRecordPipe(
+      recordId,
+      await this.provider.protocol.methods.getLoanRecordById(recordId).call(),
+      await this.provider.protocol.methods
+        .getLoanRecordDetailsById(recordId)
+        .call(),
+    );
   }
 
   /**

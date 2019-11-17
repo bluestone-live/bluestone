@@ -41,26 +41,35 @@ export const LoanReducer = (
     case LoanActionType.ReplaceLoanRecords:
       return { ...state, loanRecords: action.payload.loanRecords };
     case LoanActionType.UpdateLoanRecord:
-      if (
-        state.loanRecords.find(
-          record => record.recordId === action.payload.loanRecord.recordId,
-        )
-      ) {
-        return {
-          ...state,
-          loanRecords: state.loanRecords.map(record =>
-            record.recordId === action.payload.loanRecord.recordId
-              ? replaceBy(record, action.payload.loanRecord)
-              : record,
-          ),
-        };
-      } else {
-        return {
-          ...state,
-          loanRecords: [...state.loanRecords, action.payload.loanRecord],
-        };
-      }
+      return {
+        ...state,
+        loanRecords: state.loanRecords.map(record =>
+          record.recordId === action.payload.recordId
+            ? replaceBy(record, action.payload.loanRecord)
+            : record,
+        ),
+      };
     default:
       return state;
   }
 };
+
+export class LoanActions {
+  static replaceLoanRecords(loanRecords: ILoanRecord[]) {
+    return {
+      type: LoanActionType.ReplaceLoanRecords,
+      payload: {
+        loanRecords,
+      },
+    };
+  }
+  static UpdateLoanRecord(recordId: string, loanRecord: ILoanRecord) {
+    return {
+      type: LoanActionType.UpdateLoanRecord,
+      payload: {
+        recordId,
+        loanRecord,
+      },
+    };
+  }
+}

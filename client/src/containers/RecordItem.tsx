@@ -13,7 +13,6 @@ import {
   ILoanRecord,
 } from '../stores';
 import { useSelector } from 'react-redux';
-import { calcCollateralRatio } from '../utils/calcCollateralRatio';
 import { convertWeiToDecimal } from '../utils/BigNumber';
 
 interface IProps extends WithTranslation {
@@ -99,12 +98,10 @@ const RecordItem = (props: IProps) => {
       return null;
     }
 
-    const collateralRatio = calcCollateralRatio(
-      convertWeiToDecimal(loanRecord.collateralAmount),
-      convertWeiToDecimal(loanRecord.remainingDebt),
-      collateralToken.price,
-      loanToken.price,
-    );
+    const collateralRatio =
+      Number.parseFloat(
+        convertWeiToDecimal(loanRecord.currentCollateralRatio),
+      ) * 100;
 
     return (
       <StyledRow
@@ -116,10 +113,8 @@ const RecordItem = (props: IProps) => {
         }
       >
         <StyledItemCell>
-          {loanRecord.loanAmount} {loanToken.tokenSymbol}
-        </StyledItemCell>
-        <StyledItemCell>
-          {loanRecord.collateralAmount} {collateralToken.tokenSymbol}
+          {convertWeiToDecimal(loanRecord.remainingDebt)}{' '}
+          {collateralToken.tokenSymbol}
         </StyledItemCell>
         <StyledItemCell>{collateralRatio} %</StyledItemCell>
         <StyledItemCell>

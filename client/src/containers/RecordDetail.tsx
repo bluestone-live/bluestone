@@ -125,7 +125,8 @@ const RecordDetail = (props: IProps) => {
             <Form.Item>
               <label htmlFor="loanTokenSymbol">{t('borrow')}: </label>
               <TextBox>
-                {loanRecord.loanAmount} {loanToken && loanToken.tokenSymbol}
+                {convertWeiToDecimal(loanRecord.loanAmount)}{' '}
+                {loanToken && loanToken.tokenSymbol}
               </TextBox>
             </Form.Item>
             <Form.Item>
@@ -133,16 +134,21 @@ const RecordDetail = (props: IProps) => {
               <TextBox>{loanRecord.loanTerm.text}</TextBox>
             </Form.Item>
             <Form.Item>
-              <label htmlFor="collateralTokenSymbol">{t('collateral')}:</label>
+              <label htmlFor="collateralTokenSymbol">
+                {t('remainingDebt')}:
+              </label>
               <TextBox>
-                {loanRecord.collateralAmount}{' '}
+                {convertWeiToDecimal(loanRecord.remainingDebt)}{' '}
                 {collateralToken && collateralToken.tokenSymbol}
               </TextBox>
             </Form.Item>
             <Form.Item>
               <label htmlFor="collateralRatio">{t('collateral_ratio')}:</label>
               <TextBox id="collateralRatio">
-                {loanRecord.currentCollateralRatio} %
+                {Number.parseFloat(
+                  convertWeiToDecimal(loanRecord.currentCollateralRatio),
+                ) * 100}{' '}
+                %
               </TextBox>
             </Form.Item>
             {renderActions(loanRecord.recordId)}
@@ -150,7 +156,7 @@ const RecordDetail = (props: IProps) => {
         );
       }
     },
-    [withdrawDeposit],
+    [record],
   );
 
   const goTo = useCallback(path => () => history.push(path), [history]);

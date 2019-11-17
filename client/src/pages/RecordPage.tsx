@@ -20,6 +20,8 @@ import {
   useDepositTokens,
   useDefaultAccount,
   TransactionActions,
+  LoanActions,
+  RecordType,
 } from '../stores';
 import { getService } from '../services';
 import { Row, Cell } from '../components/common/Layout';
@@ -31,11 +33,6 @@ import RecordDetail from '../containers/RecordDetail';
 interface IProps
   extends WithTranslation,
     RouteComponentProps<{ recordType: string }> {}
-
-enum RecordType {
-  Deposit = 'deposit',
-  Loan = 'loan',
-}
 
 const StyledCard = styled(Card)`
   margin-bottom: ${(props: ThemedProps) => props.theme.gap.medium};
@@ -119,7 +116,11 @@ const RecordPage = (props: IProps) => {
         await depositService.getDepositRecordsByAccount(defaultAccount),
       ),
     );
-    await loanService.getLoanRecordsByAccount(defaultAccount);
+    dispatch(
+      LoanActions.replaceLoanRecords(
+        await loanService.getLoanRecordsByAccount(defaultAccount),
+      ),
+    );
   });
 
   useDepsUpdated(async () => {
@@ -135,14 +136,9 @@ const RecordPage = (props: IProps) => {
   }, [defaultAccount]);
 
   useDepsUpdated(async () => {
-    const { depositService, transactionService } = await getService();
+    const { transactionService } = await getService();
 
     if (recordId) {
-      dispatch(
-        DepositActions.UpdateDepositRecord(
-          await depositService.getDepositRecordById(recordId),
-        ),
-      );
       dispatch(
         TransactionActions.replaceTransactions(
           await transactionService.getActionTransactions(defaultAccount),
@@ -153,22 +149,49 @@ const RecordPage = (props: IProps) => {
 
   // Computed
 
-  const selectedToken = depositTokens.find(
-    token => token.tokenAddress === tokenAddress,
+  const selectedToken = useMemo(
+    () => depositTokens.find(token => token.tokenAddress === tokenAddress),
+    [tokenAddress],
   );
 
-  const selectedRecord = (depositRecords as IRecord[])
-    .concat(loanRecords)
-    .find(record => record.recordId === recordId);
+  const selectedRecord = useMemo(
+    () =>
+      (depositRecords as IRecord[])
+        .concat(loanRecords)
+        .find(record => record.recordId === recordId),
+    [depositRecords, loanRecords, recordId],
+  );
 
-  const depositColumns = ['token', 'term', 'amount', 'matured_at'];
+  useDepsUpdated(async () => {
+    if (!selectedRecord) {
+      return;
+    }
+    const { depositService, loanService } = await getService();
+    if (selectedRecord.recordType === RecordType.Loan) {
+      dispatch(
+        LoanActions.UpdateLoanRecord(
+          selectedRecord.recordId,
+          await loanService.getLoanRecordById(selectedRecord.recordId),
+        ),
+      );
+    } else {
+      dispatch(
+        DepositActions.UpdateDepositRecord(
+          await depositService.getDepositRecordById(selectedRecord.recordId),
+        ),
+      );
+    }
+  }, [selectedRecord ? selectedRecord.recordId : undefined]);
 
-  const loanColumns = [
-    'borrow',
-    'collateral',
-    'collateral_ratio',
-    'expired_at',
-  ];
+  const depositColumns = useMemo(
+    () => ['token', 'term', 'amount', 'matured_at'],
+    [],
+  );
+
+  const loanColumns = useMemo(
+    () => ['collateral', 'collateral_ratio', 'expired_at'],
+    [],
+  );
 
   // Callback
   const onRecordTypeChange = useCallback(
@@ -197,15 +220,16 @@ const RecordPage = (props: IProps) => {
   );
 
   const onRecordSelected = useCallback(
-    (record: IRecord) =>
+    async (record: IRecord) => {
       history.push({
         pathname: location.pathname,
         search: stringify({
           ...parseQuery(location.search),
           recordId: record.recordId,
         }),
-      }),
-    [history],
+      });
+    },
+    [location],
   );
 
   const renderRow = useCallback(

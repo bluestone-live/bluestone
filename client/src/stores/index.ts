@@ -11,8 +11,8 @@ export interface IAction<T> {
 }
 
 export enum RecordType {
-  Deposit,
-  Loan,
+  Deposit = 'deposit',
+  Loan = 'loan',
 }
 
 const reducers = combineReducers({
