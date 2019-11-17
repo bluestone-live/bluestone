@@ -53,6 +53,8 @@ export class DepositService {
     tokenAddress: string,
     depositAmount: BigNumber,
     depositTerm: BigNumber,
+    distributorAddress: string,
+    depositDistributorFeeRatio: number,
   ): Promise<string> {
     const flow = await this.provider.getContractEventFlow(
       EventName.DepositSucceed,
@@ -70,8 +72,8 @@ export class DepositService {
           tokenAddress,
           depositAmount.toString(),
           depositTerm.toString(),
-          '0x3dd5A7c19C2226961dF1f97644ab0c6Dd8d2Daa8',
-          convertDecimalToWei(0.01).toString(),
+          distributorAddress,
+          convertDecimalToWei(depositDistributorFeeRatio).toString(),
         )
         .send({ from: accountAddress });
     });

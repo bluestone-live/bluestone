@@ -15,6 +15,9 @@ import {
 import { useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import { useDispatch } from 'react-redux';
+import parseQuery from '../utils/parseQuery';
+import { decodeDistributorConfig } from '../utils/decodeDistributorConfig';
+import { convertWeiToDecimal } from '../utils/BigNumber';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
@@ -43,7 +46,11 @@ const StyledMain = styled.main`
 `;
 
 const DefaultLayout = (props: IProps) => {
-  const { children, history } = props;
+  const {
+    children,
+    history,
+    location: { search },
+  } = props;
   const dispatch = useDispatch();
   const enableEthereumNetwork = async () => {
     const { commonService } = await getService();
@@ -61,6 +68,8 @@ const DefaultLayout = (props: IProps) => {
 
   // Initialize
   useComponentMounted(async () => {
+    const { dconfig } = parseQuery(search);
+
     const { commonService } = await getService();
 
     await enableEthereumNetwork();
@@ -79,6 +88,23 @@ const DefaultLayout = (props: IProps) => {
       CommonActions.setUserActionsLock(
         await commonService.isUserActionsLocked(),
       ),
+    );
+
+    // Get distributor configs
+    const protocolAddress = await commonService.getProtocolAddress();
+    const {
+      maxDepositDistributorFeeRatio,
+    } = await commonService.getMaxDistributorFeeRatios();
+    const distributorConfig = decodeDistributorConfig(dconfig || btoa('{}'));
+
+    dispatch(
+      CommonActions.setDistributorConfig({
+        address: distributorConfig.address || protocolAddress,
+        depositFee: Math.min(
+          Number.parseFloat(convertWeiToDecimal(maxDepositDistributorFeeRatio)),
+          distributorConfig.depositFee,
+        ),
+      }),
     );
 
     // Get deposit terms

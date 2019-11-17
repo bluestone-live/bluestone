@@ -41,6 +41,7 @@ export class LoanService {
     collateralAmount: BigNumber,
     loanTerm: BigNumber,
     useAvailableCollateral: boolean,
+    distributorAddress: string,
   ): Promise<string> {
     return this.provider.protocol.methods
       .loan(
@@ -50,7 +51,7 @@ export class LoanService {
         collateralAmount.toString(),
         loanTerm.toString(),
         useAvailableCollateral,
-        '0x3dd5A7c19C2226961dF1f97644ab0c6Dd8d2Daa8',
+        distributorAddress,
       )
       .send({ from: accountAddress });
   }

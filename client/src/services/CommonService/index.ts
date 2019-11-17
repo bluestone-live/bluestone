@@ -135,4 +135,21 @@ export class CommonService {
         .send({ from: accountAddress });
     });
   }
+
+  /**
+   * Get protocol address
+   */
+  async getProtocolAddress(): Promise<string> {
+    return this.provider.protocol.methods.getProtocolAddress().call();
+  }
+
+  /**
+   * Get deposit and loan distributor fee ratio
+   */
+  async getMaxDistributorFeeRatios(): Promise<{
+    maxDepositDistributorFeeRatio: BigNumber;
+    maxLoanDistributorFeeRatio: BigNumber;
+  }> {
+    return this.provider.protocol.methods.getMaxDistributorFeeRatios().call();
+  }
 }

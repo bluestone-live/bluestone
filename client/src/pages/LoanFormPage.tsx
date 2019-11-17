@@ -3,7 +3,12 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
 import { useSelector } from 'react-redux';
-import { IState, IAvailableCollateral, ILoanPair } from '../stores';
+import {
+  IState,
+  IAvailableCollateral,
+  ILoanPair,
+  useDistributorConfig,
+} from '../stores';
 import { useComponentMounted } from '../utils/useEffectAsync';
 import LoanForm from '../containers/LoanForm';
 import { uniqueBy } from '../utils/uniqueBy';
@@ -41,6 +46,8 @@ const LoanFormPage = (props: IProps) => {
   const isUserActionsLocked = useSelector<IState, boolean>(
     state => state.common.isUserActionsLocked,
   );
+
+  const distributorConfig = useDistributorConfig();
 
   // Initialize
   useComponentMounted(async () => {
@@ -126,6 +133,7 @@ const LoanFormPage = (props: IProps) => {
       collateralTokens={collateralTokens}
       availableCollaterals={availableCollaterals}
       isUserActionsLocked={isUserActionsLocked}
+      distributorAddress={distributorConfig.address}
     />
   );
 };

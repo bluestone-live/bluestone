@@ -30,6 +30,7 @@ interface IProps extends WithTranslation, RouteComponentProps {
   selectedLoanPair?: ILoanPair;
   availableCollaterals: IAvailableCollateral[];
   isUserActionsLocked?: boolean;
+  distributorAddress: string;
 }
 
 const LoanForm = (props: IProps) => {
@@ -40,6 +41,7 @@ const LoanForm = (props: IProps) => {
     selectedLoanPair,
     availableCollaterals,
     isUserActionsLocked,
+    distributorAddress,
     t,
     history,
     location: { search },
@@ -218,6 +220,7 @@ const LoanForm = (props: IProps) => {
           convertDecimalToWei(collateralAmount),
           new BigNumber(selectedLoanTerm),
           useAvailableCollateral,
+          distributorAddress,
         );
         setLoading(false);
 

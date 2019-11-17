@@ -18,6 +18,8 @@ interface IProps extends WithTranslation, RouteComponentProps {
   currentToken: IToken;
   depositTerms: ITerm[];
   isUserActionsLocked: boolean;
+  distributorAddress: string;
+  depositDistributorFee: number;
 }
 
 const DepositForm = (props: IProps) => {
@@ -26,6 +28,8 @@ const DepositForm = (props: IProps) => {
     currentToken,
     depositTerms,
     isUserActionsLocked,
+    distributorAddress,
+    depositDistributorFee,
     history,
     t,
   } = props;
@@ -71,6 +75,8 @@ const DepositForm = (props: IProps) => {
           currentToken.tokenAddress,
           convertDecimalToWei(depositAmount),
           new BigNumber(selectedTerm.value),
+          distributorAddress,
+          depositDistributorFee,
         );
 
         setLoading(false);

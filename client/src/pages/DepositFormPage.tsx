@@ -7,6 +7,7 @@ import {
   useDepositTerms,
   useDepositTokens,
   useUserActionLock,
+  useDistributorConfig,
 } from '../stores';
 import DepositForm from '../containers/DepositForm';
 
@@ -29,6 +30,8 @@ const DepositFormPage = (props: IProps) => {
 
   const isUserActionsLocked = useUserActionLock();
 
+  const distributorConfig = useDistributorConfig();
+
   // Initialize
   useDepsUpdated(async () => {
     if (!match.params.tokenAddress && defaultToken) {
@@ -47,6 +50,8 @@ const DepositFormPage = (props: IProps) => {
       currentToken={currentToken}
       depositTerms={depositTerms}
       isUserActionsLocked={isUserActionsLocked}
+      distributorAddress={distributorConfig.address}
+      depositDistributorFee={distributorConfig.depositFee}
     />
   ) : null;
 };

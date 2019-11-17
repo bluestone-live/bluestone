@@ -3,6 +3,7 @@ import { IAction, IState } from '.';
 import { Contract } from 'web3-eth-contract';
 import { useSelector } from 'react-redux';
 import { replaceBy } from '../utils/replaceBy';
+import { IDistributorConfig } from '../utils/decodeDistributorConfig';
 
 const enum CommonActionType {
   SetCurrentNetwork = 'SET_CURRENT_NETWORK',
@@ -15,6 +16,7 @@ const enum CommonActionType {
   SetLoanAPR = 'SET_LOAN_APR',
   SetProtocolContractAddress = 'SET_PROTOCOL_CONTRACT_ADDRESS',
   SetTokenPrice = 'SET_TOKEN_PRICE',
+  SetDistributorConfig = 'SET_DISTRIBUTOR_CONFIG',
 }
 
 export interface IToken {
@@ -45,6 +47,7 @@ interface ICommonState {
   depositTokens: IToken[];
   loanPairs: ILoanPair[];
   protocolContractAddress?: string;
+  distributorConfig?: IDistributorConfig;
 }
 
 const initState: ICommonState = {
@@ -54,6 +57,7 @@ const initState: ICommonState = {
   depositTokens: [],
   loanPairs: [],
   protocolContractAddress: undefined,
+  distributorConfig: undefined,
 };
 
 export const CommonReducer = (
@@ -142,6 +146,11 @@ export const CommonReducer = (
       return {
         ...state,
         protocolContractAddress: action.payload.protocolContractAddress,
+      };
+    case CommonActionType.SetDistributorConfig:
+      return {
+        ...state,
+        distributorConfig: action.payload.distributorConfig,
       };
     default:
       return state;
@@ -249,6 +258,15 @@ export class CommonActions {
       },
     };
   }
+
+  static setDistributorConfig(distributorConfig: IDistributorConfig) {
+    return {
+      type: CommonActionType.SetDistributorConfig,
+      payload: {
+        distributorConfig,
+      },
+    };
+  }
 }
 
 // Selectors
@@ -271,3 +289,8 @@ export const useLoanPairs = () =>
 
 export const useUserActionLock = () =>
   useSelector<IState, boolean>(state => state.common.isUserActionsLocked);
+
+export const useDistributorConfig = () =>
+  useSelector<IState, IDistributorConfig>(
+    state => state.common.distributorConfig,
+  );
