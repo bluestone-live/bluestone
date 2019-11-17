@@ -8,6 +8,10 @@ module.exports = {
     // https://sandbox.coinmarketcap.com/signup
     apiKey: '<ADD-YOUR-API-KEY>',
   },
+  cryptocompare: {
+    // Get a free key here: https://min-api.cryptocompare.com/pricing
+    apiKey: '<ADD-YOUR-API-KEY>',
+  },
   infura: {
     // Go to https://infura.io/dashboard, click "VIEW PROJECT" and get the project ID.
     projectId: '<ADD-PROJECT-ID>',
