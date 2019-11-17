@@ -81,8 +81,16 @@ library DepositManager {
         uint256 lastDay;
     }
 
-    event DepositSucceed(address indexed accountAddress, bytes32 depositId);
-    event WithdrawSucceed(address indexed accountAddress, bytes32 depositId);
+    event DepositSucceed(
+        address indexed accountAddress,
+        bytes32 recordId,
+        uint256 amount
+    );
+    event WithdrawSucceed(
+        address indexed accountAddress,
+        bytes32 recordId,
+        uint256 amount
+    );
 
     struct DepositRecordListView {
         bytes32[] depositIdList;
@@ -353,7 +361,11 @@ library DepositManager {
         );
 
         self.depositIdsByAccountAddress[accountAddress].push(currDepositId);
-        emit DepositSucceed(accountAddress, currDepositId);
+        emit DepositSucceed(
+            accountAddress,
+            currDepositId,
+            depositParameters.depositAmount
+        );
 
         return currDepositId;
     }
@@ -444,7 +456,11 @@ library DepositManager {
             depositPlusInterestAmount
         );
 
-        emit WithdrawSucceed(accountAddress, depositId);
+        emit WithdrawSucceed(
+            accountAddress,
+            depositId,
+            depositPlusInterestAmount
+        );
 
         return depositPlusInterestAmount;
     }
@@ -486,7 +502,11 @@ library DepositManager {
             depositRecord.depositAmount
         );
 
-        emit WithdrawSucceed(msg.sender, depositRecord.depositId);
+        emit WithdrawSucceed(
+            msg.sender,
+            depositRecord.depositId,
+            depositRecord.depositAmount
+        );
 
         return depositRecord.depositAmount;
     }

@@ -131,16 +131,28 @@ library LoanManager {
         uint256 loanDistributorFeeRatio;
     }
 
-    event LoanSucceed(address indexed accountAddress, bytes32 loanId);
-    event RepayLoanSucceed(address indexed accountAddress, bytes32 loanId);
-    event LiquidateLoanSucceed(address indexed accountAddress, bytes32 loanId);
+    event LoanSucceed(
+        address indexed accountAddress,
+        bytes32 recordId,
+        uint256 amount
+    );
+    event RepayLoanSucceed(
+        address indexed accountAddress,
+        bytes32 recordId,
+        uint256 amount
+    );
+    event LiquidateLoanSucceed(
+        address indexed accountAddress,
+        bytes32 recordId,
+        uint256 amount
+    );
     event WithdrawAvailableCollateralSucceed(
         address indexed accountAddress,
         uint256 amount
     );
     event AddCollateralSucceed(
         address indexed accountAddress,
-        bytes32 indexed loanId,
+        bytes32 indexed recordId,
         uint256 amount
     );
 
@@ -575,7 +587,11 @@ library LoanManager {
         );
 
         self.loanIdsByAccount[msg.sender].push(localVars.loanId);
-        emit LoanSucceed(msg.sender, localVars.loanId);
+        emit LoanSucceed(
+            msg.sender,
+            localVars.loanId,
+            loanParameters.loanAmount
+        );
 
         return localVars.loanId;
     }
@@ -749,7 +765,7 @@ library LoanManager {
             repayAmount
         );
 
-        emit RepayLoanSucceed(msg.sender, loanId);
+        emit RepayLoanSucceed(msg.sender, loanId, repayAmount);
 
         return _calculateRemainingDebt(loanRecord);
     }
@@ -867,7 +883,11 @@ library LoanManager {
             localVars.liquidatedAmount
         );
 
-        emit LiquidateLoanSucceed(msg.sender, loanId);
+        emit LiquidateLoanSucceed(
+            msg.sender,
+            loanId,
+            localVars.liquidatedAmount
+        );
 
         return (
             loanRecord.collateralAmount.sub(loanRecord.soldCollateralAmount),

@@ -311,7 +311,7 @@ contract('DepositManager', function([
     });
 
     context('when deposit is valid', () => {
-      let depositId;
+      let recordId;
 
       beforeEach(async () => {
         const { logs } = await depositManager.deposit(
@@ -325,8 +325,8 @@ contract('DepositManager', function([
           },
         );
 
-        depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
-          .depositId;
+        recordId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+          .recordId;
       });
 
       context('when deposit is matured', () => {
@@ -339,12 +339,12 @@ contract('DepositManager', function([
             distributorAddress,
           );
           interestEarned = await depositManager.getDepositInterestById(
-            depositId,
+            recordId,
           );
         });
 
         it('succeeds', async () => {
-          await depositManager.withdraw(depositId, {
+          await depositManager.withdraw(recordId, {
             from: depositor,
           });
         });
@@ -374,7 +374,7 @@ contract('DepositManager', function([
     });
 
     context('when deposit is valid', () => {
-      let depositId;
+      let recordId;
 
       beforeEach(async () => {
         const { logs } = await depositManager.deposit(
@@ -388,13 +388,13 @@ contract('DepositManager', function([
           },
         );
 
-        depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
-          .depositId;
+        recordId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+          .recordId;
       });
 
       context('when deposit is not matured', () => {
         it('succeeds', async () => {
-          await depositManager.earlyWithdraw(depositId, {
+          await depositManager.earlyWithdraw(recordId, {
             from: depositor,
           });
         });
@@ -420,7 +420,7 @@ contract('DepositManager', function([
   });
 
   describe('#getDepositRecordById', () => {
-    let depositId;
+    let recordId;
     const depositAmount = toFixedBN(10);
 
     beforeEach(async () => {
@@ -441,13 +441,13 @@ contract('DepositManager', function([
           from: depositor,
         },
       );
-      depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
-        .depositId;
+      recordId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+        .recordId;
     });
 
     context('when deposit id valid', () => {
       it('should get deposit details', async () => {
-        const deposit = await depositManager.getDepositRecordById(depositId);
+        const deposit = await depositManager.getDepositRecordById(recordId);
         expect(deposit.tokenAddress).to.equal(token.address);
         expect(deposit.depositTerm).to.bignumber.equal(new BN(depositTerm));
         expect(deposit.depositAmount).to.bignumber.equal(depositAmount);
@@ -469,7 +469,7 @@ contract('DepositManager', function([
   });
 
   describe('#getDepositInterestById', () => {
-    let depositId;
+    let recordId;
     const depositAmount = toFixedBN(10);
 
     beforeEach(async () => {
@@ -490,15 +490,15 @@ contract('DepositManager', function([
           from: depositor,
         },
       );
-      depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
-        .depositId;
+      recordId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+        .recordId;
     });
 
     context('when deposit id valid', () => {
       it('should get interest earned by deposit', async () => {
-        const interest = await depositManager.getDepositInterestById(depositId);
+        const interest = await depositManager.getDepositInterestById(recordId);
 
-        const { poolId } = await depositManager.getDepositRecordById(depositId);
+        const { poolId } = await depositManager.getDepositRecordById(recordId);
         const protocolReserveRatio = toFixedBN(0.15);
         const {
           depositAmount: totalDepositAmount,
@@ -551,7 +551,7 @@ contract('DepositManager', function([
     context('when user have deposit records', () => {
       const depositAmount = toFixedBN(10);
       const depositTerm = 30;
-      let depositId;
+      let recordId;
 
       beforeEach(async () => {
         await depositManager.enableDepositToken(token.address);
@@ -570,8 +570,8 @@ contract('DepositManager', function([
             from: depositor,
           },
         );
-        depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
-          .depositId;
+        recordId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+          .recordId;
       });
 
       it('succeed', async () => {
@@ -592,7 +592,7 @@ contract('DepositManager', function([
         expect(createdAtList.length).to.equal(1);
         expect(maturedAtList.length).to.equal(1);
         expect(withdrewAtList.length).to.equal(1);
-        expect(depositIdList[0]).to.equal(depositId);
+        expect(depositIdList[0]).to.equal(recordId);
       });
     });
   });
@@ -600,7 +600,7 @@ contract('DepositManager', function([
   describe('#isDepositEarlyWithdrawable', () => {
     const depositAmount = toFixedBN(10);
     const depositTerm = 30;
-    let depositId;
+    let recordId;
 
     beforeEach(async () => {
       await depositManager.enableDepositToken(token.address);
@@ -619,13 +619,13 @@ contract('DepositManager', function([
           from: depositor,
         },
       );
-      depositId = logs.filter(log => log.event === 'DepositSucceed')[0].args
-        .depositId;
+      recordId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+        .recordId;
     });
 
     it('succeeds', async () => {
       const isDepositEarlyWithdrawable = await depositManager.isDepositEarlyWithdrawable(
-        depositId,
+        recordId,
       );
 
       expect(isDepositEarlyWithdrawable).to.be.true;
