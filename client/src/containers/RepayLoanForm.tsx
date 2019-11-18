@@ -43,6 +43,10 @@ const RepayLoanForm = (props: IProps) => {
     history,
   } = props;
 
+  if (!record || tokens.length === 0) {
+    return null;
+  }
+
   // State
   const [amount, setAmount] = useState(0);
 
@@ -84,7 +88,6 @@ const RepayLoanForm = (props: IProps) => {
           record.recordId,
           convertDecimalToWei(amount),
         );
-
         setLoading(false);
 
         history.push({
@@ -98,7 +101,7 @@ const RepayLoanForm = (props: IProps) => {
         setLoading(false);
       }
     },
-    [setLoading, history],
+    [accountAddress, record, amount],
   );
 
   return (
@@ -136,7 +139,7 @@ const RepayLoanForm = (props: IProps) => {
             <Input
               type="text"
               disabled
-              value={`${record.remainingDebt}`}
+              value={convertWeiToDecimal(record.remainingDebt)}
               suffix={loanToken!.tokenSymbol}
             />
           </Cell>
@@ -149,7 +152,7 @@ const RepayLoanForm = (props: IProps) => {
             <Input
               type="text"
               disabled
-              value={record.interest}
+              value={convertWeiToDecimal(record.interest)}
               suffix={loanToken!.tokenSymbol}
             />
           </Cell>

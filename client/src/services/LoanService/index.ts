@@ -60,7 +60,7 @@ export class LoanService {
     const {
       returnValues: { loanId },
     } = await flow(async protocol => {
-      protocol.methods
+      return protocol.methods
         .loan(
           loanTokenAddress,
           collateralTokenAddress,
@@ -82,19 +82,44 @@ export class LoanService {
     accountAddress: string,
     loanId: string,
     repayAmount: BigNumber,
-  ): Promise<BigNumber> {
-    return this.provider.protocol.methods
-      .repayLoan(loanId, repayAmount)
-      .send({ from: accountAddress });
+  ) {
+    const flow = await this.provider.getContractEventFlow(
+      EventName.RepayLoanSucceed,
+      {
+        filter: {
+          accountAddress,
+        },
+      },
+    );
+    return flow(protocol => {
+      return protocol.methods
+        .repayLoan(loanId, repayAmount.toString())
+        .send({ from: accountAddress });
+    });
   }
+
   async addCollateral(
     accountAddress: string,
     loanId: string,
     collateralAmount: BigNumber,
     useAvailableCollateral: boolean,
-  ): Promise<BigNumber> {
-    return this.provider.protocol.methods
-      .addCollateral(loanId, collateralAmount, useAvailableCollateral)
-      .send({ from: accountAddress });
+  ) {
+    const flow = await this.provider.getContractEventFlow(
+      EventName.AddCollateralSucceed,
+      {
+        filter: {
+          accountAddress,
+        },
+      },
+    );
+    return flow(protocol => {
+      return protocol.methods
+        .addCollateral(
+          loanId,
+          collateralAmount.toString(),
+          useAvailableCollateral,
+        )
+        .send({ from: accountAddress });
+    });
   }
 }

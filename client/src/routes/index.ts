@@ -60,7 +60,7 @@ const routes = [
   },
   {
     name: 'loan-add-collateral',
-    path: '/loan/collateral/add/:recordAddress',
+    path: '/loan/collateral/add/:recordId',
     component: Loadable({
       loader: () => import('../pages/AddCollateralPage'),
       loading: Loading,
@@ -76,7 +76,7 @@ const routes = [
   },
   {
     name: 'loan-repay',
-    path: '/loan/repay/:recordAddress',
+    path: '/loan/repay/:recordId',
     component: Loadable({
       loader: () => import('../pages/RepayLoanPage'),
       loading: Loading,

@@ -13,11 +13,10 @@ import { Row, Cell } from '../components/common/Layout';
 import TextBox from '../components/common/TextBox';
 import { getService } from '../services';
 import { IToken, ILoanRecord, IAvailableCollateral } from '../stores';
-import { calcCollateralRatio } from '../utils/calcCollateralRatio';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
-  record: ILoanRecord;
+  record?: ILoanRecord;
   availableCollaterals: IAvailableCollateral[];
   isUserActionsLocked: boolean;
   tokens: IToken[];
@@ -33,6 +32,10 @@ const AddCollateralForm = (props: IProps) => {
     history,
     t,
   } = props;
+
+  if (!record || tokens.length === 0) {
+    return null;
+  }
 
   // State
   const [amount, setAmount] = useState(0);
@@ -53,15 +56,23 @@ const AddCollateralForm = (props: IProps) => {
   );
 
   // Callback
-  const onAmountChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setAmount(Number.parseFloat(e.currentTarget.value));
+  const onAmountChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setAmount(Number.parseFloat(e.currentTarget.value)),
+    [setAmount],
+  );
 
-  const onUseAvailableCollateralChange = (value: boolean) =>
-    setUseAvailableCollateral(value);
+  const onUseAvailableCollateralChange = useCallback(
+    (value: boolean) => setUseAvailableCollateral(value),
+    [setUseAvailableCollateral],
+  );
 
   const onSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      if (isUserActionsLocked) {
+        return;
+      }
       const { loanService } = await getService();
 
       setLoading(true);
@@ -86,7 +97,13 @@ const AddCollateralForm = (props: IProps) => {
         setLoading(false);
       }
     },
-    [history, setLoading, getService],
+    [
+      accountAddress,
+      record,
+      amount,
+      useAvailableCollateral,
+      isUserActionsLocked,
+    ],
   );
 
   return (
@@ -101,7 +118,7 @@ const AddCollateralForm = (props: IProps) => {
               <Input
                 type="text"
                 disabled
-                value={record.collateralAmount}
+                value={convertWeiToDecimal(record.collateralAmount)}
                 suffix={collateralToken!.tokenSymbol}
               />
             </Cell>
@@ -127,15 +144,15 @@ const AddCollateralForm = (props: IProps) => {
         <Form.Item>
           <Row>
             <Cell>
-              <label>{t('collateral_ratio')}</label>
+              <label>{t('current_collateral_ratio')}</label>
             </Cell>
             <Cell scale={3}>
-              <TextBox>{`${calcCollateralRatio(
-                record.collateralAmount.toString(),
-                record.remainingDebt.toString(),
-                collateralToken!.price,
-                loanToken!.price,
-              )} %`}</TextBox>
+              <TextBox>
+                {Number.parseFloat(
+                  convertWeiToDecimal(record.currentCollateralRatio),
+                ) * 100}{' '}
+                %
+              </TextBox>
             </Cell>
           </Row>
         </Form.Item>
@@ -175,7 +192,9 @@ const AddCollateralForm = (props: IProps) => {
             </Cell>
             <Cell scale={3}>
               <TextBox>
-                {convertWeiToDecimal(availableCollateral!.amount)}
+                {availableCollateral
+                  ? convertWeiToDecimal(availableCollateral.amount)
+                  : 0}
               </TextBox>
             </Cell>
           </Row>

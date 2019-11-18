@@ -1,6 +1,5 @@
 import { EventName } from '../utils/MetaMaskProvider';
 import { IAction } from '.';
-import { Dayjs } from 'dayjs';
 
 export enum TransactionActionType {
   ReplaceTransactions = 'REPLACE_TRANSACTIONS',
@@ -10,7 +9,7 @@ export interface ITransaction {
   transactionHash: string;
   event: EventName;
   recordId: string;
-  time: Dayjs;
+  time: string | number;
   amount: string;
 }
 

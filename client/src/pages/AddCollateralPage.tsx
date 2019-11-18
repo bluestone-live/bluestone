@@ -1,15 +1,18 @@
 import React from 'react';
 import AddCollateralForm from '../containers/AddCollateralForm';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   IState,
   ILoanRecord,
   IAvailableCollateral,
-  IToken,
   AccountActions,
+  useDefaultAccount,
+  useUserActionLock,
+  useDepositTokens,
+  LoanActions,
 } from '../stores';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { useComponentMounted } from '../utils/useEffectAsync';
+import { useComponentMounted, useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
 
 interface IProps extends RouteComponentProps<{ recordId: string }> {}
@@ -20,29 +23,37 @@ const AddCollateralPage = (props: IProps) => {
       params: { recordId },
     },
   } = props;
+  const dispatch = useDispatch();
+
+  // Initialize
+  useDepsUpdated(async () => {
+    const { loanService } = await getService();
+    if (recordId) {
+      dispatch(
+        LoanActions.UpdateLoanRecord(
+          recordId,
+          await loanService.getLoanRecordById(recordId),
+        ),
+      );
+    }
+  }, [recordId]);
 
   // Selector
-  const accountAddress = useSelector<IState, string>(
-    state => state.account.accounts[0],
+  const accountAddress = useDefaultAccount();
+
+  const loanRecords = useSelector<IState, ILoanRecord[]>(
+    state => state.loan.loanRecords,
   );
 
-  const record = useSelector<IState, ILoanRecord>(state =>
-    state.loan.loanRecords.find(
-      (loanRecord: ILoanRecord) => loanRecord.recordId === recordId,
-    ),
-  );
+  const record = loanRecords.find(r => r.recordId === recordId);
 
   const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
     state => state.account.availableCollaterals,
   );
 
-  const isUserActionsLocked = useSelector<IState, boolean>(
-    state => state.common.isUserActionsLocked,
-  );
+  const isUserActionsLocked = useUserActionLock();
 
-  const tokens = useSelector<IState, IToken[]>(
-    state => state.common.depositTokens,
-  );
+  const depositTokens = useDepositTokens();
 
   // Initialize
   useComponentMounted(async () => {
@@ -59,7 +70,7 @@ const AddCollateralPage = (props: IProps) => {
       record={record}
       availableCollaterals={availableCollaterals}
       isUserActionsLocked={isUserActionsLocked}
-      tokens={tokens}
+      tokens={depositTokens}
     />
   );
 };

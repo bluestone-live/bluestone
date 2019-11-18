@@ -1,8 +1,10 @@
 import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import RepayLoanForm from '../containers/RepayLoanForm';
-import { useSelector } from 'react-redux';
-import { IState, ILoanRecord, IToken } from '../stores';
+import { useSelector, useDispatch } from 'react-redux';
+import { IState, ILoanRecord, IToken, LoanActions } from '../stores';
+import { useDepsUpdated } from '../utils/useEffectAsync';
+import { getService } from '../services';
 
 interface IProps extends RouteComponentProps<{ recordId: string }> {}
 
@@ -12,6 +14,20 @@ const RepayLoanPage = (props: IProps) => {
       params: { recordId },
     },
   } = props;
+  const dispatch = useDispatch();
+
+  // Initialize
+  useDepsUpdated(async () => {
+    const { loanService } = await getService();
+    if (recordId) {
+      dispatch(
+        LoanActions.UpdateLoanRecord(
+          recordId,
+          await loanService.getLoanRecordById(recordId),
+        ),
+      );
+    }
+  }, [recordId]);
 
   // Selector
   const accountAddress = useSelector<IState, string>(

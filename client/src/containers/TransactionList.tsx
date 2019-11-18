@@ -23,6 +23,7 @@ const StyledTransactionList = styled.div`
   border-top: 1px solid
     ${(props: ThemedProps) => props.theme.borderColor.secondary};
   max-height: ${6 * 35}px;
+  overflow-y: scroll;
 `;
 
 const StyledHead = styled(Cell)`
@@ -111,7 +112,9 @@ const TransactionList = (props: IProps) => {
               href={`https://etherscan.io/tx/${transaction.transactionHash}`}
               target="bluestone_view_transaction"
             >
-              {dayjs(transaction.time).format('YYYY-MM-DD HH:mm')}
+              {dayjs(
+                Number.parseInt(transaction.time.toString(), 10) * 1000,
+              ).format('YYYY-MM-DD HH:mm')}
             </StyledExternalLink>
           </Cell>
         </StyledRow>

@@ -94,6 +94,7 @@ export const loanRecordPipe = (
     createdAt: dayjs(formatSolidityTime(createdAt)),
     loanAmount,
     collateralAmount,
+    interest: remainingDebt.sub(loanAmount),
     currentCollateralRatio,
     isLiquidatable,
     isOverDue,

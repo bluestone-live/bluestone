@@ -1,6 +1,5 @@
 import { ITransaction } from '../../stores';
 import { EventData } from 'web3-eth-contract';
-import dayjs from 'dayjs';
 import { EventName } from '../../utils/MetaMaskProvider';
 
 export const getTransactionPipe = async (
@@ -11,5 +10,5 @@ export const getTransactionPipe = async (
   event: event.event as EventName,
   recordId: event.returnValues.recordId,
   amount: event.returnValues.amount,
-  time: dayjs(await getTimestampByBlockHash(event.blockHash)),
+  time: await getTimestampByBlockHash(event.blockHash),
 });
