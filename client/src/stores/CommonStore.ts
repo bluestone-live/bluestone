@@ -112,8 +112,8 @@ export const CommonReducer = (
       return {
         ...state,
         depositTokens: state.depositTokens.map(token =>
-          token.tokenAddress === action.payload.allowance.tokenAddress
-            ? { ...token, allowance: action.payload.allowance.allowanceAmount }
+          token.tokenAddress === action.payload.tokenAddress
+            ? { ...token, allowance: action.payload.allowanceAmount }
             : token,
         ),
       };

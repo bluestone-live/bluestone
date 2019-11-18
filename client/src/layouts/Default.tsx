@@ -92,6 +92,7 @@ const DefaultLayout = (props: IProps) => {
 
     // Get distributor configs
     const protocolAddress = await commonService.getProtocolAddress();
+
     const {
       maxDepositDistributorFeeRatio,
     } = await commonService.getMaxDistributorFeeRatios();

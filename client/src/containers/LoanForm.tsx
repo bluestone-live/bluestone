@@ -222,6 +222,7 @@ const LoanForm = (props: IProps) => {
           useAvailableCollateral,
           distributorAddress,
         );
+
         setLoading(false);
 
         history.push({

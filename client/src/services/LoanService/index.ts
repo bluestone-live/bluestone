@@ -1,5 +1,5 @@
 import { BigNumber } from '../../utils/BigNumber';
-import { MetaMaskProvider } from '../../utils/MetaMaskProvider';
+import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
 import { loanRecordsPipe, loanRecordPipe } from './Pipes';
 import { ILoanRecord } from '../../stores';
 
@@ -49,17 +49,30 @@ export class LoanService {
     useAvailableCollateral: boolean,
     distributorAddress: string,
   ): Promise<string> {
-    return this.provider.protocol.methods
-      .loan(
-        loanTokenAddress,
-        collateralTokenAddress,
-        loanAmount.toString(),
-        collateralAmount.toString(),
-        loanTerm.toString(),
-        useAvailableCollateral,
-        distributorAddress,
-      )
-      .send({ from: accountAddress });
+    const flow = await this.provider.getContractEventFlow(
+      EventName.LoanSucceed,
+      {
+        filter: {
+          accountAddress,
+        },
+      },
+    );
+    const {
+      returnValues: { loanId },
+    } = await flow(async protocol => {
+      protocol.methods
+        .loan(
+          loanTokenAddress,
+          collateralTokenAddress,
+          loanAmount.toString(),
+          collateralAmount.toString(),
+          loanTerm.toString(),
+          useAvailableCollateral,
+          distributorAddress,
+        )
+        .send({ from: accountAddress });
+    });
+    return loanId;
   }
 
   /**
