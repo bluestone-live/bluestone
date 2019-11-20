@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Card from '../components/common/Card';
 import Input from '../components/html/Input';
@@ -43,16 +43,25 @@ const AddCollateralForm = (props: IProps) => {
   const [loading, setLoading] = useState(false);
 
   // Computed
-  const loanToken = tokens.find(
-    token => token.tokenAddress === record.loanTokenAddress,
+  const loanToken = useMemo(
+    () => tokens.find(token => token.tokenAddress === record.loanTokenAddress),
+    [tokens, record],
   );
 
-  const collateralToken = tokens.find(
-    token => token.tokenAddress === record.collateralTokenAddress,
+  const collateralToken = useMemo(
+    () =>
+      tokens.find(
+        token => token.tokenAddress === record.collateralTokenAddress,
+      ),
+    [tokens, record],
   );
 
-  const availableCollateral = availableCollaterals.find(
-    collateral => collateral.tokenAddress === record.collateralTokenAddress,
+  const availableCollateral = useMemo(
+    () =>
+      availableCollaterals.find(
+        collateral => collateral.tokenAddress === record.collateralTokenAddress,
+      ),
+    [availableCollaterals, record],
   );
 
   // Callback
@@ -179,6 +188,7 @@ const AddCollateralForm = (props: IProps) => {
             </Cell>
             <Cell scale={3}>
               <Toggle
+                disabled={!availableCollateral}
                 defaultValue={useAvailableCollateral}
                 onChange={onUseAvailableCollateralChange}
               />

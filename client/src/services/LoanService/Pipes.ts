@@ -10,9 +10,9 @@ interface IGetLoanRecordsResultSet {
   loanTokenAddressList: string[];
   collateralTokenAddressList: string[];
   loanTermList: BigNumber[];
-  remainingDebtList: BigNumber[];
+  loanAmountList: BigNumber[];
+  collateralAmountList: BigNumber[];
   createdAtList: BigNumber[];
-  isClosedList: boolean[];
 }
 
 interface IGetLoanRecordResult {
@@ -37,9 +37,9 @@ export const loanRecordsPipe = ({
   loanTokenAddressList,
   collateralTokenAddressList,
   loanTermList,
-  remainingDebtList,
+  loanAmountList,
+  collateralAmountList,
   createdAtList,
-  isClosedList,
 }: IGetLoanRecordsResultSet): ILoanRecord[] => {
   if (
     isAllEqual(
@@ -47,9 +47,9 @@ export const loanRecordsPipe = ({
       loanTokenAddressList.length,
       collateralTokenAddressList.length,
       loanTermList.length,
-      remainingDebtList.length,
+      loanAmountList.length,
+      collateralAmountList.length,
       createdAtList.length,
-      isClosedList.length,
     )
   ) {
     throw new Error('Client: Data length dose not match.');
@@ -60,9 +60,9 @@ export const loanRecordsPipe = ({
     loanTokenAddress: loanTokenAddressList[index],
     collateralTokenAddress: collateralTokenAddressList[index],
     loanTerm: getTermObjectByValue(loanTermList[index].toString()),
-    remainingDebt: remainingDebtList[index],
+    loanAmount: loanAmountList[index],
+    collateralAmount: collateralAmountList[index],
     createdAt: dayjs(formatSolidityTime(createdAtList[index])),
-    isClosed: isClosedList[index],
     recordType: RecordType.Loan,
   }));
 };

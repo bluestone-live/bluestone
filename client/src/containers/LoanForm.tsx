@@ -20,7 +20,6 @@ import { ILoanPair, IAvailableCollateral, IToken } from '../stores';
 import { getService } from '../services';
 import { stringify } from 'querystring';
 import { calcEstimateRepayAmount } from '../utils/calcEstimateRepayAmount';
-import { useDepsUpdated } from '../utils/useEffectAsync';
 import parseQuery from '../utils/parseQuery';
 
 interface IProps extends WithTranslation, RouteComponentProps {
@@ -46,15 +45,6 @@ const LoanForm = (props: IProps) => {
     history,
     location: { search },
   } = props;
-
-  // Initialize
-  useDepsUpdated(async () => {
-    const { accountService } = await getService();
-
-    if (accountAddress) {
-      await accountService.getAvailableCollaterals(accountAddress);
-    }
-  }, [accountAddress]);
 
   // State
   const [loanAmount, setLoanAmount] = useState(0);
@@ -384,7 +374,7 @@ const LoanForm = (props: IProps) => {
               </Cell>
               <Cell>
                 <Toggle
-                  disabled={!!selectedAvailableCollateralItem}
+                  disabled={!selectedAvailableCollateralItem}
                   defaultValue={useAvailableCollateral}
                   onChange={onUseAvailableCollateralChange}
                 />

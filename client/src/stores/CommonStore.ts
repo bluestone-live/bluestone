@@ -292,5 +292,5 @@ export const useUserActionLock = () =>
 
 export const useDistributorConfig = () =>
   useSelector<IState, IDistributorConfig>(
-    state => state.common.distributorConfig,
+    state => state.common.distributorConfig || {},
   );

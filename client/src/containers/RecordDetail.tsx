@@ -151,7 +151,7 @@ const RecordDetail = (props: IProps) => {
                 %
               </TextBox>
             </Form.Item>
-            {renderActions(loanRecord.recordId)}
+            {renderActions(loanRecord)}
           </Fragment>
         );
       }
@@ -162,23 +162,28 @@ const RecordDetail = (props: IProps) => {
   const goTo = useCallback(path => () => history.push(path), [history]);
 
   const renderActions = useCallback(
-    (recordId: string) => (
-      <Button.Group>
-        <Button
-          disabled={isUserActionsLocked}
-          onClick={goTo(`/loan/collateral/add/${recordId}`)}
-        >
-          {t('add_collateral')}
-        </Button>
-        <Button
-          primary
-          disabled={isUserActionsLocked}
-          onClick={goTo(`/loan/repay/${recordId}`)}
-        >
-          {t('repay')}
-        </Button>
-      </Button.Group>
-    ),
+    (loanRecord: ILoanRecord) => {
+      if (loanRecord.isClosed) {
+        return null;
+      }
+      return (
+        <Button.Group>
+          <Button
+            disabled={isUserActionsLocked}
+            onClick={goTo(`/loan/collateral/add/${loanRecord.recordId}`)}
+          >
+            {t('add_collateral')}
+          </Button>
+          <Button
+            primary
+            disabled={isUserActionsLocked}
+            onClick={goTo(`/loan/repay/${loanRecord.recordId}`)}
+          >
+            {t('repay')}
+          </Button>
+        </Button.Group>
+      );
+    },
     [renderDetail],
   );
 

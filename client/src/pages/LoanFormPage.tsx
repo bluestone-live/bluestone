@@ -2,16 +2,20 @@ import React, { useMemo } from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   IState,
   IAvailableCollateral,
-  ILoanPair,
   useDistributorConfig,
+  AccountActions,
+  useDefaultAccount,
+  useLoanPairs,
+  useUserActionLock,
 } from '../stores';
-import { useComponentMounted } from '../utils/useEffectAsync';
+import { useComponentMounted, useDepsUpdated } from '../utils/useEffectAsync';
 import LoanForm from '../containers/LoanForm';
 import { uniqueBy } from '../utils/uniqueBy';
+import { getService } from '../services';
 
 interface IProps extends RouteComponentProps {
   term: number;
@@ -28,24 +32,20 @@ const LoanFormPage = (props: IProps) => {
     location: { search },
   } = props;
 
+  const dispatch = useDispatch();
+
   const { term, loanTokenAddress, collateralTokenAddress } = parseQuery(search);
 
   // Selector
-  const defaultAccount = useSelector<IState, string>(
-    state => state.account.accounts[0],
-  );
+  const accountAddress = useDefaultAccount();
 
-  const loanPairs = useSelector<IState, ILoanPair[]>(
-    state => state.common.loanPairs,
-  );
+  const loanPairs = useLoanPairs();
 
   const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
     state => state.account.availableCollaterals,
   );
 
-  const isUserActionsLocked = useSelector<IState, boolean>(
-    state => state.common.isUserActionsLocked,
-  );
+  const isUserActionsLocked = useUserActionLock();
 
   const distributorConfig = useDistributorConfig();
 
@@ -70,6 +70,18 @@ const LoanFormPage = (props: IProps) => {
       });
     }
   });
+
+  useDepsUpdated(async () => {
+    const { accountService } = await getService();
+
+    if (accountAddress) {
+      dispatch(
+        AccountActions.setAvailableCollaterals(
+          await accountService.getAvailableCollaterals(accountAddress),
+        ),
+      );
+    }
+  }, [accountAddress]);
 
   // Computed
   const loanTokens = useMemo(
@@ -127,7 +139,7 @@ const LoanFormPage = (props: IProps) => {
 
   return (
     <LoanForm
-      accountAddress={defaultAccount}
+      accountAddress={accountAddress}
       selectedLoanPair={selectedLoanPair}
       loanTokens={loanTokens}
       collateralTokens={collateralTokens}

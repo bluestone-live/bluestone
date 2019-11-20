@@ -113,7 +113,7 @@ const RecordItem = (props: IProps) => {
         }
       >
         <StyledItemCell>
-          {convertWeiToDecimal(loanRecord.remainingDebt)}{' '}
+          {convertWeiToDecimal(loanRecord.collateralAmount)}{' '}
           {collateralToken.tokenSymbol}
         </StyledItemCell>
         <StyledItemCell>{collateralRatio} %</StyledItemCell>

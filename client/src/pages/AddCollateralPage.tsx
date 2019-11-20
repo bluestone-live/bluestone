@@ -64,6 +64,18 @@ const AddCollateralPage = (props: IProps) => {
     );
   });
 
+  useDepsUpdated(async () => {
+    const { accountService } = await getService();
+
+    if (accountAddress) {
+      dispatch(
+        AccountActions.setAvailableCollaterals(
+          await accountService.getAvailableCollaterals(accountAddress),
+        ),
+      );
+    }
+  }, [accountAddress]);
+
   return (
     <AddCollateralForm
       accountAddress={accountAddress}
