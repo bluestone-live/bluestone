@@ -2,15 +2,14 @@ import React, { useMemo } from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import parseQuery from '../utils/parseQuery';
 import { stringify } from 'querystring';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
-  IState,
-  IAvailableCollateral,
   useDistributorConfig,
   AccountActions,
   useDefaultAccount,
   useLoanPairs,
   useUserActionLock,
+  useAvailableCollaterals,
 } from '../stores';
 import { useComponentMounted, useDepsUpdated } from '../utils/useEffectAsync';
 import LoanForm from '../containers/LoanForm';
@@ -41,9 +40,7 @@ const LoanFormPage = (props: IProps) => {
 
   const loanPairs = useLoanPairs();
 
-  const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
-    state => state.account.availableCollaterals,
-  );
+  const availableCollaterals = useAvailableCollaterals();
 
   const isUserActionsLocked = useUserActionLock();
 

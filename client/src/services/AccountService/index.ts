@@ -80,7 +80,7 @@ export class AccountService {
     );
     return flow(protocol =>
       protocol.methods
-        .withdrawAvailableCollateral(tokenAddress, collateralAmount)
+        .withdrawAvailableCollateral(tokenAddress, collateralAmount.toString())
         .send({ from: accountAddress }),
     );
   }

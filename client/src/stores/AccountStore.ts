@@ -2,6 +2,7 @@ import { IAction, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
 import { BigNumber } from '../utils/BigNumber';
 import { useSelector } from 'react-redux';
+import { IToken } from './CommonStore';
 
 enum AccountActionType {
   SetAccounts = 'SET_ACCOUNTS',
@@ -16,19 +17,19 @@ export interface IAvailableCollateral {
 }
 
 export interface IGeneralStats {
-  totalDeposits: string;
-  totalLoans: string;
-  totalDefaults: string;
+  totalDeposits: BigNumber;
+  totalLoans: BigNumber;
+  totalDefaults: BigNumber;
 }
 
 export interface ITokenStats {
   tokenAddress: string;
   tokenSymbol: string;
-  totalDeposits: string;
-  totalDepositAmount: string;
-  totalLoans: string;
-  totalLoanAmount: string;
-  totalDefaults: string;
+  totalDeposits: BigNumber;
+  totalDepositAmount: BigNumber;
+  totalLoans: BigNumber;
+  totalLoanAmount: BigNumber;
+  totalDefaults: BigNumber;
 }
 
 interface IAccountState {
@@ -41,9 +42,9 @@ interface IAccountState {
 const initState: IAccountState = {
   accounts: [],
   generalStats: {
-    totalDeposits: '0',
-    totalLoans: '0',
-    totalDefaults: '0',
+    totalDeposits: new BigNumber(0),
+    totalLoans: new BigNumber(0),
+    totalDefaults: new BigNumber(0),
   },
   tokenStats: [],
   availableCollaterals: [],
@@ -67,13 +68,18 @@ export const AccountReducer = (
         generalStats: replaceBy(state.generalStats, action.payload.generalStat),
       };
     case AccountActionType.SetTokenStat:
+      const tokenStat = state.tokenStats.find(
+        stat => stat.tokenAddress === action.payload.tokenAddress,
+      );
       return {
         ...state,
-        tokenStats: replaceBy(
-          state.tokenStats,
-          action.payload.tokenStats,
-          'tokenAddress',
-        ),
+        tokenStats: tokenStat
+          ? state.tokenStats.map(stat =>
+              stat.tokenAddress === action.payload.tokenAddress
+                ? { ...stat, ...action.payload.tokenStat }
+                : stat,
+            )
+          : [...state.tokenStats, action.payload.tokenStat],
       };
     default:
       return state;
@@ -95,19 +101,26 @@ export class AccountActions {
       },
     };
   }
-  static setGeneralStat(generalStat: IGeneralStats) {
+  static setGeneralStat(key: keyof IGeneralStats, value: BigNumber) {
     return {
       type: AccountActionType.SetGeneralStat,
       payload: {
-        generalStat,
+        generalStat: {
+          [key]: value,
+        },
       },
     };
   }
-  static setTokenStat(tokenStats: ITokenStats) {
+  static setTokenStat(token: IToken, key: keyof ITokenStats, value: BigNumber) {
     return {
       type: AccountActionType.SetTokenStat,
       payload: {
-        tokenStats,
+        tokenAddress: token.tokenAddress,
+        tokenStat: {
+          tokenAddress: token.tokenAddress,
+          tokenSymbol: token.tokenSymbol,
+          [key]: value,
+        },
       },
     };
   }
@@ -116,4 +129,15 @@ export class AccountActions {
 // Selectors
 
 export const useDefaultAccount = () =>
-  useSelector((state: IState) => state.account.accounts[0]);
+  useSelector<IState, string>(state => state.account.accounts[0]);
+
+export const useAvailableCollaterals = () =>
+  useSelector<IState, IAvailableCollateral[]>(
+    state => state.account.availableCollaterals,
+  );
+
+export const useGeneralStats = () =>
+  useSelector<IState, IGeneralStats>(state => state.account.generalStats);
+
+export const useTokenStats = () =>
+  useSelector<IState, ITokenStats[]>(state => state.account.tokenStats);

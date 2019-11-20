@@ -4,12 +4,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   IState,
   ILoanRecord,
-  IAvailableCollateral,
   AccountActions,
   useDefaultAccount,
   useUserActionLock,
   useDepositTokens,
   LoanActions,
+  useAvailableCollaterals,
 } from '../stores';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useComponentMounted, useDepsUpdated } from '../utils/useEffectAsync';
@@ -25,19 +25,6 @@ const AddCollateralPage = (props: IProps) => {
   } = props;
   const dispatch = useDispatch();
 
-  // Initialize
-  useDepsUpdated(async () => {
-    const { loanService } = await getService();
-    if (recordId) {
-      dispatch(
-        LoanActions.UpdateLoanRecord(
-          recordId,
-          await loanService.getLoanRecordById(recordId),
-        ),
-      );
-    }
-  }, [recordId]);
-
   // Selector
   const accountAddress = useDefaultAccount();
 
@@ -47,9 +34,7 @@ const AddCollateralPage = (props: IProps) => {
 
   const record = loanRecords.find(r => r.recordId === recordId);
 
-  const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
-    state => state.account.availableCollaterals,
-  );
+  const availableCollaterals = useAvailableCollaterals();
 
   const isUserActionsLocked = useUserActionLock();
 
@@ -63,6 +48,18 @@ const AddCollateralPage = (props: IProps) => {
       await accountService.getAvailableCollaterals(accountAddress),
     );
   });
+
+  useDepsUpdated(async () => {
+    const { loanService } = await getService();
+    if (recordId) {
+      dispatch(
+        LoanActions.UpdateLoanRecord(
+          recordId,
+          await loanService.getLoanRecordById(recordId),
+        ),
+      );
+    }
+  }, [recordId]);
 
   useDepsUpdated(async () => {
     const { accountService } = await getService();

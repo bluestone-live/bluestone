@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { RouteComponentProps, withRouter } from 'react-router';
 import WithdrawAvailableCollateralForm from '../containers/WithdrawAvailableCollateralForm';
-import { useSelector } from 'react-redux';
-import { IState, IToken, IAvailableCollateral } from '../stores';
+import {
+  useAvailableCollaterals,
+  useLoanPairs,
+  useUserActionLock,
+  useDefaultAccount,
+  AccountActions,
+} from '../stores';
+import { uniqueBy } from '../utils/uniqueBy';
+import { useDepsUpdated } from '../utils/useEffectAsync';
+import { useDispatch } from 'react-redux';
+import { getService } from '../services';
 
 interface IProps extends RouteComponentProps<{ tokenAddress: string }> {}
 
@@ -13,25 +22,43 @@ const WithdrawAvailableCollateralPage = (props: IProps) => {
     },
   } = props;
 
+  const dispatch = useDispatch();
+
   // Selector
-  const accountAddress = useSelector<IState, string>(
-    state => state.account.accounts[0],
+  const accountAddress = useDefaultAccount();
+
+  const isUserActionsLocked = useUserActionLock();
+
+  const loanPairs = useLoanPairs();
+
+  const collateralTokens = useMemo(
+    () =>
+      loanPairs
+        ? uniqueBy(
+            loanPairs.map(loanPair => loanPair.collateralToken),
+            'tokenAddress',
+          )
+        : [],
+    [loanPairs],
   );
 
-  const isUserActionsLocked = useSelector<IState, boolean>(
-    state => state.common.isUserActionsLocked,
-  );
+  const availableCollaterals = useAvailableCollaterals();
 
-  const tokens = useSelector<IState, IToken[]>(
-    state => state.common.availableDepositTokens,
-  );
+  // Initialize
+  useDepsUpdated(async () => {
+    const { accountService } = await getService();
 
-  const availableCollaterals = useSelector<IState, IAvailableCollateral[]>(
-    state => state.account.availableCollaterals,
-  );
+    if (accountAddress) {
+      dispatch(
+        AccountActions.setAvailableCollaterals(
+          await accountService.getAvailableCollaterals(accountAddress),
+        ),
+      );
+    }
+  }, [accountAddress, collateralTokens]);
 
   // Computed
-  const token = tokens.find(t => t.tokenAddress === tokenAddress);
+  const token = collateralTokens.find(t => t.tokenAddress === tokenAddress);
 
   // TODO: show placeholder when token is invalid
   return token ? (

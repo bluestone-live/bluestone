@@ -4,13 +4,14 @@ import Card from '../components/common/Card';
 import Input from '../components/html/Input';
 import Button from '../components/html/Button';
 import Form from '../components/html/Form';
-import { convertDecimalToWei } from '../utils/BigNumber';
+import { convertDecimalToWei, convertWeiToDecimal } from '../utils/BigNumber';
 import { Cell } from '../components/common/Layout';
 import StyledTextBox from '../components/common/TextBox';
 import { IAvailableCollateral, IToken } from '../stores';
 import { getService } from '../services';
+import { RouteComponentProps, withRouter } from 'react-router';
 
-interface IProps extends WithTranslation {
+interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
   token: IToken;
   availableCollaterals: IAvailableCollateral[];
@@ -23,6 +24,7 @@ const WithdrawAvailableCollateralForm = (props: IProps) => {
     token,
     availableCollaterals,
     isUserActionsLocked,
+    history,
     t,
   } = props;
 
@@ -54,12 +56,15 @@ const WithdrawAvailableCollateralForm = (props: IProps) => {
           token.tokenAddress,
           convertDecimalToWei(amount),
         );
+
+        setLoading(false);
+        history.push('/account');
       } catch (e) {
         // TODO: Show error messages
+        setLoading(false);
       }
-      setLoading(false);
     },
-    [setLoading, getService],
+    [accountAddress, token, amount],
   );
 
   return (
@@ -85,7 +90,9 @@ const WithdrawAvailableCollateralForm = (props: IProps) => {
           </Cell>
           <Cell scale={4}>
             <StyledTextBox>
-              {availableCollateral ? availableCollateral.amount.toString() : 0}{' '}
+              {availableCollateral
+                ? convertWeiToDecimal(availableCollateral.amount)
+                : 0}{' '}
               {token.tokenSymbol}
             </StyledTextBox>
           </Cell>
@@ -110,4 +117,4 @@ const WithdrawAvailableCollateralForm = (props: IProps) => {
   );
 };
 
-export default withTranslation()(WithdrawAvailableCollateralForm);
+export default withTranslation()(withRouter(WithdrawAvailableCollateralForm));

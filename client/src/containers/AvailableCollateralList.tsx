@@ -6,10 +6,11 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import styled from 'styled-components';
 import { ThemedProps } from '../styles/themes';
 import { IAvailableCollateral, IToken } from '../stores';
+import { convertWeiToDecimal } from '../utils/BigNumber';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   availableCollaterals: IAvailableCollateral[];
-  tokens: IToken[];
+  collateralTokens: IToken[];
 }
 
 const StyledRow = styled(Row)`
@@ -44,7 +45,7 @@ const StyledActionCell = styled(Cell)`
 `;
 
 const AvailableCollateralList = (props: IProps) => {
-  const { availableCollaterals, tokens, history, t } = props;
+  const { availableCollaterals, collateralTokens, history, t } = props;
 
   // Callback
   const goTo = useCallback(
@@ -54,7 +55,7 @@ const AvailableCollateralList = (props: IProps) => {
 
   const renderAvailableCollateralRow = useCallback(
     (availableCollateral: IAvailableCollateral) => {
-      const collateralToken = tokens.find(
+      const collateralToken = collateralTokens.find(
         token => token.tokenAddress === availableCollateral.tokenAddress,
       );
       return (
@@ -63,7 +64,7 @@ const AvailableCollateralList = (props: IProps) => {
             {collateralToken && collateralToken.tokenSymbol}
           </StyledSymbolCell>
           <StyledAmountCell scale={2}>
-            {availableCollateral.amount}
+            {convertWeiToDecimal(availableCollateral.amount)}
           </StyledAmountCell>
           <StyledActionCell>
             <Button primary onClick={goTo(availableCollateral.tokenAddress)}>
@@ -73,7 +74,7 @@ const AvailableCollateralList = (props: IProps) => {
         </StyledRow>
       );
     },
-    [tokens],
+    [collateralTokens],
   );
 
   return (
