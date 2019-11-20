@@ -148,9 +148,9 @@ contract LoanManagerMock {
             address[] memory loanTokenAddressList,
             address[] memory collateralTokenAddressList,
             uint256[] memory loanTermList,
-            uint256[] memory remainingDebtList,
-            uint256[] memory createdAtList,
-            bool[] memory isClosedList
+            uint256[] memory loanAmountList,
+            uint256[] memory collateralAmountList,
+            uint256[] memory createdAtList
         )
     {
         return _loanManager.getLoanRecordsByAccount(accountAddress);

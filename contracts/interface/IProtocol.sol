@@ -324,9 +324,9 @@ contract IProtocol {
             address[] memory loanTokenAddressList,
             address[] memory collateralTokenAddressList,
             uint256[] memory loanTermList,
-            uint256[] memory remainingDebtList,
-            uint256[] memory createdAtList,
-            bool[] memory isCloseList
+            uint256[] memory loanAmountList,
+            uint256[] memory collateralAmountList,
+            uint256[] memory createdAtList
         );
 
     /// @notice Return details for each loan and collateral token pair

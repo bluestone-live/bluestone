@@ -95,10 +95,9 @@ library LoanManager {
         address[] loanTokenAddressList;
         address[] collateralTokenAddressList;
         uint256[] loanTermList;
-        uint256[] remainingDebtList;
+        uint256[] loanAmountList;
+        uint256[] collateralAmountList;
         uint256[] createdAtList;
-        uint256[] currentCollateralRatioList;
-        bool[] isClosedList;
     }
 
     struct LocalVars {
@@ -270,9 +269,9 @@ library LoanManager {
             address[] memory loanTokenAddressList,
             address[] memory collateralTokenAddressList,
             uint256[] memory loanTermList,
-            uint256[] memory remainingDebtList,
-            uint256[] memory createdAtList,
-            bool[] memory isClosedList
+            uint256[] memory loanAmountList,
+            uint256[] memory collateralAmountList,
+            uint256[] memory createdAtList
         )
     {
         LoanRecordListView memory loanRecordListView;
@@ -287,13 +286,13 @@ library LoanManager {
             loanRecordListView.loanTermList = new uint256[](
                 loanRecordListView.loanIdList.length
             );
-            loanRecordListView.remainingDebtList = new uint256[](
+            loanRecordListView.loanAmountList = new uint256[](
+                loanRecordListView.loanIdList.length
+            );
+            loanRecordListView.collateralAmountList = new uint256[](
                 loanRecordListView.loanIdList.length
             );
             loanRecordListView.createdAtList = new uint256[](
-                loanRecordListView.loanIdList.length
-            );
-            loanRecordListView.isClosedList = new bool[](
                 loanRecordListView.loanIdList.length
             );
             for (uint256 i = 0; i < loanRecordListView.loanIdList.length; i++) {
@@ -304,13 +303,10 @@ library LoanManager {
                 loanRecordListView.collateralTokenAddressList[i] = loanRecord
                     .collateralTokenAddress;
                 loanRecordListView.loanTermList[i] = loanRecord.loanTerm;
-                loanRecordListView.remainingDebtList[i] = loanRecord
-                    .loanAmount
-                    .add(loanRecord.interest)
-                    .sub(loanRecord.alreadyPaidAmount)
-                    .sub(loanRecord.liquidatedAmount);
+                loanRecordListView.loanAmountList[i] = loanRecord.loanAmount;
+                loanRecordListView.collateralAmountList[i] = loanRecord
+                    .collateralAmount;
                 loanRecordListView.createdAtList[i] = loanRecord.createdAt;
-                loanRecordListView.isClosedList[i] = loanRecord.isClosed;
             }
         }
         return (
@@ -318,9 +314,9 @@ library LoanManager {
             loanRecordListView.loanTokenAddressList,
             loanRecordListView.collateralTokenAddressList,
             loanRecordListView.loanTermList,
-            loanRecordListView.remainingDebtList,
-            loanRecordListView.createdAtList,
-            loanRecordListView.isClosedList
+            loanRecordListView.loanAmountList,
+            loanRecordListView.collateralAmountList,
+            loanRecordListView.createdAtList
         );
     }
 

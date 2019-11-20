@@ -172,17 +172,17 @@ contract('LoanManager', function([
           loanTokenAddressList,
           collateralTokenAddressList,
           loanTermList,
-          remainingDebtList,
+          loanAmountList,
+          collateralAmountList,
           createdAtList,
-          isClosedList,
         } = await loanManager.getLoanRecordsByAccount(owner);
         expect(loanIdList.length).to.equal(0);
         expect(loanTokenAddressList.length).to.equal(0);
         expect(collateralTokenAddressList.length).to.equal(0);
         expect(loanTermList.length).to.equal(0);
-        expect(remainingDebtList.length).to.equal(0);
+        expect(loanAmountList.length).to.equal(0);
+        expect(collateralAmountList.length).to.equal(0);
         expect(createdAtList.length).to.equal(0);
-        expect(isClosedList.length).to.equal(0);
       });
     });
 
@@ -253,18 +253,18 @@ contract('LoanManager', function([
           loanTokenAddressList,
           collateralTokenAddressList,
           loanTermList,
-          remainingDebtList,
+          loanAmountList,
+          collateralAmountList,
           createdAtList,
-          isClosedList,
         } = await loanManager.getLoanRecordsByAccount(loaner);
 
         expect(loanIdList.length).to.equal(1);
         expect(loanTokenAddressList.length).to.equal(1);
         expect(collateralTokenAddressList.length).to.equal(1);
         expect(loanTermList.length).to.equal(1);
-        expect(remainingDebtList.length).to.equal(1);
+        expect(loanAmountList.length).to.equal(1);
+        expect(collateralAmountList.length).to.equal(1);
         expect(createdAtList.length).to.equal(1);
-        expect(isClosedList.length).to.equal(1);
         expect(loanIdList[0]).to.equal(recordId);
       });
     });
