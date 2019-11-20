@@ -326,6 +326,11 @@ library LoanManager {
         uint256 collateralAmount,
         bool useAvailableCollateral
     ) external returns (uint256 totalCollateralAmount) {
+        require(
+            !self.loanRecordById[loanId].isClosed,
+            'LoanManager: loan is closed'
+        );
+
         uint256 remainingCollateralAmount = collateralAmount;
         address collateralTokenAddress = self.loanRecordById[loanId]
             .collateralTokenAddress;
