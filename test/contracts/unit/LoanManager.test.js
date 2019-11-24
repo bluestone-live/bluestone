@@ -89,9 +89,15 @@ contract('LoanManager', function([
       beforeEach(async () => {
         loanToken = await createERC20Token(depositor, initialSupply);
         collateralToken = await createERC20Token(loaner, initialSupply);
-        await priceOracle.setPrice(loanToken.address, toFixedBN(10));
-        await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-        await loanManager.setPriceOracle(priceOracle.address);
+        await priceOracle.setPrice(toFixedBN(10));
+        await loanManager.setPriceOracle(
+          loanToken.address,
+          priceOracle.address,
+        );
+        await loanManager.setPriceOracle(
+          collateralToken.address,
+          priceOracle.address,
+        );
         await loanManager.enableDepositToken(loanToken.address);
         await loanManager.enableDepositTerm(depositTerm);
         await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
@@ -199,9 +205,15 @@ contract('LoanManager', function([
       beforeEach(async () => {
         loanToken = await createERC20Token(depositor, initialSupply);
         collateralToken = await createERC20Token(loaner, initialSupply);
-        await priceOracle.setPrice(loanToken.address, toFixedBN(10));
-        await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-        await loanManager.setPriceOracle(priceOracle.address);
+        await priceOracle.setPrice(toFixedBN(10));
+        await loanManager.setPriceOracle(
+          loanToken.address,
+          priceOracle.address,
+        );
+        await loanManager.setPriceOracle(
+          collateralToken.address,
+          priceOracle.address,
+        );
         await loanManager.enableDepositToken(loanToken.address);
         await loanManager.enableDepositTerm(depositTerm);
         await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
@@ -282,9 +294,12 @@ contract('LoanManager', function([
     beforeEach(async () => {
       loanToken = await createERC20Token(depositor, initialSupply);
       collateralToken = await createERC20Token(loaner, initialSupply);
-      await priceOracle.setPrice(loanToken.address, toFixedBN(10));
-      await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-      await loanManager.setPriceOracle(priceOracle.address);
+      await priceOracle.setPrice(toFixedBN(10));
+      await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
+      await loanManager.setPriceOracle(
+        collateralToken.address,
+        priceOracle.address,
+      );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableDepositTerm(depositTerm);
       await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
@@ -630,9 +645,12 @@ contract('LoanManager', function([
     beforeEach(async () => {
       loanToken = await createERC20Token(depositor, initialSupply);
       collateralToken = await createERC20Token(loaner, initialSupply);
-      await priceOracle.setPrice(loanToken.address, toFixedBN(10));
-      await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-      await loanManager.setPriceOracle(priceOracle.address);
+      await priceOracle.setPrice(toFixedBN(10));
+      await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
+      await loanManager.setPriceOracle(
+        collateralToken.address,
+        priceOracle.address,
+      );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableDepositTerm(depositTerm);
       await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
@@ -701,9 +719,12 @@ contract('LoanManager', function([
     beforeEach(async () => {
       loanToken = await createERC20Token(depositor, initialSupply);
       collateralToken = await createERC20Token(loaner, initialSupply);
-      await priceOracle.setPrice(loanToken.address, toFixedBN(10));
-      await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-      await loanManager.setPriceOracle(priceOracle.address);
+      await priceOracle.setPrice(toFixedBN(10));
+      await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
+      await loanManager.setPriceOracle(
+        collateralToken.address,
+        priceOracle.address,
+      );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableLoanAndCollateralTokenPair(
         loanToken.address,
@@ -810,9 +831,12 @@ contract('LoanManager', function([
       loanToken = await createERC20Token(depositor, initialSupply);
       collateralToken = await createERC20Token(loaner, initialSupply);
       await loanToken.mint(liquidator, initialSupply);
-      await priceOracle.setPrice(loanToken.address, toFixedBN(10));
-      await priceOracle.setPrice(collateralToken.address, toFixedBN(10));
-      await loanManager.setPriceOracle(priceOracle.address);
+      await priceOracle.setPrice(toFixedBN(10));
+      await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
+      await loanManager.setPriceOracle(
+        collateralToken.address,
+        priceOracle.address,
+      );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableLoanAndCollateralTokenPair(
         loanToken.address,

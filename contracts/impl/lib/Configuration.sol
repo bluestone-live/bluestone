@@ -12,17 +12,20 @@ library Configuration {
         // Lock all functionalities related to deposit, loan and liquidating.
         bool isUserActionsLocked;
         address protocolAddress;
-        IPriceOracle priceOracle;
         IInterestModel interestModel;
+        // Token address -> price oracle
+        mapping(address => IPriceOracle) priceOracleByToken;
     }
 
     event LockUserActions();
     event UnlockUserActions();
 
-    function setPriceOracle(State storage self, IPriceOracle priceOracle)
-        external
-    {
-        self.priceOracle = priceOracle;
+    function setPriceOracle(
+        State storage self,
+        address tokenAddress,
+        IPriceOracle priceOracle
+    ) external {
+        self.priceOracleByToken[tokenAddress] = priceOracle;
     }
 
     function setProtocolAddress(State storage self, address protocolAddress)

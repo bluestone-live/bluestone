@@ -279,8 +279,10 @@ contract LoanManagerMock {
             );
     }
 
-    function setPriceOracle(IPriceOracle priceOracle) external {
-        _configuration.setPriceOracle(priceOracle);
+    function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
+        external
+    {
+        _configuration.setPriceOracle(tokenAddress, priceOracle);
     }
 
     function initPoolGroupIfNeeded(address tokenAddress, uint256 numPools)

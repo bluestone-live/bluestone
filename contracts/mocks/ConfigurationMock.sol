@@ -22,8 +22,10 @@ contract ConfigurationMock {
     LoanManager.LoanParameters _loanParameters;
     DepositManager.DepositParameters _depositParameters;
 
-    function setPriceOracle(IPriceOracle priceOracle) external {
-        _configuration.setPriceOracle(priceOracle);
+    function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
+        external
+    {
+        _configuration.setPriceOracle(tokenAddress, priceOracle);
     }
 
     function setProtocolAddress(address protocolAddress) external {
@@ -62,12 +64,12 @@ contract ConfigurationMock {
         return _configuration.isUserActionsLocked;
     }
 
-    function getPriceOracleAddress()
+    function getPriceOracleAddress(address tokenAddress)
         external
         view
         returns (address priceOracleAddress)
     {
-        return address(_configuration.priceOracle);
+        return address(_configuration.priceOracleByToken[tokenAddress]);
     }
 
     function setMaxDistributorFeeRatios(

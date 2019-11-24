@@ -1,13 +1,7 @@
 const Protocol = artifacts.require('Protocol');
 const PriceOracle = artifacts.require('PriceOracle');
 const InterestModel = artifacts.require('InterestModel');
-const {
-  expectRevert,
-  expectEvent,
-  constants,
-  BN,
-  time,
-} = require('openzeppelin-test-helpers');
+const { BN, time } = require('openzeppelin-test-helpers');
 const { toFixedBN, createERC20Token } = require('../../utils/index');
 const { setupTestEnv } = require('../../utils/setupTestEnv');
 const { expect } = require('chai');
@@ -57,8 +51,9 @@ contract(
     before(async () => {
       // Get protocol instance
       protocol = await Protocol.deployed();
-      priceOracle = await PriceOracle.deployed();
       interestModel = await InterestModel.deployed();
+      loanTokenPriceOracle = await PriceOracle.new();
+      collateralTokenPriceOracle = await PriceOracle.new();
 
       // Create token
       loanToken = await createERC20Token(depositor, initialSupply);
@@ -78,6 +73,16 @@ contract(
         from: loaner,
       });
 
+      // Setup price oracles
+      await protocol.setPriceOracle(
+        loanToken.address,
+        loanTokenPriceOracle.address,
+      );
+      await protocol.setPriceOracle(
+        collateralToken.address,
+        collateralTokenPriceOracle.address,
+      );
+
       await setupTestEnv(
         [
           owner,
@@ -88,7 +93,6 @@ contract(
           protocolAddress,
         ],
         protocol,
-        priceOracle,
         interestModel,
         depositTerms,
         [loanToken],
@@ -110,9 +114,9 @@ contract(
       );
 
       // Post prices
-      await priceOracle.setPrices(
-        [loanToken.address, collateralToken.address],
-        [toFixedBN(loanTokenPrice), toFixedBN(collateralTokenPrice)],
+      await loanTokenPriceOracle.setPrice(toFixedBN(loanTokenPrice));
+      await collateralTokenPriceOracle.setPrice(
+        toFixedBN(collateralTokenPrice),
       );
 
       // Get current loan interest rate

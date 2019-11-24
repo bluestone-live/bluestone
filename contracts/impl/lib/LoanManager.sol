@@ -228,12 +228,14 @@ library LoanManager {
             // If loan is closed, collateral coverage ratio becomes meaningless
             currentCollateralRatio = 0;
         } else {
-            uint256 collateralTokenPrice = configuration.priceOracle.getPrice(
-                loanRecord.collateralTokenAddress
-            );
-            uint256 loanTokenPrice = configuration.priceOracle.getPrice(
-                loanRecord.loanTokenAddress
-            );
+            uint256 collateralTokenPrice = configuration
+                .priceOracleByToken[loanRecord.collateralTokenAddress]
+                .getPrice();
+
+            uint256 loanTokenPrice = configuration.priceOracleByToken[loanRecord
+                .loanTokenAddress]
+                .getPrice();
+
             currentCollateralRatio = loanRecord
                 .collateralAmount
                 .sub(loanRecord.soldCollateralAmount)
@@ -524,12 +526,13 @@ library LoanManager {
             .mul(loanParameters.loanTerm)
             .div(365);
 
-        localVars.loanTokenPrice = configuration.priceOracle.getPrice(
-            loanParameters.loanTokenAddress
-        );
-        localVars.collateralTokenPrice = configuration.priceOracle.getPrice(
-            loanParameters.collateralTokenAddress
-        );
+        localVars.loanTokenPrice = configuration
+            .priceOracleByToken[loanParameters.loanTokenAddress]
+            .getPrice();
+
+        localVars.collateralTokenPrice = configuration
+            .priceOracleByToken[loanParameters.collateralTokenAddress]
+            .getPrice();
 
         localVars.currCollateralCoverageRatio = loanParameters
             .collateralAmount
@@ -794,12 +797,12 @@ library LoanManager {
         require(!loanRecord.isClosed, 'LoanManager: loan already closed');
 
         LocalVars memory localVars;
-        localVars.loanTokenPrice = configuration.priceOracle.getPrice(
-            loanRecord.loanTokenAddress
-        );
-        localVars.collateralTokenPrice = configuration.priceOracle.getPrice(
-            loanRecord.collateralTokenAddress
-        );
+        localVars.loanTokenPrice = configuration.priceOracleByToken[loanRecord
+            .loanTokenAddress]
+            .getPrice();
+        localVars.collateralTokenPrice = configuration
+            .priceOracleByToken[loanRecord.collateralTokenAddress]
+            .getPrice();
 
         localVars.remainingDebt = _calculateRemainingDebt(loanRecord);
 

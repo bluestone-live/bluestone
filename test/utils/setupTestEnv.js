@@ -4,7 +4,6 @@ const { toFixedBN } = require('../utils/index');
  *
  * @param {string[]} accounts Accounts
  * @param {Contract} protocol Protocol instance
- * @param {Contract} priceOracle PriceOracle instance
  * @param {Contract} interestModel InterestModel instance
  * @param {number[]} depositTerms deposit terms
  * @param {string[]} depositTokens deposit token addresses
@@ -29,7 +28,6 @@ const setupTestEnv = async (
     protocolAddress,
   ],
   protocol,
-  priceOracle,
   interestModel,
   depositTerms,
   depositTokens,
@@ -91,9 +89,6 @@ const setupTestEnv = async (
   }
   // Set InterestModel address
   await protocol.setInterestModel(interestModel.address);
-
-  // Set PriceOracle address
-  await protocol.setPriceOracle(priceOracle.address);
 
   // Set protocol address
   await protocol.setProtocolAddress(protocolAddress);

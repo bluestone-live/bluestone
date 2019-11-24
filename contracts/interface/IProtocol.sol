@@ -363,8 +363,10 @@ contract IProtocol {
         );
 
     /// @notice Set price oracle address
+    /// @param tokenAddress Token address
     /// @param priceOracle Price oracle
-    function setPriceOracle(IPriceOracle priceOracle) external;
+    function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
+        external;
 
     /// @notice Set interest model
     /// @param interestModel Interest model
@@ -385,9 +387,9 @@ contract IProtocol {
     /// @notice Unlock user actions
     function unlockUserActions() external;
 
-    /// @notice Return price oracle address
+    /// @notice Return price oracle address of a token
     /// @return priceOracleAddress Price oracle address
-    function getPriceOracleAddress()
+    function getPriceOracleAddress(address tokenAddress)
         external
         view
         returns (address priceOracleAddress);

@@ -6,7 +6,7 @@ const {
   constants,
   BN,
 } = require('openzeppelin-test-helpers');
-const { toFixedBN } = require('../../utils/index');
+const { toFixedBN, createERC20Token } = require('../../utils/index');
 const { expect } = require('chai');
 
 contract('Configuration', function([owner]) {
@@ -20,10 +20,11 @@ contract('Configuration', function([owner]) {
   describe('#setPriceOracle', () => {
     context('when address is valid', () => {
       it('succeeds', async () => {
-        await configuration.setPriceOracle(priceOracle.address);
-        expect(await configuration.getPriceOracleAddress()).to.equal(
-          priceOracle.address,
-        );
+        const token = await createERC20Token(owner);
+        await configuration.setPriceOracle(token.address, priceOracle.address);
+        expect(
+          await configuration.getPriceOracleAddress(token.address),
+        ).to.equal(priceOracle.address);
       });
     });
   });

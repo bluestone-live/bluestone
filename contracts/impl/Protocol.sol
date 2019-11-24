@@ -534,12 +534,12 @@ contract Protocol is IProtocol, Ownable, Pausable {
     }
 
     /// --- Configuration ---
-    function setPriceOracle(IPriceOracle priceOracle)
+    function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
         external
         whenNotPaused
         onlyOwner
     {
-        _configuration.setPriceOracle(priceOracle);
+        _configuration.setPriceOracle(tokenAddress, priceOracle);
     }
 
     function setInterestModel(IInterestModel interestModel)
@@ -602,13 +602,13 @@ contract Protocol is IProtocol, Ownable, Pausable {
         return address(_configuration.interestModel);
     }
 
-    function getPriceOracleAddress()
+    function getPriceOracleAddress(address tokenAddress)
         external
         view
         whenNotPaused
         returns (address priceOracleAddress)
     {
-        return address(_configuration.priceOracle);
+        return address(_configuration.priceOracleByToken[tokenAddress]);
     }
 
     function getMaxDistributorFeeRatios()
