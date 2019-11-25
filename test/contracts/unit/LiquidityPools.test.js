@@ -58,7 +58,7 @@ contract('LiquidityPools', function([owner]) {
 
   describe('#addDepositToPool', () => {
     beforeEach(async () => {
-      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
+      await liquidityPools.initPoolGroupIfNeeded(token.address, 365);
     });
 
     it('succeeds', async () => {
@@ -66,6 +66,7 @@ contract('LiquidityPools', function([owner]) {
       await liquidityPools.addDepositToPool(
         token.address,
         depositAmount,
+        depositTerm,
         depositAmount.mul(new BN(depositTerm)),
       );
 
@@ -83,10 +84,11 @@ contract('LiquidityPools', function([owner]) {
     const depositAmount = toFixedBN(100);
 
     beforeEach(async () => {
-      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
+      await liquidityPools.initPoolGroupIfNeeded(token.address, 365);
       await liquidityPools.addDepositToPool(
         token.address,
         depositAmount,
+        depositTerm,
         depositAmount.mul(new BN(depositTerm)),
       );
     });

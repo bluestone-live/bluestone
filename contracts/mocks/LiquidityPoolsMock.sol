@@ -25,12 +25,14 @@ contract LiquidityPoolsMock {
     function addDepositToPool(
         address tokenAddress,
         uint256 depositAmount,
+        uint256 depositTerm,
         uint256 depositWeight
     ) external returns (uint256 poolId) {
         return
             _liquidityPools.addDepositToPool(
                 tokenAddress,
                 depositAmount,
+                depositTerm,
                 depositWeight
             );
     }

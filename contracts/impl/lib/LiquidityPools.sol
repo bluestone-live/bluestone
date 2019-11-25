@@ -105,16 +105,17 @@ library LiquidityPools {
         State storage self,
         address tokenAddress,
         uint256 depositAmount,
+        uint256 depositTerm,
         uint256 depositWeight
     ) external returns (uint256 poolId) {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
-        uint256 lastPoolId = poolGroup.firstPoolId + poolGroup.numPools;
-        Pool storage pool = poolGroup.poolsById[lastPoolId];
+        poolId = poolGroup.firstPoolId + depositTerm;
+        Pool storage pool = poolGroup.poolsById[poolId];
         pool.depositAmount = pool.depositAmount.add(depositAmount);
         pool.availableAmount = pool.availableAmount.add(depositAmount);
         pool.totalDepositWeight = pool.totalDepositWeight.add(depositWeight);
 
-        return lastPoolId;
+        return poolId;
     }
 
     function subtractDepositFromPool(

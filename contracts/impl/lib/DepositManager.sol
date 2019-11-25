@@ -303,6 +303,7 @@ library DepositManager {
         uint256 poolId = liquidityPools.addDepositToPool(
             depositParameters.tokenAddress,
             depositParameters.depositAmount,
+            depositParameters.depositTerm,
             depositWeight
         );
 
