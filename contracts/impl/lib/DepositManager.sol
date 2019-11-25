@@ -234,8 +234,8 @@ library DepositManager {
         /// Ensure deposit maturity update only triggers once in a day by checking current
         /// timestamp is greater than the timestamp of last update (in day unit).
         require(
-            DateTime.toDays(now) >
-                DateTime.toDays(self.lastDepositMaturityUpdatedAt),
+            DateTime.to3Minutes(now) >
+                DateTime.to3Minutes(self.lastDepositMaturityUpdatedAt),
             'Cannot update multiple times within the same day.'
         );
 

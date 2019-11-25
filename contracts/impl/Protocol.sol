@@ -544,13 +544,18 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     /// --- LiquidityPools ---
 
-    function getAvailableAmountOfAllPools(address tokenAddress)
+    function getAllPools(address tokenAddress)
         external
         view
         whenNotPaused
-        returns (uint256[] memory availableAmount)
+        returns (
+            uint256[] memory depositAmountList,
+            uint256[] memory availableAmountList,
+            uint256[] memory loanInterestList,
+            uint256[] memory totalDepositWeightList
+        )
     {
-        return _liquidityPools.getAvailableAmountOfAllPools(tokenAddress);
+        return _liquidityPools.getAllPools(tokenAddress);
     }
 
     /// --- Configuration ---

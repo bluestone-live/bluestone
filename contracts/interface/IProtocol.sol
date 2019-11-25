@@ -364,6 +364,16 @@ contract IProtocol {
 
     /// --- Configuration ---
 
+    function getAllPools(address tokenAddress)
+        external
+        view
+        returns (
+            uint256[] memory depositAmountList,
+            uint256[] memory availableAmountList,
+            uint256[] memory loanInterestList,
+            uint256[] memory totalDepositWeightList
+        );
+
     /// @notice Set price oracle address
     /// @param priceOracle Price oracle
     function setPriceOracle(IPriceOracle priceOracle) external;

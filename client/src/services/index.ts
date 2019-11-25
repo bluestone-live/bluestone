@@ -4,6 +4,7 @@ import { CommonService } from './CommonService';
 import { DepositService } from './DepositService';
 import { LoanService } from './LoanService';
 import { TransactionService } from './TransactionService';
+import { PoolService } from './PoolService';
 
 const generateService = async () => {
   const provider = new MetaMaskProvider();
@@ -15,6 +16,7 @@ const generateService = async () => {
     depositService: new DepositService(provider),
     loanService: new LoanService(provider),
     transactionService: new TransactionService(provider),
+    poolService: new PoolService(provider),
   };
 };
 
@@ -24,6 +26,7 @@ let promise: Promise<{
   depositService: DepositService;
   loanService: LoanService;
   transactionService: TransactionService;
+  poolService: PoolService;
 }>;
 
 export const getService = () => {

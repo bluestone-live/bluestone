@@ -280,12 +280,21 @@ library LiquidityPools {
         );
     }
 
-    function getAvailableAmountOfAllPools(
-        State storage self,
-        address tokenAddress
-    ) external view returns (uint256[] memory availableAmountList) {
+    function getAllPools(State storage self, address tokenAddress)
+        external
+        view
+        returns (
+            uint256[] memory depositAmountList,
+            uint256[] memory availableAmountList,
+            uint256[] memory loanInterestList,
+            uint256[] memory totalDepositWeightList
+        )
+    {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
+        depositAmountList = new uint256[](poolGroup.numPools + 1);
         availableAmountList = new uint256[](poolGroup.numPools + 1);
+        loanInterestList = new uint256[](poolGroup.numPools + 1);
+        totalDepositWeightList = new uint256[](poolGroup.numPools + 1);
 
         for (
             uint256 poolIndex = 0;
@@ -293,11 +302,22 @@ library LiquidityPools {
             poolIndex++
         ) {
             uint256 poolId = poolGroup.firstPoolId + poolIndex;
+            depositAmountList[poolIndex] = poolGroup.poolsById[poolId]
+                .depositAmount;
+            loanInterestList[poolIndex] = poolGroup.poolsById[poolId]
+                .loanInterest;
             availableAmountList[poolIndex] = poolGroup.poolsById[poolId]
                 .availableAmount;
+            totalDepositWeightList[poolIndex] = poolGroup.poolsById[poolId]
+                .totalDepositWeight;
         }
 
-        return availableAmountList;
+        return (
+            depositAmountList,
+            availableAmountList,
+            loanInterestList,
+            totalDepositWeightList
+        );
     }
 
     function getAvailableAmountByLoanTerm(

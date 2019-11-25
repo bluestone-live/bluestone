@@ -11,6 +11,14 @@ const routes = [
     }),
   },
   {
+    name: 'monitor',
+    path: '/monitor',
+    component: Loadable({
+      loader: () => import('../pages/MonitorPage'),
+      loading: Loading,
+    }),
+  },
+  {
     name: 'account-manager',
     path: '/account',
     component: Loadable({

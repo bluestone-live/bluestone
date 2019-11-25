@@ -110,27 +110,35 @@ contract('LiquidityPools', function([owner]) {
     });
   });
 
-  describe('#getAvailableAmountOfAllPools', () => {
+  describe('#getAllPools', () => {
     beforeEach(async () => {
       await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
     });
 
     it('succeeds', async () => {
-      const depositAmountList = [0, 1, 2, 3, 4, 5].map(n => toFixedBN(n));
-      const borrowedAmountList = [0, 0, 1, 2, 3, 4].map(n => toFixedBN(n));
+      const depositAmountArray = [0, 1, 2, 3, 4, 5].map(n => toFixedBN(n));
+      const borrowedAmountArray = [0, 0, 1, 2, 3, 4].map(n => toFixedBN(n));
 
       await liquidityPools.populatePoolGroup(
         token.address,
+        depositAmountArray,
+        borrowedAmountArray,
+      );
+
+      const {
         depositAmountList,
-        borrowedAmountList,
-      );
+        availableAmountList,
+        loanInterestList,
+        totalDepositWeightList,
+      } = await liquidityPools.getAllPools(token.address);
 
-      const availableAmountList = await liquidityPools.getAvailableAmountOfAllPools(
-        token.address,
-      );
-
-      for (let i = 0; i < depositAmountList.length; i++) {
-        const availableAmount = depositAmountList[i].sub(borrowedAmountList[i]);
+      for (let i = 0; i < depositAmountArray.length; i++) {
+        const availableAmount = depositAmountArray[i].sub(
+          borrowedAmountArray[i],
+        );
+        expect(depositAmountList[i]).to.be.bignumber.equal(
+          depositAmountArray[i],
+        );
         expect(availableAmountList[i]).to.be.bignumber.equal(availableAmount);
       }
     });

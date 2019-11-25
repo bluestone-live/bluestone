@@ -44,4 +44,8 @@ library DateTime {
     function toDays(uint256 timestamp) public pure returns (uint256) {
         return timestamp / DAY_IN_SECONDS;
     }
+
+    function to3Minutes(uint256 timestamp) external pure returns (uint256) {
+        return uint256(timestamp % DAY_IN_SECONDS) / MINUTE_IN_SECONDS / 3;
+    }
 }
