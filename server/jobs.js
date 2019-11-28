@@ -29,7 +29,9 @@ const CRON_EXP = {
  */
 const postTokenPrices = createCronJob(CRON_EXP.EVERY_MINUTE, async () => {
   const debug = _debug.extend('postTokenPrices');
-  const { stdout, stderr } = await exec('./scripts/bash/postTokenPrices');
+  const { stdout, stderr } = await exec(
+    path.resolve(__dirname, '../scripts/bash/postTokenPrices'),
+  );
   debug(stdout);
   debug(stderr);
 });
@@ -40,7 +42,7 @@ const updateDepositMaturity = createCronJob(
   async () => {
     const debug = _debug.extend('updateDepositMaturity');
     const { stdout, stderr } = await exec(
-      './scripts/bash/updateDepositMaturity',
+      path.resolve(__dirname, '../scripts/bash/updateDepositMaturity'),
     );
     debug(stdout);
     debug(stderr);

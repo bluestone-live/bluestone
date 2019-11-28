@@ -242,23 +242,21 @@ library DepositManager {
         for (uint256 i = 0; i < self.allDepositTokenAddressList.length; i++) {
             address tokenAddress = self.allDepositTokenAddressList[i];
 
-            for (uint256 j = 0; j < self.allDepositTermList.length; j++) {
-                uint256 poolIndex = 0;
+            uint256 poolIndex = 0;
 
-                (, , , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
-                    .getPool(tokenAddress, poolIndex);
+            (, , , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
+                .getPool(tokenAddress, poolIndex);
 
-                DepositInterestHistory storage history = self
-                    .depositTokenByAddress[tokenAddress]
-                    .depositInterestHistory;
+            DepositInterestHistory storage history = self
+                .depositTokenByAddress[tokenAddress]
+                .depositInterestHistory;
 
-                history.lastDay++;
-                history.totalDepositWeightByDay[history
-                    .lastDay] = totalDepositWeight;
-                history.totalInterestByDay[history.lastDay] = loanInterest;
+            history.lastDay++;
+            history.totalDepositWeightByDay[history
+                .lastDay] = totalDepositWeight;
+            history.totalInterestByDay[history.lastDay] = loanInterest;
 
-                liquidityPools.updatePoolGroupDepositMaturity(tokenAddress);
-            }
+            liquidityPools.updatePoolGroupDepositMaturity(tokenAddress);
         }
 
         self.lastDepositMaturityUpdatedAt = now;
