@@ -122,4 +122,10 @@ export class LoanService {
         .send({ from: accountAddress });
     });
   }
+
+  async getLoanInterestRate(loanTokenAddress: string, term: number) {
+    return this.provider.protocol.methods
+      .getLoanInterestRate(loanTokenAddress, term.toString())
+      .call();
+  }
 }

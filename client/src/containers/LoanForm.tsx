@@ -16,11 +16,20 @@ import Button from '../components/html/Button';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import Toggle from '../components/common/Toggle';
 import { calcCollateralRatio } from '../utils/calcCollateralRatio';
-import { ILoanPair, IAvailableCollateral, IToken } from '../stores';
+import {
+  ILoanPair,
+  IAvailableCollateral,
+  IToken,
+  useLoanInterestRate,
+  LoanActions,
+} from '../stores';
 import { getService } from '../services';
 import { stringify } from 'querystring';
 import { calcEstimateRepayAmount } from '../utils/calcEstimateRepayAmount';
 import parseQuery from '../utils/parseQuery';
+import { useDepsUpdated } from '../utils/useEffectAsync';
+import { useDispatch } from 'react-redux';
+import { calculateRate } from '../utils/calculateRate';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress?: string;
@@ -45,6 +54,7 @@ const LoanForm = (props: IProps) => {
     history,
     location: { search },
   } = props;
+  const dispatch = useDispatch();
 
   // State
   const [loanAmount, setLoanAmount] = useState(0);
@@ -84,24 +94,46 @@ const LoanForm = (props: IProps) => {
     () =>
       dayjs()
         .endOf('day')
-        .add(selectedLoanTerm, 'day')
+        .add(Number.isNaN(selectedLoanTerm) ? 0 : selectedLoanTerm, 'day')
         .format('DD/MM/YYYY'),
     [selectedLoanTerm],
   );
+
+  useDepsUpdated(async () => {
+    if (selectedLoanPair && selectedLoanTerm) {
+      const { loanService } = await getService();
+      dispatch(
+        LoanActions.SetLoanInterestRate(
+          selectedLoanTerm,
+          await loanService.getLoanInterestRate(
+            selectedLoanPair.loanToken.tokenAddress,
+            selectedLoanTerm,
+          ),
+        ),
+      );
+    }
+  }, [selectedLoanTerm, selectedLoanPair]);
+
+  const currentInterestRate = useLoanInterestRate(selectedLoanTerm);
 
   const estimateRepayAmount = useMemo(() => {
     if (
       selectedLoanPair &&
       selectedLoanPair.annualPercentageRate &&
-      selectedLoanPair.collateralToken
+      selectedLoanPair.collateralToken &&
+      selectedLoanTerm &&
+      currentInterestRate.interestRate
     ) {
       return calcEstimateRepayAmount(
         loanAmount,
-        Number.parseInt(selectedLoanPair.annualPercentageRate.toString(), 10),
-      ).toString();
+        selectedLoanTerm,
+        Number.parseFloat(
+          convertWeiToDecimal(currentInterestRate.interestRate),
+        ),
+      ).toFixed(4);
     }
     return '0';
-  }, [selectedLoanPair, loanAmount]);
+  }, [selectedLoanPair, loanAmount, selectedLoanTerm, currentInterestRate]);
 
   const minCollateralRatio = useMemo(() => {
     if (selectedLoanPair) {
@@ -306,8 +338,9 @@ const LoanForm = (props: IProps) => {
               </Cell>
               <Cell>
                 <StyledTextBox id="apr">
-                  {selectedLoanPair &&
-                    convertWeiToDecimal(selectedLoanPair.annualPercentageRate)}
+                  {currentInterestRate.interestRate
+                    ? calculateRate(currentInterestRate.interestRate)
+                    : '--'}
                   %
                 </StyledTextBox>
               </Cell>
