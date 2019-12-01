@@ -36,6 +36,16 @@ const postTokenPrices = createCronJob(CRON_EXP.EVERY_MINUTE, async () => {
   debug(stderr);
 });
 
+// Post Dai price if needed
+const postDaiPrice = createCronJob(CRON_EXP.EVERY_MINUTE, async () => {
+  const debug = _debug.extend('postDaiPrice');
+  const { stdout, stderr } = await exec(
+    path.resolve(__dirname, '../scripts/bash/postDaiPrice'),
+  );
+  debug(stdout);
+  debug(stderr);
+});
+
 // Update deposit maturity for enabled deposit assets every midnight.
 const updateDepositMaturity = createCronJob(
   CRON_EXP.EVERY_MIDNIGHT,
@@ -51,5 +61,6 @@ const updateDepositMaturity = createCronJob(
 
 module.exports = {
   postTokenPrices,
+  postDaiPrice,
   updateDepositMaturity,
 };

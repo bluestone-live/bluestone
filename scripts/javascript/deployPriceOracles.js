@@ -22,7 +22,7 @@ module.exports = makeTruffleScript(async network => {
   }
 
   // TODO(desmond): use exisiting medianizer for main net
-  const medianizer = await MedianizerMock.new();
+  const medianizer = await MedianizerMock.deployed();
   const ethPriceOracle = await EthPriceOracle.new(medianizer.address);
   const daiPriceOracle = await SingleFeedPriceOracle.new();
   const usdtPriceOracle = await FixedPriceOracle.new(toFixedBN(1));

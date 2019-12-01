@@ -6,6 +6,7 @@ import '../interface/IPriceOracle.sol';
 /// A simple price oracle that receives price update from owner only.
 contract SingleFeedPriceOracle is IPriceOracle, Ownable {
     uint256 private _price;
+    uint256 public lastUpdatedAt;
 
     function getPrice() external view returns (uint256) {
         return _price;
@@ -15,5 +16,6 @@ contract SingleFeedPriceOracle is IPriceOracle, Ownable {
         require(requestedPrice > 0, 'PriceOracle: invalid price');
 
         _price = requestedPrice;
+        lastUpdatedAt = now;
     }
 }

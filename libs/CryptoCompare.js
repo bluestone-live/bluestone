@@ -26,6 +26,10 @@ class CryptoCompare {
     return await rp(requestOptions);
   }
 
+  async getSingleSymbolPrice(params) {
+    return await this.request('/price', { qs: params });
+  }
+
   async getMultipleSymbolsPrice(params) {
     return await this.request('/pricemulti', { qs: params });
   }
