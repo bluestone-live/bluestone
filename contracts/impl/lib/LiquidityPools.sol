@@ -281,10 +281,11 @@ library LiquidityPools {
         );
     }
 
-    function getAllPools(State storage self, address tokenAddress)
+    function getDetailsFromAllPools(State storage self, address tokenAddress)
         external
         view
         returns (
+            uint256[] memory poolIdList,
             uint256[] memory depositAmountList,
             uint256[] memory availableAmountList,
             uint256[] memory loanInterestList,
@@ -292,6 +293,7 @@ library LiquidityPools {
         )
     {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
+        poolIdList = new uint256[](poolGroup.numPools + 1);
         depositAmountList = new uint256[](poolGroup.numPools + 1);
         availableAmountList = new uint256[](poolGroup.numPools + 1);
         loanInterestList = new uint256[](poolGroup.numPools + 1);
@@ -303,6 +305,7 @@ library LiquidityPools {
             poolIndex++
         ) {
             uint256 poolId = poolGroup.firstPoolId + poolIndex;
+            poolIdList[poolIndex] = poolId;
             depositAmountList[poolIndex] = poolGroup.poolsById[poolId]
                 .depositAmount;
             loanInterestList[poolIndex] = poolGroup.poolsById[poolId]
@@ -314,6 +317,7 @@ library LiquidityPools {
         }
 
         return (
+            poolIdList,
             depositAmountList,
             availableAmountList,
             loanInterestList,

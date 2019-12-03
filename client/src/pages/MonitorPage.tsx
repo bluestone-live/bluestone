@@ -48,7 +48,7 @@ export default () => {
         dispatch(
           PoolAction.replacePools(
             token.tokenAddress,
-            await poolService.getAllPools(token.tokenAddress),
+            await poolService.getDetailsFromAllPools(token.tokenAddress),
           ),
         ),
       );
@@ -98,6 +98,7 @@ export default () => {
           <thead>
             <tr>
               <th>Pool Index</th>
+              <th>Pool ID</th>
               <th>Deposit Amount</th>
               <th>Available Amount</th>
               <th>Total Loan Interest</th>
@@ -110,6 +111,7 @@ export default () => {
               .map(pool => (
                 <tr key={`pool-row-${pool.poolIndex}`}>
                   <td>{pool.poolIndex.toString()}</td>
+                  <td>{pool.poolId.toString()}</td>
                   <td>{convertWeiToDecimal(pool.depositAmount)}</td>
                   <td>{convertWeiToDecimal(pool.availableAmount)}</td>
                   <td>{convertWeiToDecimal(pool.loanInterest)}</td>

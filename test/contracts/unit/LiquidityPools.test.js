@@ -112,7 +112,7 @@ contract('LiquidityPools', function([owner]) {
     });
   });
 
-  describe('#getAllPools', () => {
+  describe('#getDetailsFromAllPools', () => {
     beforeEach(async () => {
       await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
     });
@@ -128,11 +128,12 @@ contract('LiquidityPools', function([owner]) {
       );
 
       const {
+        poolIdList,
         depositAmountList,
         availableAmountList,
         loanInterestList,
         totalDepositWeightList,
-      } = await liquidityPools.getAllPools(token.address);
+      } = await liquidityPools.getDetailsFromAllPools(token.address);
 
       for (let i = 0; i < depositAmountArray.length; i++) {
         const availableAmount = depositAmountArray[i].sub(

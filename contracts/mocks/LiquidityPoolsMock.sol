@@ -93,17 +93,18 @@ contract LiquidityPoolsMock {
         return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 
-    function getAllPools(address tokenAddress)
+    function getDetailsFromAllPools(address tokenAddress)
         external
         view
         returns (
+            uint256[] memory poolIdList,
             uint256[] memory depositAmountList,
             uint256[] memory availableAmountList,
             uint256[] memory loanInterestList,
             uint256[] memory totalDepositWeightList
         )
     {
-        return _liquidityPools.getAllPools(tokenAddress);
+        return _liquidityPools.getDetailsFromAllPools(tokenAddress);
     }
 
     function getAvailableAmountByLoanTerm(

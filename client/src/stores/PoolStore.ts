@@ -8,6 +8,7 @@ export enum PoolActionType {
 
 export interface IPool {
   poolIndex: number;
+  poolId: BigNumber;
   depositAmount: BigNumber;
   availableAmount: BigNumber;
   loanInterest: BigNumber;
