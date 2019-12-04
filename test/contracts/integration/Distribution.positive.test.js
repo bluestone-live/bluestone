@@ -1,5 +1,5 @@
 const Protocol = artifacts.require('Protocol');
-const PriceOracle = artifacts.require('PriceOracle');
+const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
 const { BN, time } = require('openzeppelin-test-helpers');
 const { toFixedBN, createERC20Token } = require('../../utils/index');
@@ -52,8 +52,8 @@ contract(
       // Get protocol instance
       protocol = await Protocol.deployed();
       interestModel = await InterestModel.deployed();
-      loanTokenPriceOracle = await PriceOracle.new();
-      collateralTokenPriceOracle = await PriceOracle.new();
+      loanTokenPriceOracle = await SingleFeedPriceOracle.new();
+      collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
 
       // Create token
       loanToken = await createERC20Token(depositor, initialSupply);

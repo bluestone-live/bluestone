@@ -15,6 +15,9 @@ module.exports = makeTruffleScript(async network => {
   if (network === 'development') {
     debug('Deploy Tokens');
     exec('deployTokens', network);
+
+    debug('Deploy price oracles');
+    exec('deployPriceOracles', network);
   }
   debug('Setup Deposit Environment');
   exec('enableDepositTerm', network);
@@ -28,12 +31,11 @@ module.exports = makeTruffleScript(async network => {
 
   debug('Set Miscellaneous');
   exec('setInterestModel', network);
-  exec('setPriceOracleAddress', network);
   exec('setProtocolAddress', network);
   exec('setProtocolReserveRatio', network);
   exec('setMaxDistributorFeeRatios', network);
   exec('setLoanInterestRates', network);
 
   debug('Post Token Prices');
-  exec('postTokenPrices', network);
+  exec('postDaiPrice', network);
 });

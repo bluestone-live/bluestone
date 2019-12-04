@@ -44,7 +44,6 @@ export type EventFlowFactory = (
 export class MetaMaskProvider {
   private web3Instance?: Web3;
   private protocolInstance?: Contract;
-  private priceOracleInstance?: Contract;
   private eventBound: boolean = false;
 
   /**
@@ -78,15 +77,6 @@ export class MetaMaskProvider {
     this.protocolInstance = new this.web3Instance.eth.Contract(
       protocolDeclareFile.abi as AbiItem[],
       protocolAddress,
-    );
-
-    const priceOracleAddress = await this.protocolInstance.methods
-      .getPriceOracleAddress()
-      .call();
-
-    this.priceOracleInstance = new this.web3Instance.eth.Contract(
-      priceOracleDeclareFile.abi as AbiItem[],
-      priceOracleAddress,
     );
   }
 
@@ -126,13 +116,6 @@ export class MetaMaskProvider {
       throw new Error('MetaMaskProvider: Init failed');
     }
     return this.web3Instance;
-  }
-
-  get priceOracle() {
-    if (!this.priceOracleInstance) {
-      throw new Error('MetaMaskProvider: Can not init priceOracle instance');
-    }
-    return this.priceOracleInstance;
   }
 
   getERC20ByTokenAddress: ERC20Factory = (tokenAddress: string) => {

@@ -1,6 +1,6 @@
 const LoanManager = artifacts.require('LoanManagerMock');
+const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
-const PriceOracle = artifacts.require('PriceOracle');
 const { toFixedBN, createERC20Token } = require('../../utils/index.js');
 const {
   BN,
@@ -23,7 +23,7 @@ contract('LoanManager', function([
 
   beforeEach(async () => {
     loanManager = await LoanManager.new();
-    priceOracle = await PriceOracle.new();
+    priceOracle = await SingleFeedPriceOracle.new();
     interestModel = await InterestModel.new();
 
     await loanManager.setInterestModel(interestModel.address);

@@ -10,7 +10,6 @@ import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';
 import './lib/LoanManager.sol';
 import './lib/AccountManager.sol';
-import './PriceOracle.sol';
 
 /// @title Main contract
 contract Protocol is IProtocol, Ownable, Pausable {
@@ -602,13 +601,13 @@ contract Protocol is IProtocol, Ownable, Pausable {
         return address(_configuration.interestModel);
     }
 
-    function getPriceOracleAddress(address tokenAddress)
+    function getTokenPrice(address tokenAddress)
         external
         view
         whenNotPaused
-        returns (address priceOracleAddress)
+        returns (uint256 tokenPrice)
     {
-        return address(_configuration.priceOracleByToken[tokenAddress]);
+        return _configuration.priceOracleByToken[tokenAddress].getPrice();
     }
 
     function getMaxDistributorFeeRatios()

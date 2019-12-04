@@ -387,12 +387,13 @@ contract IProtocol {
     /// @notice Unlock user actions
     function unlockUserActions() external;
 
-    /// @notice Return price oracle address of a token
-    /// @return priceOracleAddress Price oracle address
-    function getPriceOracleAddress(address tokenAddress)
+    /// @notice Return USD price of a token
+    /// @param tokenAddress Token address
+    /// @return tokenPrice Token price in USD
+    function getTokenPrice(address tokenAddress)
         external
         view
-        returns (address priceOracleAddress);
+        returns (uint256 tokenPrice);
 
     /// @notice Return protocol address
     /// @return protocolAddress Protocol address

@@ -108,7 +108,7 @@ export class CommonService {
    * @param tokenAddress token address
    */
   async getPrice(tokenAddress: string): Promise<BigNumber> {
-    return this.provider.priceOracle.methods.getPrice(tokenAddress).call();
+    return this.provider.protocol.methods.getTokenPrice(tokenAddress).call();
   }
 
   async approveFullAllowance(

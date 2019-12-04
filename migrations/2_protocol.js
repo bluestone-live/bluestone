@@ -11,7 +11,6 @@ const DepositManagerMock = artifacts.require('DepositManagerMock');
 const LoanManagerMock = artifacts.require('LoanManagerMock');
 const AccountManagerMock = artifacts.require('AccountManagerMock');
 const InterestModel = artifacts.require('InterestModel');
-const PriceOracle = artifacts.require('PriceOracle');
 const MedianizerMock = artifacts.require('MedianizerMock');
 const OasisDexMock = artifacts.require('OasisDexMock');
 const { deploy, toFixedBN } = require('../scripts/utils');
@@ -68,7 +67,6 @@ module.exports = async function(deployer, network) {
 
   await deploy(deployer, network, Protocol);
   await deploy(deployer, network, InterestModel);
-  await deploy(deployer, network, PriceOracle);
 
   const ethPrice = toFixedBN(200);
   const medianizer = await deployer.deploy(MedianizerMock);

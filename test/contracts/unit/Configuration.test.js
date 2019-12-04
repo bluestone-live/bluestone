@@ -1,5 +1,5 @@
 const Configuration = artifacts.require('ConfigurationMock');
-const PriceOracle = artifacts.require('PriceOracle');
+const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const {
   expectRevert,
   expectEvent,
@@ -14,13 +14,13 @@ contract('Configuration', function([owner]) {
 
   beforeEach(async () => {
     configuration = await Configuration.new();
-    priceOracle = await PriceOracle.new();
   });
 
   describe('#setPriceOracle', () => {
     context('when address is valid', () => {
       it('succeeds', async () => {
         const token = await createERC20Token(owner);
+        const priceOracle = await SingleFeedPriceOracle.new();
         await configuration.setPriceOracle(token.address, priceOracle.address);
         expect(
           await configuration.getPriceOracleAddress(token.address),
