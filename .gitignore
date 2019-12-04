@@ -9,14 +9,13 @@ build/
 .phutil_module_cache
 
 # config
-config.js
+config/local*
 
 # vscode
 .vscode
 
 # ethereum network configs
 networks/development.json
-scripts/config.development.json
 
 # contract build files
 client/src/contracts

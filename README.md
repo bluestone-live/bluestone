@@ -14,10 +14,10 @@ Make sure you have read through [Truffle Documentation](https://truffleframework
 
 ## Setup your environment
 
-Create a config file for development purpose:
+Create a config file for local development:
 
 ```
-cp config.example.js config.js
+cp config/development.js config/local.js
 ```
 
 Fill in any credentials if needed.
@@ -44,9 +44,11 @@ Prepare test environment for local development:
 ## Project structure
 
 - `arcanist-extensions/`: Custom PHP extensions written for arcanist.
+- `config/`: Configuration files following [node-config](https://github.com/lorenwest/node-config/wiki/Configuration-Files) conventions.
 - `contracts/`: Smart contracts written in Solidity.
 - `libs/`: Common libraries.
 - `migrations/`: Truffle migrations. Each file will be ran in sequence on `npx truffle migrate` and corresponding contracts will be deployed.
+- `networks/`: Contains deployed contract and token addresses.
 - `scripts/`: Scripts to interact with smart contracts and run common tasks.
 - `server/`: Everything related to a web server.
 - `test/`: All test files go to this directory.

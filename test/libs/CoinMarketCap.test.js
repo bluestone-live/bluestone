@@ -1,11 +1,11 @@
 const CoinMarketCap = require('../../libs/CoinMarketCap.js');
-const config = require('../../config.js');
+const config = require('config');
 const { expect } = require('chai');
 
 describe('lib: CoinMarketCap', function() {
   this.retries(2);
 
-  const { apiKey, sandbox } = config.coinmarketcap;
+  const { apiKey, sandbox } = config.get('coinmarketcap');
   const coinMarketCap = new CoinMarketCap(apiKey, sandbox);
 
   describe('#getCryptocurrencyQuotesLatest', () => {

@@ -1,12 +1,7 @@
 const debug = require('debug')('script:validateConfigs');
-const ERC20Mock = artifacts.require('./ERC20Mock.sol');
 const Protocol = artifacts.require('./Protocol.sol');
-const {
-  loadConfig,
-  loadNetwork,
-  makeTruffleScript,
-  toFixedBN,
-} = require('../utils.js');
+const { loadNetwork, makeTruffleScript, toFixedBN } = require('../utils.js');
+const config = require('config');
 
 const assertNumberEquals = (a, b) => a.toString() === b.toString();
 
@@ -35,7 +30,8 @@ const composeLoanAndCollateralPairs = ({
 };
 
 module.exports = makeTruffleScript(async network => {
-  const configs = loadConfig(network);
+  const networkConfig = loadNetwork(network);
+  const configs = config.get('contract');
   const protocol = await Protocol.deployed();
 
   const tokens = Object.keys(configs.tokens).map(symbol => ({
@@ -51,14 +47,13 @@ module.exports = makeTruffleScript(async network => {
   if (depositTokenAddressList.length !== tokens.length) {
     return debug(
       `depositTokens expect ${tokens.map(
-        token => token.tokenAddress,
+        token => token.address,
       )}, got ${depositTokenAddressList}`,
     );
   }
 
   const wrongAddresses = depositTokenAddressList.some(
-    tokenAddress =>
-      tokens.filter(token => token.tokenAddress === tokenAddress).length !== 1,
+    address => tokens.filter(token => token.address === address).length !== 1,
   );
   if (wrongAddresses.length > 0) {
     return debug(`Wrong deposit token ${wrongAddresses}`);
@@ -66,7 +61,9 @@ module.exports = makeTruffleScript(async network => {
 
   for (token of tokens) {
     // check if maxLoanTerm per token equals configs
-    const maxLoanTerm = await protocol.getMaxLoanTerm(token.tokenAddress);
+    const maxLoanTerm = await protocol.getMaxLoanTerm(
+      networkConfig.tokens[token.symbol].address,
+    );
 
     if (!assertNumberEquals(maxLoanTerm, token.maxLoanTerm)) {
       return debug(
@@ -97,9 +94,9 @@ module.exports = makeTruffleScript(async network => {
 
   const configPairs = configs.loanAndCollateralTokenPairs.map(pair => ({
     ...pair,
-    loanTokenAddress: configs.tokens[pair.loanTokenSymbol].tokenAddress,
+    loanTokenAddress: networkConfig.tokens[pair.loanTokenSymbol].address,
     collateralTokenAddress:
-      configs.tokens[pair.collateralTokenSymbol].tokenAddress,
+      networkConfig.tokens[pair.collateralTokenSymbol].address,
   }));
 
   if (protocolPairs.length !== configPairs.length) {

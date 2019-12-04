@@ -30,6 +30,7 @@
     "typescript": "^3.6.3"
   },
   "dependencies": {
+    "config": "^3.2.4",
     "cron": "^1.7.1",
     "debug": "^4.1.1",
     "koa": "^2.7.0",

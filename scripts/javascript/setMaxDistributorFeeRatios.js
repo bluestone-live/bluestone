@@ -1,13 +1,13 @@
 const debug = require('debug')('script:setMaxDistributorFeeRatios');
-const ERC20Mock = artifacts.require('./ERC20Mock.sol');
 const Protocol = artifacts.require('./Protocol.sol');
-const { loadConfig, makeTruffleScript, toFixedBN } = require('../utils.js');
+const { makeTruffleScript, toFixedBN } = require('../utils.js');
+const config = require('config');
 
 module.exports = makeTruffleScript(async network => {
   const {
     maxDepositDistributorFeeRatio,
     maxLoanDistributorFeeRatio,
-  } = loadConfig(network);
+  } = config.get('contract');
   const protocol = await Protocol.deployed();
   await protocol.setMaxDistributorFeeRatios(
     toFixedBN(maxDepositDistributorFeeRatio),

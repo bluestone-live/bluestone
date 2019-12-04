@@ -1,6 +1,6 @@
 const _debug = require('debug')('script:utils');
 const CoinMarketCap = require('../libs/CoinMarketCap.js');
-const config = require('../config.js');
+const config = require('config');
 const fs = require('fs');
 const path = require('path');
 const Immutable = require('seamless-immutable');
@@ -14,7 +14,7 @@ const getNetworkFile = network =>
   path.join(__dirname, '..', 'networks', `${network}.json`);
 
 const loadNetwork = network => {
-  const debug = _debug.extend('loadNetworkConfig');
+  const debug = _debug.extend('loadNetwork');
   const filePath = getNetworkFile(network);
 
   debug('Loading network file...');
@@ -57,38 +57,6 @@ const deploy = async (deployer, network, contract, ...args) => {
   debug(`Deployed ${contractName} at ${deployedContract.address}.`);
 };
 
-const loadConfig = network => {
-  const debug = _debug.extend('loadConfig');
-  const filePath = path.join(__dirname, `./config.${network}.json`);
-
-  debug('Loading config file...', filePath);
-
-  try {
-    const content = fs.readFileSync(filePath);
-    debug('Existing config file found.');
-    return Immutable(JSON.parse(content));
-  } catch (err) {
-    debug('No config file found, return empty json object.');
-    return Immutable({});
-  }
-};
-
-/**
- * Merge value object to config file, according to the specified path,
- * e.g., ["foo", "bar"] -> { foo: { bar: value } }
- */
-const mergeConfig = (network, propertyPath, value) => {
-  const debug = _debug.extend('mergeConfig');
-  const filePath = path.join(__dirname, `./config.${network}.json`);
-
-  const prevConfig = loadConfig(network);
-  const updatedConfig = Immutable.setIn(prevConfig, propertyPath, value);
-
-  debug('Merging config file...');
-
-  fs.writeFileSync(filePath, `${JSON.stringify(updatedConfig, null, 2)}\n`);
-};
-
 const getTokenAddress = async tokenSymbol => {
   const debug = _debug.extend('getTokenAddress');
   const network = loadNetwork('development');
@@ -105,7 +73,7 @@ const getTokenAddress = async tokenSymbol => {
 
 const fetchTokenPrices = async (tokenList, currencyCode = 'USD') => {
   const debug = _debug.extend('fetchTokenPrices');
-  const { apiKey, sandbox } = config.coinmarketcap;
+  const { apiKey, sandbox } = config.get('coinmarketcap');
   const coinMarketCap = new CoinMarketCap(apiKey, sandbox);
 
   debug('Fetching prices for tokens: %o', tokenList);
@@ -150,6 +118,12 @@ const makeTruffleScript = fn => {
       args = restArgs;
     }
 
+    const network = args[0];
+
+    debug('Override NODE_ENV value with network value: %s', network);
+    // To ensure scripts load from corresponding config correctly
+    process.NODE_ENV = args[0];
+
     debug('Received arguments: %o', args);
 
     try {
@@ -185,8 +159,7 @@ module.exports = {
   fetchTokenPrices,
   makeTruffleScript,
   loadNetwork,
-  loadConfig,
-  mergeConfig,
+  saveNetwork,
   deploy,
   toFixedBN,
 };

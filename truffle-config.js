@@ -21,7 +21,7 @@
 require('chai/register-should');
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
-const { infura, mnemonic, accountIndex } = require('./config');
+const config = require('config');
 const path = require('path');
 
 module.exports = {
@@ -72,9 +72,9 @@ module.exports = {
     rinkeby: {
       provider: () =>
         new HDWalletProvider(
-          mnemonic,
-          `https://rinkeby.infura.io/v3/${infura.projectId}`,
-          accountIndex,
+          config.get('mnemonic'),
+          `https://rinkeby.infura.io/v3/${config.get('infura.projectId')}`,
+          config.get('accountIndex'),
         ),
       network_id: 4,
     },

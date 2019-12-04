@@ -2,13 +2,13 @@ const debug = require('debug')('script:postDaiPrice');
 const MedianizerMock = artifacts.require('MedianizerMock');
 const OasisDexMock = artifacts.require('OasisDexMock');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const { loadConfig, makeTruffleScript, toFixedBN } = require('../utils.js');
+const { loadNetwork, makeTruffleScript, toFixedBN } = require('../utils.js');
 const CryptoCompare = require('../../libs/CryptoCompare.js');
-const config = require('../../config.js');
+const config = require('config');
 const { BN, toBN } = require('web3-utils');
 
 module.exports = makeTruffleScript(async network => {
-  const { tokens } = loadConfig(network);
+  const { tokens } = loadNetwork(network);
   const { ETH, DAI } = tokens;
   let priceList = [];
 
@@ -20,10 +20,7 @@ module.exports = makeTruffleScript(async network => {
     const ethPrice = toBN(hex);
 
     try {
-      const eth2daiPrice = await getPriceFromOasis(
-        DAI.tokenAddress,
-        ETH.tokenAddress,
-      );
+      const eth2daiPrice = await getPriceFromOasis(DAI.address, ETH.address);
       const daiPrice = ethPrice.mul(toFixedBN(1)).div(eth2daiPrice);
       priceList.push(daiPrice);
     } catch (err) {
@@ -33,7 +30,7 @@ module.exports = makeTruffleScript(async network => {
     debug('Failed to get ETH/USD from Medianizer: %o', err);
   }
 
-  const cryptoCompare = new CryptoCompare(config.cryptocompare.apiKey);
+  const cryptoCompare = new CryptoCompare(config.get('cryptocompare.apiKey'));
 
   // Get DAI/USDC from Coinbase
   try {

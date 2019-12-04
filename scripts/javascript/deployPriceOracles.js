@@ -1,7 +1,7 @@
 const {
   makeTruffleScript,
-  loadConfig,
-  mergeConfig,
+  loadNetwork,
+  saveNetwork,
   toFixedBN,
 } = require('../utils.js');
 const debug = require('debug')('script:deployPriceOracles');
@@ -12,7 +12,7 @@ const FixedPriceOracle = artifacts.require('FixedPriceOracle');
 const Protocol = artifacts.require('Protocol');
 
 module.exports = makeTruffleScript(async network => {
-  const { tokens } = loadConfig(network);
+  const { tokens } = loadNetwork(network);
 
   // TODO(desmond): use WETH instead of ETH after wrap is complete?
   const { ETH, DAI, USDT } = tokens;
@@ -36,14 +36,14 @@ module.exports = makeTruffleScript(async network => {
     debug(`Set ${tokenSymbol} price oracle address: ${priceOracleAddress}`);
     await protocol.setPriceOracle(tokenAddress, priceOracleAddress);
 
-    mergeConfig(
+    saveNetwork(
       network,
       ['tokens', tokenSymbol, 'priceOracleAddress'],
       priceOracleAddress,
     );
   };
 
-  await setPriceOracle('ETH', ETH.tokenAddress, ethPriceOracle.address);
-  await setPriceOracle('DAI', DAI.tokenAddress, daiPriceOracle.address);
-  await setPriceOracle('USDT', USDT.tokenAddress, usdtPriceOracle.address);
+  await setPriceOracle('ETH', ETH.address, ethPriceOracle.address);
+  await setPriceOracle('DAI', DAI.address, daiPriceOracle.address);
+  await setPriceOracle('USDT', USDT.address, usdtPriceOracle.address);
 });
