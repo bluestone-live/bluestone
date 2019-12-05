@@ -121,3 +121,11 @@ export const useLoanInterestRate = (term: number) =>
         loanInterestRate => loanInterestRate.term === term.toString(),
       ) || { term: term.toString(), interestRate: null },
   );
+
+export const useLoanRecords = () =>
+  useSelector<IState, ILoanRecord[]>(state =>
+    state.loan.loanRecords.sort(
+      (record1: ILoanRecord, record2: ILoanRecord) =>
+        record2.createdAt.valueOf() - record1.createdAt.valueOf(),
+    ),
+  );

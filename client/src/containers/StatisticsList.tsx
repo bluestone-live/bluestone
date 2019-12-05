@@ -1,6 +1,6 @@
 import React, { useCallback, Fragment } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { IGeneralStats, ITokenStats, IToken } from '../stores';
+import { IGeneralStats, ITokenStats } from '../stores';
 import styled from 'styled-components';
 import { Row, Cell } from '../components/common/Layout';
 import { ThemedProps } from '../styles/themes';
@@ -32,14 +32,6 @@ const StyledCellAlignRight = styled(Cell)`
   text-align: right;
 `;
 
-const StyledPanelHeader = styled.div`
-  text-align: center;
-  color: ${(props: ThemedProps) => props.theme.fontColors.secondary};
-  padding: ${(props: ThemedProps) => props.theme.gap.medium} 0;
-  border-bottom: 1px solid
-    ${(props: ThemedProps) => props.theme.borderColor.primary};
-`;
-
 const StatisticsList = (props: IProps) => {
   const { generalStats, generalStatKeys, tokenStats, tokenStatKeys, t } = props;
 
@@ -62,7 +54,7 @@ const StatisticsList = (props: IProps) => {
     (tokenStat: ITokenStats, key: keyof ITokenStats) => {
       return (
         <StyledRow key={key + tokenStat.tokenAddress}>
-          <StyledCellAlignRight>{t(key)}</StyledCellAlignRight>
+          <StyledCellAlignRight>{tokenStat.tokenSymbol}</StyledCellAlignRight>
           <StyledCellAlignRight>
             {convertWeiToDecimal(tokenStat[key] as BigNumber)}
           </StyledCellAlignRight>
@@ -74,12 +66,12 @@ const StatisticsList = (props: IProps) => {
   );
 
   const renderTokenStatBlock = useCallback(
-    (tokenStat: ITokenStats) => (
+    (key: string) => (
       <Fragment>
-        <StyledRow key={tokenStat.tokenAddress}>
-          <StyledCellAlignLeft>{t(tokenStat.tokenSymbol)}</StyledCellAlignLeft>
+        <StyledRow key={key}>
+          <StyledCellAlignLeft>{t(key)}</StyledCellAlignLeft>
         </StyledRow>
-        {tokenStatKeys.map(key =>
+        {tokenStats.map(tokenStat =>
           renderTokenStatItem(tokenStat, key as keyof ITokenStats),
         )}
       </Fragment>
@@ -89,14 +81,10 @@ const StatisticsList = (props: IProps) => {
 
   return (
     <div>
-      <StyledPanelHeader>
-        {t('statistics_list_general_title')}
-      </StyledPanelHeader>
       {generalStatKeys.map(key =>
         renderGeneralStatItem(key as keyof IGeneralStats),
       )}
-      <StyledPanelHeader>{t('statistics_list_token_title')}</StyledPanelHeader>
-      {tokenStats.map(tokenStat => renderTokenStatBlock(tokenStat))}
+      {tokenStatKeys.map(key => renderTokenStatBlock(key))}
     </div>
   );
 };

@@ -1,7 +1,8 @@
 import { Dayjs } from 'dayjs';
 import { BigNumber } from '../utils/BigNumber';
-import { ITerm, IAction, RecordType } from '.';
+import { ITerm, IAction, RecordType, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
+import { useSelector } from 'react-redux';
 
 export enum DepositActionType {
   ReplaceDepositRecords = 'REPLACE_DEPOSIT_RECORDS',
@@ -85,3 +86,11 @@ export class DepositActions {
     };
   }
 }
+
+export const useDeposit = () =>
+  useSelector<IState, IDepositRecord[]>(state =>
+    state.deposit.depositRecords.sort(
+      (record1: IDepositRecord, record2: IDepositRecord) =>
+        record2.createdAt.valueOf() - record1.createdAt.valueOf(),
+    ),
+  );

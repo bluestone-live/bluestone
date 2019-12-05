@@ -81,6 +81,12 @@ const RecordDetail = (props: IProps) => {
               <label>{t('interest_earned')}</label>
               <TextBox>{convertWeiToDecimal(interestEarned)}</TextBox>
             </Form.Item>
+            <Form.Item>
+              <label>{t('pool_id')}</label>
+              <TextBox>
+                {depositRecord.poolId ? depositRecord.poolId.toString() : ''}
+              </TextBox>
+            </Form.Item>
             {depositRecord.isMatured && (
               <Form.Item>
                 <Button.Group>
@@ -116,10 +122,6 @@ const RecordDetail = (props: IProps) => {
         const loanToken = tokens.find(
           token => token.tokenAddress === loanRecord.loanTokenAddress,
         );
-        const collateralToken = tokens.find(
-          token => token.tokenAddress === loanRecord.collateralTokenAddress,
-        );
-
         return (
           <Fragment>
             <Form.Item>
@@ -134,12 +136,24 @@ const RecordDetail = (props: IProps) => {
               <TextBox>{loanRecord.loanTerm.text}</TextBox>
             </Form.Item>
             <Form.Item>
+              <label htmlFor="loan_interest">{t('loan_interest')}:</label>
+              <TextBox>{convertWeiToDecimal(loanRecord.interest)}</TextBox>
+            </Form.Item>
+            <Form.Item>
+              <label htmlFor="collateral_amount">
+                {t('collateral_amount')}:
+              </label>
+              <TextBox>
+                {convertWeiToDecimal(loanRecord.collateralAmount)}
+              </TextBox>
+            </Form.Item>
+            <Form.Item>
               <label htmlFor="collateralTokenSymbol">
                 {t('remainingDebt')}:
               </label>
               <TextBox>
                 {convertWeiToDecimal(loanRecord.remainingDebt)}{' '}
-                {collateralToken && collateralToken.tokenSymbol}
+                {loanToken && loanToken.tokenSymbol}
               </TextBox>
             </Form.Item>
             <Form.Item>

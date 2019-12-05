@@ -129,7 +129,8 @@ const LoanOverviewPage = (props: IProps) => {
   const renderActions = useCallback(
     (loanToken: IToken, collateralToken: IToken) => {
       const token = depositTokens.find(
-        depositToken => loanToken.tokenAddress === depositToken.tokenAddress,
+        depositToken =>
+          collateralToken.tokenAddress === depositToken.tokenAddress,
       );
 
       const allowanceValid =
@@ -150,7 +151,7 @@ const LoanOverviewPage = (props: IProps) => {
       } else {
         return (
           <Fragment>
-            <StyledButton primary onClick={onEnableToken(loanToken)}>
+            <StyledButton primary onClick={onEnableToken(collateralToken)}>
               {t('enable')}
             </StyledButton>
           </Fragment>

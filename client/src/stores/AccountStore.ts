@@ -17,19 +17,19 @@ export interface IAvailableCollateral {
 }
 
 export interface IGeneralStats {
-  totalDeposits: BigNumber;
-  totalLoans: BigNumber;
-  totalDefaults: BigNumber;
+  numberOfDeposits: BigNumber;
+  numberOfLoans: BigNumber;
+  numberOfDefaults: BigNumber;
 }
 
 export interface ITokenStats {
   tokenAddress: string;
   tokenSymbol: string;
-  totalDeposits: BigNumber;
+  numberOfDeposits: BigNumber;
   totalDepositAmount: BigNumber;
-  totalLoans: BigNumber;
+  numberOfLoans: BigNumber;
   totalLoanAmount: BigNumber;
-  totalDefaults: BigNumber;
+  numberOfDefaults: BigNumber;
 }
 
 interface IAccountState {
@@ -42,9 +42,9 @@ interface IAccountState {
 const initState: IAccountState = {
   accounts: [],
   generalStats: {
-    totalDeposits: new BigNumber(0),
-    totalLoans: new BigNumber(0),
-    totalDefaults: new BigNumber(0),
+    numberOfDeposits: new BigNumber(0),
+    numberOfLoans: new BigNumber(0),
+    numberOfDefaults: new BigNumber(0),
   },
   tokenStats: [],
   availableCollaterals: [],

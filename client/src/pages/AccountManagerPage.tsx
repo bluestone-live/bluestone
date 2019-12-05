@@ -33,18 +33,12 @@ export default () => {
   const dispatch = useDispatch();
 
   const generalStatKeys = useMemo(
-    () => ['totalDeposits', 'totalLoans', 'totalDefaults'],
+    () => ['numberOfDeposits', 'numberOfLoans', 'numberOfDefaults'],
     [],
   );
 
   const tokenStatKeys = useMemo(
-    () => [
-      'totalDeposits',
-      'totalDepositAmount',
-      'totalLoans',
-      'totalLoanAmount',
-      'totalDefaults',
-    ],
+    () => ['totalDepositAmount', 'totalLoanAmount'],
     [],
   );
 
