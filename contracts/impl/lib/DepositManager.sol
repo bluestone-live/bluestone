@@ -411,25 +411,12 @@ library DepositManager {
             numDaysAgo
         );
 
-        uint256 depositDistributorFee = totalInterest.mulFixed(
-            depositRecord.depositDistributorFeeRatio
-        );
-
-        // loanDistributorFee already paid to loan distributors when loan closed so we just need to subtract from total interest
-        uint256 loanDistributorFee = totalInterest.mulFixed(
-            loanDistributorFeeRatio
-        );
-
-        /// totalInterest = interestForDepositor + interestForProtocol + depositDistributorFee + loanDistributorFee
-        /// The loanDistributorFee has already sent in repay or liquidate process
-        uint256 interestForProtocol = totalInterest.mulFixed(
+        (uint256 interestForDepositor, uint256 interestForDepositDistributor, uint256 interestForProtocolReserve) = calculateInterestDistribution(
+            totalInterest,
+            depositRecord.depositDistributorFeeRatio,
+            loanDistributorFeeRatio,
             configuration.protocolReserveRatio
         );
-
-        uint256 interestForDepositor = totalInterest
-            .sub(depositDistributorFee)
-            .sub(loanDistributorFee)
-            .sub(interestForProtocol);
 
         uint256 depositPlusInterestAmount = depositRecord.depositAmount.add(
             interestForDepositor
@@ -441,14 +428,14 @@ library DepositManager {
         if (depositRecord.distributorAddress != address(this)) {
             ERC20(tokenAddress).safeTransfer(
                 depositRecord.distributorAddress,
-                depositDistributorFee
+                interestForDepositDistributor
             );
         }
 
         // Transfer protocol reserve to protocol address
         ERC20(tokenAddress).safeTransfer(
             configuration.protocolAddress,
-            interestForProtocol
+            interestForProtocolReserve
         );
 
         // Transfer deposit plus interest to depositor
@@ -602,15 +589,14 @@ library DepositManager {
                 totalDepositWeight
             );
         }
-        return
-            originalInterest.sub(
-                originalInterest.mulFixed(
-                    configuration
-                        .protocolReserveRatio
-                        .add(configuration.maxDepositDistributorFeeRatio)
-                        .add(configuration.maxLoanDistributorFeeRatio)
-                )
-            );
+        (uint256 interestForDepositor, , ) = calculateInterestDistribution(
+            originalInterest,
+            configuration.maxDepositDistributorFeeRatio,
+            configuration.maxLoanDistributorFeeRatio,
+            configuration.protocolReserveRatio
+        );
+
+        return interestForDepositor;
     }
 
     function getDepositRecordsByAccount(State storage self, address account)
@@ -738,6 +724,40 @@ library DepositManager {
         return (
             totalInterest.mulFixed(depositWeight.divFixed(totalDepositWeight)),
             loanDistributorFeeRatio
+        );
+    }
+
+    function calculateInterestDistribution(
+        uint256 originalInterest,
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio,
+        uint256 protocolReserveRatio
+    )
+        internal
+        pure
+        returns (
+            uint256 interestForDepositor,
+            uint256 interestForDepositDistributor,
+            uint256 interestForProtocolReserve
+        )
+    {
+        interestForDepositDistributor = originalInterest.mulFixed(
+            depositDistributorFeeRatio
+        );
+        uint256 interestForLoanDistributor = originalInterest.mulFixed(
+            loanDistributorFeeRatio
+        );
+        interestForProtocolReserve = originalInterest.mulFixed(
+            protocolReserveRatio
+        );
+
+        return (
+            originalInterest
+                .sub(interestForDepositDistributor)
+                .sub(interestForLoanDistributor)
+                .sub(interestForProtocolReserve),
+            interestForDepositDistributor,
+            interestForProtocolReserve
         );
     }
 

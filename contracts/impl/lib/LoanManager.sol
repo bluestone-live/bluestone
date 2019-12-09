@@ -764,7 +764,6 @@ library LoanManager {
 
             }
         }
-
         liquidityPools.repayLoanToPools(loanRecord, repayAmount);
 
         emit RepayLoanSucceed(msg.sender, loanId, repayAmount);

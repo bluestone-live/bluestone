@@ -6,6 +6,7 @@ const {
   expectEvent,
   constants,
   BN,
+  time,
 } = require('openzeppelin-test-helpers');
 const { toFixedBN, createERC20Token } = require('../../utils/index');
 const { setupTestEnv } = require('../../utils/setupTestEnv');
@@ -22,6 +23,7 @@ contract(
     protocolAddress,
   ]) => {
     let protocol, priceOracle, interestModel, loanToken, collateralToken;
+
     const initialSupply = toFixedBN(10000);
     const ZERO = toFixedBN(0);
 
@@ -199,17 +201,22 @@ contract(
         const interest = await protocol.getDepositInterestById(depositId);
 
         expect(interest).to.bignumber.equal(
-          totalInterest.sub(
-            totalInterest
-              .mul(
-                toFixedBN(
-                  protocolReserveRatio +
-                    maxDepositDistributorFeeRatio +
-                    maxLoanDistributorFeeRatio,
-                ),
-              )
-              .div(toFixedBN(1)),
-          ),
+          totalInterest
+            .sub(
+              totalInterest
+                .mul(toFixedBN(protocolReserveRatio))
+                .div(toFixedBN(1)),
+            )
+            .sub(
+              totalInterest
+                .mul(toFixedBN(maxDepositDistributorFeeRatio))
+                .div(toFixedBN(1)),
+            )
+            .sub(
+              totalInterest
+                .mul(toFixedBN(maxLoanDistributorFeeRatio))
+                .div(toFixedBN(1)),
+            ),
         );
       });
       it('transfer distributor fee to loan distributor after loan fully repaid', async () => {
@@ -236,35 +243,157 @@ contract(
             .div(toFixedBN(1)),
         );
       });
-      it('returns correct pool data after update deposit maturity');
-      it('transfer correct amount to depositor after withdraw deposit');
-      it('transfer distributor fee to deposit distributor');
-      it('transfer reserve fee to protocol address');
-      it('returns correct balance from protocol contract');
+      it('returns correct pool data after update deposit maturity', async () => {
+        for (let j = 0; j < depositTerm; j++) {
+          await time.increase(time.duration.days(1));
+
+          await protocol.lockUserActions();
+          await protocol.updateDepositMaturity();
+          await protocol.unlockUserActions();
+
+          const {
+            poolIdList,
+            depositAmountList,
+            availableAmountList,
+            loanInterestList,
+            totalDepositWeightList,
+          } = await protocol.getDetailsFromAllPools(loanToken.address);
+
+          for (let poolIndex = 0; poolIndex < poolIdList.length; poolIndex++) {
+            const poolId = poolIdList[poolIndex];
+            const depositAmountInPool = depositAmountList[poolIndex];
+            const availableAmountInPool = availableAmountList[poolIndex];
+            const loanInterestInPool = loanInterestList[poolIndex];
+
+            if (poolId.toString() === depositTerm.toString()) {
+              // Because of the pool index count from 0, we should subtract 1
+              expect(depositTerm - j - 1).to.equal(poolIndex);
+              expect(depositAmountInPool).to.bignumber.equal(
+                toFixedBN(depositAmount),
+              );
+              expect(availableAmountInPool).to.bignumber.equal(
+                toFixedBN(depositAmount).add(
+                  toFixedBN(loanAmount)
+                    .mul(currentLoanInterestRate)
+                    .div(toFixedBN(1))
+                    .mul(new BN(loanTerm))
+                    .div(new BN(365)),
+                ),
+              );
+              expect(loanInterestInPool).to.bignumber.equal(
+                toFixedBN(loanAmount)
+                  .mul(currentLoanInterestRate)
+                  .div(toFixedBN(1))
+                  .mul(new BN(loanTerm))
+                  .div(new BN(365)),
+              );
+            } else {
+              expect(depositAmountInPool).to.bignumber.equal(ZERO);
+              expect(availableAmountInPool).to.bignumber.equal(ZERO);
+              expect(loanInterestInPool).to.bignumber.equal(ZERO);
+            }
+          }
+        }
+      });
+      it('transfer correct amount to depositor after withdraw deposit', async () => {
+        await time.increase(time.duration.days(1));
+
+        await protocol.lockUserActions();
+        await protocol.updateDepositMaturity();
+        await protocol.unlockUserActions();
+
+        const {
+          depositAmount: depositAmountForRecord,
+          isMatured,
+        } = await protocol.getDepositRecordById(depositId);
+        const estimateInterest = await protocol.getDepositInterestById(
+          depositId,
+        );
+
+        expect(isMatured).to.be.true;
+
+        const prevDepositorBalance = await loanToken.balanceOf(depositor);
+        const prevDepositDistributorBalance = await loanToken.balanceOf(
+          depositDistributor,
+        );
+        const prevProtocolReserveBalance = await loanToken.balanceOf(
+          protocolAddress,
+        );
+
+        await protocol.withdraw(depositId, {
+          from: depositor,
+        });
+
+        const depositorBalance = await loanToken.balanceOf(depositor);
+        const depositDistributorBalance = await loanToken.balanceOf(
+          depositDistributor,
+        );
+        const protocolReserveBalance = await loanToken.balanceOf(
+          protocolAddress,
+        );
+
+        expect(depositorBalance.sub(prevDepositorBalance)).to.bignumber.equal(
+          depositAmountForRecord.add(estimateInterest),
+        );
+        expect(
+          depositDistributorBalance.sub(prevDepositDistributorBalance),
+        ).to.bignumber.equal(
+          totalInterest
+            .mul(toFixedBN(maxDepositDistributorFeeRatio))
+            .div(toFixedBN(1)),
+        );
+        expect(
+          protocolReserveBalance.sub(prevProtocolReserveBalance),
+        ).to.bignumber.equal(
+          totalInterest.mul(toFixedBN(protocolReserveRatio)).div(toFixedBN(1)),
+        );
+      });
+      it('transfer correct balance to protocol contract', async () => {
+        const protocolContractBalance = await loanToken.balanceOf(
+          protocol.address,
+        );
+
+        expect(protocolContractBalance).to.bignumber.equal(ZERO);
+      });
     });
 
     describe('Early withdraw deposit flow', () => {
-      let depositId;
+      let otherDeposits, depositId;
       let loanId;
 
-      beforeEach(async () => {
+      before(async () => {
         // Create deposit record
-        depositId = await protocol.deposit(
+        const { logs: otherDepositsLogs } = await protocol.deposit(
           loanToken.address,
-          depositAmount,
+          toFixedBN(depositAmount),
           depositTerm,
           depositDistributor,
           {
             from: depositor,
           },
         );
+        otherDeposits = otherDepositsLogs.filter(
+          log => log.event === 'DepositSucceed',
+        )[0].args.recordId;
+
+        const { logs: depositLogs } = await protocol.deposit(
+          loanToken.address,
+          toFixedBN(depositAmount),
+          depositTerm,
+          depositDistributor,
+          {
+            from: depositor,
+          },
+        );
+        depositId = depositLogs.filter(log => log.event === 'DepositSucceed')[0]
+          .args.recordId;
 
         // Create loan record
-        loanId = await protocol.loan(
+        const { logs: loanLogs } = await protocol.loan(
           loanToken.address,
           collateralToken.address,
-          loanAmount,
-          collateralAmount,
+          toFixedBN(loanAmount),
+          toFixedBN(collateralAmount),
           loanTerm,
           false,
           loanDistributor,
@@ -272,12 +401,74 @@ contract(
             from: loaner,
           },
         );
+        loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+          .recordId;
       });
-      it('returns correct pool data after update deposit maturity');
-      it('transfer correct amount to depositor after withdraw deposit');
-      it('transfer distributor fee to deposit distributor');
-      it('transfer reserve fee to protocol address');
-      it('returns correct balance from protocol contract');
+
+      it('only transfer principal to depositor after early withdraw', async () => {
+        await time.increase(time.duration.days(1));
+
+        await protocol.lockUserActions();
+        await protocol.updateDepositMaturity();
+        await protocol.unlockUserActions();
+
+        const {
+          depositAmount: depositAmountForRecord,
+          isMatured,
+        } = await protocol.getDepositRecordById(depositId);
+
+        expect(isMatured).to.be.false;
+
+        const isEarlyWithdrawable = await protocol.isDepositEarlyWithdrawable(
+          depositId,
+        );
+
+        expect(isEarlyWithdrawable).to.be.true;
+
+        const prevDepositorBalance = await loanToken.balanceOf(depositor);
+        const prevDepositDistributorBalance = await loanToken.balanceOf(
+          depositDistributor,
+        );
+        const prevProtocolReserveBalance = await loanToken.balanceOf(
+          protocolAddress,
+        );
+
+        await protocol.earlyWithdraw(depositId, {
+          from: depositor,
+        });
+
+        const depositorBalance = await loanToken.balanceOf(depositor);
+        const depositDistributorBalance = await loanToken.balanceOf(
+          depositDistributor,
+        );
+        const protocolReserveBalance = await loanToken.balanceOf(
+          protocolAddress,
+        );
+
+        expect(depositorBalance.sub(prevDepositorBalance)).to.bignumber.equal(
+          depositAmountForRecord,
+        );
+        expect(
+          depositDistributorBalance.sub(prevDepositDistributorBalance),
+        ).to.bignumber.equal(ZERO);
+        expect(
+          protocolReserveBalance.sub(prevProtocolReserveBalance),
+        ).to.bignumber.equal(ZERO);
+      });
+      it('returns false when other deposit query is deposit early withdrawable', async () => {
+        const isEarlyWithdrawable = await protocol.isDepositEarlyWithdrawable(
+          otherDeposits,
+        );
+
+        expect(isEarlyWithdrawable).to.be.false;
+      });
+      it('transfer correct balance to protocol contract', async () => {
+        const protocolContractBalance = await loanToken.balanceOf(
+          protocol.address,
+        );
+
+        expect(protocolContractBalance).to.bignumber.equal(ZERO);
+      });
     });
   },
 );
