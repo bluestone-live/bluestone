@@ -80,11 +80,11 @@ export const loanPairPipe = async (
           })),
         ];
       }, [])
-      .filter((_, index: number) => isEnabledList[index])
       .map((loanPair, index: number) => ({
         ...loanPair,
         minCollateralCoverageRatio: minCollateralCoverageRatioList[index],
       }))
+      .filter((_, index: number) => isEnabledList[index])
       .map(
         ({
           loanTokenAddress,
