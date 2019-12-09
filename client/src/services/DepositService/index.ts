@@ -30,9 +30,12 @@ export class DepositService {
     const record = await this.provider.protocol.methods
       .getDepositRecordById(depositId)
       .call();
-    const interest = await this.provider.protocol.methods
-      .getDepositInterestById(depositId)
-      .call();
+
+    const interest = record.isClosed
+      ? await this.provider.protocol.methods
+          .getDepositInterestById(depositId)
+          .call()
+      : new BigNumber(0);
     const isEarlyWithdrawable = await this.provider.protocol.methods
       .isDepositEarlyWithdrawable(depositId)
       .call();

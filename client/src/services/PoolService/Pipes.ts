@@ -3,6 +3,7 @@ import { isAllEqual } from '../../utils/isAllEqual';
 import { IPool } from '../../stores/PoolStore';
 
 interface IGetAllPoolResponse {
+  poolIdList: BigNumber[];
   depositAmountList: BigNumber[];
   availableAmountList: BigNumber[];
   loanInterestList: BigNumber[];
@@ -10,6 +11,7 @@ interface IGetAllPoolResponse {
 }
 
 export const PoolsPipe = ({
+  poolIdList,
   depositAmountList,
   availableAmountList,
   loanInterestList,
@@ -17,6 +19,7 @@ export const PoolsPipe = ({
 }: IGetAllPoolResponse): IPool[] => {
   if (
     isAllEqual(
+      poolIdList.length,
       depositAmountList.length,
       availableAmountList.length,
       loanInterestList.length,
@@ -27,6 +30,7 @@ export const PoolsPipe = ({
   }
 
   return depositAmountList.map((depositAmount, index) => ({
+    poolId: poolIdList[index],
     poolIndex: index,
     depositAmount,
     availableAmount: availableAmountList[index],
