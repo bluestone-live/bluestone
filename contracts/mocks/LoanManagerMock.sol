@@ -249,15 +249,13 @@ contract LoanManagerMock {
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        address distributorAddress,
-        uint256 depositDistributorFeeRatio
+        address distributorAddress
     ) external returns (bytes32 depositId) {
         _depositParameters.tokenAddress = tokenAddress;
         _depositParameters.depositAmount = depositAmount;
         _depositParameters.depositTerm = depositTerm;
         _depositParameters.distributorAddress = distributorAddress;
-        _depositParameters
-            .depositDistributorFeeRatio = depositDistributorFeeRatio;
+
         return
             _depositManager.deposit(
                 _liquidityPools,

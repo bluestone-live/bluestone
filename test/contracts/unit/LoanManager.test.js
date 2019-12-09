@@ -110,7 +110,6 @@ contract('LoanManager', function([
           depositAmount,
           depositTerm,
           distributorAddress,
-          depositDistributorFeeRatio,
           {
             from: depositor,
           },
@@ -219,7 +218,6 @@ contract('LoanManager', function([
           depositAmount,
           depositTerm,
           distributorAddress,
-          depositDistributorFeeRatio,
           {
             from: depositor,
           },
@@ -303,7 +301,6 @@ contract('LoanManager', function([
         depositAmount,
         depositTerm,
         distributorAddress,
-        depositDistributorFeeRatio,
         {
           from: depositor,
         },
@@ -652,7 +649,6 @@ contract('LoanManager', function([
         depositAmount,
         depositTerm,
         distributorAddress,
-        depositDistributorFeeRatio,
         {
           from: depositor,
         },
@@ -730,7 +726,6 @@ contract('LoanManager', function([
         depositAmount,
         depositTerm,
         distributorAddress,
-        depositDistributorFeeRatio,
         {
           from: depositor,
         },
@@ -840,7 +835,6 @@ contract('LoanManager', function([
         depositAmount,
         depositTerm,
         distributorAddress,
-        depositDistributorFeeRatio,
         {
           from: depositor,
         },

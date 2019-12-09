@@ -113,38 +113,14 @@ contract Protocol is IProtocol, Ownable, Pausable {
         whenUserActionsLocked
         onlyOwner
     {
-        _depositManager.updateDepositMaturity(_liquidityPools);
-    }
-
-    function deposit(
-        address tokenAddress,
-        uint256 depositAmount,
-        uint256 depositTerm
-    )
-        external
-        whenNotPaused
-        whenUserActionsUnlocked
-        returns (bytes32 depositId)
-    {
-        _depositParameters.tokenAddress = tokenAddress;
-        _depositParameters.depositAmount = depositAmount;
-        _depositParameters.depositTerm = depositTerm;
-
-        return
-            _depositManager.deposit(
-                _liquidityPools,
-                _accountManager,
-                _configuration,
-                _depositParameters
-            );
+        _depositManager.updateDepositMaturity(_liquidityPools, _configuration);
     }
 
     function deposit(
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        address distributorAddress,
-        uint256 depositDistributorFeeRatio
+        address distributorAddress
     )
         external
         whenNotPaused
@@ -155,8 +131,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
         _depositParameters.depositAmount = depositAmount;
         _depositParameters.depositTerm = depositTerm;
         _depositParameters.distributorAddress = distributorAddress;
-        _depositParameters
-            .depositDistributorFeeRatio = depositDistributorFeeRatio;
 
         return
             _depositManager.deposit(
@@ -552,6 +526,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
             uint256[] memory poolIdList,
             uint256[] memory depositAmountList,
             uint256[] memory availableAmountList,
+            uint256[] memory borrowedAmountList,
             uint256[] memory loanInterestList,
             uint256[] memory totalDepositWeightList
         )

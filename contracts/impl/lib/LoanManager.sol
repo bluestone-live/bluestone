@@ -1043,6 +1043,10 @@ library LoanManager {
         address tokenAddress,
         uint256 loanTerm
     ) external view returns (uint256 loanInterestRate) {
+        require(
+            loanTerm <= liquidityPools.poolGroups[tokenAddress].numPools,
+            'LoanManager: Invalid loan term.'
+        );
         return
             configuration.interestModel.getLoanInterestRate(
                 tokenAddress,

@@ -219,7 +219,6 @@ contract('DepositManager', function([
             depositAmount,
             depositTerm,
             distributorAddress,
-            depositDistributorFeeRatio,
             {
               from: depositor,
             },
@@ -242,7 +241,6 @@ contract('DepositManager', function([
               depositAmount,
               depositTerm,
               distributorAddress,
-              depositDistributorFeeRatio,
               {
                 from: depositor,
               },
@@ -267,7 +265,6 @@ contract('DepositManager', function([
             depositAmount,
             depositTerm,
             distributorAddress,
-            depositDistributorFeeRatio,
             {
               from: depositor,
             },
@@ -275,24 +272,6 @@ contract('DepositManager', function([
 
           expectEvent.inLogs(logs, 'DepositSucceed', {
             accountAddress: depositor,
-          });
-        });
-
-        context('when the fee ratio is greater than limit', () => {
-          it('reverts', async () => {
-            await expectRevert(
-              depositManager.deposit(
-                token.address,
-                depositAmount,
-                depositTerm,
-                distributorAddress,
-                depositDistributorFeeRatio.add(toFixedBN(0.5)),
-                {
-                  from: depositor,
-                },
-              ),
-              'DepositManager: invalid deposit distributor fee ratio',
-            );
           });
         });
       });
@@ -320,7 +299,6 @@ contract('DepositManager', function([
           depositAmount,
           depositTerm,
           distributorAddress,
-          depositDistributorFeeRatio,
           {
             from: depositor,
           },
@@ -383,7 +361,6 @@ contract('DepositManager', function([
           depositAmount,
           depositTerm,
           distributorAddress,
-          depositDistributorFeeRatio,
           {
             from: depositor,
           },
@@ -437,7 +414,6 @@ contract('DepositManager', function([
         depositAmount,
         depositTerm,
         distributorAddress,
-        depositDistributorFeeRatio,
         {
           from: depositor,
         },
@@ -486,7 +462,6 @@ contract('DepositManager', function([
         depositAmount,
         depositTerm,
         distributorAddress,
-        depositDistributorFeeRatio,
         {
           from: depositor,
         },
@@ -566,7 +541,6 @@ contract('DepositManager', function([
           depositAmount,
           depositTerm,
           distributorAddress,
-          depositDistributorFeeRatio,
           {
             from: depositor,
           },
@@ -615,7 +589,6 @@ contract('DepositManager', function([
         depositAmount,
         depositTerm,
         distributorAddress,
-        depositDistributorFeeRatio,
         {
           from: depositor,
         },
@@ -655,13 +628,19 @@ contract('DepositManager', function([
           .mul(totalInterestList[index])
           .div(totalDepositWeightList[index]);
 
-        const interest = await depositManager.getInterestFromDaysAgo(
+        const {
+          totalInterest,
+          loanDistributorFeeRatio,
+        } = await depositManager.getInterestFromDaysAgo(
           token.address,
           weight,
           index,
         );
 
-        expect(interest).to.bignumber.equal(estimateInterest);
+        expect(totalInterest).to.bignumber.equal(estimateInterest);
+        expect(loanDistributorFeeRatio).to.bignumber.equal(
+          loanDistributorFeeRatio,
+        );
       }
     });
   });

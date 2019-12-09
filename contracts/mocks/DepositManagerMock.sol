@@ -38,7 +38,7 @@ contract DepositManagerMock {
     }
 
     function updateDepositMaturity() external {
-        _depositManager.updateDepositMaturity(_liquidityPools);
+        _depositManager.updateDepositMaturity(_liquidityPools, _configuration);
     }
 
     function setMaxDistributorFeeRatios(
@@ -55,15 +55,12 @@ contract DepositManagerMock {
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        address distributorAddress,
-        uint256 depositDistributorFeeRatio
+        address distributorAddress
     ) external returns (bytes32 depositId) {
         _depositParameters.tokenAddress = tokenAddress;
         _depositParameters.depositAmount = depositAmount;
         _depositParameters.depositTerm = depositTerm;
         _depositParameters.distributorAddress = distributorAddress;
-        _depositParameters
-            .depositDistributorFeeRatio = depositDistributorFeeRatio;
 
         return
             _depositManager.deposit(
@@ -205,7 +202,11 @@ contract DepositManagerMock {
         address tokenAddress,
         uint256 depositWeight,
         uint256 numDaysAgo
-    ) external view returns (uint256 interest) {
+    )
+        external
+        view
+        returns (uint256 totalInterest, uint256 loanDistributorFeeRatio)
+    {
         return
             _depositManager._getInterestFromDaysAgo(
                 tokenAddress,

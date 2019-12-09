@@ -31,26 +31,13 @@ contract IProtocol {
     /// @param tokenAddress Token address
     /// @param depositAmount Deposit amount
     /// @param depositTerm Deposit term
-    /// @return depositId ID that identifies the deposit
-    function deposit(
-        address tokenAddress,
-        uint256 depositAmount,
-        uint256 depositTerm
-    ) external returns (bytes32 depositId);
-
-    /// @notice Deposit token with specific term and amount
-    /// @param tokenAddress Token address
-    /// @param depositAmount Deposit amount
-    /// @param depositTerm Deposit term
     /// @param distributorAddress distributor account address
-    /// @param depositDistributorFeeRatio the ratio of interest that distributor will get
     /// @return depositId ID that identifies the deposit
     function deposit(
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        address distributorAddress,
-        uint256 depositDistributorFeeRatio
+        address distributorAddress
     ) external returns (bytes32 depositId);
 
     /// @notice Withdraw a deposit
@@ -371,6 +358,7 @@ contract IProtocol {
             uint256[] memory poolIdList,
             uint256[] memory depositAmountList,
             uint256[] memory availableAmountList,
+            uint256[] memory borrowedAmountList,
             uint256[] memory loanInterestList,
             uint256[] memory totalDepositWeightList
         );

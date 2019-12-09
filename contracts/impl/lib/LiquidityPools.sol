@@ -288,6 +288,7 @@ library LiquidityPools {
             uint256[] memory poolIdList,
             uint256[] memory depositAmountList,
             uint256[] memory availableAmountList,
+            uint256[] memory borrowedAmountList,
             uint256[] memory loanInterestList,
             uint256[] memory totalDepositWeightList
         )
@@ -296,6 +297,7 @@ library LiquidityPools {
         poolIdList = new uint256[](poolGroup.numPools + 1);
         depositAmountList = new uint256[](poolGroup.numPools + 1);
         availableAmountList = new uint256[](poolGroup.numPools + 1);
+        borrowedAmountList = new uint256[](poolGroup.numPools + 1);
         loanInterestList = new uint256[](poolGroup.numPools + 1);
         totalDepositWeightList = new uint256[](poolGroup.numPools + 1);
 
@@ -312,6 +314,8 @@ library LiquidityPools {
                 .loanInterest;
             availableAmountList[poolIndex] = poolGroup.poolsById[poolId]
                 .availableAmount;
+            borrowedAmountList[poolIndex] = poolGroup.poolsById[poolId]
+                .borrowedAmount;
             totalDepositWeightList[poolIndex] = poolGroup.poolsById[poolId]
                 .totalDepositWeight;
         }
@@ -320,6 +324,7 @@ library LiquidityPools {
             poolIdList,
             depositAmountList,
             availableAmountList,
+            borrowedAmountList,
             loanInterestList,
             totalDepositWeightList
         );

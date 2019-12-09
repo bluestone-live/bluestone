@@ -96,8 +96,8 @@ contract('Configuration', function([owner]) {
   });
 
   describe('#setMaxDistributorFeeRatios', () => {
-    const estimateMaxDepositDistributorFeeRatio = toFixedBN(1);
-    const estimateMaxLoanDistributorFeeRatio = toFixedBN(2);
+    const estimateMaxDepositDistributorFeeRatio = toFixedBN(0.01);
+    const estimateMaxLoanDistributorFeeRatio = toFixedBN(0.02);
     it('succeeds', async () => {
       await configuration.setMaxDistributorFeeRatios(
         estimateMaxDepositDistributorFeeRatio,

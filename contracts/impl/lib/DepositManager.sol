@@ -78,6 +78,7 @@ library DepositManager {
         mapping(uint256 => uint256) totalDepositWeightByDay;
         // days number -> total deposit interests
         mapping(uint256 => uint256) totalInterestByDay;
+        mapping(uint256 => uint256) loanDistributorFeeRatioByDay;
         uint256 lastDay;
     }
 
@@ -107,7 +108,6 @@ library DepositManager {
         uint256 depositAmount;
         uint256 depositTerm;
         address distributorAddress;
-        uint256 depositDistributorFeeRatio;
     }
 
     function enableDepositTerm(
@@ -229,7 +229,8 @@ library DepositManager {
 
     function updateDepositMaturity(
         State storage self,
-        LiquidityPools.State storage liquidityPools
+        LiquidityPools.State storage liquidityPools,
+        Configuration.State storage configuration
     ) external {
         /// Ensure deposit maturity update only triggers once in a day by checking current
         /// timestamp is greater than the timestamp of last update (in day unit).
@@ -242,10 +243,8 @@ library DepositManager {
         for (uint256 i = 0; i < self.allDepositTokenAddressList.length; i++) {
             address tokenAddress = self.allDepositTokenAddressList[i];
 
-            uint256 poolIndex = 0;
-
             (, , , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
-                .getPool(tokenAddress, poolIndex);
+                .getPool(tokenAddress, 0);
 
             DepositInterestHistory storage history = self
                 .depositTokenByAddress[tokenAddress]
@@ -255,7 +254,8 @@ library DepositManager {
             history.totalDepositWeightByDay[history
                 .lastDay] = totalDepositWeight;
             history.totalInterestByDay[history.lastDay] = loanInterest;
-
+            history.loanDistributorFeeRatioByDay[history
+                .lastDay] = configuration.maxLoanDistributorFeeRatio;
             liquidityPools.updatePoolGroupDepositMaturity(tokenAddress);
         }
 
@@ -283,12 +283,6 @@ library DepositManager {
         require(
             depositParameters.distributorAddress != address(0),
             'DepositManager: invalid distributor address'
-        );
-
-        require(
-            depositParameters.depositDistributorFeeRatio <=
-                configuration.maxDepositDistributorFeeRatio,
-            'DepositManager: invalid deposit distributor fee ratio'
         );
 
         address accountAddress = msg.sender;
@@ -330,8 +324,8 @@ library DepositManager {
             withdrewAt: 0,
             weight: depositWeight,
             distributorAddress: depositParameters.distributorAddress,
-            depositDistributorFeeRatio: depositParameters
-                .depositDistributorFeeRatio
+            depositDistributorFeeRatio: configuration
+                .maxDepositDistributorFeeRatio
         });
 
         // Transfer token from user to protocol (`this` refers to Protocol contract)
@@ -343,13 +337,13 @@ library DepositManager {
 
         accountManager.addToAccountGeneralStat(
             accountAddress,
-            'totalDeposits',
+            'numberOfDeposits',
             1
         );
         accountManager.addToAccountTokenStat(
             accountAddress,
             depositParameters.tokenAddress,
-            'totalDeposits',
+            'numberOfDeposits',
             1
         );
         accountManager.addToAccountTokenStat(
@@ -408,7 +402,9 @@ library DepositManager {
         );
 
         uint256 numDaysAgo = DateTime.toDays(now - depositRecord.maturedAt);
-        uint256 totalInterest = _getInterestFromDaysAgo(
+        uint256 totalInterest;
+        uint256 loanDistributorFeeRatio;
+        (totalInterest, loanDistributorFeeRatio) = _getInterestFromDaysAgo(
             self,
             tokenAddress,
             depositRecord.weight,
@@ -419,6 +415,11 @@ library DepositManager {
             depositRecord.depositDistributorFeeRatio
         );
 
+        // loanDistributorFee already paid to loan distributors when loan closed so we just need to subtract from total interest
+        uint256 loanDistributorFee = totalInterest.mulFixed(
+            loanDistributorFeeRatio
+        );
+
         /// totalInterest = interestForDepositor + interestForProtocol + depositDistributorFee + loanDistributorFee
         /// The loanDistributorFee has already sent in repay or liquidate process
         uint256 interestForProtocol = totalInterest.mulFixed(
@@ -427,6 +428,7 @@ library DepositManager {
 
         uint256 interestForDepositor = totalInterest
             .sub(depositDistributorFee)
+            .sub(loanDistributorFee)
             .sub(interestForProtocol);
 
         uint256 depositPlusInterestAmount = depositRecord.depositAmount.add(
@@ -586,7 +588,7 @@ library DepositManager {
         /// if deposit was matured, get interest index from history
         /// otherwise calculate by this formula: interestIndex = loanInterest / totalDeposit
         if (depositRecord.maturedAt < now) {
-            originalInterest = _getInterestFromDaysAgo(
+            (originalInterest, ) = _getInterestFromDaysAgo(
                 self,
                 depositRecord.tokenAddress,
                 depositRecord.weight,
@@ -596,13 +598,18 @@ library DepositManager {
             (, , , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
                 .getPoolById(depositRecord.tokenAddress, depositRecord.poolId);
 
-            originalInterest = loanInterest
-                .mulFixed(depositRecord.weight)
-                .divFixed(totalDepositWeight);
+            originalInterest = loanInterest.mul(depositRecord.weight).div(
+                totalDepositWeight
+            );
         }
         return
             originalInterest.sub(
-                originalInterest.mulFixed(configuration.protocolReserveRatio)
+                originalInterest.mulFixed(
+                    configuration
+                        .protocolReserveRatio
+                        .add(configuration.maxDepositDistributorFeeRatio)
+                        .add(configuration.maxLoanDistributorFeeRatio)
+                )
             );
     }
 
@@ -703,7 +710,11 @@ library DepositManager {
         address tokenAddress,
         uint256 depositWeight,
         uint256 numDaysAgo
-    ) internal view returns (uint256 interest) {
+    )
+        internal
+        view
+        returns (uint256 totalInterest, uint256 loanDistributorFeeRatio)
+    {
         DepositInterestHistory storage history = self
             .depositTokenByAddress[tokenAddress]
             .depositInterestHistory;
@@ -712,17 +723,22 @@ library DepositManager {
             .lastDay
             .sub(numDaysAgo)];
 
+        loanDistributorFeeRatio = history.loanDistributorFeeRatioByDay[history
+            .lastDay
+            .sub(numDaysAgo)];
+
         if (totalDepositWeight == 0) {
-            return 0;
+            return (0, loanDistributorFeeRatio);
         }
 
-        uint256 totalInterest = history.totalInterestByDay[history.lastDay.sub(
+        totalInterest = history.totalInterestByDay[history.lastDay.sub(
             numDaysAgo
         )];
-
         // InterestPerDepositRecord = totalInterest * depositWeight / totalDepositWeight
-        return
-            totalInterest.mulFixed(depositWeight.divFixed(totalDepositWeight));
+        return (
+            totalInterest.mulFixed(depositWeight.divFixed(totalDepositWeight)),
+            loanDistributorFeeRatio
+        );
     }
 
 }
