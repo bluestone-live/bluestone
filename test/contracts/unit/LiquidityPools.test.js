@@ -31,12 +31,12 @@ contract('LiquidityPools', function([owner]) {
 
     it('succeeds', async () => {
       const depositAmountList = [2, 3];
-      const borrowedAmountList = [1, 1];
+      const availableAmountList = [1, 2];
 
       await liquidityPools.populatePoolGroup(
         token.address,
         depositAmountList,
-        borrowedAmountList,
+        availableAmountList,
       );
 
       const prevPoolGroup = await liquidityPools.getPoolGroup(token.address);
@@ -52,7 +52,6 @@ contract('LiquidityPools', function([owner]) {
       const deletedPool = await liquidityPools.getPoolById(token.address, 0);
 
       expect(deletedPool.depositAmount).to.bignumber.equal(new BN(0));
-      expect(deletedPool.borrowedAmount).to.bignumber.equal(new BN(0));
     });
   });
 
@@ -74,7 +73,6 @@ contract('LiquidityPools', function([owner]) {
       const pool = await liquidityPools.getPoolById(token.address, poolId);
 
       expect(pool.depositAmount).to.bignumber.equal(depositAmount);
-      expect(pool.borrowedAmount).to.bignumber.equal(new BN(0));
       expect(pool.availableAmount).to.bignumber.equal(depositAmount);
       expect(pool.loanInterest).to.bignumber.equal(new BN(0));
     });
@@ -106,7 +104,6 @@ contract('LiquidityPools', function([owner]) {
       const pool = await liquidityPools.getPoolById(token.address, poolId);
 
       expect(pool.depositAmount).to.bignumber.equal(new BN(0));
-      expect(pool.borrowedAmount).to.bignumber.equal(new BN(0));
       expect(pool.availableAmount).to.bignumber.equal(new BN(0));
       expect(pool.loanInterest).to.bignumber.equal(new BN(0));
     });
@@ -119,12 +116,12 @@ contract('LiquidityPools', function([owner]) {
 
     it('succeeds', async () => {
       const depositAmountArray = [0, 1, 2, 3, 4, 5].map(n => toFixedBN(n));
-      const borrowedAmountArray = [0, 0, 1, 2, 3, 4].map(n => toFixedBN(n));
+      const availableAmountArray = [0, 1, 1, 1, 1, 1].map(n => toFixedBN(n));
 
       await liquidityPools.populatePoolGroup(
         token.address,
         depositAmountArray,
-        borrowedAmountArray,
+        availableAmountArray,
       );
 
       const {
@@ -136,13 +133,12 @@ contract('LiquidityPools', function([owner]) {
       } = await liquidityPools.getDetailsFromAllPools(token.address);
 
       for (let i = 0; i < depositAmountArray.length; i++) {
-        const availableAmount = depositAmountArray[i].sub(
-          borrowedAmountArray[i],
-        );
         expect(depositAmountList[i]).to.be.bignumber.equal(
           depositAmountArray[i],
         );
-        expect(availableAmountList[i]).to.be.bignumber.equal(availableAmount);
+        expect(availableAmountList[i]).to.be.bignumber.equal(
+          availableAmountArray[i],
+        );
       }
     });
   });
@@ -154,12 +150,12 @@ contract('LiquidityPools', function([owner]) {
 
     it('succeeds', async () => {
       const depositAmountList = [0, 1, 2, 3, 4, 5].map(n => toFixedBN(n));
-      const borrowedAmountList = [0, 0, 1, 2, 3, 4].map(n => toFixedBN(n));
+      const availableAmountList = [0, 1, 1, 1, 1, 1].map(n => toFixedBN(n));
 
       await liquidityPools.populatePoolGroup(
         token.address,
         depositAmountList,
-        borrowedAmountList,
+        availableAmountList,
       );
 
       const availableAmount = await liquidityPools.getAvailableAmountByLoanTerm(
@@ -174,12 +170,12 @@ contract('LiquidityPools', function([owner]) {
   describe('#loanFromPools', () => {
     beforeEach(async () => {
       const depositAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
-      const borrowedAmountList = [0, 0, 0, 0];
+      const availableAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
       await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
       await liquidityPools.populatePoolGroup(
         token.address,
         depositAmountList,
-        borrowedAmountList,
+        availableAmountList,
       );
     });
 
@@ -196,12 +192,10 @@ contract('LiquidityPools', function([owner]) {
 
       // pool[0] should not get borrowed
       const pool0 = await liquidityPools.getPool(token.address, 0);
-      expect(pool0.borrowedAmount).to.bignumber.equal(new BN(0));
       expect(pool0.availableAmount).to.bignumber.equal(toFixedBN(10));
 
       // pool[1] should get borrowed 10
       const pool1 = await liquidityPools.getPool(token.address, 1);
-      expect(pool1.borrowedAmount).to.bignumber.equal(toFixedBN(10));
       expect(pool1.availableAmount).to.bignumber.equal(new BN(0));
       const pool1LoanAmount = await liquidityPools.getLoanRecordLoanAmountByPool(
         loanId,
@@ -211,7 +205,6 @@ contract('LiquidityPools', function([owner]) {
 
       // pool[2] should get borrowed 5
       const pool2 = await liquidityPools.getPool(token.address, 2);
-      expect(pool2.borrowedAmount).to.bignumber.equal(toFixedBN(5));
       expect(pool2.availableAmount).to.bignumber.equal(toFixedBN(5));
       const pool2LoanAmount = await liquidityPools.getLoanRecordLoanAmountByPool(
         loanId,
@@ -221,7 +214,6 @@ contract('LiquidityPools', function([owner]) {
 
       // pool[3] should not get borrowed
       const pool3 = await liquidityPools.getPool(token.address, 3);
-      expect(pool3.borrowedAmount).to.bignumber.equal(new BN(0));
       expect(pool3.availableAmount).to.bignumber.equal(toFixedBN(10));
     });
   });
@@ -231,12 +223,12 @@ contract('LiquidityPools', function([owner]) {
 
     beforeEach(async () => {
       const depositAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
-      const borrowedAmountList = [0, 0, 0, 0];
+      const availableAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
       await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
       await liquidityPools.populatePoolGroup(
         token.address,
         depositAmountList,
-        borrowedAmountList,
+        availableAmountList,
       );
       const loanAmount = toFixedBN(15);
       const loanTerm = 1;
@@ -255,12 +247,10 @@ contract('LiquidityPools', function([owner]) {
 
       // pool[1] should get fully repaid
       const pool1 = await liquidityPools.getPool(token.address, 1);
-      expect(pool1.borrowedAmount).to.bignumber.equal(new BN(0));
       expect(pool1.availableAmount).to.bignumber.equal(toFixedBN(10));
 
       // pool[2] should get fully repaid
       const pool2 = await liquidityPools.getPool(token.address, 2);
-      expect(pool2.borrowedAmount).to.bignumber.equal(new BN(0));
       expect(pool2.availableAmount).to.bignumber.equal(toFixedBN(10));
     });
   });

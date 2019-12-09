@@ -235,15 +235,15 @@ library DepositManager {
         /// Ensure deposit maturity update only triggers once in a day by checking current
         /// timestamp is greater than the timestamp of last update (in day unit).
         require(
-            DateTime.to3Minutes(now) >
-                DateTime.to3Minutes(self.lastDepositMaturityUpdatedAt),
+            DateTime.toDays(now) >
+                DateTime.toDays(self.lastDepositMaturityUpdatedAt),
             'Cannot update multiple times within the same day.'
         );
 
         for (uint256 i = 0; i < self.allDepositTokenAddressList.length; i++) {
             address tokenAddress = self.allDepositTokenAddressList[i];
 
-            (, , , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
+            (, , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
                 .getPool(tokenAddress, 0);
 
             DepositInterestHistory storage history = self
@@ -595,7 +595,7 @@ library DepositManager {
                 DateTime.toDays(now - depositRecord.maturedAt)
             );
         } else {
-            (, , , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
+            (, , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
                 .getPoolById(depositRecord.tokenAddress, depositRecord.poolId);
 
             originalInterest = loanInterest.mul(depositRecord.weight).div(
@@ -697,7 +697,7 @@ library DepositManager {
             return false;
         }
 
-        (, , uint256 availableAmount, , ) = liquidityPools.getPoolById(
+        (, uint256 availableAmount, , ) = liquidityPools.getPoolById(
             depositRecord.tokenAddress,
             depositRecord.poolId
         );

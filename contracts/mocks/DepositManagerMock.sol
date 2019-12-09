@@ -170,7 +170,6 @@ contract DepositManagerMock {
         view
         returns (
             uint256 depositAmount,
-            uint256 borrowedAmount,
             uint256 availableAmount,
             uint256 loanInterest,
             uint256 totalDepositWeight

@@ -526,7 +526,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
             uint256[] memory poolIdList,
             uint256[] memory depositAmountList,
             uint256[] memory availableAmountList,
-            uint256[] memory borrowedAmountList,
             uint256[] memory loanInterestList,
             uint256[] memory totalDepositWeightList
         )

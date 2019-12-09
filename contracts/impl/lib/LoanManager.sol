@@ -603,11 +603,11 @@ library LoanManager {
         address loanTokenAddress,
         uint256 loanAmount
     ) external {
-        accountManager.addToAccountGeneralStat(msg.sender, 'totalLoans', 1);
+        accountManager.addToAccountGeneralStat(msg.sender, 'numberOfLoans', 1);
         accountManager.addToAccountTokenStat(
             msg.sender,
             loanTokenAddress,
-            'totalLoans',
+            'numberOfLoans',
             1
         );
         accountManager.addToAccountTokenStat(
@@ -728,6 +728,13 @@ library LoanManager {
         );
         loanRecord.lastRepaidAt = now;
 
+        // Transfer loan tokens from user to protocol, It's better to get repay before send distribution
+        ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            repayAmount
+        );
+
         if (_calculateRemainingDebt(loanRecord) == 0) {
             loanRecord.isClosed = true;
             uint256 availableCollateralAmount = loanRecord.collateralAmount.sub(
@@ -754,17 +761,11 @@ library LoanManager {
                     loanRecord.distributorAddress,
                     loanDistributorFee
                 );
+
             }
         }
 
         liquidityPools.repayLoanToPools(loanRecord, repayAmount);
-
-        // Transfer loan tokens from user to protocol
-        ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
-            msg.sender,
-            address(this),
-            repayAmount
-        );
 
         emit RepayLoanSucceed(msg.sender, loanId, repayAmount);
 

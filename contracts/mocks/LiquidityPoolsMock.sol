@@ -70,7 +70,6 @@ contract LiquidityPoolsMock {
         view
         returns (
             uint256 depositAmount,
-            uint256 borrowedAmount,
             uint256 availableAmount,
             uint256 loanInterest,
             uint256 totalDepositWeight
@@ -84,7 +83,6 @@ contract LiquidityPoolsMock {
         view
         returns (
             uint256 depositAmount,
-            uint256 borrowedAmount,
             uint256 availableAmount,
             uint256 loanInterest,
             uint256 totalDepositWeight
@@ -100,7 +98,6 @@ contract LiquidityPoolsMock {
             uint256[] memory poolIdList,
             uint256[] memory depositAmountList,
             uint256[] memory availableAmountList,
-            uint256[] memory borrowedAmountList,
             uint256[] memory loanInterestList,
             uint256[] memory totalDepositWeightList
         )
@@ -139,7 +136,7 @@ contract LiquidityPoolsMock {
     function populatePoolGroup(
         address tokenAddress,
         uint256[] calldata depositAmountList,
-        uint256[] calldata borrowedAmountList
+        uint256[] calldata availableAmountList
     ) external {
         LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
             .poolGroups[tokenAddress];
@@ -149,12 +146,8 @@ contract LiquidityPoolsMock {
             'LiquidityPoolsMock: invalid depositAmountList length'
         );
         require(
-            borrowedAmountList.length <= poolGroup.numPools + 1,
-            'LiquidityPoolsMock: invalid borrowedAmountList length'
-        );
-        require(
-            depositAmountList.length == borrowedAmountList.length,
-            'LiquidityPoolsMock: depositAmountList and borrowedAmountList must have the same length'
+            depositAmountList.length == availableAmountList.length,
+            'LiquidityPoolsMock: depositAmountList and availableAmountList must have the same length'
         );
 
         uint256 poolId = poolGroup.firstPoolId;
@@ -162,8 +155,7 @@ contract LiquidityPoolsMock {
         for (uint256 i = 0; i < depositAmountList.length; i++) {
             LiquidityPools.Pool storage pool = poolGroup.poolsById[poolId];
             pool.depositAmount = depositAmountList[i];
-            pool.borrowedAmount = borrowedAmountList[i];
-            pool.availableAmount = depositAmountList[i] - borrowedAmountList[i];
+            pool.availableAmount = availableAmountList[i];
             poolId++;
         }
     }
