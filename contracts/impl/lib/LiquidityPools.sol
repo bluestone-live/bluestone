@@ -36,20 +36,6 @@ library LiquidityPools {
         uint256 totalDepositWeight;
     }
 
-    struct LocalVars {
-        uint256 loanTerm;
-        address loanTokenAddress;
-        uint256 loanAmount;
-        uint256 loanInterest;
-        uint256 depositTerm;
-        uint256 remainingLoanAmount;
-        uint256 availableAmountFromAllPoolGroups;
-        uint256 availableAmountFromThisPoolGroup;
-        uint256 loanAmountFromThisPoolGroup;
-        uint256 numAvailablePoolGroups;
-        uint256 remainder;
-    }
-
     function initPoolGroupIfNeeded(
         State storage self,
         address tokenAddress,
