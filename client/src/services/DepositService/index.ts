@@ -57,7 +57,6 @@ export class DepositService {
     depositAmount: BigNumber,
     depositTerm: BigNumber,
     distributorAddress: string,
-    depositDistributorFeeRatio: number,
   ): Promise<string> {
     const flow = await this.provider.getContractEventFlow(
       EventName.DepositSucceed,
@@ -76,7 +75,6 @@ export class DepositService {
           depositAmount.toString(),
           depositTerm.toString(),
           distributorAddress,
-          convertDecimalToWei(depositDistributorFeeRatio).toString(),
         )
         .send({ from: accountAddress });
     });

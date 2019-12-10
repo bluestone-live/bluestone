@@ -76,7 +76,6 @@ const DepositForm = (props: IProps) => {
           convertDecimalToWei(depositAmount),
           new BigNumber(selectedTerm.value),
           distributorAddress,
-          depositDistributorFee,
         );
 
         setLoading(false);
