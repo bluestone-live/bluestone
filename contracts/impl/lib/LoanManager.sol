@@ -399,9 +399,8 @@ library LoanManager {
             'LoanManager: available collateral amount is not enough'
         );
 
-        self.availableCollateralsByAccount[msg.sender][tokenAddress] = self
-            .availableCollateralsByAccount[msg.sender][tokenAddress]
-            .sub(collateralAmount);
+        self.availableCollateralsByAccount[msg
+            .sender][tokenAddress] = availableCollateral.sub(collateralAmount);
 
         // Transfer token from protocol to user.
         ERC20(tokenAddress).safeTransfer(msg.sender, collateralAmount);
