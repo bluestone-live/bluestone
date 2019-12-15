@@ -1,6 +1,10 @@
 pragma solidity ^0.5.0;
 
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+
 library AccountManager {
+    using SafeMath for uint256;
+
     struct State {
         // account -> stats
         mapping(address => Statistics) accountStats;
@@ -45,9 +49,10 @@ library AccountManager {
         string calldata key,
         uint256 value
     ) external {
-        self.accountStats[accountAddress].generalStats[key] =
-            self.accountStats[accountAddress].generalStats[key] +
-            value;
+        self.accountStats[accountAddress].generalStats[key] = self
+            .accountStats[accountAddress]
+            .generalStats[key]
+            .add(value);
     }
 
     function setAccountTokenStat(
@@ -67,8 +72,9 @@ library AccountManager {
         string calldata key,
         uint256 value
     ) external {
-        self.accountStats[accountAddress].assetStats[tokenAddress][key] =
-            self.accountStats[accountAddress].assetStats[tokenAddress][key] +
-            value;
+        self.accountStats[accountAddress].assetStats[tokenAddress][key] = self
+            .accountStats[accountAddress]
+            .assetStats[tokenAddress][key]
+            .add(value);
     }
 }
