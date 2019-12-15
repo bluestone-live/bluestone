@@ -161,6 +161,9 @@ library DepositManager {
             i++
         ) {
             if (self.enabledDepositTokenAddressList[i] == tokenAddress) {
+                // Swap the current token address and the last token address,
+                // then decrease the array size by one to effectively remove
+                // the disabled token address.
                 uint256 numDepositTokens = self
                     .enabledDepositTokenAddressList
                     .length;
@@ -175,6 +178,8 @@ library DepositManager {
                 delete self.enabledDepositTokenAddressList[numDepositTokens -
                     1];
                 self.enabledDepositTokenAddressList.length--;
+
+                break;
             }
         }
     }
