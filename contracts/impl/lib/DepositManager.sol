@@ -302,11 +302,6 @@ library DepositManager {
         address accountAddress = msg.sender;
 
         require(
-            self.isDepositTokenEnabled[tokenAddress],
-            'DepositManager: invalid deposit token'
-        );
-
-        require(
             accountAddress == depositRecord.ownerAddress,
             'DepositManager: invalid owner'
         );
@@ -366,12 +361,6 @@ library DepositManager {
         bytes32 depositId
     ) external returns (uint256 withdrewAmount) {
         DepositRecord storage depositRecord = self.depositRecordById[depositId];
-        address tokenAddress = depositRecord.tokenAddress;
-
-        require(
-            self.isDepositTokenEnabled[tokenAddress],
-            'DepositManager: invalid deposit token'
-        );
 
         require(
             msg.sender == depositRecord.ownerAddress,
