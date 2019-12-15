@@ -19,7 +19,6 @@ library LoanManager {
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
     using FixedMath for uint256;
-    using SafeERC20 for ERC20;
 
     struct State {
         TokenStorage loanTokens;
