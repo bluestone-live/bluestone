@@ -417,7 +417,7 @@ library LoanManager {
         address accountAddress,
         address tokenAddress,
         uint256 amount
-    ) public {
+    ) internal {
         self.availableCollateralsByAccount[accountAddress][tokenAddress] = self
             .availableCollateralsByAccount[accountAddress][tokenAddress]
             .add(amount);
@@ -428,7 +428,7 @@ library LoanManager {
         address accountAddress,
         address tokenAddress,
         uint256 amount
-    ) public returns (uint256) {
+    ) internal returns (uint256) {
         require(
             amount > 0,
             'LoanManager: The decrease in available collateral amount must be greater than 0.'
