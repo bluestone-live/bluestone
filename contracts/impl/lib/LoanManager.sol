@@ -54,7 +54,6 @@ library LoanManager {
         address[] tokenList;
     }
 
-    uint256 private constant DAY_IN_SECONDS = 86400;
     uint256 private constant LOWER_BOUND_OF_CCR_FOR_ALL_PAIRS = 10**18; // 1.0 (100%)
     uint256 private constant ONE = 10**18;
     uint256 private constant MAX_LIQUIDATION_DISCOUNT = 2 * (10**17); // 0.2 (20%)
