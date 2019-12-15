@@ -165,8 +165,8 @@ library LiquidityPools {
 
             uint256 loanInterestToPool = loanRecord
                 .interest
-                .mulFixed(loanAmountFromPool)
-                .divFixed(loanRecord.loanAmount);
+                .mul(loanAmountFromPool)
+                .div(loanRecord.loanAmount);
 
             uint256 distributorInterestFromPool = pool
                 .loanDistributorFeeRatio
