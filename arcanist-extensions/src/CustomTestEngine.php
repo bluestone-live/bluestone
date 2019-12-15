@@ -22,12 +22,27 @@ final class CustomTestEngine extends ArcanistUnitTestEngine {
 
     foreach ($testCommands as $cmd) {
       $future = new ExecFuture($cmd);
-      list ($error, $stdout, $stderr) = $future->resolve();
 
-      echo $stdout;
-      echo $stderr;
+      // return code
+      $retCode = 0; 
 
-      if ($error > 0) {
+      do {
+        // print out every 50ms 
+        // resolve returns null if the timeout is hit.
+        // ref: https://secure.phabricator.com/book/libphutil/class/Future/#method/resolve
+        $result = $future->resolve(0.05); 
+        list($stdout, $stderr) = $future->read(); 
+        echo $stdout;
+        echo $stderr;   
+
+        // When the future is resolved, result[0] would be the 
+        // return code of the command. 
+        $retCode = $result === null ? 0 : $result[0];
+
+      } while ($result === null);
+
+
+      if ($retCode != 0) {
         $hasError = true;
         break;
       }
