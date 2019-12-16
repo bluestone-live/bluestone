@@ -45,6 +45,8 @@ library DepositManager {
 
     // Hold relavent information about a deposit token
     struct DepositToken {
+        // If the token has been enabled before
+        bool isInitialized;
         // Only enabled token can perform deposit-related transactions
         bool isEnabled;
         // total deposit weight history
@@ -179,7 +181,12 @@ library DepositManager {
         );
 
         depositToken.isEnabled = true;
-        self.allDepositTokenAddressList.push(tokenAddress);
+
+        if (!depositToken.isInitialized) {
+            self.allDepositTokenAddressList.push(tokenAddress);
+            depositToken.isInitialized = true;
+        }
+
         self.enabledDepositTokenAddressList.push(tokenAddress);
 
         // Initialize pool groups if they haven't been initialized
