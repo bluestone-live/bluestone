@@ -88,14 +88,15 @@ library DepositManager {
         self.isDepositTermEnabled[term] = true;
         self.enabledDepositTermList.push(term);
 
-        // Update pool group for each existing token if needed
+        /// Update pool group size for each existing token the new term is
+        /// greater than the previous pool group size
         for (
             uint256 i = 0;
             i < self.enabledDepositTokenAddressList.length;
             i++
         ) {
             address tokenAddress = self.enabledDepositTokenAddressList[i];
-            liquidityPools.initPoolGroupIfNeeded(tokenAddress, term);
+            liquidityPools.setPoolGroupSizeIfNeeded(tokenAddress, term);
         }
     }
 
@@ -137,11 +138,19 @@ library DepositManager {
         self.isDepositTokenEnabled[tokenAddress] = true;
         self.enabledDepositTokenAddressList.push(tokenAddress);
 
-        // Update pool groups if needed
+        /// Find the maximum deposit term and update pool group size
+        /// for this token if needed
+        uint256 maxDepositTerm;
+
         for (uint256 i = 0; i < self.enabledDepositTermList.length; i++) {
             uint256 depositTerm = self.enabledDepositTermList[i];
-            liquidityPools.initPoolGroupIfNeeded(tokenAddress, depositTerm);
+
+            if (depositTerm > maxDepositTerm) {
+                maxDepositTerm = depositTerm;
+            }
         }
+
+        liquidityPools.setPoolGroupSizeIfNeeded(tokenAddress, maxDepositTerm);
     }
 
     function disableDepositToken(State storage self, address tokenAddress)

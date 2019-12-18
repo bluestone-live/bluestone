@@ -18,7 +18,6 @@ library LiquidityPools {
     }
 
     struct PoolGroup {
-        bool isInitialized;
         uint256 numPools;
         // Pool ID (in day) -> Pool
         mapping(uint256 => Pool) poolsById;
@@ -41,40 +40,17 @@ library LiquidityPools {
         uint256 protocolReserveRatio;
     }
 
-    function initPoolGroupIfNeeded(
-        State storage self,
-        address tokenAddress,
-        uint256 numPools
-    ) external {
-        if (!self.poolGroups[tokenAddress].isInitialized) {
-            /// The length of the PoolGroup should be (numPools + 1) because
-            /// a deposit will mature in (numPools + 1) days.
-            self.poolGroups[tokenAddress] = PoolGroup({
-                isInitialized: true,
-                numPools: numPools
-            });
-        }
-    }
-
-    function setPoolGroupSize(
+    function setPoolGroupSizeIfNeeded(
         State storage self,
         address tokenAddress,
         uint256 numPools
     ) external {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
 
-        require(
-            poolGroup.isInitialized,
-            'LiquidityPools: pool group is not initialized'
-        );
-
-        // Reduce number of pools is not allowed
-        require(
-            numPools > poolGroup.numPools,
-            'LiquidityPools: invalid numPools'
-        );
-
-        poolGroup.numPools = numPools;
+        // We can only increase the number of pools
+        if (numPools > poolGroup.numPools) {
+            poolGroup.numPools = numPools;
+        }
     }
 
     function addDepositToPool(

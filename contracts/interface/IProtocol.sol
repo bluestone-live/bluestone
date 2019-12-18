@@ -153,11 +153,6 @@ contract IProtocol {
         address collateralTokenAddress
     ) external;
 
-    /// @notice Set maximum loan term for a token
-    /// @param tokenAddress Token address
-    /// @param maxLoanTerm Maximum loan term
-    function setMaxLoanTerm(address tokenAddress, uint256 maxLoanTerm) external;
-
     /// @notice Get maximum loan term of a token
     /// @param tokenAddress Token address
     /// @return maxLoanTerm

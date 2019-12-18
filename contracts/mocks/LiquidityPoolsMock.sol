@@ -15,10 +15,10 @@ contract LiquidityPoolsMock {
 
     bytes32[] public loanIdList;
 
-    function initPoolGroupIfNeeded(address tokenAddress, uint256 numPools)
+    function setPoolGroupSizeIfNeeded(address tokenAddress, uint256 numPools)
         external
     {
-        _liquidityPools.initPoolGroupIfNeeded(tokenAddress, numPools);
+        _liquidityPools.setPoolGroupSizeIfNeeded(tokenAddress, numPools);
     }
 
     function addDepositToPool(
@@ -129,15 +129,12 @@ contract LiquidityPoolsMock {
 
     /// --- Helpers
 
-    function getPoolGroup(address tokenAddress)
+    function getPoolGroupSize(address tokenAddress)
         external
         view
-        returns (bool isInitialized, uint256 numPools)
+        returns (uint256 numPools)
     {
-        LiquidityPools.PoolGroup memory poolGroup = _liquidityPools
-            .poolGroups[tokenAddress];
-
-        return (poolGroup.isInitialized, poolGroup.numPools);
+        return _liquidityPools.poolGroups[tokenAddress].numPools;
     }
 
     function populatePoolGroup(

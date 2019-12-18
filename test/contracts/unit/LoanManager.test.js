@@ -33,45 +33,6 @@ contract('LoanManager', function([
     );
   });
 
-  describe('#setMaxLoanTerm', () => {
-    const initialSupply = toFixedBN(1000);
-    const maxLoanTerm = new BN(365);
-    let loanToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-    });
-
-    context('when pool group is not initialized', () => {
-      it('reverts', async () => {
-        expectRevert(
-          loanManager.setMaxLoanTerm(loanToken.address, maxLoanTerm),
-          'LiquidityPools: pool group is not initialized',
-        );
-      });
-    });
-
-    context('when pool group is initialized', () => {
-      const numPools = new BN(30);
-
-      beforeEach(async () => {
-        await loanManager.initPoolGroupIfNeeded(loanToken.address, numPools);
-      });
-
-      it('succeeds', async () => {
-        expect(
-          await loanManager.getMaxLoanTerm(loanToken.address),
-        ).to.bignumber.equal(numPools);
-
-        await loanManager.setMaxLoanTerm(loanToken.address, maxLoanTerm);
-
-        expect(
-          await loanManager.getMaxLoanTerm(loanToken.address),
-        ).to.bignumber.equal(maxLoanTerm);
-      });
-    });
-  });
-
   describe('#getLoanRecordById', () => {
     context('when loan id is valid', () => {
       const initialSupply = toFixedBN(1000);
@@ -81,8 +42,6 @@ contract('LoanManager', function([
       const collateralAmount = toFixedBN(30);
       const loanTerm = 30;
       const useAvailableCollateral = false;
-      const maxLoanTerm = new BN(365);
-      const numPools = new BN(60);
 
       let loanToken, collateralToken, recordId;
 
@@ -100,12 +59,9 @@ contract('LoanManager', function([
         );
         await loanManager.enableDepositToken(loanToken.address);
         await loanManager.enableDepositTerm(depositTerm);
-        await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
         await loanToken.approve(loanManager.address, initialSupply, {
           from: depositor,
         });
-        await loanManager.initPoolGroupIfNeeded(loanToken.address, numPools);
-        await loanManager.setMaxLoanTerm(loanToken.address, maxLoanTerm);
 
         await collateralToken.approve(loanManager.address, initialSupply, {
           from: loaner,
@@ -144,11 +100,6 @@ contract('LoanManager', function([
       });
 
       it('succeed', async () => {
-        const interestRate = await loanManager.getLoanInterestRate(
-          loanToken.address,
-          maxLoanTerm,
-        );
-        const interest = loanAmount.mul(interestRate);
         const record = await loanManager.getLoanRecordById(recordId);
 
         expect(record.loanTokenAddress).to.equal(loanToken.address);
@@ -216,7 +167,6 @@ contract('LoanManager', function([
         );
         await loanManager.enableDepositToken(loanToken.address);
         await loanManager.enableDepositTerm(depositTerm);
-        await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
         await loanToken.approve(loanManager.address, initialSupply, {
           from: depositor,
         });
@@ -302,7 +252,6 @@ contract('LoanManager', function([
       );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableDepositTerm(depositTerm);
-      await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
       await loanToken.approve(loanManager.address, initialSupply, {
         from: depositor,
       });
@@ -653,7 +602,6 @@ contract('LoanManager', function([
       );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableDepositTerm(depositTerm);
-      await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
       await loanToken.approve(loanManager.address, initialSupply, {
         from: depositor,
       });
@@ -732,7 +680,6 @@ contract('LoanManager', function([
         { from: owner },
       );
       await loanManager.enableDepositTerm(depositTerm);
-      await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
 
       await loanToken.approve(loanManager.address, initialSupply, {
         from: depositor,
@@ -844,7 +791,6 @@ contract('LoanManager', function([
         { from: owner },
       );
       await loanManager.enableDepositTerm(depositTerm);
-      await loanManager.initPoolGroupIfNeeded(loanToken.address, depositTerm);
 
       await loanToken.approve(loanManager.address, initialSupply, {
         from: depositor,
@@ -1331,8 +1277,7 @@ contract('LoanManager', function([
 
   describe('#getLoanInterestRate', () => {
     const initialSupply = toFixedBN(1000);
-    const maxLoanTerm = new BN(365);
-    const numPools = new BN(60);
+    const loanTerm = 30;
     let loanToken, collateralToken;
 
     beforeEach(async () => {
@@ -1343,14 +1288,13 @@ contract('LoanManager', function([
         loanToken.address,
         collateralToken.address,
       );
-
-      await loanManager.initPoolGroupIfNeeded(loanToken.address, numPools);
-      await loanManager.setMaxLoanTerm(loanToken.address, maxLoanTerm);
     });
 
     it('succeeds', async () => {
+      await loanManager.setPoolGroupSizeIfNeeded(loanToken.address, loanTerm);
+
       // TODO(ZhangRGK): expect to the model result
-      await loanManager.getLoanInterestRate(loanToken.address, maxLoanTerm);
+      await loanManager.getLoanInterestRate(loanToken.address, loanTerm);
     });
   });
 });

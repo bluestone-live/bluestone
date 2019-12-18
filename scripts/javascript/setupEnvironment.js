@@ -25,7 +25,6 @@ module.exports = makeTruffleScript(async network => {
 
   debug('Setup Loan Environment');
   exec('enableLoanAndCollateralTokenPair', network);
-  exec('setMaxLoanTerm', network);
   exec('setMinCollateralCoverageRatios', network);
   exec('setLiquidationDiscountsForToken', network);
 

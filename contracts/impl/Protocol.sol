@@ -217,20 +217,12 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     /// --- Loan
 
-    function setMaxLoanTerm(address tokenAddress, uint256 maxLoanTerm)
-        external
-        whenNotPaused
-        onlyOwner
-    {
-        _loanManager.setMaxLoanTerm(_liquidityPools, tokenAddress, maxLoanTerm);
-    }
-
     function getMaxLoanTerm(address tokenAddress)
         external
         view
         returns (uint256 maxLoanTerm)
     {
-        return _loanManager.getMaxLoanTerm(_liquidityPools, tokenAddress);
+        return _liquidityPools.poolGroups[tokenAddress].numPools;
     }
 
     function loan(

@@ -16,7 +16,7 @@ contract(
     loanDistributor,
     protocolAddress,
   ]) => {
-    let protocol, priceOracle, interestModel, loanToken, collateralToken;
+    let protocol, interestModel, loanToken, collateralToken;
 
     const initialSupply = toFixedBN(10000);
     const ZERO = toFixedBN(0);
@@ -105,7 +105,6 @@ contract(
         ],
         [minCollateralCoverageRatio],
         [liquidationDiscount],
-        [maxLoanTerm],
         [loanInterestRateLowerBound],
         [loanInterestRateUpperBound],
         protocolReserveRatio,

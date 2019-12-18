@@ -14,21 +14,18 @@ contract('LiquidityPools', function([owner]) {
     token = await createERC20Token(owner);
   });
 
-  describe('#initPoolGroupIfNeeded', () => {
+  describe('#setPoolGroupSizeIfNeeded', () => {
     it('succeed', async () => {
       const depositTerm = 30;
-      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
-      const { isInitialized, numPools } = await liquidityPools.getPoolGroup(
-        token.address,
-      );
-      expect(isInitialized).to.be.true;
+      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
+      const numPools = await liquidityPools.getPoolGroupSize(token.address);
       expect(numPools).to.bignumber.equal(new BN(depositTerm));
     });
   });
 
   describe('#addDepositToPool', () => {
     beforeEach(async () => {
-      await liquidityPools.initPoolGroupIfNeeded(token.address, 365);
+      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, 365);
     });
 
     it('succeeds', async () => {
@@ -73,7 +70,7 @@ contract('LiquidityPools', function([owner]) {
     const protocolReserveRatio = toFixedBN(0.07);
 
     beforeEach(async () => {
-      await liquidityPools.initPoolGroupIfNeeded(token.address, 365);
+      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, 365);
       await liquidityPools.addDepositToPool(
         token.address,
         depositAmount,
@@ -106,7 +103,7 @@ contract('LiquidityPools', function([owner]) {
 
   describe('#getDetailsFromAllPools', () => {
     beforeEach(async () => {
-      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
+      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
     });
 
     it('succeeds', async () => {
@@ -140,7 +137,7 @@ contract('LiquidityPools', function([owner]) {
 
   describe('#getAvailableAmountByLoanTerm', () => {
     beforeEach(async () => {
-      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
+      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
     });
 
     it('succeeds', async () => {
@@ -166,7 +163,7 @@ contract('LiquidityPools', function([owner]) {
     beforeEach(async () => {
       const depositAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
       const availableAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
-      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
+      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
       await liquidityPools.populatePoolGroup(
         token.address,
         depositAmountList,
@@ -219,7 +216,7 @@ contract('LiquidityPools', function([owner]) {
     beforeEach(async () => {
       const depositAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
       const availableAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
-      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
+      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
       await liquidityPools.populatePoolGroup(
         token.address,
         depositAmountList,

@@ -25,22 +25,18 @@ module.exports = {
   contract: {
     tokens: {
       ETH: {
-        maxLoanTerm: 365,
         loanInterestRateLowerBound: 0.01,
         loanInterestRateUpperBound: 0.1,
       },
       DAI: {
-        maxLoanTerm: 365,
         loanInterestRateLowerBound: 0.01,
         loanInterestRateUpperBound: 0.1,
       },
       USDT: {
-        maxLoanTerm: 365,
         loanInterestRateLowerBound: 0.01,
         loanInterestRateUpperBound: 0.1,
       },
       WETH: {
-        maxLoanTerm: 365,
         loanInterestRateLowerBound: 0.01,
         loanInterestRateUpperBound: 0.1,
       },

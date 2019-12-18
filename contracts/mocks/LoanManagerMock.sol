@@ -76,20 +76,6 @@ contract LoanManagerMock {
             );
     }
 
-    function setMaxLoanTerm(address tokenAddress, uint256 maxLoanTerm)
-        external
-    {
-        _loanManager.setMaxLoanTerm(_liquidityPools, tokenAddress, maxLoanTerm);
-    }
-
-    function getMaxLoanTerm(address tokenAddress)
-        public
-        view
-        returns (uint256 maxLoanTerm)
-    {
-        return _loanManager.getMaxLoanTerm(_liquidityPools, tokenAddress);
-    }
-
     function getAvailableCollateralsByAccount(address accountAddress)
         external
         view
@@ -285,10 +271,10 @@ contract LoanManagerMock {
         _configuration.setPriceOracle(tokenAddress, priceOracle);
     }
 
-    function initPoolGroupIfNeeded(address tokenAddress, uint256 numPools)
+    function setPoolGroupSizeIfNeeded(address tokenAddress, uint256 numPools)
         external
     {
-        _liquidityPools.initPoolGroupIfNeeded(tokenAddress, numPools);
+        _liquidityPools.setPoolGroupSizeIfNeeded(tokenAddress, numPools);
     }
 
     function setInterestModel(IInterestModel interestModel) external {

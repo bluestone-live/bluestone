@@ -150,23 +150,6 @@ library LoanManager {
         uint256 amount
     );
 
-    function setMaxLoanTerm(
-        State storage,
-        LiquidityPools.State storage liquidityPools,
-        address tokenAddress,
-        uint256 maxLoanTerm
-    ) external {
-        liquidityPools.setPoolGroupSize(tokenAddress, maxLoanTerm);
-    }
-
-    function getMaxLoanTerm(
-        State storage,
-        LiquidityPools.State storage liquidityPools,
-        address tokenAddress
-    ) public view returns (uint256 maxLoanTerm) {
-        return liquidityPools.poolGroups[tokenAddress].numPools;
-    }
-
     function getLoanRecordById(State storage self, bytes32 loanId)
         external
         view
@@ -467,11 +450,9 @@ library LoanManager {
         );
 
         LocalVars memory localVars;
-        localVars.maxLoanTerm = getMaxLoanTerm(
-            self,
-            liquidityPools,
-            loanParameters.loanTokenAddress
-        );
+        localVars.maxLoanTerm = liquidityPools.poolGroups[loanParameters
+            .loanTokenAddress]
+            .numPools;
 
         require(
             loanParameters.loanTerm <= localVars.maxLoanTerm,

@@ -183,15 +183,12 @@ contract DepositManagerMock {
         return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 
-    function getPoolGroup(address tokenAddress)
+    function getPoolGroupSize(address tokenAddress)
         external
         view
-        returns (bool isInitialized, uint256 numPools)
+        returns (uint256 numPools)
     {
-        LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
-            .poolGroups[tokenAddress];
-
-        return (poolGroup.isInitialized, poolGroup.numPools);
+        return _liquidityPools.poolGroups[tokenAddress].numPools;
     }
 
     function setInterestModel(IInterestModel interestModel) external {

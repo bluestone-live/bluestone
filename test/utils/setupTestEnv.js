@@ -10,7 +10,6 @@ const { toFixedBN } = require('../utils/index');
  * @param {string[]} loanTokens loan token address
  * @param {Array<{loanTokenAddress: string, collateralTokenAddress: string}>} loanPairs loan pairs
  * @param {number[]} minCollateralCoverageRatios min collateral coverage ratio for each loan pair
- * @param {number[]} maxLoanTerms max loan term for each loan token
  * @param {number[]} liquidationDiscounts liquidation discount for each loan token
  * @param {number[]} loanInterestRateLowerBounds loan interest rate lower bound for each loan token
  * @param {number[]} loanInterestRateUpperBounds loan interest rate upper bound for each loan token
@@ -35,7 +34,6 @@ const setupTestEnv = async (
   loanPairs,
   minCollateralCoverageRatios,
   liquidationDiscounts,
-  maxLoanTerms,
   loanInterestRateLowerBounds,
   loanInterestRateUpperBounds,
   protocolReserveRatio,
@@ -77,8 +75,6 @@ const setupTestEnv = async (
 
   for (let i = 0; i < loanTokens.length; i++) {
     const loanToken = loanTokens[i];
-    // Set max loan term
-    await protocol.setMaxLoanTerm(loanToken.address, maxLoanTerms[i]);
 
     // Set loan interest rate
     await interestModel.setLoanParameters(
