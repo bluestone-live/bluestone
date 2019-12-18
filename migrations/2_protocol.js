@@ -21,23 +21,27 @@ module.exports = async function(deployer, network) {
     return;
   }
 
-  await deployer.deploy(Configuration);
-  await deployer.deploy(LiquidityPools);
   await deployer.deploy(DateTime);
+  await deployer.deploy(Configuration);
   await deployer.deploy(AccountManager);
+
+  await deployer.link(DateTime, [
+    Protocol,
+    DepositManager,
+    LoanManager,
+    DepositManagerMock,
+    LoanManagerMock,
+    LiquidityPools,
+    LiquidityPoolsMock,
+  ]);
+
+  await deployer.deploy(LiquidityPools);
 
   await deployer.link(LiquidityPools, [
     DepositManager,
     LoanManager,
     Protocol,
     LiquidityPoolsMock,
-    DepositManagerMock,
-    LoanManagerMock,
-  ]);
-  await deployer.link(DateTime, [
-    Protocol,
-    DepositManager,
-    LoanManager,
     DepositManagerMock,
     LoanManagerMock,
   ]);

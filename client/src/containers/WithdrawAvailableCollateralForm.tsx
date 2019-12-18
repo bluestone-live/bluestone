@@ -15,18 +15,10 @@ interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
   token: IToken;
   availableCollaterals: IAvailableCollateral[];
-  isUserActionsLocked: boolean;
 }
 
 const WithdrawAvailableCollateralForm = (props: IProps) => {
-  const {
-    accountAddress,
-    token,
-    availableCollaterals,
-    isUserActionsLocked,
-    history,
-    t,
-  } = props;
+  const { accountAddress, token, availableCollaterals, history, t } = props;
 
   // State
   const [amount, setAmount] = useState(0);
@@ -102,12 +94,7 @@ const WithdrawAvailableCollateralForm = (props: IProps) => {
             <label />
           </Cell>
           <Cell scale={4}>
-            <Button
-              primary
-              fullWidth
-              loading={loading}
-              disabled={isUserActionsLocked}
-            >
+            <Button primary fullWidth loading={loading}>
               {t('withdraw')}
             </Button>
           </Cell>

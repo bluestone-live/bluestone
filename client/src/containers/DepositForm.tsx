@@ -17,7 +17,6 @@ interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
   currentToken: IToken;
   depositTerms: ITerm[];
-  isUserActionsLocked: boolean;
   distributorAddress: string;
   depositDistributorFee: number;
 }
@@ -27,7 +26,6 @@ const DepositForm = (props: IProps) => {
     accountAddress,
     currentToken,
     depositTerms,
-    isUserActionsLocked,
     distributorAddress,
     depositDistributorFee,
     history,
@@ -91,14 +89,7 @@ const DepositForm = (props: IProps) => {
         setLoading(false);
       }
     },
-    [
-      selectedTerm,
-      depositAmount,
-      accountAddress,
-      currentToken,
-      depositTerms,
-      isUserActionsLocked,
-    ],
+    [selectedTerm, depositAmount, accountAddress, currentToken, depositTerms],
   );
 
   return (
@@ -138,12 +129,7 @@ const DepositForm = (props: IProps) => {
             <label />
           </Cell>
           <Cell scale={4}>
-            <Button
-              primary
-              fullWidth
-              disabled={isUserActionsLocked}
-              loading={loading}
-            >
+            <Button primary fullWidth loading={loading}>
               {t('deposit')}
             </Button>
           </Cell>

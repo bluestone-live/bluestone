@@ -8,7 +8,6 @@ import {
   AccountActions,
   useDefaultAccount,
   useLoanPairs,
-  useUserActionLock,
   useAvailableCollaterals,
 } from '../stores';
 import { useComponentMounted, useDepsUpdated } from '../utils/useEffectAsync';
@@ -41,8 +40,6 @@ const LoanFormPage = (props: IProps) => {
   const loanPairs = useLoanPairs();
 
   const availableCollaterals = useAvailableCollaterals();
-
-  const isUserActionsLocked = useUserActionLock();
 
   const distributorConfig = useDistributorConfig();
 
@@ -141,7 +138,6 @@ const LoanFormPage = (props: IProps) => {
       loanTokens={loanTokens}
       collateralTokens={collateralTokens}
       availableCollaterals={availableCollaterals}
-      isUserActionsLocked={isUserActionsLocked}
       distributorAddress={distributorConfig.address}
     />
   );

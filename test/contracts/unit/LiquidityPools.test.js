@@ -1,14 +1,16 @@
 const LiquidityPools = artifacts.require('LiquidityPoolsMock');
+const DateTime = artifacts.require('DateTime');
 const { BN } = require('openzeppelin-test-helpers');
 const { createERC20Token, toFixedBN } = require('../../utils/index');
 const { expect } = require('chai');
 
 contract('LiquidityPools', function([owner]) {
-  let liquidityPools, token;
+  let liquidityPools, datetime, token;
   const depositTerm = 30;
 
   beforeEach(async () => {
     liquidityPools = await LiquidityPools.new();
+    datetime = await DateTime.new();
     token = await createERC20Token(owner);
   });
 
@@ -24,37 +26,6 @@ contract('LiquidityPools', function([owner]) {
     });
   });
 
-  describe('#updatePoolGroupDepositMaturity', () => {
-    beforeEach(async () => {
-      await liquidityPools.initPoolGroupIfNeeded(token.address, depositTerm);
-    });
-
-    it('succeeds', async () => {
-      const depositAmountList = [2, 3];
-      const availableAmountList = [1, 2];
-
-      await liquidityPools.populatePoolGroup(
-        token.address,
-        depositAmountList,
-        availableAmountList,
-      );
-
-      const prevPoolGroup = await liquidityPools.getPoolGroup(token.address);
-
-      await liquidityPools.updatePoolGroupDepositMaturity(token.address);
-
-      const afterPoolGroup = await liquidityPools.getPoolGroup(token.address);
-
-      expect(afterPoolGroup.firstPoolId).to.bignumber.equal(
-        prevPoolGroup.firstPoolId.add(new BN(1)),
-      );
-
-      const deletedPool = await liquidityPools.getPoolById(token.address, 0);
-
-      expect(deletedPool.depositAmount).to.bignumber.equal(new BN(0));
-    });
-  });
-
   describe('#addDepositToPool', () => {
     beforeEach(async () => {
       await liquidityPools.initPoolGroupIfNeeded(token.address, 365);
@@ -62,24 +33,44 @@ contract('LiquidityPools', function([owner]) {
 
     it('succeeds', async () => {
       const depositAmount = toFixedBN(100);
+      const depositDistributorFeeRatio = toFixedBN(0.02);
+      const loanDistributorFeeRatio = toFixedBN(0.01);
+      const protocolReserveRatio = toFixedBN(0.07);
+
       await liquidityPools.addDepositToPool(
         token.address,
         depositAmount,
         depositTerm,
         depositAmount.mul(new BN(depositTerm)),
+        depositDistributorFeeRatio,
+        loanDistributorFeeRatio,
+        protocolReserveRatio,
       );
 
-      const poolId = depositTerm;
+      const firstPoolId = await datetime.toDays();
+      const poolId = firstPoolId.add(new BN(depositTerm));
       const pool = await liquidityPools.getPoolById(token.address, poolId);
 
       expect(pool.depositAmount).to.bignumber.equal(depositAmount);
       expect(pool.availableAmount).to.bignumber.equal(depositAmount);
       expect(pool.loanInterest).to.bignumber.equal(new BN(0));
+      expect(pool.depositDistributorFeeRatio).to.bignumber.equal(
+        depositDistributorFeeRatio,
+      );
+      expect(pool.loanDistributorFeeRatio).to.bignumber.equal(
+        loanDistributorFeeRatio,
+      );
+      expect(pool.protocolReserveRatio).to.bignumber.equal(
+        protocolReserveRatio,
+      );
     });
   });
 
   describe('#subtractDepositFromPool', () => {
     const depositAmount = toFixedBN(100);
+    const depositDistributorFeeRatio = toFixedBN(0.02);
+    const loanDistributorFeeRatio = toFixedBN(0.01);
+    const protocolReserveRatio = toFixedBN(0.07);
 
     beforeEach(async () => {
       await liquidityPools.initPoolGroupIfNeeded(token.address, 365);
@@ -88,11 +79,15 @@ contract('LiquidityPools', function([owner]) {
         depositAmount,
         depositTerm,
         depositAmount.mul(new BN(depositTerm)),
+        depositDistributorFeeRatio,
+        loanDistributorFeeRatio,
+        protocolReserveRatio,
       );
     });
 
     it('succeeds', async () => {
-      const poolId = depositTerm;
+      const firstPoolId = await datetime.toDays();
+      const poolId = firstPoolId.add(new BN(depositTerm));
 
       await liquidityPools.subtractDepositFromPool(
         token.address,

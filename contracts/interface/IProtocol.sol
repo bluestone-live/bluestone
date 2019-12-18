@@ -23,10 +23,6 @@ contract IProtocol {
     /// @param tokenAddress Token address
     function disableDepositToken(address tokenAddress) external;
 
-    /// @notice Update deposit maturity for each token
-    /// @dev This function is executed by backend jobs every midnight
-    function updateDepositMaturity() external;
-
     /// @notice Deposit token with specific term and amount
     /// @param tokenAddress Token address
     /// @param depositAmount Deposit amount
@@ -63,14 +59,10 @@ contract IProtocol {
 
     /// @notice Return details for each deposit token
     /// @return depositTokenAddressList A list of deposit tokens
-    /// @return isEnabledList A list of boolean value indicates whether the token is enabled
     function getDepositTokens()
         external
         view
-        returns (
-            address[] memory depositTokenAddressList,
-            bool[] memory isEnabledList
-        );
+        returns (address[] memory depositTokenAddressList);
 
     /// @notice Return details about a deposit
     /// @param depositId ID that identifies the deposit
@@ -98,13 +90,21 @@ contract IProtocol {
             bool isWithdrawn
         );
 
-    /// @notice Return interest earned by a deposit
+    /// @notice Return interest distributed to different parties
     /// @param depositId ID that identifies the deposit
-    /// @return interest
-    function getDepositInterestById(bytes32 depositId)
+    /// @return interestForDepositor
+    /// @return interestForDepositDistributor
+    /// @return interestForLoanDistributor
+    /// @return interestForProtocolReserve
+    function getInterestDistributionByDepositId(bytes32 depositId)
         external
         view
-        returns (uint256 interest);
+        returns (
+            uint256 interestForDepositor,
+            uint256 interestForDepositDistributor,
+            uint256 interestForLoanDistributor,
+            uint256 interestForProtocolReserve
+        );
 
     /// @notice Return details about all deposits
     /// @return depositIdList
@@ -381,12 +381,6 @@ contract IProtocol {
     /// @param protocolReserveRatio Protocol reserve ratio
     function setProtocolReserveRatio(uint256 protocolReserveRatio) external;
 
-    /// @notice Lock user actions
-    function lockUserActions() external;
-
-    /// @notice Unlock user actions
-    function unlockUserActions() external;
-
     /// @notice Return USD price of a token
     /// @param tokenAddress Token address
     /// @return tokenPrice Token price in USD
@@ -416,10 +410,6 @@ contract IProtocol {
         uint256 maxDepositDistributorFeeRatio,
         uint256 maxLoanDistributorFeeRatio
     ) external;
-
-    /// @notice Check if user actions are locked
-    /// @param isLocked Return true if user actions are locked, else return false
-    function isUserActionsLocked() external view returns (bool isLocked);
 
     /// --- Account ---
 

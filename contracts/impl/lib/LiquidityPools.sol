@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/math/Math.sol';
 import '../../lib/FixedMath.sol';
+import '../../lib/DateTime.sol';
 import './LoanManager.sol';
 
 library LiquidityPools {
@@ -19,8 +20,7 @@ library LiquidityPools {
     struct PoolGroup {
         bool isInitialized;
         uint256 numPools;
-        uint256 firstPoolId;
-        // pool id -> Pool
+        // Pool ID (in day) -> Pool
         mapping(uint256 => Pool) poolsById;
     }
 
@@ -34,6 +34,11 @@ library LiquidityPools {
         uint256 loanInterest;
         // Total deposit weight
         uint256 totalDepositWeight;
+        /// We store interest disribution ratios when the very first deposit is made and
+        /// they can't be changed afterwards to ensure correct interest calculation
+        uint256 depositDistributorFeeRatio;
+        uint256 loanDistributorFeeRatio;
+        uint256 protocolReserveRatio;
     }
 
     function initPoolGroupIfNeeded(
@@ -44,11 +49,9 @@ library LiquidityPools {
         if (!self.poolGroups[tokenAddress].isInitialized) {
             /// The length of the PoolGroup should be (numPools + 1) because
             /// a deposit will mature in (numPools + 1) days.
-            /// We can get the last pool ID using (firstPoolId + numPools).
             self.poolGroups[tokenAddress] = PoolGroup({
                 isInitialized: true,
-                numPools: numPools,
-                firstPoolId: 0
+                numPools: numPools
             });
         }
     }
@@ -74,32 +77,33 @@ library LiquidityPools {
         poolGroup.numPools = numPools;
     }
 
-    function updatePoolGroupDepositMaturity(
-        State storage self,
-        address tokenAddress
-    ) external {
-        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
-
-        // Free storage of pool to be removed and get some gas refund
-        delete poolGroup.poolsById[poolGroup.firstPoolId];
-
-        // Increment pool IDs to reflect the deposit maturity change
-        poolGroup.firstPoolId++;
-    }
-
     function addDepositToPool(
         State storage self,
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        uint256 depositWeight
+        uint256 depositWeight,
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio,
+        uint256 protocolReserveRatio
     ) external returns (uint256 poolId) {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
-        poolId = poolGroup.firstPoolId + depositTerm;
+        poolId = DateTime.toDays().add(depositTerm);
         Pool storage pool = poolGroup.poolsById[poolId];
         pool.depositAmount = pool.depositAmount.add(depositAmount);
         pool.availableAmount = pool.availableAmount.add(depositAmount);
         pool.totalDepositWeight = pool.totalDepositWeight.add(depositWeight);
+
+        // Record ratios for interest disribution if they have not been set
+        if (
+            pool.depositDistributorFeeRatio == 0 &&
+            pool.loanDistributorFeeRatio == 0 &&
+            pool.protocolReserveRatio == 0
+        ) {
+            pool.depositDistributorFeeRatio = depositDistributorFeeRatio;
+            pool.loanDistributorFeeRatio = loanDistributorFeeRatio;
+            pool.protocolReserveRatio = protocolReserveRatio;
+        }
 
         return poolId;
     }
@@ -136,9 +140,12 @@ library LiquidityPools {
             'LiquidityPools: invalid loan amount'
         );
 
+        uint256 distributorInterest;
+        uint256 firstPoolId = DateTime.toDays();
+
         for (
-            uint256 poolId = poolGroup.firstPoolId + loanRecord.loanTerm;
-            poolId <= poolGroup.firstPoolId + poolGroup.numPools;
+            uint256 poolId = firstPoolId + loanRecord.loanTerm;
+            poolId <= firstPoolId + poolGroup.numPools;
             poolId++
         ) {
             if (remainingLoanAmount == 0) {
@@ -155,19 +162,32 @@ library LiquidityPools {
                 remainingLoanAmount,
                 pool.availableAmount
             );
+
             uint256 loanInterestToPool = loanRecord
                 .interest
                 .mulFixed(loanAmountFromPool)
                 .divFixed(loanRecord.loanAmount);
 
+            uint256 distributorInterestFromPool = pool
+                .loanDistributorFeeRatio
+                .mulFixed(loanInterestToPool);
+
             pool.availableAmount = pool.availableAmount.sub(loanAmountFromPool);
             pool.loanInterest = pool.loanInterest.add(loanInterestToPool);
+
+            // Add up interest for loan distributor
+            distributorInterest = distributorInterest.add(
+                distributorInterestFromPool
+            );
 
             // Record the actual pool we loan from, so we know which pool to repay back later
             loanRecord.loanAmountByPool[poolId] = loanAmountFromPool;
 
             remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
         }
+
+        // Save total loan distributor interest into loan record
+        loanRecord.distributorInterest = distributorInterest;
     }
 
     function repayLoanToPools(
@@ -179,11 +199,12 @@ library LiquidityPools {
             .loanTokenAddress];
 
         uint256 remainingRepayAmount = repayAmount;
+        uint256 firstPoolId = DateTime.toDays();
 
         // Repay loan back to each pool, proportional to the total loan from all pools
         for (
-            uint256 poolId = poolGroup.firstPoolId;
-            poolId <= poolGroup.firstPoolId + poolGroup.numPools;
+            uint256 poolId = firstPoolId;
+            poolId <= firstPoolId + poolGroup.numPools;
             poolId++
         ) {
             if (remainingRepayAmount == 0) {
@@ -226,12 +247,14 @@ library LiquidityPools {
             uint256 depositAmount,
             uint256 availableAmount,
             uint256 loanInterest,
-            uint256 totalDepositWeight
+            uint256 totalDepositWeight,
+            uint256 depositDistributorFeeRatio,
+            uint256 loanDistributorFeeRatio,
+            uint256 protocolReserveRatio
         )
     {
-        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
         return
-            getPoolById(self, tokenAddress, poolGroup.firstPoolId + poolIndex);
+            getPoolById(self, tokenAddress, DateTime.toDays().add(poolIndex));
     }
 
     function getPoolById(
@@ -245,7 +268,10 @@ library LiquidityPools {
             uint256 depositAmount,
             uint256 availableAmount,
             uint256 loanInterest,
-            uint256 totalDepositWeight
+            uint256 totalDepositWeight,
+            uint256 depositDistributorFeeRatio,
+            uint256 loanDistributorFeeRatio,
+            uint256 protocolReserveRatio
         )
     {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
@@ -255,7 +281,10 @@ library LiquidityPools {
             pool.depositAmount,
             pool.availableAmount,
             pool.loanInterest,
-            pool.totalDepositWeight
+            pool.totalDepositWeight,
+            pool.depositDistributorFeeRatio,
+            pool.loanDistributorFeeRatio,
+            pool.protocolReserveRatio
         );
     }
 
@@ -276,13 +305,14 @@ library LiquidityPools {
         availableAmountList = new uint256[](poolGroup.numPools + 1);
         loanInterestList = new uint256[](poolGroup.numPools + 1);
         totalDepositWeightList = new uint256[](poolGroup.numPools + 1);
+        uint256 firstPoolId = DateTime.toDays();
 
         for (
             uint256 poolIndex = 0;
             poolIndex <= poolGroup.numPools;
             poolIndex++
         ) {
-            uint256 poolId = poolGroup.firstPoolId + poolIndex;
+            uint256 poolId = firstPoolId + poolIndex;
             poolIdList[poolIndex] = poolId;
             depositAmountList[poolIndex] = poolGroup.poolsById[poolId]
                 .depositAmount;
@@ -316,7 +346,7 @@ library LiquidityPools {
             poolIndex <= poolGroup.numPools;
             poolIndex++
         ) {
-            uint256 poolId = poolGroup.firstPoolId + poolIndex;
+            uint256 poolId = DateTime.toDays().add(poolIndex);
             availableAmount = availableAmount.add(
                 poolGroup.poolsById[poolId].availableAmount
             );

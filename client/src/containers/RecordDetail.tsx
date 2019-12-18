@@ -23,7 +23,6 @@ interface IProps extends WithTranslation, RouteComponentProps {
   record: IRecord;
   transactionsForRecord?: ITransaction[];
   tokens: IToken[];
-  isUserActionsLocked: boolean;
 }
 
 const RecordDetail = (props: IProps) => {
@@ -32,7 +31,6 @@ const RecordDetail = (props: IProps) => {
     record,
     transactionsForRecord,
     tokens,
-    isUserActionsLocked,
     t,
     history,
   } = props;
@@ -90,12 +88,7 @@ const RecordDetail = (props: IProps) => {
             {depositRecord.isMatured && (
               <Form.Item>
                 <Button.Group>
-                  <Button
-                    primary
-                    onClick={withdrawDeposit}
-                    disabled={isUserActionsLocked}
-                    loading={loading}
-                  >
+                  <Button primary onClick={withdrawDeposit} loading={loading}>
                     {t('withdraw')}
                   </Button>
                 </Button.Group>
@@ -107,7 +100,6 @@ const RecordDetail = (props: IProps) => {
                   <Button
                     primary
                     onClick={earlyWithdrawDeposit}
-                    disabled={isUserActionsLocked}
                     loading={loading}
                   >
                     {t('early_withdraw')}
@@ -182,17 +174,10 @@ const RecordDetail = (props: IProps) => {
       }
       return (
         <Button.Group>
-          <Button
-            disabled={isUserActionsLocked}
-            onClick={goTo(`/loan/collateral/add/${loanRecord.recordId}`)}
-          >
+          <Button onClick={goTo(`/loan/collateral/add/${loanRecord.recordId}`)}>
             {t('add_collateral')}
           </Button>
-          <Button
-            primary
-            disabled={isUserActionsLocked}
-            onClick={goTo(`/loan/repay/${loanRecord.recordId}`)}
-          >
+          <Button primary onClick={goTo(`/loan/repay/${loanRecord.recordId}`)}>
             {t('repay')}
           </Button>
         </Button.Group>

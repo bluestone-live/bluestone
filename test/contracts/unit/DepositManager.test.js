@@ -93,14 +93,9 @@ contract('DepositManager', function([
     context('when token is not enabled', () => {
       it('succeeds', async () => {
         await depositManager.enableDepositToken(tokenAddress);
-        const {
-          depositTokenAddressList,
-          isEnabledList,
-        } = await depositManager.getDepositTokens();
+        const depositTokenAddressList = await depositManager.getDepositTokens();
         expect(depositTokenAddressList.length).to.equal(1);
-        expect(isEnabledList.length).to.equal(1);
         expect(depositTokenAddressList[0]).to.equal(tokenAddress);
-        expect(isEnabledList[0]).to.equal(true);
       });
     });
 
@@ -128,15 +123,9 @@ contract('DepositManager', function([
 
       it('succeeds', async () => {
         await depositManager.disableDepositToken(tokenAddress);
-        const {
-          depositTokenAddressList,
-          isEnabledList,
-        } = await depositManager.getDepositTokens();
+        const depositTokenAddressList = await depositManager.getDepositTokens();
 
-        expect(depositTokenAddressList.length).to.equal(1);
-        expect(isEnabledList.length).to.equal(1);
-        expect(depositTokenAddressList[0]).to.equal(tokenAddress);
-        expect(isEnabledList[0]).to.equal(false);
+        expect(depositTokenAddressList.length).to.equal(0);
       });
     });
 
@@ -146,60 +135,6 @@ contract('DepositManager', function([
           depositManager.disableDepositToken(tokenAddress),
           'DepositManager: token already disabled',
         );
-      });
-    });
-  });
-
-  describe('#updateDepositMaturity', () => {
-    context('when update once within one day', () => {
-      const depositTerm = 30;
-
-      beforeEach(async () => {
-        await depositManager.enableDepositToken(token.address);
-        await depositManager.enableDepositTerm(depositTerm);
-      });
-
-      it('succeeds', async () => {
-        const prevPoolGroup = await depositManager.getPoolGroup(token.address);
-
-        await depositManager.updateDepositMaturity();
-
-        const currPoolGroup = await depositManager.getPoolGroup(token.address);
-
-        expect(currPoolGroup.firstPoolId).to.bignumber.equal(
-          prevPoolGroup.firstPoolId.add(new BN(1)),
-        );
-      });
-    });
-
-    context(
-      'when update twice within the same day right before midnight',
-      () => {
-        beforeEach(async () => {
-          await depositManager.updateDepositMaturity();
-        });
-
-        it('reverts', async () => {
-          const now = await time.latest();
-          const secondsUntilMidnight = await datetime.secondsUntilMidnight(now);
-          await time.increase(time.duration.seconds(secondsUntilMidnight - 10));
-
-          await expectRevert(
-            depositManager.updateDepositMaturity(),
-            'Cannot update multiple times within the same day.',
-          );
-        });
-      },
-    );
-
-    context('when update on the next day right after midnight', () => {
-      beforeEach(async () => {
-        await depositManager.updateDepositMaturity();
-      });
-
-      it('succeeds', async () => {
-        await time.increase(time.duration.days(1));
-        await depositManager.updateDepositMaturity();
       });
     });
   });
@@ -307,16 +242,16 @@ contract('DepositManager', function([
 
       context('when deposit is matured', () => {
         let originalBalanceInDistributorAccount;
-        let interestEarned;
+        let interestForDepositor;
 
         beforeEach(async () => {
           await time.increase(time.duration.days(depositTerm + 1));
           originalBalanceInDistributorAccount = await token.balanceOf(
             distributorAddress,
           );
-          interestEarned = await depositManager.getDepositInterestById(
+          interestForDepositor = (await depositManager.getInterestDistributionByDepositId(
             recordId,
-          );
+          )).interestForDepositor;
         });
 
         it('succeeds', async () => {
@@ -327,7 +262,7 @@ contract('DepositManager', function([
 
         it('sent deposit distributor fee to distributor account', async () => {
           const estimateDistributorBalance = originalBalanceInDistributorAccount.add(
-            interestEarned.mul(toFixedBN(0.01)),
+            interestForDepositor.mul(toFixedBN(0.01)),
           );
           expect(await token.balanceOf(distributorAddress)).to.bignumber.equal(
             estimateDistributorBalance,
@@ -383,14 +318,9 @@ contract('DepositManager', function([
     });
 
     it('succeeds', async () => {
-      const {
-        depositTokenAddressList,
-        isEnabledList,
-      } = await depositManager.getDepositTokens();
+      const depositTokenAddressList = await depositManager.getDepositTokens();
       expect(depositTokenAddressList.length).to.equal(1);
-      expect(isEnabledList.length).to.equal(1);
       expect(depositTokenAddressList[0]).to.equal(token.address);
-      expect(isEnabledList[0]).to.equal(true);
     });
   });
 
@@ -442,7 +372,7 @@ contract('DepositManager', function([
     });
   });
 
-  describe('#getDepositInterestById', () => {
+  describe('#getInterestDistributionByDepositId', () => {
     let recordId;
     const depositAmount = toFixedBN(10);
 
@@ -469,7 +399,9 @@ contract('DepositManager', function([
 
     context('when deposit id valid', () => {
       it('should get interest earned by deposit', async () => {
-        const interest = await depositManager.getDepositInterestById(recordId);
+        const {
+          interestForDepositor,
+        } = await depositManager.getInterestDistributionByDepositId(recordId);
 
         const { poolId } = await depositManager.getDepositRecordById(recordId);
         const protocolReserveRatio = toFixedBN(0.15);
@@ -483,14 +415,14 @@ contract('DepositManager', function([
           .sub(loanInterest.div(depositAmount).mul(protocolReserveRatio))
           .mul(depositAmount);
 
-        expect(interest).to.bignumber.equal(expectedInterest);
+        expect(interestForDepositor).to.bignumber.equal(expectedInterest);
       });
     });
 
     context('when deposit id invalid', () => {
       it('reverts', async () => {
         await expectRevert(
-          depositManager.getDepositInterestById(
+          depositManager.getInterestDistributionByDepositId(
             web3.utils.hexToBytes('0x00000000'),
           ),
           'DepositManager: Deposit ID is invalid',
@@ -600,45 +532,6 @@ contract('DepositManager', function([
       );
 
       expect(isDepositEarlyWithdrawable).to.be.true;
-    });
-  });
-
-  describe('#_getInterestFromDaysAgo', () => {
-    const totalDepositWeightList = [100, 100, 100].map(weight =>
-      toFixedBN(weight),
-    );
-    const totalInterestList = [10, 0, 10].map(interest => toFixedBN(interest));
-    const depositWeightList = [100, 100, 50].map(weight => toFixedBN(weight));
-
-    beforeEach(async () => {
-      await depositManager.setInterestHistoryByTokenAddress(
-        token.address,
-        totalDepositWeightList,
-        totalInterestList,
-      );
-    });
-
-    it('succeeds', async () => {
-      for (let index in depositWeightList) {
-        const weight = depositWeightList[index];
-        const estimateInterest = weight
-          .mul(totalInterestList[index])
-          .div(totalDepositWeightList[index]);
-
-        const {
-          totalInterest,
-          loanDistributorFeeRatio,
-        } = await depositManager.getInterestFromDaysAgo(
-          token.address,
-          weight,
-          index,
-        );
-
-        expect(totalInterest).to.bignumber.equal(estimateInterest);
-        expect(loanDistributorFeeRatio).to.bignumber.equal(
-          loanDistributorFeeRatio,
-        );
-      }
     });
   });
 });

@@ -84,7 +84,7 @@ library LoanManager {
         /// How much have one borrowed from a pool
         mapping(uint256 => uint256) loanAmountByPool;
         address distributorAddress;
-        uint256 loanDistributorFeeRatio;
+        uint256 distributorInterest;
     }
 
     struct LoanRecordListView {
@@ -569,7 +569,7 @@ library LoanManager {
             lastLiquidatedAt: 0,
             isClosed: false,
             distributorAddress: loanParameters.distributorAddress,
-            loanDistributorFeeRatio: loanParameters.loanDistributorFeeRatio
+            distributorInterest: 0
         });
 
         liquidityPools.loanFromPools(self.loanRecordById[localVars.loanId]);
@@ -728,7 +728,7 @@ library LoanManager {
         );
         loanRecord.lastRepaidAt = now;
 
-        // Transfer loan tokens from user to protocol, It's better to get repay before send distribution
+        // Transfer loan tokens from user to protocol
         ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
             msg.sender,
             address(this),
@@ -751,19 +751,15 @@ library LoanManager {
                 );
             }
 
-            // Transfer loan distributor fee to distributor if distributor set
             if (loanRecord.distributorAddress != address(this)) {
-                uint256 loanDistributorFee = loanRecord.interest.mulFixed(
-                    loanRecord.loanDistributorFeeRatio
-                );
-
+                // Transfer loan distributor fee to distributor
                 ERC20(loanRecord.loanTokenAddress).safeTransfer(
                     loanRecord.distributorAddress,
-                    loanDistributorFee
+                    loanRecord.distributorInterest
                 );
-
             }
         }
+
         liquidityPools.repayLoanToPools(loanRecord, repayAmount);
 
         emit RepayLoanSucceed(msg.sender, loanId, repayAmount);
@@ -860,15 +856,11 @@ library LoanManager {
                 );
             }
 
-            // Transfer loan distributor fee to distributor
             if (loanRecord.distributorAddress != address(this)) {
-                uint256 loanDistributorFee = loanRecord.interest.mulFixed(
-                    loanRecord.loanDistributorFeeRatio
-                );
-
+                // Transfer loan distributor fee to distributor
                 ERC20(loanRecord.loanTokenAddress).safeTransfer(
                     loanRecord.distributorAddress,
-                    loanDistributorFee
+                    loanRecord.distributorInterest
                 );
             }
         }

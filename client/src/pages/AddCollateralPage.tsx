@@ -6,7 +6,6 @@ import {
   ILoanRecord,
   AccountActions,
   useDefaultAccount,
-  useUserActionLock,
   useDepositTokens,
   LoanActions,
   useAvailableCollaterals,
@@ -35,8 +34,6 @@ const AddCollateralPage = (props: IProps) => {
   const record = loanRecords.find(r => r.recordId === recordId);
 
   const availableCollaterals = useAvailableCollaterals();
-
-  const isUserActionsLocked = useUserActionLock();
 
   const depositTokens = useDepositTokens();
 
@@ -78,7 +75,6 @@ const AddCollateralPage = (props: IProps) => {
       accountAddress={accountAddress}
       record={record}
       availableCollaterals={availableCollaterals}
-      isUserActionsLocked={isUserActionsLocked}
       tokens={depositTokens}
     />
   );

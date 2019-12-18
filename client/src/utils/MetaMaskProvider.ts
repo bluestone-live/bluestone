@@ -23,8 +23,6 @@ export enum EventName {
   WithdrawAvailableCollateralSucceed = 'WithdrawAvailableCollateralSucceed',
   DepositSucceed = 'DepositSucceed',
   WithdrawSucceed = 'WithdrawSucceed',
-  LockUserActions = 'LockUserActions',
-  UnlockUserActions = 'UnlockUserActions',
   Approval = 'Approval',
 }
 

@@ -7,7 +7,6 @@ import { IDistributorConfig } from '../utils/decodeDistributorConfig';
 
 const enum CommonActionType {
   SetCurrentNetwork = 'SET_CURRENT_NETWORK',
-  SetUserActionsLock = 'SET_USER_ACTIONS_LOCK',
   SetDepositTokens = 'SET_DEPOSIT_TOKENS',
   SetLoanPairs = 'SET_LOAN_PAIRS',
   SetAllowance = 'SET_ALLOWANCE',
@@ -42,7 +41,6 @@ export interface ILoanPair {
 
 interface ICommonState {
   currentNetwork?: number;
-  isUserActionsLocked: boolean;
   depositTerms: BigNumber[];
   depositTokens: IToken[];
   loanPairs: ILoanPair[];
@@ -52,7 +50,6 @@ interface ICommonState {
 
 const initState: ICommonState = {
   currentNetwork: undefined,
-  isUserActionsLocked: true,
   depositTerms: [],
   depositTokens: [],
   loanPairs: [],
@@ -67,11 +64,6 @@ export const CommonReducer = (
   switch (action.type) {
     case CommonActionType.SetCurrentNetwork:
       return { ...state, currentNetwork: action.payload.currentNetwork };
-    case CommonActionType.SetUserActionsLock:
-      return {
-        ...state,
-        isUserActionsLocked: action.payload.isUserActionsLocked,
-      };
     case CommonActionType.SetDepositTokens:
       return {
         ...state,
@@ -163,15 +155,6 @@ export class CommonActions {
       type: CommonActionType.SetCurrentNetwork,
       payload: {
         currentNetwork: network,
-      },
-    };
-  }
-
-  static setUserActionsLock(isUserActionsLocked: boolean) {
-    return {
-      type: CommonActionType.SetUserActionsLock,
-      payload: {
-        isUserActionsLocked,
       },
     };
   }
@@ -286,9 +269,6 @@ export const useDepositTerms = () =>
 
 export const useLoanPairs = () =>
   useSelector<IState, ILoanPair[]>(state => state.common.loanPairs);
-
-export const useUserActionLock = () =>
-  useSelector<IState, boolean>(state => state.common.isUserActionsLocked);
 
 export const useDistributorConfig = () =>
   useSelector<IState, IDistributorConfig>(

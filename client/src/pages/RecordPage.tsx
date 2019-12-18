@@ -15,7 +15,6 @@ import {
   ILoanRecord,
   IRecord,
   ITransaction,
-  useUserActionLock,
   DepositActions,
   useDepositTokens,
   useDefaultAccount,
@@ -103,8 +102,6 @@ const RecordPage = (props: IProps) => {
   const transactions = useSelector<IState, ITransaction[]>(
     state => state.transaction.transactions,
   );
-
-  const isUserActionsLocked = useUserActionLock();
 
   // Initialize
   useComponentMounted(async () => {
@@ -291,7 +288,6 @@ const RecordPage = (props: IProps) => {
                   tx => tx.recordId === recordId,
                 )}
                 tokens={depositTokens}
-                isUserActionsLocked={isUserActionsLocked}
               />
             )}
           </Cell>

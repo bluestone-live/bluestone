@@ -35,13 +35,6 @@ export class CommonService {
   }
 
   /**
-   * TODO: Don't have this method yet
-   */
-  async isUserActionsLocked(): Promise<boolean> {
-    return this.provider.protocol.methods.isUserActionsLocked().call();
-  }
-
-  /**
    * Get Allowance for each token
    * @param token IToken instance
    * @param accountAddress user account address

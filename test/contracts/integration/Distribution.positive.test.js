@@ -169,16 +169,14 @@ contract(
           depositAmountList,
           availableAmountList,
           loanInterestList,
-          totalDepositWeightList,
         } = await protocol.getDetailsFromAllPools(loanToken.address);
 
         for (let i = 0; i < poolIdList.length; i++) {
-          const poolId = poolIdList[i];
           const depositAmountInPool = depositAmountList[i];
           const availableAmountInPool = availableAmountList[i];
           const loanInterestInPool = loanInterestList[i];
 
-          if (poolId.toString() === depositTerm.toString()) {
+          if (i === poolIdList.length - 1) {
             expect(depositAmountInPool).to.bignumber.equal(
               toFixedBN(depositAmount),
             );
@@ -202,9 +200,11 @@ contract(
       });
 
       it('returns correct interest for depositor', async () => {
-        const interest = await protocol.getDepositInterestById(depositId);
+        const {
+          interestForDepositor,
+        } = await protocol.getInterestDistributionByDepositId(depositId);
 
-        expect(interest).to.bignumber.equal(
+        expect(interestForDepositor).to.bignumber.equal(
           totalInterest
             .sub(
               totalInterest
@@ -247,31 +247,23 @@ contract(
             .div(toFixedBN(1)),
         );
       });
-      it('returns correct pool data after update deposit maturity', async () => {
+      it('returns correct pool data when day passes', async () => {
         for (let j = 0; j < depositTerm; j++) {
           await time.increase(time.duration.days(1));
-
-          await protocol.lockUserActions();
-          await protocol.updateDepositMaturity();
-          await protocol.unlockUserActions();
 
           const {
             poolIdList,
             depositAmountList,
             availableAmountList,
             loanInterestList,
-            totalDepositWeightList,
           } = await protocol.getDetailsFromAllPools(loanToken.address);
 
           for (let poolIndex = 0; poolIndex < poolIdList.length; poolIndex++) {
-            const poolId = poolIdList[poolIndex];
             const depositAmountInPool = depositAmountList[poolIndex];
             const availableAmountInPool = availableAmountList[poolIndex];
             const loanInterestInPool = loanInterestList[poolIndex];
 
-            if (poolId.toString() === depositTerm.toString()) {
-              // Because of the pool index count from 0, we should subtract 1
-              expect(depositTerm - j - 1).to.equal(poolIndex);
+            if (poolIndex === depositTerm - j - 1) {
               expect(depositAmountInPool).to.bignumber.equal(
                 toFixedBN(depositAmount),
               );
@@ -302,17 +294,13 @@ contract(
       it('transfer correct amount to depositor after withdraw deposit', async () => {
         await time.increase(time.duration.days(1));
 
-        await protocol.lockUserActions();
-        await protocol.updateDepositMaturity();
-        await protocol.unlockUserActions();
-
         const {
           depositAmount: depositAmountForRecord,
           isMatured,
         } = await protocol.getDepositRecordById(depositId);
-        const estimateInterest = await protocol.getDepositInterestById(
-          depositId,
-        );
+        const {
+          interestForDepositor,
+        } = await protocol.getInterestDistributionByDepositId(depositId);
 
         expect(isMatured).to.be.true;
 
@@ -337,7 +325,7 @@ contract(
         );
 
         expect(depositorBalance.sub(prevDepositorBalance)).to.bignumber.equal(
-          depositAmountForRecord.add(estimateInterest),
+          depositAmountForRecord.add(interestForDepositor),
         );
         expect(
           depositDistributorBalance.sub(prevDepositDistributorBalance),
@@ -411,10 +399,6 @@ contract(
 
       it('only transfer principal to depositor after early withdraw', async () => {
         await time.increase(time.duration.days(1));
-
-        await protocol.lockUserActions();
-        await protocol.updateDepositMaturity();
-        await protocol.unlockUserActions();
 
         const {
           depositAmount: depositAmountForRecord,

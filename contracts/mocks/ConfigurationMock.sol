@@ -36,14 +36,6 @@ contract ConfigurationMock {
         _configuration.setProtocolReserveRatio(protocolReserveRatio);
     }
 
-    function lockUserActions() external {
-        _configuration.lockUserActions();
-    }
-
-    function unlockUserActions() external {
-        _configuration.unlockUserActions();
-    }
-
     function getProtocolAddress()
         external
         view
@@ -58,10 +50,6 @@ contract ConfigurationMock {
         returns (uint256 protocolReserveRatio)
     {
         return _configuration.protocolReserveRatio;
-    }
-
-    function isUserActionsLocked() external view returns (bool isLocked) {
-        return _configuration.isUserActionsLocked;
     }
 
     function getPriceOracleAddress(address tokenAddress)

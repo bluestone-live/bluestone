@@ -40,10 +40,6 @@ const RepayLoanPage = (props: IProps) => {
     ),
   );
 
-  const isUserActionsLocked = useSelector<IState, boolean>(
-    state => state.common.isUserActionsLocked,
-  );
-
   const tokens = useSelector<IState, IToken[]>(
     state => state.common.depositTokens,
   );
@@ -53,7 +49,6 @@ const RepayLoanPage = (props: IProps) => {
       accountAddress={accountAddress}
       record={record}
       tokens={tokens}
-      isUserActionsLocked={isUserActionsLocked}
     />
   );
 };

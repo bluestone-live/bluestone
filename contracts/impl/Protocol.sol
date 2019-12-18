@@ -61,24 +61,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
         bytes32 indexed recordId,
         uint256 amount
     );
-    event LockUserActions();
-    event UnlockUserActions();
-
-    modifier whenUserActionsUnlocked() {
-        require(
-            !_configuration.isUserActionsLocked,
-            'Protocol: user actions must be unlocked'
-        );
-        _;
-    }
-
-    modifier whenUserActionsLocked() {
-        require(
-            _configuration.isUserActionsLocked,
-            'Protocol: user actions must be locked'
-        );
-        _;
-    }
 
     /// --- Deposit Configurations---
 
@@ -106,26 +88,12 @@ contract Protocol is IProtocol, Ownable, Pausable {
         _depositManager.disableDepositToken(tokenAddress);
     }
 
-    function updateDepositMaturity()
-        external
-        whenNotPaused
-        whenUserActionsLocked
-        onlyOwner
-    {
-        _depositManager.updateDepositMaturity(_liquidityPools, _configuration);
-    }
-
     function deposit(
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
         address distributorAddress
-    )
-        external
-        whenNotPaused
-        whenUserActionsUnlocked
-        returns (bytes32 depositId)
-    {
+    ) external whenNotPaused returns (bytes32 depositId) {
         _depositParameters.tokenAddress = tokenAddress;
         _depositParameters.depositAmount = depositAmount;
         _depositParameters.depositTerm = depositTerm;
@@ -143,16 +111,19 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function withdraw(bytes32 depositId)
         external
         whenNotPaused
-        whenUserActionsUnlocked
         returns (uint256 withdrewAmount)
     {
-        return _depositManager.withdraw(_configuration, depositId);
+        return
+            _depositManager.withdraw(
+                _configuration,
+                _liquidityPools,
+                depositId
+            );
     }
 
     function earlyWithdraw(bytes32 depositId)
         external
         whenNotPaused
-        whenUserActionsUnlocked
         returns (uint256 withdrewAmount)
     {
         return _depositManager.earlyWithdraw(_liquidityPools, depositId);
@@ -171,12 +142,9 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
-        returns (
-            address[] memory depositTokenAddressList,
-            bool[] memory isEnabledList
-        )
+        returns (address[] memory depositTokenAddressList)
     {
-        return _depositManager.getDepositTokens();
+        return _depositManager.enabledDepositTokenAddressList;
     }
 
     /// --- Deposit
@@ -200,16 +168,19 @@ contract Protocol is IProtocol, Ownable, Pausable {
         return _depositManager.getDepositRecordById(depositId);
     }
 
-    function getDepositInterestById(bytes32 depositId)
+    function getInterestDistributionByDepositId(bytes32 depositId)
         external
         view
-        whenNotPaused
-        returns (uint256 interest)
+        returns (
+            uint256 interestForDepositor,
+            uint256 interestForDepositDistributor,
+            uint256 interestForLoanDistributor,
+            uint256 interestForProtocolReserve
+        )
     {
         return
-            _depositManager.getDepositInterestById(
+            _depositManager.getInterestDistributionByDepositId(
                 _liquidityPools,
-                _configuration,
                 depositId
             );
     }
@@ -270,7 +241,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 loanTerm,
         bool useAvailableCollateral,
         address distributorAddress
-    ) external whenNotPaused whenUserActionsUnlocked returns (bytes32 loanId) {
+    ) external whenNotPaused returns (bytes32 loanId) {
         _loanParameters.loanTokenAddress = loanTokenAddress;
         _loanParameters.collateralTokenAddress = collateralTokenAddress;
         _loanParameters.loanAmount = loanAmount;
@@ -298,7 +269,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function repayLoan(bytes32 loanId, uint256 repayAmount)
         external
         whenNotPaused
-        whenUserActionsUnlocked
         returns (uint256 remainingDebt)
     {
         return _loanManager.repayLoan(_liquidityPools, loanId, repayAmount);
@@ -307,7 +277,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
         external
         whenNotPaused
-        whenUserActionsUnlocked
         returns (uint256 remainingCollateral, uint256 liquidatedAmount)
     {
         return
@@ -322,7 +291,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function withdrawAvailableCollateral(
         address tokenAddress,
         uint256 collateralAmount
-    ) external whenNotPaused whenUserActionsUnlocked {
+    ) external whenNotPaused {
         _loanManager.withdrawAvailableCollateral(
             tokenAddress,
             collateralAmount
@@ -345,7 +314,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
-        whenUserActionsUnlocked
         returns (uint256 loanInterestRate)
     {
         return
@@ -435,12 +403,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         bytes32 loanId,
         uint256 collateralAmount,
         bool useAvailableCollateral
-    )
-        external
-        whenNotPaused
-        whenUserActionsUnlocked
-        returns (uint256 totalCollateralAmount)
-    {
+    ) external whenNotPaused returns (uint256 totalCollateralAmount) {
         return
             _loanManager.addCollateral(
                 loanId,
@@ -575,14 +538,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
         );
     }
 
-    function lockUserActions() external whenNotPaused onlyOwner {
-        _configuration.lockUserActions();
-    }
-
-    function unlockUserActions() external whenNotPaused onlyOwner {
-        _configuration.unlockUserActions();
-    }
-
     function getProtocolAddress()
         external
         view
@@ -632,9 +587,5 @@ contract Protocol is IProtocol, Ownable, Pausable {
         returns (uint256 protocolReserveRatio)
     {
         return _configuration.protocolReserveRatio;
-    }
-
-    function isUserActionsLocked() external view returns (bool isLocked) {
-        return _configuration.isUserActionsLocked;
     }
 }

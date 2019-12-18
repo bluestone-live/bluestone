@@ -22,7 +22,6 @@ interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
   record: ILoanRecord;
   tokens: IToken[];
-  isUserActionsLocked: boolean;
 }
 
 const StyledSuffixButton = styled(Button)`
@@ -34,14 +33,7 @@ const StyledSuffixButton = styled(Button)`
 `;
 
 const RepayLoanForm = (props: IProps) => {
-  const {
-    accountAddress,
-    record,
-    tokens,
-    isUserActionsLocked,
-    t,
-    history,
-  } = props;
+  const { accountAddress, record, tokens, t, history } = props;
 
   if (!record || tokens.length === 0) {
     return null;
@@ -176,12 +168,7 @@ const RepayLoanForm = (props: IProps) => {
             <label />
           </Cell>
           <Cell scale={4}>
-            <Button
-              primary
-              fullWidth
-              disabled={isUserActionsLocked}
-              loading={loading}
-            >
+            <Button primary fullWidth loading={loading}>
               {t('repay')}
             </Button>
           </Cell>

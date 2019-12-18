@@ -37,7 +37,6 @@ interface IProps extends WithTranslation, RouteComponentProps {
   collateralTokens: IToken[];
   selectedLoanPair?: ILoanPair;
   availableCollaterals: IAvailableCollateral[];
-  isUserActionsLocked?: boolean;
   distributorAddress: string;
 }
 
@@ -48,7 +47,6 @@ const LoanForm = (props: IProps) => {
     collateralTokens,
     selectedLoanPair,
     availableCollaterals,
-    isUserActionsLocked,
     distributorAddress,
     t,
     history,
@@ -447,12 +445,7 @@ const LoanForm = (props: IProps) => {
                 <label />
               </Cell>
               <Cell scale={3}>
-                <Button
-                  disabled={isUserActionsLocked}
-                  primary
-                  fullWidth
-                  loading={loading}
-                >
+                <Button primary fullWidth loading={loading}>
                   {t('loan')}
                 </Button>
               </Cell>

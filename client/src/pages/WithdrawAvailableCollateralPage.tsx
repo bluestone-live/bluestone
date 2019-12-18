@@ -4,7 +4,6 @@ import WithdrawAvailableCollateralForm from '../containers/WithdrawAvailableColl
 import {
   useAvailableCollaterals,
   useLoanPairs,
-  useUserActionLock,
   useDefaultAccount,
   AccountActions,
 } from '../stores';
@@ -26,8 +25,6 @@ const WithdrawAvailableCollateralPage = (props: IProps) => {
 
   // Selector
   const accountAddress = useDefaultAccount();
-
-  const isUserActionsLocked = useUserActionLock();
 
   const loanPairs = useLoanPairs();
 
@@ -66,7 +63,6 @@ const WithdrawAvailableCollateralPage = (props: IProps) => {
       accountAddress={accountAddress}
       token={token}
       availableCollaterals={availableCollaterals}
-      isUserActionsLocked={isUserActionsLocked}
     />
   ) : null;
 };

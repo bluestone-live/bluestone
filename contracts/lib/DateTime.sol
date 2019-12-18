@@ -41,6 +41,10 @@ library DateTime {
             second;
     }
 
+    function toDays() external view returns (uint256) {
+        return toDays(now);
+    }
+
     function toDays(uint256 timestamp) public pure returns (uint256) {
         return timestamp / DAY_IN_SECONDS;
     }

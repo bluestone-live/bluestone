@@ -37,10 +37,6 @@ contract DepositManagerMock {
         _depositManager.disableDepositToken(tokenAddress);
     }
 
-    function updateDepositMaturity() external {
-        _depositManager.updateDepositMaturity(_liquidityPools, _configuration);
-    }
-
     function setMaxDistributorFeeRatios(
         uint256 maxDepositDistributorFeeRatio,
         uint256 maxLoanDistributorFeeRatio
@@ -75,7 +71,12 @@ contract DepositManagerMock {
         external
         returns (uint256 withdrewAmount)
     {
-        return _depositManager.withdraw(_configuration, depositId);
+        return
+            _depositManager.withdraw(
+                _configuration,
+                _liquidityPools,
+                depositId
+            );
     }
 
     function earlyWithdraw(bytes32 depositId)
@@ -96,12 +97,9 @@ contract DepositManagerMock {
     function getDepositTokens()
         external
         view
-        returns (
-            address[] memory depositTokenAddressList,
-            bool[] memory isEnabledList
-        )
+        returns (address[] memory depositTokenAddressList)
     {
-        return _depositManager.getDepositTokens();
+        return _depositManager.enabledDepositTokenAddressList;
     }
 
     function getDepositRecordById(bytes32 depositId)
@@ -122,15 +120,19 @@ contract DepositManagerMock {
         return _depositManager.getDepositRecordById(depositId);
     }
 
-    function getDepositInterestById(bytes32 depositId)
+    function getInterestDistributionByDepositId(bytes32 depositId)
         external
         view
-        returns (uint256 interest)
+        returns (
+            uint256 interestForDepositor,
+            uint256 interestForDepositDistributor,
+            uint256 interestForLoanDistributor,
+            uint256 interestForProtocolReserve
+        )
     {
         return
-            _depositManager.getDepositInterestById(
+            _depositManager.getInterestDistributionByDepositId(
                 _liquidityPools,
-                _configuration,
                 depositId
             );
     }
@@ -172,7 +174,10 @@ contract DepositManagerMock {
             uint256 depositAmount,
             uint256 availableAmount,
             uint256 loanInterest,
-            uint256 totalDepositWeight
+            uint256 totalDepositWeight,
+            uint256 depositDistributorFeeRatio,
+            uint256 loanDistributorFeeRatio,
+            uint256 protocolReserveRatio
         )
     {
         return _liquidityPools.getPoolById(tokenAddress, poolId);
@@ -181,59 +186,19 @@ contract DepositManagerMock {
     function getPoolGroup(address tokenAddress)
         external
         view
-        returns (bool isInitialized, uint256 numPools, uint256 firstPoolId)
+        returns (bool isInitialized, uint256 numPools)
     {
         LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
             .poolGroups[tokenAddress];
 
-        return (
-            poolGroup.isInitialized,
-            poolGroup.numPools,
-            poolGroup.firstPoolId
-        );
+        return (poolGroup.isInitialized, poolGroup.numPools);
     }
 
     function setInterestModel(IInterestModel interestModel) external {
         _configuration.setInterestModel(interestModel);
     }
 
-    function getInterestFromDaysAgo(
-        address tokenAddress,
-        uint256 depositWeight,
-        uint256 numDaysAgo
-    )
-        external
-        view
-        returns (uint256 totalInterest, uint256 loanDistributorFeeRatio)
-    {
-        return
-            _depositManager._getInterestFromDaysAgo(
-                tokenAddress,
-                depositWeight,
-                numDaysAgo
-            );
-    }
-
     function setProtocolAddress(address protocolAddress) external {
         _configuration.setProtocolAddress(protocolAddress);
-    }
-
-    // -- Helper
-
-    function setInterestHistoryByTokenAddress(
-        address tokenAddress,
-        uint256[] calldata totalDepositWeightList,
-        uint256[] calldata totalInterestList
-    ) external {
-        DepositManager.DepositInterestHistory storage history = _depositManager
-            .depositTokenByAddress[tokenAddress]
-            .depositInterestHistory;
-
-        for (uint256 i = 0; i < totalDepositWeightList.length; i++) {
-            history.totalDepositWeightByDay[i] = totalDepositWeightList[i];
-            history.totalInterestByDay[i] = totalInterestList[i];
-        }
-
-        history.lastDay = totalDepositWeightList.length - 1;
     }
 }

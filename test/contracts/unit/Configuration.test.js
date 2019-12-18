@@ -67,22 +67,6 @@ contract('Configuration', function([owner]) {
     });
   });
 
-  describe('#lockUserActions', () => {
-    it('succeeds', async () => {
-      const { logs } = await configuration.lockUserActions();
-      expect(await configuration.isUserActionsLocked()).to.true;
-      expectEvent.inLogs(logs, 'LockUserActions');
-    });
-  });
-
-  describe('#unlockUserActions', () => {
-    it('succeeds', async () => {
-      const { logs } = await configuration.unlockUserActions();
-      expect(await configuration.isUserActionsLocked()).to.false;
-      expectEvent.inLogs(logs, 'UnlockUserActions');
-    });
-  });
-
   describe('#getMaxDistributorFeeRatios', () => {
     context("when the ratio limit didn't set", () => {
       it('get ZERO', async () => {

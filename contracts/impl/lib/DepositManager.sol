@@ -20,37 +20,17 @@ library DepositManager {
     using FixedMath for uint256;
 
     struct State {
-        /// Includes enabled and disabled desposit terms.
-        /// We need to keep disabled deposit terms for deposit maturity update.
-        uint256[] allDepositTermList;
         uint256[] enabledDepositTermList;
-        // Deposit term -> has been enabled once?
-        mapping(uint256 => bool) isDepositTermInitialized;
+        address[] enabledDepositTokenAddressList;
         // Deposit term -> enabled?
         mapping(uint256 => bool) isDepositTermEnabled;
-        /// Include enabled and disabled deposit tokens.
-        /// We need to keep disabled deposit tokens for deposit maturity update.
-        address[] allDepositTokenAddressList;
-        address[] enabledDepositTokenAddressList;
-        // Token address -> DepositToken
-        mapping(address => DepositToken) depositTokenByAddress;
+        // Deposit token -> enabled?
+        mapping(address => bool) isDepositTokenEnabled;
         // ID -> DepositRecord
         mapping(bytes32 => DepositRecord) depositRecordById;
-        // When was the last time deposit maturity updated
-        uint256 lastDepositMaturityUpdatedAt;
         uint256 numDeposits;
         // AccountAddress -> DepositIds
         mapping(address => bytes32[]) depositIdsByAccountAddress;
-    }
-
-    // Hold relavent information about a deposit token
-    struct DepositToken {
-        // If the token has been enabled before
-        bool isInitialized;
-        // Only enabled token can perform deposit-related transactions
-        bool isEnabled;
-        // total deposit weight history
-        DepositInterestHistory depositInterestHistory;
     }
 
     struct DepositRecord {
@@ -65,23 +45,6 @@ library DepositManager {
         uint256 withdrewAt;
         uint256 weight;
         address distributorAddress;
-        uint256 depositDistributorFeeRatio;
-    }
-
-    // Record interest index on a daily basis
-    struct DepositInterestHistory {
-        /// Each interest index corresponds to a snapshot of a particular pool state
-        /// before updating deposit maturity of a PoolGroup.
-        ///
-        /// depositInterest = loanInterest * depositWeight / totalDepositWeight * (1 - protocolReserveRatio)
-        /// depositWeight refers to weight in deposit record
-
-        // days number -> total deposit weight
-        mapping(uint256 => uint256) totalDepositWeightByDay;
-        // days number -> total deposit interests
-        mapping(uint256 => uint256) totalInterestByDay;
-        mapping(uint256 => uint256) loanDistributorFeeRatioByDay;
-        uint256 lastDay;
     }
 
     event DepositSucceed(
@@ -125,13 +88,7 @@ library DepositManager {
         self.isDepositTermEnabled[term] = true;
         self.enabledDepositTermList.push(term);
 
-        // Only add this deposit term if it has not been enabled before
-        if (!self.isDepositTermInitialized[term]) {
-            self.allDepositTermList.push(term);
-            self.isDepositTermInitialized[term] = true;
-        }
-
-        // Initialize pool group for each existing token if they haven't been initialized
+        // Update pool group for each existing token if needed
         for (
             uint256 i = 0;
             i < self.enabledDepositTokenAddressList.length;
@@ -172,24 +129,15 @@ library DepositManager {
         LiquidityPools.State storage liquidityPools,
         address tokenAddress
     ) external {
-        DepositToken storage depositToken = self
-            .depositTokenByAddress[tokenAddress];
-
         require(
-            !depositToken.isEnabled,
+            !self.isDepositTokenEnabled[tokenAddress],
             'DepositManager: token already enabled'
         );
 
-        depositToken.isEnabled = true;
-
-        if (!depositToken.isInitialized) {
-            self.allDepositTokenAddressList.push(tokenAddress);
-            depositToken.isInitialized = true;
-        }
-
+        self.isDepositTokenEnabled[tokenAddress] = true;
         self.enabledDepositTokenAddressList.push(tokenAddress);
 
-        // Initialize pool groups if they haven't been initialized
+        // Update pool groups if needed
         for (uint256 i = 0; i < self.enabledDepositTermList.length; i++) {
             uint256 depositTerm = self.enabledDepositTermList[i];
             liquidityPools.initPoolGroupIfNeeded(tokenAddress, depositTerm);
@@ -199,15 +147,12 @@ library DepositManager {
     function disableDepositToken(State storage self, address tokenAddress)
         external
     {
-        DepositToken storage depositToken = self
-            .depositTokenByAddress[tokenAddress];
-
         require(
-            depositToken.isEnabled,
+            self.isDepositTokenEnabled[tokenAddress],
             'DepositManager: token already disabled'
         );
 
-        depositToken.isEnabled = false;
+        self.isDepositTokenEnabled[tokenAddress] = false;
 
         // Remove tokenAddress from enabledDepositTokenAddressList
         for (
@@ -234,41 +179,6 @@ library DepositManager {
         }
     }
 
-    function updateDepositMaturity(
-        State storage self,
-        LiquidityPools.State storage liquidityPools,
-        Configuration.State storage configuration
-    ) external {
-        /// Ensure deposit maturity update only triggers once in a day by checking current
-        /// timestamp is greater than the timestamp of last update (in day unit).
-        require(
-            DateTime.toDays(now) >
-                DateTime.toDays(self.lastDepositMaturityUpdatedAt),
-            'Cannot update multiple times within the same day.'
-        );
-
-        for (uint256 i = 0; i < self.allDepositTokenAddressList.length; i++) {
-            address tokenAddress = self.allDepositTokenAddressList[i];
-
-            (, , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
-                .getPool(tokenAddress, 0);
-
-            DepositInterestHistory storage history = self
-                .depositTokenByAddress[tokenAddress]
-                .depositInterestHistory;
-
-            history.lastDay++;
-            history.totalDepositWeightByDay[history
-                .lastDay] = totalDepositWeight;
-            history.totalInterestByDay[history.lastDay] = loanInterest;
-            history.loanDistributorFeeRatioByDay[history
-                .lastDay] = configuration.maxLoanDistributorFeeRatio;
-            liquidityPools.updatePoolGroupDepositMaturity(tokenAddress);
-        }
-
-        self.lastDepositMaturityUpdatedAt = now;
-    }
-
     function deposit(
         State storage self,
         LiquidityPools.State storage liquidityPools,
@@ -277,8 +187,7 @@ library DepositManager {
         DepositParameters storage depositParameters
     ) external returns (bytes32 depositId) {
         require(
-            self.depositTokenByAddress[depositParameters.tokenAddress]
-                .isEnabled,
+            self.isDepositTokenEnabled[depositParameters.tokenAddress],
             'DepositManager: invalid deposit token'
         );
 
@@ -303,7 +212,10 @@ library DepositManager {
             depositParameters.tokenAddress,
             depositParameters.depositAmount,
             depositParameters.depositTerm,
-            depositWeight
+            depositWeight,
+            configuration.maxDepositDistributorFeeRatio,
+            configuration.maxLoanDistributorFeeRatio,
+            configuration.protocolReserveRatio
         );
 
         self.numDeposits++;
@@ -330,9 +242,7 @@ library DepositManager {
             maturedAt: maturedAt,
             withdrewAt: 0,
             weight: depositWeight,
-            distributorAddress: depositParameters.distributorAddress,
-            depositDistributorFeeRatio: configuration
-                .maxDepositDistributorFeeRatio
+            distributorAddress: depositParameters.distributorAddress
         });
 
         // Transfer token from user to protocol (`this` refers to Protocol contract)
@@ -373,6 +283,7 @@ library DepositManager {
     function withdraw(
         State storage self,
         Configuration.State storage configuration,
+        LiquidityPools.State storage liquidityPools,
         bytes32 depositId
     ) external returns (uint256 withdrewAmount) {
         DepositRecord storage depositRecord = self.depositRecordById[depositId];
@@ -391,7 +302,7 @@ library DepositManager {
         address accountAddress = msg.sender;
 
         require(
-            self.depositTokenByAddress[tokenAddress].isEnabled,
+            self.isDepositTokenEnabled[tokenAddress],
             'DepositManager: invalid deposit token'
         );
 
@@ -408,21 +319,10 @@ library DepositManager {
             'DepositManager: deposit is not matured'
         );
 
-        uint256 numDaysAgo = DateTime.toDays(now - depositRecord.maturedAt);
-        uint256 totalInterest;
-        uint256 loanDistributorFeeRatio;
-        (totalInterest, loanDistributorFeeRatio) = _getInterestFromDaysAgo(
+        (uint256 interestForDepositor, uint256 interestForDepositDistributor, , uint256 interestForProtocolReserve) = getInterestDistributionByDepositId(
             self,
-            tokenAddress,
-            depositRecord.weight,
-            numDaysAgo
-        );
-
-        (uint256 interestForDepositor, uint256 interestForDepositDistributor, uint256 interestForProtocolReserve) = calculateInterestDistribution(
-            totalInterest,
-            depositRecord.depositDistributorFeeRatio,
-            loanDistributorFeeRatio,
-            configuration.protocolReserveRatio
+            liquidityPools,
+            depositId
         );
 
         uint256 depositPlusInterestAmount = depositRecord.depositAmount.add(
@@ -431,8 +331,8 @@ library DepositManager {
 
         depositRecord.withdrewAt = now;
 
-        // Transfer deposit distributor fee to distributor if distributor set
         if (depositRecord.distributorAddress != address(this)) {
+            // Transfer deposit distributor fee to distributor
             ERC20(tokenAddress).safeTransfer(
                 depositRecord.distributorAddress,
                 interestForDepositDistributor
@@ -469,7 +369,7 @@ library DepositManager {
         address tokenAddress = depositRecord.tokenAddress;
 
         require(
-            self.depositTokenByAddress[tokenAddress].isEnabled,
+            self.isDepositTokenEnabled[tokenAddress],
             'DepositManager: invalid deposit token'
         );
 
@@ -504,30 +404,6 @@ library DepositManager {
         );
 
         return depositRecord.depositAmount;
-    }
-
-    function getDepositTokens(State storage self)
-        external
-        view
-        returns (
-            address[] memory depositTokenAddressList,
-            bool[] memory isEnabledList
-        )
-    {
-        uint256 numDepositTokens = self.allDepositTokenAddressList.length;
-        address[] memory _depositTokenAddressList = new address[](
-            numDepositTokens
-        );
-        bool[] memory _isEnabledList = new bool[](numDepositTokens);
-
-        for (uint256 i = 0; i < numDepositTokens; i++) {
-            address tokenAddress = self.allDepositTokenAddressList[i];
-            _depositTokenAddressList[i] = tokenAddress;
-            _isEnabledList[i] = self.depositTokenByAddress[tokenAddress]
-                .isEnabled;
-        }
-
-        return (_depositTokenAddressList, _isEnabledList);
     }
 
     function getDepositRecordById(State storage self, bytes32 depositId)
@@ -565,45 +441,61 @@ library DepositManager {
         );
     }
 
-    function getDepositInterestById(
+    function getInterestDistributionByDepositId(
         State storage self,
         LiquidityPools.State storage liquidityPools,
-        Configuration.State storage configuration,
         bytes32 depositId
-    ) external view returns (uint256 interest) {
+    )
+        public
+        view
+        returns (
+            uint256 interestForDepositor,
+            uint256 interestForDepositDistributor,
+            uint256 interestForLoanDistributor,
+            uint256 interestForProtocolReserve
+        )
+    {
         DepositRecord memory depositRecord = self.depositRecordById[depositId];
+
         require(
             depositRecord.tokenAddress != address(0),
             'DepositManager: Deposit ID is invalid'
         );
 
-        uint256 originalInterest;
+        (, , uint256 loanInterest, uint256 totalDepositWeight, uint256 depositDistributorFeeRatio, uint256 loanDistributorFeeRatio, uint256 protocolReserveRatio) = liquidityPools
+            .getPoolById(depositRecord.tokenAddress, depositRecord.poolId);
 
-        /// if deposit was matured, get interest index from history
-        /// otherwise calculate by this formula: interestIndex = loanInterest / totalDeposit
-        if (depositRecord.maturedAt < now) {
-            (originalInterest, ) = _getInterestFromDaysAgo(
-                self,
-                depositRecord.tokenAddress,
-                depositRecord.weight,
-                DateTime.toDays(now - depositRecord.maturedAt)
-            );
-        } else {
-            (, , uint256 loanInterest, uint256 totalDepositWeight) = liquidityPools
-                .getPoolById(depositRecord.tokenAddress, depositRecord.poolId);
-
-            originalInterest = loanInterest.mul(depositRecord.weight).div(
-                totalDepositWeight
-            );
+        if (totalDepositWeight == 0) {
+            return (0, 0, 0, 0);
         }
-        (uint256 interestForDepositor, , ) = calculateInterestDistribution(
-            originalInterest,
-            configuration.maxDepositDistributorFeeRatio,
-            configuration.maxLoanDistributorFeeRatio,
-            configuration.protocolReserveRatio
+
+        uint256 totalInterest = loanInterest.mulFixed(
+            depositRecord.weight.divFixed(totalDepositWeight)
         );
 
-        return interestForDepositor;
+        interestForDepositDistributor = totalInterest.mulFixed(
+            depositDistributorFeeRatio
+        );
+
+        interestForLoanDistributor = totalInterest.mulFixed(
+            loanDistributorFeeRatio
+        );
+
+        interestForProtocolReserve = totalInterest.mulFixed(
+            protocolReserveRatio
+        );
+
+        interestForDepositor = totalInterest
+            .sub(interestForDepositDistributor)
+            .sub(interestForLoanDistributor)
+            .sub(interestForProtocolReserve);
+
+        return (
+            interestForDepositor,
+            interestForDepositDistributor,
+            interestForLoanDistributor,
+            interestForProtocolReserve
+        );
     }
 
     function getDepositRecordsByAccount(State storage self, address account)
@@ -690,82 +582,11 @@ library DepositManager {
             return false;
         }
 
-        (, uint256 availableAmount, , ) = liquidityPools.getPoolById(
+        (, uint256 availableAmount, , , , , ) = liquidityPools.getPoolById(
             depositRecord.tokenAddress,
             depositRecord.poolId
         );
 
         return availableAmount >= depositRecord.depositAmount;
     }
-
-    function _getInterestFromDaysAgo(
-        State storage self,
-        address tokenAddress,
-        uint256 depositWeight,
-        uint256 numDaysAgo
-    )
-        internal
-        view
-        returns (uint256 totalInterest, uint256 loanDistributorFeeRatio)
-    {
-        DepositInterestHistory storage history = self
-            .depositTokenByAddress[tokenAddress]
-            .depositInterestHistory;
-
-        uint256 totalDepositWeight = history.totalDepositWeightByDay[history
-            .lastDay
-            .sub(numDaysAgo)];
-
-        loanDistributorFeeRatio = history.loanDistributorFeeRatioByDay[history
-            .lastDay
-            .sub(numDaysAgo)];
-
-        if (totalDepositWeight == 0) {
-            return (0, loanDistributorFeeRatio);
-        }
-
-        totalInterest = history.totalInterestByDay[history.lastDay.sub(
-            numDaysAgo
-        )];
-        // InterestPerDepositRecord = totalInterest * depositWeight / totalDepositWeight
-        return (
-            totalInterest.mulFixed(depositWeight.divFixed(totalDepositWeight)),
-            loanDistributorFeeRatio
-        );
-    }
-
-    function calculateInterestDistribution(
-        uint256 originalInterest,
-        uint256 depositDistributorFeeRatio,
-        uint256 loanDistributorFeeRatio,
-        uint256 protocolReserveRatio
-    )
-        internal
-        pure
-        returns (
-            uint256 interestForDepositor,
-            uint256 interestForDepositDistributor,
-            uint256 interestForProtocolReserve
-        )
-    {
-        interestForDepositDistributor = originalInterest.mulFixed(
-            depositDistributorFeeRatio
-        );
-        uint256 interestForLoanDistributor = originalInterest.mulFixed(
-            loanDistributorFeeRatio
-        );
-        interestForProtocolReserve = originalInterest.mulFixed(
-            protocolReserveRatio
-        );
-
-        return (
-            originalInterest
-                .sub(interestForDepositDistributor)
-                .sub(interestForLoanDistributor)
-                .sub(interestForProtocolReserve),
-            interestForDepositDistributor,
-            interestForProtocolReserve
-        );
-    }
-
 }

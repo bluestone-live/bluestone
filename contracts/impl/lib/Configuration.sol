@@ -9,16 +9,11 @@ library Configuration {
         uint256 maxLoanDistributorFeeRatio;
         // The percentage protocol takes from deposit interest as reserve.
         uint256 protocolReserveRatio;
-        // Lock all functionalities related to deposit, loan and liquidating.
-        bool isUserActionsLocked;
         address protocolAddress;
         IInterestModel interestModel;
         // Token address -> price oracle
         mapping(address => IPriceOracle) priceOracleByToken;
     }
-
-    event LockUserActions();
-    event UnlockUserActions();
 
     function setPriceOracle(
         State storage self,
@@ -59,15 +54,5 @@ library Configuration {
     ) external {
         self.maxDepositDistributorFeeRatio = maxDepositDistributorFeeRatio;
         self.maxLoanDistributorFeeRatio = maxLoanDistributorFeeRatio;
-    }
-
-    function lockUserActions(State storage self) external {
-        self.isUserActionsLocked = true;
-        emit LockUserActions();
-    }
-
-    function unlockUserActions(State storage self) external {
-        self.isUserActionsLocked = false;
-        emit UnlockUserActions();
     }
 }

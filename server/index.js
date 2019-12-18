@@ -12,7 +12,6 @@ route(router);
 
 jobs.postTokenPrices.start();
 jobs.postDaiPrice.start();
-jobs.updateDepositMaturity.start();
 
 app
   .use(koaBody())

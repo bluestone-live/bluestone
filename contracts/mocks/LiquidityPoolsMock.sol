@@ -1,11 +1,14 @@
 pragma solidity ^0.5.0;
 
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import '../impl/lib/LiquidityPools.sol';
 import '../impl/lib/LoanManager.sol';
+import '../lib/DateTime.sol';
 
 contract LiquidityPoolsMock {
     using LiquidityPools for LiquidityPools.State;
     using LoanManager for LoanManager.State;
+    using SafeMath for uint256;
 
     LiquidityPools.State _liquidityPools;
     LoanManager.State _loanManager;
@@ -18,22 +21,24 @@ contract LiquidityPoolsMock {
         _liquidityPools.initPoolGroupIfNeeded(tokenAddress, numPools);
     }
 
-    function updatePoolGroupDepositMaturity(address tokenAddress) external {
-        _liquidityPools.updatePoolGroupDepositMaturity(tokenAddress);
-    }
-
     function addDepositToPool(
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        uint256 depositWeight
+        uint256 depositWeight,
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio,
+        uint256 protocolReserveRatio
     ) external returns (uint256 poolId) {
         return
             _liquidityPools.addDepositToPool(
                 tokenAddress,
                 depositAmount,
                 depositTerm,
-                depositWeight
+                depositWeight,
+                depositDistributorFeeRatio,
+                loanDistributorFeeRatio,
+                protocolReserveRatio
             );
     }
 
@@ -72,7 +77,10 @@ contract LiquidityPoolsMock {
             uint256 depositAmount,
             uint256 availableAmount,
             uint256 loanInterest,
-            uint256 totalDepositWeight
+            uint256 totalDepositWeight,
+            uint256 depositDistributorFeeRatio,
+            uint256 loanDistributorFeeRatio,
+            uint256 protocolReserveRatio
         )
     {
         return _liquidityPools.getPool(tokenAddress, poolIndex);
@@ -85,7 +93,10 @@ contract LiquidityPoolsMock {
             uint256 depositAmount,
             uint256 availableAmount,
             uint256 loanInterest,
-            uint256 totalDepositWeight
+            uint256 totalDepositWeight,
+            uint256 depositDistributorFeeRatio,
+            uint256 loanDistributorFeeRatio,
+            uint256 protocolReserveRatio
         )
     {
         return _liquidityPools.getPoolById(tokenAddress, poolId);
@@ -121,16 +132,12 @@ contract LiquidityPoolsMock {
     function getPoolGroup(address tokenAddress)
         external
         view
-        returns (bool isInitialized, uint256 numPools, uint256 firstPoolId)
+        returns (bool isInitialized, uint256 numPools)
     {
         LiquidityPools.PoolGroup memory poolGroup = _liquidityPools
             .poolGroups[tokenAddress];
 
-        return (
-            poolGroup.isInitialized,
-            poolGroup.numPools,
-            poolGroup.firstPoolId
-        );
+        return (poolGroup.isInitialized, poolGroup.numPools);
     }
 
     function populatePoolGroup(
@@ -150,7 +157,7 @@ contract LiquidityPoolsMock {
             'LiquidityPoolsMock: depositAmountList and availableAmountList must have the same length'
         );
 
-        uint256 poolId = poolGroup.firstPoolId;
+        uint256 poolId = DateTime.toDays();
 
         for (uint256 i = 0; i < depositAmountList.length; i++) {
             LiquidityPools.Pool storage pool = poolGroup.poolsById[poolId];
@@ -179,7 +186,7 @@ contract LiquidityPoolsMock {
         loanIdList.push(loanId);
     }
 
-    function getLoanRecordLoanAmountByPool(bytes32 loanId, uint256 poolId)
+    function getLoanRecordLoanAmountByPool(bytes32 loanId, uint256 poolIndex)
         external
         view
         returns (uint256 loanAmountByPool)
@@ -187,6 +194,6 @@ contract LiquidityPoolsMock {
         LoanManager.LoanRecord storage loanRecord = _loanManager
             .loanRecordById[loanId];
 
-        return loanRecord.loanAmountByPool[poolId];
+        return loanRecord.loanAmountByPool[DateTime.toDays().add(poolIndex)];
     }
 }

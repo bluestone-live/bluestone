@@ -18,7 +18,6 @@ interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
   record?: ILoanRecord;
   availableCollaterals: IAvailableCollateral[];
-  isUserActionsLocked: boolean;
   tokens: IToken[];
 }
 
@@ -27,7 +26,6 @@ const AddCollateralForm = (props: IProps) => {
     accountAddress,
     record,
     availableCollaterals,
-    isUserActionsLocked,
     tokens,
     history,
     t,
@@ -79,9 +77,6 @@ const AddCollateralForm = (props: IProps) => {
   const onSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      if (isUserActionsLocked) {
-        return;
-      }
       const { loanService } = await getService();
 
       setLoading(true);
@@ -106,13 +101,7 @@ const AddCollateralForm = (props: IProps) => {
         setLoading(false);
       }
     },
-    [
-      accountAddress,
-      record,
-      amount,
-      useAvailableCollateral,
-      isUserActionsLocked,
-    ],
+    [accountAddress, record, amount, useAvailableCollateral],
   );
 
   return (
@@ -215,12 +204,7 @@ const AddCollateralForm = (props: IProps) => {
               <label />
             </Cell>
             <Cell scale={3}>
-              <Button
-                primary
-                fullWidth
-                disabled={isUserActionsLocked}
-                loading={loading}
-              >
+              <Button primary fullWidth loading={loading}>
                 {t('add_collateral')}
               </Button>
             </Cell>
