@@ -10,6 +10,7 @@ const LiquidityPoolsMock = artifacts.require('LiquidityPoolsMock');
 const DepositManagerMock = artifacts.require('DepositManagerMock');
 const LoanManagerMock = artifacts.require('LoanManagerMock');
 const AccountManagerMock = artifacts.require('AccountManagerMock');
+const PayableProxyMock = artifacts.require('PayableProxyMock');
 const InterestModel = artifacts.require('InterestModel');
 const MedianizerMock = artifacts.require('MedianizerMock');
 const OasisDexMock = artifacts.require('OasisDexMock');
@@ -69,8 +70,9 @@ module.exports = async function(deployer, network) {
   ]);
   await deployer.link(AccountManager, [Protocol, AccountManagerMock]);
 
-  await deploy(deployer, network, Protocol);
+  const protocolAddress = await deploy(deployer, network, Protocol);
   await deploy(deployer, network, InterestModel);
+  await deploy(deployer, network, PayableProxyMock, protocolAddress);
 
   const ethPrice = toFixedBN(200);
   const medianizer = await deployer.deploy(MedianizerMock);

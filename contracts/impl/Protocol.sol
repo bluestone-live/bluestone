@@ -6,7 +6,7 @@ import './Pausable.sol';
 import '../interface/IProtocol.sol';
 import '../interface/IPriceOracle.sol';
 import '../interface/IInterestModel.sol';
-import '../interface/IStruct.sol';
+import '../interface/IPayableProxy.sol';
 import './lib/Configuration.sol';
 import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';
@@ -508,7 +508,20 @@ contract Protocol is IProtocol, Ownable, Pausable {
         _configuration.setInterestModel(interestModel);
     }
 
-    function setProtocolAddress(address protocolAddress)
+    function setPayableProxy(IPayableProxy payableProxy)
+        external
+        whenNotPaused
+        onlyOwner
+        override
+    {
+        _configuration.setPayableProxy(payableProxy);
+        ERC20(payableProxy.getWETHAddress()).approve(
+            address(payableProxy),
+            uint256(-1)
+        );
+    }
+
+    function setProtocolAddress(address payable protocolAddress)
         external
         onlyOwner
         override

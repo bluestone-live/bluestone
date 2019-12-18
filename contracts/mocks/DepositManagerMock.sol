@@ -179,7 +179,7 @@ contract DepositManagerMock {
         _configuration.setInterestModel(interestModel);
     }
 
-    function setProtocolAddress(address protocolAddress) external {
+    function setProtocolAddress(address payable protocolAddress) external {
         _configuration.setProtocolAddress(protocolAddress);
     }
 }

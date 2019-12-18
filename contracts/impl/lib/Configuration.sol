@@ -2,6 +2,7 @@ pragma solidity ^0.6.0;
 
 import '../../interface/IInterestModel.sol';
 import '../../interface/IPriceOracle.sol';
+import '../../interface/IPayableProxy.sol';
 
 library Configuration {
     struct State {
@@ -9,10 +10,11 @@ library Configuration {
         uint256 maxLoanDistributorFeeRatio;
         // The percentage protocol takes from deposit interest as reserve.
         uint256 protocolReserveRatio;
-        address protocolAddress;
+        address payable protocolAddress;
         IInterestModel interestModel;
         // Token address -> price oracle
         mapping(address => IPriceOracle) priceOracleByToken;
+        IPayableProxy payableProxy;
     }
 
     function setPriceOracle(
@@ -23,9 +25,16 @@ library Configuration {
         self.priceOracleByToken[tokenAddress] = priceOracle;
     }
 
-    function setProtocolAddress(State storage self, address protocolAddress)
+    function setPayableProxy(State storage self, IPayableProxy payableProxy)
         external
     {
+        self.payableProxy = payableProxy;
+    }
+
+    function setProtocolAddress(
+        State storage self,
+        address payable protocolAddress
+    ) external {
         require(
             protocolAddress != address(0),
             'Configuration: invalid protocol address'

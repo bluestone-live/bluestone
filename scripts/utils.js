@@ -55,6 +55,8 @@ const deploy = async (deployer, network, contract, ...args) => {
   saveNetwork(network, ['contracts', contractName], deployedContract.address);
 
   debug(`Deployed ${contractName} at ${deployedContract.address}.`);
+
+  return deployedContract.address;
 };
 
 const getTokenAddress = async tokenSymbol => {
