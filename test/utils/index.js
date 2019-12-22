@@ -42,8 +42,11 @@ const createERC20Token = async (
   return token;
 };
 
+const ETHIdentificationAddress = '0x0000000000000000000000000000000000000001';
+
 module.exports = {
   printLogs,
   createERC20Token,
   toFixedBN,
+  ETHIdentificationAddress,
 };

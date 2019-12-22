@@ -3,7 +3,7 @@ pragma solidity ^0.6.0;
 interface IStruct {
     struct DepositRecord {
         bytes32 depositId;
-        address ownerAddress;
+        address payable ownerAddress;
         address tokenAddress;
         uint256 depositTerm;
         uint256 depositAmount;
@@ -12,13 +12,13 @@ interface IStruct {
         uint256 maturedAt;
         uint256 withdrewAt;
         uint256 weight;
-        address distributorAddress;
+        address payable distributorAddress;
     }
 
     struct LoanRecord {
         bool isClosed;
         bytes32 loanId;
-        address ownerAddress;
+        address payable ownerAddress;
         address loanTokenAddress;
         address collateralTokenAddress;
         uint256 loanAmount;
@@ -35,7 +35,7 @@ interface IStruct {
         uint256 lastInterestUpdatedAt;
         uint256 lastRepaidAt;
         uint256 lastLiquidatedAt;
-        address distributorAddress;
+        address payable distributorAddress;
         uint256 distributorInterest;
     }
 
@@ -68,7 +68,7 @@ interface IStruct {
         address tokenAddress;
         uint256 depositAmount;
         uint256 depositTerm;
-        address distributorAddress;
+        address payable distributorAddress;
     }
 
     struct LoanParameters {
@@ -77,6 +77,6 @@ interface IStruct {
         uint256 loanAmount;
         uint256 collateralAmount;
         uint256 loanTerm;
-        address distributorAddress;
+        address payable distributorAddress;
     }
 }

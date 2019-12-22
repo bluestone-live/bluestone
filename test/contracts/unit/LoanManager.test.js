@@ -1,7 +1,13 @@
 const LoanManager = artifacts.require('LoanManagerMock');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
-const { toFixedBN, createERC20Token } = require('../../utils/index.js');
+const WETH9 = artifacts.require('WETH9');
+const {
+  toFixedBN,
+  createERC20Token,
+  ETHIdentificationAddress,
+} = require('../../utils/index.js');
+const PayableProxy = artifacts.require('PayableProxyMock');
 const {
   BN,
   expectRevert,
@@ -17,20 +23,28 @@ contract('LoanManager', function([
   liquidator,
   distributorAddress,
 ]) {
-  let loanManager, priceOracle, interestModel;
+  let loanManager, priceOracle, interestModel, payableProxy;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
+
+  const ZEROAddress = '0x0000000000000000000000000000000000000000';
+  let weth;
 
   beforeEach(async () => {
     loanManager = await LoanManager.new();
     priceOracle = await SingleFeedPriceOracle.new();
     interestModel = await InterestModel.new();
+    payableProxy = await PayableProxy.new(loanManager.address);
 
+    weth = await WETH9.new();
     await loanManager.setInterestModel(interestModel.address);
     await loanManager.setMaxDistributorFeeRatios(
       depositDistributorFeeRatio,
       loanDistributorFeeRatio,
     );
+    await payableProxy.setWETHAddress(weth.address);
+
+    await loanManager.setPayableProxy(payableProxy.address);
   });
 
   describe('#getLoanRecordById', () => {
@@ -208,7 +222,7 @@ contract('LoanManager', function([
     const collateralAmount = toFixedBN(30);
     const loanTerm = 30;
 
-    let loanToken, collateralToken, recordId;
+    let loanToken, collateralToken, recordId, ETHRecordId;
 
     beforeEach(async () => {
       loanToken = await createERC20Token(depositor, initialSupply);
@@ -217,6 +231,10 @@ contract('LoanManager', function([
       await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
       await loanManager.setPriceOracle(
         collateralToken.address,
+        priceOracle.address,
+      );
+      await loanManager.setPriceOracle(
+        ETHIdentificationAddress,
         priceOracle.address,
       );
       await loanManager.enableDepositToken(loanToken.address);
@@ -231,7 +249,7 @@ contract('LoanManager', function([
 
       await loanManager.deposit(
         loanToken.address,
-        depositAmount,
+        depositAmount.mul(new BN(2)),
         depositTerm,
         distributorAddress,
         {
@@ -242,6 +260,11 @@ contract('LoanManager', function([
       await loanManager.enableLoanAndCollateralTokenPair(
         loanToken.address,
         collateralToken.address,
+      );
+
+      await loanManager.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        ETHIdentificationAddress,
       );
 
       const { logs } = await loanManager.loan(
@@ -258,6 +281,22 @@ contract('LoanManager', function([
 
       recordId = logs.filter(log => log.event === 'LoanSucceed')[0].args
         .recordId;
+
+      const { logs: logs2 } = await loanManager.loan(
+        loanToken.address,
+        ETHIdentificationAddress,
+        loanAmount,
+        toFixedBN(0),
+        loanTerm,
+        distributorAddress,
+        {
+          from: loaner,
+          value: collateralAmount,
+        },
+      );
+
+      ETHRecordId = logs2.filter(log => log.event === 'LoanSucceed')[0].args
+        .recordId;
     });
 
     it('succeeds', async () => {
@@ -270,9 +309,24 @@ contract('LoanManager', function([
         },
       );
 
+      const { logs: logs2 } = await loanManager.addCollateral(
+        ETHRecordId,
+        toFixedBN(0),
+        {
+          from: loaner,
+          value: collateralAmount,
+        },
+      );
+
       expectEvent.inLogs(logs, 'AddCollateralSucceed', {
         accountAddress: loaner,
         recordId,
+        collateralAmount,
+      });
+
+      expectEvent.inLogs(logs2, 'AddCollateralSucceed', {
+        accountAddress: loaner,
+        recordId: ETHRecordId,
         collateralAmount,
       });
     });
@@ -407,6 +461,10 @@ contract('LoanManager', function([
         collateralToken.address,
         priceOracle.address,
       );
+      await loanManager.setPriceOracle(
+        ETHIdentificationAddress,
+        priceOracle.address,
+      );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableDepositTerm(depositTerm);
       await loanToken.approve(loanManager.address, initialSupply, {
@@ -419,7 +477,7 @@ contract('LoanManager', function([
 
       await loanManager.deposit(
         loanToken.address,
-        depositAmount,
+        depositAmount.mul(new BN(2)),
         depositTerm,
         distributorAddress,
         {
@@ -458,6 +516,38 @@ contract('LoanManager', function([
         });
       });
     });
+
+    context('when loan token by collateral ETH', () => {
+      beforeEach(async () => {
+        await loanManager.enableLoanAndCollateralTokenPair(
+          loanToken.address,
+          ETHIdentificationAddress,
+        );
+      });
+
+      it('succeeds', async () => {
+        const loanAmount = toFixedBN(10);
+        const collateralAmount = toFixedBN(30);
+        const loanTerm = 30;
+
+        const { logs } = await loanManager.loan(
+          loanToken.address,
+          ETHIdentificationAddress,
+          loanAmount,
+          toFixedBN(0),
+          loanTerm,
+          distributorAddress,
+          {
+            from: loaner,
+            value: collateralAmount,
+          },
+        );
+
+        expectEvent.inLogs(logs, 'LoanSucceed', {
+          accountAddress: loaner,
+        });
+      });
+    });
   });
 
   describe('#repayLoan', () => {
@@ -467,7 +557,7 @@ contract('LoanManager', function([
     const loanAmount = toFixedBN(10);
     const collateralAmount = toFixedBN(30);
     const loanTerm = 30;
-    let loanToken, collateralToken, recordId;
+    let loanToken, collateralToken, recordId, ETHRecordId;
 
     beforeEach(async () => {
       loanToken = await createERC20Token(depositor, initialSupply);
@@ -478,10 +568,19 @@ contract('LoanManager', function([
         collateralToken.address,
         priceOracle.address,
       );
+      await loanManager.setPriceOracle(
+        ETHIdentificationAddress,
+        priceOracle.address,
+      );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableLoanAndCollateralTokenPair(
         loanToken.address,
         collateralToken.address,
+        { from: owner },
+      );
+      await loanManager.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        ETHIdentificationAddress,
         { from: owner },
       );
       await loanManager.enableDepositTerm(depositTerm);
@@ -489,14 +588,13 @@ contract('LoanManager', function([
       await loanToken.approve(loanManager.address, initialSupply, {
         from: depositor,
       });
-
       await collateralToken.approve(loanManager.address, initialSupply, {
         from: loaner,
       });
 
       await loanManager.deposit(
         loanToken.address,
-        depositAmount,
+        depositAmount.mul(new BN(2)),
         depositTerm,
         distributorAddress,
         {
@@ -504,7 +602,7 @@ contract('LoanManager', function([
         },
       );
 
-      const { logs } = await loanManager.loan(
+      const { logs: logs1 } = await loanManager.loan(
         loanToken.address,
         collateralToken.address,
         loanAmount,
@@ -516,7 +614,23 @@ contract('LoanManager', function([
         },
       );
 
-      recordId = logs.filter(log => log.event === 'LoanSucceed')[0].args
+      recordId = logs1.filter(log => log.event === 'LoanSucceed')[0].args
+        .recordId;
+
+      const { logs: logs2 } = await loanManager.loan(
+        loanToken.address,
+        ETHIdentificationAddress,
+        loanAmount,
+        toFixedBN(0),
+        loanTerm,
+        distributorAddress,
+        {
+          from: loaner,
+          value: collateralAmount,
+        },
+      );
+
+      ETHRecordId = logs2.filter(log => log.event === 'LoanSucceed')[0].args
         .recordId;
     });
 
@@ -526,27 +640,41 @@ contract('LoanManager', function([
         const prevLoanRecord = await loanManager.getLoanRecordDetailsById(
           recordId,
         );
+        const prevETHLoanRecord = await loanManager.getLoanRecordDetailsById(
+          ETHRecordId,
+        );
         const prevDistributorBalance = await loanToken.balanceOf(
           distributorAddress,
         );
 
         await loanToken.approve(
           loanManager.address,
-          prevLoanRecord.remainingDebt,
+          prevLoanRecord.remainingDebt.add(prevETHLoanRecord.remainingDebt),
           {
             from: loaner,
           },
         );
 
-        const { logs } = await loanManager.repayLoan(
+        const { logs: logs1 } = await loanManager.repayLoan(
           recordId,
           prevLoanRecord.remainingDebt,
           { from: loaner },
         );
 
-        expectEvent.inLogs(logs, 'RepayLoanSucceed', {
+        expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
           accountAddress: loaner,
           recordId: recordId,
+        });
+
+        const { logs: logs2 } = await loanManager.repayLoan(
+          ETHRecordId,
+          prevETHLoanRecord.remainingDebt,
+          { from: loaner },
+        );
+
+        expectEvent.inLogs(logs2, 'RepayLoanSucceed', {
+          accountAddress: loaner,
+          recordId: ETHRecordId,
         });
 
         const currLoanRecord = await loanManager.getLoanRecordDetailsById(
@@ -574,7 +702,7 @@ contract('LoanManager', function([
     const loanAmount = toFixedBN(10);
     const collateralAmount = toFixedBN(30);
     const loanTerm = 30;
-    let loanToken, collateralToken, recordId;
+    let loanToken, collateralToken, recordId, ETHRecordId;
 
     beforeEach(async () => {
       loanToken = await createERC20Token(depositor, initialSupply);
@@ -586,10 +714,19 @@ contract('LoanManager', function([
         collateralToken.address,
         priceOracle.address,
       );
+      await loanManager.setPriceOracle(
+        ETHIdentificationAddress,
+        priceOracle.address,
+      );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.enableLoanAndCollateralTokenPair(
         loanToken.address,
         collateralToken.address,
+        { from: owner },
+      );
+      await loanManager.enableLoanAndCollateralTokenPair(
+        loanToken.address,
+        ETHIdentificationAddress,
         { from: owner },
       );
       await loanManager.enableDepositTerm(depositTerm);
@@ -604,7 +741,7 @@ contract('LoanManager', function([
 
       await loanManager.deposit(
         loanToken.address,
-        depositAmount,
+        depositAmount.mul(new BN(2)),
         depositTerm,
         distributorAddress,
         {
@@ -612,7 +749,7 @@ contract('LoanManager', function([
         },
       );
 
-      const { logs } = await loanManager.loan(
+      const { logs: logs1 } = await loanManager.loan(
         loanToken.address,
         collateralToken.address,
         loanAmount,
@@ -624,7 +761,23 @@ contract('LoanManager', function([
         },
       );
 
-      recordId = logs.filter(log => log.event === 'LoanSucceed')[0].args
+      recordId = logs1.filter(log => log.event === 'LoanSucceed')[0].args
+        .recordId;
+
+      const { logs: logs2 } = await loanManager.loan(
+        loanToken.address,
+        ETHIdentificationAddress,
+        loanAmount,
+        toFixedBN(0),
+        loanTerm,
+        distributorAddress,
+        {
+          from: loaner,
+          value: collateralAmount,
+        },
+      );
+
+      ETHRecordId = logs2.filter(log => log.event === 'LoanSucceed')[0].args
         .recordId;
     });
 
@@ -637,10 +790,13 @@ contract('LoanManager', function([
         const prevLoanRecord = await loanManager.getLoanRecordDetailsById(
           recordId,
         );
+        const prevETHLoanRecord = await loanManager.getLoanRecordDetailsById(
+          ETHRecordId,
+        );
 
         await loanToken.approve(
           loanManager.address,
-          prevLoanRecord.remainingDebt,
+          prevLoanRecord.remainingDebt.add(prevETHLoanRecord.remainingDebt),
           {
             from: liquidator,
           },
@@ -655,6 +811,22 @@ contract('LoanManager', function([
         expectEvent.inLogs(logs, 'LiquidateLoanSucceed', {
           accountAddress: liquidator,
           recordId: recordId,
+        });
+
+        const { logs: logs2 } = await loanManager.liquidateLoan(
+          ETHRecordId,
+          prevETHLoanRecord.remainingDebt,
+          { from: liquidator },
+        );
+
+        expectEvent.inLogs(logs, 'LiquidateLoanSucceed', {
+          accountAddress: liquidator,
+          recordId: recordId,
+        });
+
+        expectEvent.inLogs(logs2, 'LiquidateLoanSucceed', {
+          accountAddress: liquidator,
+          recordId: ETHRecordId,
         });
 
         const currLoanRecord = await loanManager.getLoanRecordDetailsById(
@@ -894,7 +1066,7 @@ contract('LoanManager', function([
       });
     });
 
-    context('when minimum collateral coverage ratios are added', () => {
+    context('when token pairs are enabled', () => {
       let loanTokenAddress, collateralTokenAddressList, liquidationDiscountList;
 
       beforeEach(async () => {

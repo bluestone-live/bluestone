@@ -193,7 +193,7 @@ library DepositManager {
             'DepositManager: invalid distributor address'
         );
 
-        address accountAddress = msg.sender;
+        address payable accountAddress = msg.sender;
 
         uint256 depositWeight = configuration.interestModel.getDepositWeight(
             depositParameters.depositAmount,
@@ -237,12 +237,17 @@ library DepositManager {
         });
 
         // Transfer token from user to protocol (`this` refers to Protocol contract)
-        ERC20(depositParameters.tokenAddress).safeTransferFrom(
-            accountAddress,
-            address(this),
-            depositParameters.depositAmount
-        );
-
+        if (address(depositParameters.tokenAddress) == address(1)) {
+            configuration.payableProxy.receiveETH.value(
+                depositParameters.depositAmount
+            )();
+        } else {
+            ERC20(address(depositParameters.tokenAddress)).safeTransferFrom(
+                accountAddress,
+                address(this),
+                depositParameters.depositAmount
+            );
+        }
         accountManager.addToAccountGeneralStat(
             accountAddress,
             'numberOfDeposits',
@@ -291,7 +296,7 @@ library DepositManager {
         );
 
         address tokenAddress = depositRecord.tokenAddress;
-        address accountAddress = msg.sender;
+        address payable accountAddress = msg.sender;
 
         require(
             accountAddress == depositRecord.ownerAddress,
@@ -318,26 +323,45 @@ library DepositManager {
 
         depositRecord.withdrewAt = now;
 
-        if (depositRecord.distributorAddress != address(this)) {
-            // Transfer deposit distributor fee to distributor
+        if (tokenAddress == address(1)) {
+            // Transfer deposit distributor fee to distributor if distributor set
+            if (depositRecord.distributorAddress != address(this)) {
+                configuration.payableProxy.sendETH(
+                    depositRecord.distributorAddress,
+                    interestForDepositDistributor
+                );
+            }
+            // Transfer protocol reserve to protocol address
+            configuration.payableProxy.sendETH(
+                configuration.protocolAddress,
+                interestForProtocolReserve
+            );
+            // Transfer deposit plus interest to depositor
+            configuration.payableProxy.sendETH(
+                accountAddress,
+                depositPlusInterestAmount
+            );
+        } else {
+            // Transfer deposit distributor fee to distributor if distributor set
+            if (depositRecord.distributorAddress != address(this)) {
+                ERC20(tokenAddress).safeTransfer(
+                    depositRecord.distributorAddress,
+                    interestForDepositDistributor
+                );
+            }
+
+            // Transfer protocol reserve to protocol address
             ERC20(tokenAddress).safeTransfer(
-                depositRecord.distributorAddress,
-                interestForDepositDistributor
+                configuration.protocolAddress,
+                interestForProtocolReserve
+            );
+
+            // Transfer deposit plus interest to depositor
+            ERC20(tokenAddress).safeTransfer(
+                accountAddress,
+                depositPlusInterestAmount
             );
         }
-
-        // Transfer protocol reserve to protocol address
-        ERC20(tokenAddress).safeTransfer(
-            configuration.protocolAddress,
-            interestForProtocolReserve
-        );
-
-        // Transfer deposit plus interest to depositor
-        ERC20(tokenAddress).safeTransfer(
-            accountAddress,
-            depositPlusInterestAmount
-        );
-
         emit WithdrawSucceed(
             accountAddress,
             depositId,
@@ -350,6 +374,7 @@ library DepositManager {
     function earlyWithdraw(
         State storage self,
         LiquidityPools.State storage liquidityPools,
+        Configuration.State storage configuration,
         bytes32 depositId
     ) external returns (uint256 withdrewAmount) {
         IStruct.DepositRecord storage depositRecord = self
@@ -374,10 +399,17 @@ library DepositManager {
 
         depositRecord.withdrewAt = now;
 
-        ERC20(depositRecord.tokenAddress).safeTransfer(
-            msg.sender,
-            depositRecord.depositAmount
-        );
+        if (depositRecord.tokenAddress == address(1)) {
+            configuration.payableProxy.sendETH(
+                msg.sender,
+                depositRecord.depositAmount
+            );
+        } else {
+            ERC20(depositRecord.tokenAddress).safeTransfer(
+                msg.sender,
+                depositRecord.depositAmount
+            );
+        }
 
         emit WithdrawSucceed(
             msg.sender,

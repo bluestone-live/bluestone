@@ -58,6 +58,10 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 collateralAmount
     );
 
+    receive() external payable {
+        revert();
+    }
+
     /// --- Deposit Configurations---
 
     function enableDepositTerm(uint256 term) external onlyOwner override {
@@ -88,15 +92,19 @@ contract Protocol is IProtocol, Ownable, Pausable {
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        address distributorAddress
-    ) external whenNotPaused override returns (bytes32 depositId) {
-        IStruct.DepositParameters memory depositParameters = IStruct
-            .DepositParameters({
+        address payable distributorAddress
+    ) external payable whenNotPaused override returns (bytes32 depositId) {
+        IStruct.DepositParameters memory depositParameters = IStruct.DepositParameters({
             tokenAddress: tokenAddress,
-            depositAmount: depositAmount,
+            depositAmount: 0,
             depositTerm: depositTerm,
             distributorAddress: distributorAddress
         });
+        if (tokenAddress == address(1)) {
+            depositParameters.depositAmount = msg.value;
+        } else {
+            depositParameters.depositAmount = depositAmount;
+        }
 
         return
             _depositManager.deposit(
@@ -127,7 +135,12 @@ contract Protocol is IProtocol, Ownable, Pausable {
         override
         returns (uint256 withdrewAmount)
     {
-        return _depositManager.earlyWithdraw(_liquidityPools, depositId);
+        return
+            _depositManager.earlyWithdraw(
+                _liquidityPools,
+                _configuration,
+                depositId
+            );
     }
 
     function getDepositTerms()
@@ -221,8 +234,8 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        address distributorAddress
-    ) external whenNotPaused override returns (bytes32 loanId) {
+        address payable distributorAddress
+    ) external payable whenNotPaused override returns (bytes32 loanId) {
         IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
             loanTokenAddress: loanTokenAddress,
             collateralTokenAddress: collateralTokenAddress,
@@ -231,6 +244,11 @@ contract Protocol is IProtocol, Ownable, Pausable {
             loanTerm: loanTerm,
             distributorAddress: distributorAddress
         });
+        if (collateralTokenAddress == address(1)) {
+            loanParameters.collateralAmount = msg.value;
+        } else {
+            loanParameters.collateralAmount = collateralAmount;
+        }
 
         loanId = _loanManager.loan(
             _configuration,
@@ -253,7 +271,13 @@ contract Protocol is IProtocol, Ownable, Pausable {
         override
         returns (uint256 remainingDebt)
     {
-        return _loanManager.repayLoan(_liquidityPools, loanId, repayAmount);
+        return
+            _loanManager.repayLoan(
+                _liquidityPools,
+                _configuration,
+                loanId,
+                repayAmount
+            );
     }
 
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
@@ -350,13 +374,22 @@ contract Protocol is IProtocol, Ownable, Pausable {
         return _loanManager.getLoanRecordsByAccount(accountAddress);
     }
 
-    function addCollateral(bytes32 loanId, uint256 collateralAmount)
+    /// @dev Once the msg.value greater than 0, it will ignore collateralAmount parameter and use msg.value instead
+    function addCollateral(
+        bytes32 loanId,
+        uint256 collateralAmount
+    )
         external
+        payable
         whenNotPaused
         override
         returns (uint256 totalCollateralAmount)
     {
-        return _loanManager.addCollateral(loanId, collateralAmount);
+        if (msg.value > 0) {
+            return _loanManager.addCollateral(_configuration, loanId, msg.value);
+        } else {
+            return _loanManager.addCollateral(_configuration, loanId, collateralAmount);
+        }
     }
 
     function enableLoanAndCollateralTokenPair(

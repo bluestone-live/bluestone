@@ -1,6 +1,8 @@
 const DepositManager = artifacts.require('DepositManagerMock');
+const PayableProxy = artifacts.require('PayableProxyMock');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
+const WETH9 = artifacts.require('WETH9');
 const {
   expectRevert,
   expectEvent,
@@ -8,10 +10,14 @@ const {
   time,
 } = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
-const { createERC20Token, toFixedBN } = require('../../utils/index');
+const {
+  createERC20Token,
+  toFixedBN,
+  ETHIdentificationAddress,
+} = require('../../utils/index');
 
 contract('DepositManager', function([
-  _,
+  owner,
   depositor,
   distributorAddress,
   protocolAddress,
@@ -19,20 +25,26 @@ contract('DepositManager', function([
   const depositTerm = 30;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
-  let token, depositManager, datetime;
+  const ZEROAddress = '0x0000000000000000000000000000000000000000';
+  let token, depositManager, datetime, payableProxy;
   let interestModel;
 
   beforeEach(async () => {
     depositManager = await DepositManager.new();
     interestModel = await InterestModel.new();
+    payableProxy = await PayableProxy.new(depositManager.address);
     datetime = await DateTime.new();
     token = await createERC20Token(depositor);
+    weth = await WETH9.new();
     await depositManager.setInterestModel(interestModel.address);
     await depositManager.setMaxDistributorFeeRatios(
       depositDistributorFeeRatio,
       loanDistributorFeeRatio,
     );
     await depositManager.setProtocolAddress(protocolAddress);
+    await payableProxy.setWETHAddress(weth.address);
+
+    await depositManager.setPayableProxy(payableProxy.address);
   });
 
   describe('#enableDepositTerm', () => {
@@ -88,7 +100,7 @@ contract('DepositManager', function([
   });
 
   describe('#enableDepositToken', () => {
-    const tokenAddress = '0x0000000000000000000000000000000000000001';
+    const tokenAddress = '0x0000000000000000000000000000000000000002';
 
     context('when token is not enabled', () => {
       it('succeeds', async () => {
@@ -207,6 +219,40 @@ contract('DepositManager', function([
           });
         });
       });
+      context('when deposit ETH', () => {
+        beforeEach(async () => {
+          await depositManager.enableDepositTerm(depositTerm);
+          await depositManager.enableDepositToken(ETHIdentificationAddress);
+        });
+
+        it('succeeds', async () => {
+          const originalWETHBalanceOfProtocol = await weth.balanceOf(
+            depositManager.address,
+          );
+
+          const { logs } = await depositManager.deposit(
+            ETHIdentificationAddress,
+            toFixedBN(0),
+            depositTerm,
+            distributorAddress,
+            {
+              from: depositor,
+              value: depositAmount,
+            },
+          );
+
+          const WETHBalanceOfProtocol = await weth.balanceOf(
+            depositManager.address,
+          );
+
+          expectEvent.inLogs(logs, 'DepositSucceed', {
+            accountAddress: depositor,
+          });
+          expect(
+            WETHBalanceOfProtocol.sub(originalWETHBalanceOfProtocol),
+          ).to.bignumber.equal(depositAmount);
+        });
+      });
     });
   });
 
@@ -215,6 +261,7 @@ contract('DepositManager', function([
 
     beforeEach(async () => {
       await depositManager.enableDepositToken(token.address);
+      await depositManager.enableDepositToken(ETHIdentificationAddress);
       await depositManager.enableDepositTerm(depositTerm);
 
       await token.approve(depositManager.address, depositAmount, {
@@ -224,9 +271,10 @@ contract('DepositManager', function([
 
     context('when deposit is valid', () => {
       let recordId;
+      let ETHRecordId;
 
       beforeEach(async () => {
-        const { logs } = await depositManager.deposit(
+        const { logs: logs1 } = await depositManager.deposit(
           token.address,
           depositAmount,
           depositTerm,
@@ -236,8 +284,22 @@ contract('DepositManager', function([
           },
         );
 
-        recordId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+        recordId = logs1.filter(log => log.event === 'DepositSucceed')[0].args
           .recordId;
+
+        const { logs: logs2 } = await depositManager.deposit(
+          ETHIdentificationAddress,
+          toFixedBN(0),
+          depositTerm,
+          distributorAddress,
+          {
+            from: depositor,
+            value: depositAmount,
+          },
+        );
+
+        ETHRecordId = logs2.filter(log => log.event === 'DepositSucceed')[0]
+          .args.recordId;
       });
 
       context('when deposit is matured', () => {
@@ -255,8 +317,18 @@ contract('DepositManager', function([
         });
 
         it('succeeds', async () => {
-          await depositManager.withdraw(recordId, {
+          const { logs: logs1 } = await depositManager.withdraw(recordId, {
             from: depositor,
+          });
+          expectEvent.inLogs(logs1, 'WithdrawSucceed', {
+            accountAddress: depositor,
+          });
+
+          const { logs: logs2 } = await depositManager.withdraw(ETHRecordId, {
+            from: depositor,
+          });
+          expectEvent.inLogs(logs2, 'WithdrawSucceed', {
+            accountAddress: depositor,
           });
         });
 
@@ -277,6 +349,7 @@ contract('DepositManager', function([
 
     beforeEach(async () => {
       await depositManager.enableDepositToken(token.address);
+      await depositManager.enableDepositToken(ETHIdentificationAddress);
       await depositManager.enableDepositTerm(depositTerm);
 
       await token.approve(depositManager.address, depositAmount, {
@@ -286,9 +359,10 @@ contract('DepositManager', function([
 
     context('when deposit is valid', () => {
       let recordId;
+      let ETHRecordId;
 
       beforeEach(async () => {
-        const { logs } = await depositManager.deposit(
+        const { logs: logs1 } = await depositManager.deposit(
           token.address,
           depositAmount,
           depositTerm,
@@ -298,13 +372,31 @@ contract('DepositManager', function([
           },
         );
 
-        recordId = logs.filter(log => log.event === 'DepositSucceed')[0].args
+        recordId = logs1.filter(log => log.event === 'DepositSucceed')[0].args
           .recordId;
+
+        const { logs: logs2 } = await depositManager.deposit(
+          ETHIdentificationAddress,
+          toFixedBN(0),
+          depositTerm,
+          distributorAddress,
+          {
+            from: depositor,
+            value: depositAmount,
+          },
+        );
+
+        ETHRecordId = logs2.filter(log => log.event === 'DepositSucceed')[0]
+          .args.recordId;
       });
 
       context('when deposit is not matured', () => {
         it('succeeds', async () => {
           await depositManager.earlyWithdraw(recordId, {
+            from: depositor,
+          });
+
+          await depositManager.earlyWithdraw(ETHRecordId, {
             from: depositor,
           });
         });

@@ -52,8 +52,8 @@ contract DepositManagerMock {
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        address distributorAddress
-    ) external returns (bytes32 depositId) {
+        address payable distributorAddress
+    ) external payable returns (bytes32 depositId) {
         IStruct.DepositParameters memory depositParameters = IStruct
             .DepositParameters({
             tokenAddress: tokenAddress,
@@ -61,6 +61,12 @@ contract DepositManagerMock {
             depositTerm: depositTerm,
             distributorAddress: distributorAddress
         });
+
+        if (tokenAddress == address(1)) {
+            depositParameters.depositAmount = msg.value;
+        } else {
+            depositParameters.depositAmount = depositAmount;
+        }
 
         return
             _depositManager.deposit(
@@ -87,7 +93,12 @@ contract DepositManagerMock {
         external
         returns (uint256 withdrewAmount)
     {
-        return _depositManager.earlyWithdraw(_liquidityPools, depositId);
+        return
+            _depositManager.earlyWithdraw(
+                _liquidityPools,
+                _configuration,
+                depositId
+            );
     }
 
     function getDepositTerms()
@@ -175,5 +186,16 @@ contract DepositManagerMock {
 
     function setProtocolAddress(address payable protocolAddress) external {
         _configuration.setProtocolAddress(protocolAddress);
+    }
+    function setPayableProxy(IPayableProxy payableProxy) external {
+        _configuration.setPayableProxy(payableProxy);
+        ERC20(payableProxy.getWETHAddress()).approve(
+            address(payableProxy),
+            uint256(-1)
+        );
+    }
+
+    function getWETHAddress() public view returns (address wethAddress) {
+        return _configuration.payableProxy.getWETHAddress();
     }
 }

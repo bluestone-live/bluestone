@@ -11,5 +11,5 @@ abstract contract IPayableProxy {
 
     /// @notice Get mapping token address
     /// @return wethAddress WETH address
-    function getWETHAddress() external virtual returns (address wethAddress);
+    function getWETHAddress() external view virtual returns (address wethAddress);
 }

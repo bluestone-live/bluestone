@@ -36,8 +36,8 @@ interface IProtocol {
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        address distributorAddress
-    ) external virtual returns (bytes32 depositId);
+        address payable distributorAddress
+    ) external payable virtual returns (bytes32 depositId);
 
     /// @notice Withdraw a deposit
     /// @param depositId Id that identifies the deposit
@@ -176,8 +176,8 @@ interface IProtocol {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        address distributorAddress
-    ) external virtual returns (bytes32 loanId);
+        address payable distributorAddress
+    ) external payable virtual returns (bytes32 loanId);
 
     /// @notice Pay back a specific amount of loan
     /// @param loanId ID that identifies the loan
@@ -206,6 +206,7 @@ interface IProtocol {
     /// @return totalCollateralAmount The total collateral amount after adding collateral
     function addCollateral(bytes32 loanId, uint256 collateralAmount)
         external
+        payable
         virtual
         returns (uint256 totalCollateralAmount);
 
@@ -294,7 +295,7 @@ interface IProtocol {
 
     /// @notice Set payable proxy
     /// @param payableProxy Payable proxy
-    function setPayableProxy(IPayableProxy payableProxy) external;
+    function setPayableProxy(IPayableProxy payableProxy) external virtual;
 
     /// @notice Set protocol address, which receives protocol reserve.
     /// @param protocolAddress Protocol address

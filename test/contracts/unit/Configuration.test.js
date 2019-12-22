@@ -56,7 +56,6 @@ contract('Configuration', function([owner]) {
     context('when address is valid', () => {
       it('succeeds', async () => {
         await configuration.setPayableProxy(payableProxy.address);
-
         expect(await configuration.getPayableProxy()).to.equal(
           payableProxy.address,
         );

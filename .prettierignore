@@ -1,3 +1,4 @@
+contracts/impl/Protocol.sol
 contracts/impl/PayableProxy.sol
 contracts/impl/WETH9.sol
 contracts/interface/IPayableProxy.sol

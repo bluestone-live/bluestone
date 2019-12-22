@@ -15,10 +15,9 @@ contract PayableProxy is IPayableProxy {
         protocolAddress = protocol;
     }
 
-    /* solium-disable-next-line */
     receive() external payable {}
 
-    function getWETHAddress() external override returns (address wethAddress) {
+    function getWETHAddress() external view override returns (address wethAddress) {
         return address(WETH);
     }
 

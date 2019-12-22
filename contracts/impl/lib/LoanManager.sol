@@ -202,6 +202,7 @@ library LoanManager {
 
     function addCollateral(
         State storage self,
+        Configuration.State storage configuration,
         bytes32 loanId,
         uint256 collateralAmount
     ) external returns (uint256 totalCollateralAmount) {
@@ -215,12 +216,16 @@ library LoanManager {
         address collateralTokenAddress = self.loanRecordById[loanId]
             .collateralTokenAddress;
 
-        // Transfer collateral from user account to protocol
-        ERC20(collateralTokenAddress).safeTransferFrom(
-            msg.sender,
-            address(this),
-            collateralAmount
-        );
+        if (collateralTokenAddress == address(1)) {
+            configuration.payableProxy.receiveETH.value(collateralAmount);
+        } else {
+            // Transfer collateral from user account to protocol
+            ERC20(collateralTokenAddress).safeTransferFrom(
+                msg.sender,
+                address(this),
+                collateralAmount
+            );
+        }
 
         self.loanRecordById[loanId].collateralAmount = self
             .loanRecordById[loanId]
@@ -335,18 +340,31 @@ library LoanManager {
 
         liquidityPools.loanFromPools(self.loanRecordById[localVars.loanId]);
 
-        // Transfer collateral tokens from loaner to protocol
-        ERC20(loanParameters.collateralTokenAddress).safeTransferFrom(
-            msg.sender,
-            address(this),
-            loanParameters.collateralAmount
-        );
+        if (loanParameters.loanTokenAddress == address(1)) {
+            configuration.payableProxy.sendETH(
+                msg.sender,
+                loanParameters.loanAmount
+            );
+        } else {
+            // Transfer loan tokens from protocol to loaner
+            ERC20(loanParameters.loanTokenAddress).safeTransfer(
+                msg.sender,
+                loanParameters.loanAmount
+            );
+        }
 
-        // Transfer loan tokens from protocol to loaner
-        ERC20(loanParameters.loanTokenAddress).safeTransfer(
-            msg.sender,
-            loanParameters.loanAmount
-        );
+        if (loanParameters.collateralTokenAddress == address(1)) {
+            configuration.payableProxy.receiveETH.value(
+                loanParameters.collateralAmount
+            )();
+        } else {
+            // Transfer collateral tokens from loaner to protocol
+            ERC20(loanParameters.collateralTokenAddress).safeTransferFrom(
+                msg.sender,
+                address(this),
+                loanParameters.collateralAmount
+            );
+        }
 
         self.loanIdsByAccount[msg.sender].push(localVars.loanId);
         emit LoanSucceed(
@@ -459,6 +477,7 @@ library LoanManager {
     function repayLoan(
         State storage self,
         LiquidityPools.State storage liquidityPools,
+        Configuration.State storage configuration,
         bytes32 loanId,
         uint256 repayAmount
     ) external returns (uint256 remainingDebt) {
@@ -489,13 +508,16 @@ library LoanManager {
         );
         loanRecord.lastRepaidAt = now;
 
-        // Transfer loan tokens from user to protocol
-        ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
-            msg.sender,
-            address(this),
-            repayAmount
-        );
-
+        if (loanRecord.loanTokenAddress == address(1)) {
+            configuration.payableProxy.receiveETH.value(repayAmount)();
+        } else {
+            ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
+                msg.sender,
+                address(this),
+                repayAmount
+            );
+        }
+        // Transfer loan tokens from user to protocol, It's better to get repay before send distribution
         if (_calculateRemainingDebt(loanRecord) == 0) {
             loanRecord.isClosed = true;
 
@@ -505,18 +527,31 @@ library LoanManager {
 
             if (remainingCollateralAmount > 0) {
                 // Transfer remaining collateral from protocol to loaner
-                ERC20(loanRecord.collateralTokenAddress).safeTransfer(
-                    msg.sender,
-                    remainingCollateralAmount
-                );
+                if (loanRecord.collateralTokenAddress == address(1)) {
+                    configuration.payableProxy.sendETH(
+                        msg.sender,
+                        remainingCollateralAmount
+                    );
+                } else {
+                    ERC20(loanRecord.collateralTokenAddress).safeTransfer(
+                        msg.sender,
+                        remainingCollateralAmount
+                    );
+                }
             }
 
             if (loanRecord.distributorAddress != address(this)) {
-                // Transfer loan distributor fee to distributor
-                ERC20(loanRecord.loanTokenAddress).safeTransfer(
-                    loanRecord.distributorAddress,
-                    loanRecord.distributorInterest
-                );
+                if (loanRecord.loanTokenAddress == address(1)) {
+                    configuration.payableProxy.sendETH(
+                        loanRecord.distributorAddress,
+                        loanRecord.distributorInterest
+                    );
+                } else {
+                    ERC20(loanRecord.loanTokenAddress).safeTransfer(
+                        loanRecord.distributorAddress,
+                        loanRecord.distributorInterest
+                    );
+                }
             }
         }
 
@@ -608,18 +643,32 @@ library LoanManager {
 
             if (localVars.remainingCollateralAmount > 0) {
                 // Transfer remaining collateral from protocol to loaner
-                ERC20(loanRecord.collateralTokenAddress).safeTransfer(
-                    loanRecord.ownerAddress,
-                    localVars.remainingCollateralAmount
-                );
+                if (loanRecord.collateralTokenAddress == address(1)) {
+                    configuration.payableProxy.sendETH(
+                        loanRecord.ownerAddress,
+                        localVars.remainingCollateralAmount
+                    );
+                } else {
+                    ERC20(loanRecord.collateralTokenAddress).safeTransfer(
+                        loanRecord.ownerAddress,
+                        localVars.remainingCollateralAmount
+                    );
+
+                }
             }
 
             if (loanRecord.distributorAddress != address(this)) {
-                // Transfer loan distributor fee to distributor
-                ERC20(loanRecord.loanTokenAddress).safeTransfer(
-                    loanRecord.distributorAddress,
-                    loanRecord.distributorInterest
-                );
+                if (loanRecord.loanTokenAddress == address(1)) {
+                    configuration.payableProxy.sendETH(
+                        loanRecord.distributorAddress,
+                        loanRecord.distributorInterest
+                    );
+                } else {
+                    ERC20(loanRecord.loanTokenAddress).safeTransfer(
+                        loanRecord.distributorAddress,
+                        loanRecord.distributorInterest
+                    );
+                }
             }
         }
 

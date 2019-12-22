@@ -5,22 +5,22 @@ import '../impl/ERC20.sol';
 import '../lib/SafeERC20.sol';
 import '../interface/IPayableProxy.sol';
 
+
 contract PayableProxyMock is IPayableProxy {
     WETH9 WETH;
-    address protocolAddress;
+    address payable protocolAddress;
 
-    constructor(address protocol) public {
+    constructor(address payable protocol) public {
         protocolAddress = protocol;
     }
 
-    /* solium-disable-next-line */
     receive() external payable {}
 
     function setWETHAddress(address payable wethAddress) external {
         WETH = WETH9(wethAddress);
     }
 
-    function getWETHAddress() external override returns (address wethAddress) {
+    function getWETHAddress() external view override returns (address wethAddress) {
         return address(WETH);
     }
 
@@ -43,7 +43,7 @@ contract PayableProxyMock is IPayableProxy {
         );
 
         // Transfer WETH from protocol contract
-        WETH.transferFrom(protocolAddress, address(this), amount);
+        WETH.transferFrom(address(protocolAddress), address(this), amount);
         // Unwrap WETH to ETH
         WETH.withdraw(amount);
         // Send ETH to address

@@ -39,8 +39,8 @@ contract LoanManagerMock {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        address distributorAddress
-    ) external returns (bytes32 loanId) {
+        address payable distributorAddress
+    ) external payable returns (bytes32 loanId) {
         IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
             loanTokenAddress: loanTokenAddress,
             collateralTokenAddress: collateralTokenAddress,
@@ -49,6 +49,11 @@ contract LoanManagerMock {
             loanTerm: loanTerm,
             distributorAddress: distributorAddress
         });
+        if (collateralTokenAddress == address(1)) {
+            loanParameters.collateralAmount = msg.value;
+        } else {
+            loanParameters.collateralAmount = collateralAmount;
+        }
 
         return
             _loanManager.loan(_configuration, _liquidityPools, loanParameters);
@@ -58,7 +63,13 @@ contract LoanManagerMock {
         external
         returns (uint256 remainingDebt)
     {
-        return _loanManager.repayLoan(_liquidityPools, loanId, repayAmount);
+        return
+            _loanManager.repayLoan(
+                _liquidityPools,
+                _configuration,
+                loanId,
+                repayAmount
+            );
     }
 
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
@@ -106,9 +117,20 @@ contract LoanManagerMock {
 
     function addCollateral(bytes32 loanId, uint256 collateralAmount)
         external
+        payable
         returns (uint256 totalCollateralAmount)
     {
-        return _loanManager.addCollateral(loanId, collateralAmount);
+        if (msg.value > 0) {
+            return
+                _loanManager.addCollateral(_configuration, loanId, msg.value);
+        } else {
+            return
+                _loanManager.addCollateral(
+                    _configuration,
+                    loanId,
+                    collateralAmount
+                );
+        }
     }
 
     function enableLoanAndCollateralTokenPair(
@@ -187,8 +209,8 @@ contract LoanManagerMock {
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositTerm,
-        address distributorAddress
-    ) external returns (bytes32 depositId) {
+        address payable distributorAddress
+    ) external payable returns (bytes32 depositId) {
         IStruct.DepositParameters memory depositParameters = IStruct
             .DepositParameters({
             tokenAddress: tokenAddress,
@@ -196,6 +218,12 @@ contract LoanManagerMock {
             depositTerm: depositTerm,
             distributorAddress: distributorAddress
         });
+
+        if (tokenAddress == address(1)) {
+            depositParameters.depositAmount = msg.value;
+        } else {
+            depositParameters.depositAmount = depositAmount;
+        }
 
         return
             _depositManager.deposit(
@@ -234,5 +262,17 @@ contract LoanManagerMock {
 
     function setInterestModel(IInterestModel interestModel) external {
         _configuration.setInterestModel(interestModel);
+    }
+
+    function setPayableProxy(IPayableProxy payableProxy) external {
+        _configuration.setPayableProxy(payableProxy);
+        ERC20(payableProxy.getWETHAddress()).approve(
+            address(payableProxy),
+            uint256(-1)
+        );
+    }
+
+    function getWETHAddress() public view returns (address wethAddress) {
+        return _configuration.payableProxy.getWETHAddress();
     }
 }
