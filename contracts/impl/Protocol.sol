@@ -1,7 +1,7 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
-import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
+import './Ownable.sol';
+import './Pausable.sol';
 import '../interface/IProtocol.sol';
 import '../interface/IPriceOracle.sol';
 import '../interface/IInterestModel.sol';
@@ -64,11 +64,21 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     /// --- Deposit Configurations---
 
-    function enableDepositTerm(uint256 term) external whenNotPaused onlyOwner {
+    function enableDepositTerm(uint256 term)
+        external
+        whenNotPaused
+        onlyOwner
+        override
+    {
         _depositManager.enableDepositTerm(_liquidityPools, term);
     }
 
-    function disableDepositTerm(uint256 term) external whenNotPaused onlyOwner {
+    function disableDepositTerm(uint256 term)
+        external
+        whenNotPaused
+        onlyOwner
+        override
+    {
         _depositManager.disableDepositTerm(term);
     }
 
@@ -76,6 +86,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         whenNotPaused
         onlyOwner
+        override
     {
         _depositManager.enableDepositToken(_liquidityPools, tokenAddress);
     }
@@ -84,6 +95,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         whenNotPaused
         onlyOwner
+        override
     {
         _depositManager.disableDepositToken(tokenAddress);
     }
@@ -93,7 +105,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 depositAmount,
         uint256 depositTerm,
         address distributorAddress
-    ) external whenNotPaused returns (bytes32 depositId) {
+    ) external whenNotPaused override returns (bytes32 depositId) {
         _depositParameters.tokenAddress = tokenAddress;
         _depositParameters.depositAmount = depositAmount;
         _depositParameters.depositTerm = depositTerm;
@@ -111,6 +123,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function withdraw(bytes32 depositId)
         external
         whenNotPaused
+        override
         returns (uint256 withdrewAmount)
     {
         return
@@ -124,6 +137,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function earlyWithdraw(bytes32 depositId)
         external
         whenNotPaused
+        override
         returns (uint256 withdrewAmount)
     {
         return _depositManager.earlyWithdraw(_liquidityPools, depositId);
@@ -133,6 +147,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (uint256[] memory depositTermList)
     {
         return _depositManager.enabledDepositTermList;
@@ -142,6 +157,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (address[] memory depositTokenAddressList)
     {
         return _depositManager.enabledDepositTokenAddressList;
@@ -153,6 +169,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (
             address tokenAddress,
             uint256 depositTerm,
@@ -171,6 +188,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function getInterestDistributionByDepositId(bytes32 depositId)
         external
         view
+        override
         returns (
             uint256 interestForDepositor,
             uint256 interestForDepositDistributor,
@@ -189,6 +207,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (
             bytes32[] memory depositIdList,
             address[] memory tokenAddressList,
@@ -206,6 +225,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (bool isEarlyWithdrawable)
     {
         return
@@ -220,6 +240,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function getMaxLoanTerm(address tokenAddress)
         external
         view
+        override
         returns (uint256 maxLoanTerm)
     {
         return _liquidityPools.poolGroups[tokenAddress].numPools;
@@ -233,7 +254,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 loanTerm,
         bool useAvailableCollateral,
         address distributorAddress
-    ) external whenNotPaused returns (bytes32 loanId) {
+    ) external whenNotPaused override returns (bytes32 loanId) {
         _loanParameters.loanTokenAddress = loanTokenAddress;
         _loanParameters.collateralTokenAddress = collateralTokenAddress;
         _loanParameters.loanAmount = loanAmount;
@@ -261,6 +282,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function repayLoan(bytes32 loanId, uint256 repayAmount)
         external
         whenNotPaused
+        override
         returns (uint256 remainingDebt)
     {
         return _loanManager.repayLoan(_liquidityPools, loanId, repayAmount);
@@ -269,6 +291,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
         external
         whenNotPaused
+        override
         returns (uint256 remainingCollateral, uint256 liquidatedAmount)
     {
         return
@@ -283,7 +306,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function withdrawAvailableCollateral(
         address tokenAddress,
         uint256 collateralAmount
-    ) external whenNotPaused {
+    ) external whenNotPaused override {
         _loanManager.withdrawAvailableCollateral(
             tokenAddress,
             collateralAmount
@@ -294,6 +317,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (
             address[] memory tokenAddressList,
             uint256[] memory availableCollateralAmountList
@@ -306,6 +330,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (uint256 loanInterestRate)
     {
         return
@@ -323,6 +348,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (uint256)
     {
         return _accountManager.getAccountGeneralStat(accountAddress, key);
@@ -332,7 +358,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         address accountAddress,
         address tokenAddress,
         string calldata key
-    ) external view whenNotPaused returns (uint256) {
+    ) external view whenNotPaused override returns (uint256) {
         return
             _accountManager.getAccountTokenStat(
                 accountAddress,
@@ -347,6 +373,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (
             address loanTokenAddress,
             address collateralTokenAddress,
@@ -363,6 +390,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (
             uint256 remainingDebt,
             uint256 currentCollateralRatio,
@@ -378,6 +406,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (
             bytes32[] memory loanIdList,
             address[] memory loanTokenAddressList,
@@ -395,7 +424,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         bytes32 loanId,
         uint256 collateralAmount,
         bool useAvailableCollateral
-    ) external whenNotPaused returns (uint256 totalCollateralAmount) {
+    ) external whenNotPaused override returns (uint256 totalCollateralAmount) {
         return
             _loanManager.addCollateral(
                 loanId,
@@ -407,7 +436,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function enableLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress
-    ) external whenNotPaused onlyOwner {
+    ) external whenNotPaused onlyOwner override {
         _loanManager.enableLoanAndCollateralTokenPair(
             loanTokenAddress,
             collateralTokenAddress
@@ -417,7 +446,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function disableLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress
-    ) external whenNotPaused onlyOwner {
+    ) external whenNotPaused onlyOwner override {
         _loanManager.disableLoanAndCollateralTokenPair(
             loanTokenAddress,
             collateralTokenAddress
@@ -428,7 +457,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata minCollateralCoverageRatioList
-    ) external whenNotPaused onlyOwner {
+    ) external whenNotPaused onlyOwner override {
         _loanManager.setMinCollateralCoverageRatiosForToken(
             loanTokenAddress,
             collateralTokenAddressList,
@@ -440,7 +469,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata liquidationDiscountList
-    ) external whenNotPaused onlyOwner {
+    ) external whenNotPaused onlyOwner override {
         _loanManager.setLiquidationDiscountsForToken(
             loanTokenAddress,
             collateralTokenAddressList,
@@ -451,6 +480,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function getLoanAndCollateralTokenPairs()
         external
         view
+        override
         returns (
             address[] memory loanTokenAddressList,
             address[] memory collateralTokenAddressList,
@@ -465,6 +495,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function getTokenAddressList(uint256 tokenType)
         external
         view
+        override
         returns (address[] memory tokenAddressList, bool[] memory isActive)
     {
         return _loanManager.getTokenAddressList(tokenType);
@@ -476,6 +507,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (
             uint256[] memory poolIdList,
             uint256[] memory depositAmountList,
@@ -492,6 +524,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         whenNotPaused
         onlyOwner
+        override
     {
         _configuration.setPriceOracle(tokenAddress, priceOracle);
     }
@@ -500,6 +533,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         whenNotPaused
         onlyOwner
+        override
     {
         _configuration.setInterestModel(interestModel);
     }
@@ -508,6 +542,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         whenNotPaused
         onlyOwner
+        override
     {
         _configuration.setProtocolAddress(protocolAddress);
     }
@@ -516,6 +551,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         whenNotPaused
         onlyOwner
+        override
     {
         _configuration.setProtocolReserveRatio(protocolReserveRatio);
     }
@@ -523,7 +559,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function setMaxDistributorFeeRatios(
         uint256 maxDepositDistributorFeeRatio,
         uint256 maxLoanDistributorFeeRatio
-    ) external whenNotPaused onlyOwner {
+    ) external whenNotPaused onlyOwner override {
         _configuration.setMaxDistributorFeeRatios(
             maxDepositDistributorFeeRatio,
             maxLoanDistributorFeeRatio
@@ -534,6 +570,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (address protocolAddress)
     {
         return _configuration.protocolAddress;
@@ -543,7 +580,8 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
-        returns (address interestModel)
+        override
+        returns (address interestModelAddress)
     {
         return address(_configuration.interestModel);
     }
@@ -552,6 +590,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (uint256 tokenPrice)
     {
         return _configuration.priceOracleByToken[tokenAddress].getPrice();
@@ -561,6 +600,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (
             uint256 maxDepositDistributorFeeRatio,
             uint256 maxLoanDistributorFeeRatio
@@ -576,6 +616,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         external
         view
         whenNotPaused
+        override
         returns (uint256 protocolReserveRatio)
     {
         return _configuration.protocolReserveRatio;

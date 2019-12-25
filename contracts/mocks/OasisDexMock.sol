@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 import '../interface/IOasisDex.sol';
 import '../lib/FixedMath.sol';
@@ -7,11 +7,17 @@ contract OasisDexMock is IOasisDex {
     using FixedMath for uint256;
 
     bool public stopped;
-    bool public buyEnabled = true;
-    bool public matchingEnabled = true;
     uint256 private _ethPrice;
 
-    function isClosed() external view returns (bool) {
+    function buyEnabled() external view override returns (bool) {
+        return true;
+    }
+
+    function matchingEnabled() external view override returns (bool) {
+        return true;
+    }
+
+    function isClosed() external view override returns (bool) {
         return stopped;
     }
 
@@ -23,7 +29,7 @@ contract OasisDexMock is IOasisDex {
         address, /* buy_gem */
         address, /* pay_gem */
         uint256 pay_amt
-    ) external view returns (uint256) {
+    ) external view override returns (uint256) {
         return _ethPrice.mulFixed(pay_amt);
     }
 
@@ -31,7 +37,7 @@ contract OasisDexMock is IOasisDex {
         address, /* pay_gem */
         address, /* buy_gem */
         uint256 buy_amt
-    ) external view returns (uint256) {
+    ) external view override returns (uint256) {
         return _ethPrice.mulFixed(buy_amt);
     }
 }

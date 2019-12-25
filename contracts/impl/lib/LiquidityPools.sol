@@ -1,7 +1,7 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import 'openzeppelin-solidity/contracts/math/Math.sol';
+import '../../lib/Math.sol';
+import '../../lib/SafeMath.sol';
 import '../../lib/FixedMath.sol';
 import '../../lib/DateTime.sol';
 import './LoanManager.sol';

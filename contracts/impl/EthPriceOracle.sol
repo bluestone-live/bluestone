@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 import '../interface/IPriceOracle.sol';
 import '../interface/IMedianizer.sol';
@@ -11,7 +11,7 @@ contract EthPriceOracle is IPriceOracle {
         medianizer = IMedianizer(medianizerAddress);
     }
 
-    function getPrice() external view returns (uint256) {
+    function getPrice() external view override returns (uint256) {
         (bytes32 value, ) = medianizer.peek();
         return uint256(value);
     }

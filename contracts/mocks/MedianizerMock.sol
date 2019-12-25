@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 import '../interface/IMedianizer.sol';
 
@@ -11,7 +11,7 @@ contract MedianizerMock is IMedianizer {
         has = true;
     }
 
-    function peek() external view returns (bytes32, bool) {
+    function peek() external view override returns (bytes32, bool) {
         return (bytes32(val), has);
     }
 }

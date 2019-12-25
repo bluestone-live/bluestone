@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 contract WrappedEther {
     string public name = 'Wrapped Ether';
@@ -32,13 +32,15 @@ contract WrappedEther {
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
-    function() external payable {
+    receive() external payable {
         deposit();
     }
+
     function deposit() public payable {
         balanceOf[msg.sender] += msg.value;
         emit Deposit(msg.sender, msg.value);
     }
+
     function withdraw(uint256 wad) external {
         require(balanceOf[msg.sender] >= wad);
         balanceOf[msg.sender] -= wad;

@@ -4893,10 +4893,10 @@ opencollective-postinstall@^2.0.2:
   resolved "https://registry.yarnpkg.com/opencollective-postinstall/-/opencollective-postinstall-2.0.2.tgz#5657f1bede69b6e33a45939b061eb53d3c6c3a89"
   integrity sha512-pVOEP16TrAO2/fjej1IdOyupJY8KDUM1CvsaScRbw6oddvpQoOfGk4ywha0HKKVAD6RkW4x6Q+tNBwhf3Bgpuw==
 
-openzeppelin-solidity@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/openzeppelin-solidity/-/openzeppelin-solidity-2.3.0.tgz#1ab7b4cc3782a5472ed61eb740c56a8bfdd74119"
-  integrity sha512-QYeiPLvB1oSbDt6lDQvvpx7k8ODczvE474hb2kLXZBPKMsxKT1WxTCHBYrCU7kS7hfAku4DcJ0jqOyL+jvjwQw==
+openzeppelin-solidity@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.npm.taobao.org/openzeppelin-solidity/download/openzeppelin-solidity-2.4.0.tgz#5f0a7b30571c45493449166e57b947203415349d"
+  integrity sha1-Xwp7MFccRUk0SRZuV7lHIDQVNJ0=
 
 openzeppelin-test-helpers@^0.4.2:
   version "0.4.3"
@@ -6547,10 +6547,10 @@ truffle-interface-adapter@^0.2.5:
     lodash "^4.17.13"
     web3 "1.2.1"
 
-truffle@^5.0.22:
-  version "5.0.37"
-  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.0.37.tgz#10da6f1bb9e661c4ccec75c295554bc4434f6b18"
-  integrity sha512-od3mnu6sCV7sYbJCLSDV66RZ4bYeuLQ1QDpjGQHyJMB5AIw+u8GnxBmj6MKBOWHC+zixnwkRwS9yTYpj5IObFg==
+truffle@^5.1.5:
+  version "5.1.5"
+  resolved "https://registry.npm.taobao.org/truffle/download/truffle-5.1.5.tgz#87730b484103bb77e7371a14d69628e1ec20a094"
+  integrity sha1-h3MLSEEDu3fnNxoU1pYo4ewgoJQ=
   dependencies:
     app-module-path "^2.2.0"
     mocha "5.2.0"

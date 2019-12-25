@@ -1,9 +1,9 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import '../impl/lib/LiquidityPools.sol';
 import '../impl/lib/LoanManager.sol';
 import '../lib/DateTime.sol';
+import '../lib/SafeMath.sol';
 
 contract LiquidityPoolsMock {
     using LiquidityPools for LiquidityPools.State;

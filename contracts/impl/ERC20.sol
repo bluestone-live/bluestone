@@ -1,8 +1,34 @@
 pragma solidity ^0.6.0;
 
+import './Context.sol';
+import '../interface/IERC20.sol';
 import '../lib/SafeMath.sol';
 
-contract USDTMock {
+/**
+ * @dev Implementation of the {IERC20} interface.
+ *
+ * This implementation is agnostic to the way tokens are created. This means
+ * that a supply mechanism has to be added in a derived contract using {_mint}.
+ * For a generic mechanism see {ERC20Mintable}.
+ *
+ * TIP: For a detailed writeup see our guide
+ * https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226[How
+ * to implement supply mechanisms].
+ *
+ * We have followed general OpenZeppelin guidelines: functions revert instead
+ * of returning `false` on failure. This behavior is nonetheless conventional
+ * and does not conflict with the expectations of ERC20 applications.
+ *
+ * Additionally, an {Approval} event is emitted on calls to {transferFrom}.
+ * This allows applications to reconstruct the allowance for all accounts just
+ * by listening to said events. Other implementations of the EIP may not emit
+ * these events, as it isn't required by the specification.
+ *
+ * Finally, the non-standard {decreaseAllowance} and {increaseAllowance}
+ * functions have been added to mitigate the well-known issues around setting
+ * allowances. See {IERC20-approve}.
+ */
+contract ERC20 is Context, IERC20 {
     using SafeMath for uint256;
 
     mapping(address => uint256) private _balances;
@@ -10,34 +36,18 @@ contract USDTMock {
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
-    string public name;
-    string public symbol;
-    uint8 public decimals;
-
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    constructor(string memory tokenName, string memory tokenSymbol) public {
-        name = tokenName;
-        symbol = tokenSymbol;
-        decimals = 18;
-    }
 
     /**
      * @dev See {IERC20-totalSupply}.
      */
-    function totalSupply() public view returns (uint256) {
+    function totalSupply() public view override returns (uint256) {
         return _totalSupply;
     }
 
     /**
      * @dev See {IERC20-balanceOf}.
      */
-    function balanceOf(address account) public view returns (uint256) {
+    function balanceOf(address account) public view override returns (uint256) {
         return _balances[account];
     }
 
@@ -49,8 +59,13 @@ contract USDTMock {
      * - `recipient` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(address recipient, uint256 amount) public {
-        _transfer(msg.sender, recipient, amount);
+    function transfer(address recipient, uint256 amount)
+        public
+        override
+        returns (bool)
+    {
+        _transfer(_msgSender(), recipient, amount);
+        return true;
     }
 
     /**
@@ -59,6 +74,7 @@ contract USDTMock {
     function allowance(address owner, address spender)
         public
         view
+        override
         returns (uint256)
     {
         return _allowances[owner][spender];
@@ -71,8 +87,13 @@ contract USDTMock {
      *
      * - `spender` cannot be the zero address.
      */
-    function approve(address spender, uint256 amount) public {
-        _approve(msg.sender, spender, amount);
+    function approve(address spender, uint256 amount)
+        public
+        override
+        returns (bool)
+    {
+        _approve(_msgSender(), spender, amount);
+        return true;
     }
 
     /**
@@ -89,13 +110,16 @@ contract USDTMock {
      */
     function transferFrom(address sender, address recipient, uint256 amount)
         public
+        override
+        returns (bool)
     {
         _transfer(sender, recipient, amount);
         _approve(
             sender,
-            msg.sender,
-            _allowances[sender][msg.sender].sub(amount)
+            _msgSender(),
+            _allowances[sender][_msgSender()].sub(amount)
         );
+        return true;
     }
 
     /**
@@ -110,12 +134,16 @@ contract USDTMock {
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue) public {
+    function increaseAllowance(address spender, uint256 addedValue)
+        public
+        returns (bool)
+    {
         _approve(
-            msg.sender,
+            _msgSender(),
             spender,
-            _allowances[msg.sender][spender].add(addedValue)
+            _allowances[_msgSender()][spender].add(addedValue)
         );
+        return true;
     }
 
     /**
@@ -134,12 +162,14 @@ contract USDTMock {
      */
     function decreaseAllowance(address spender, uint256 subtractedValue)
         public
+        returns (bool)
     {
         _approve(
-            msg.sender,
+            _msgSender(),
             spender,
-            _allowances[msg.sender][spender].sub(subtractedValue)
+            _allowances[_msgSender()][spender].sub(subtractedValue)
         );
+        return true;
     }
 
     /**
@@ -234,12 +264,8 @@ contract USDTMock {
         _burn(account, amount);
         _approve(
             account,
-            msg.sender,
-            _allowances[account][msg.sender].sub(amount)
+            _msgSender(),
+            _allowances[account][_msgSender()].sub(amount)
         );
-    }
-
-    function mint(address account, uint256 value) public {
-        _mint(account, value);
     }
 }

@@ -1,11 +1,11 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import 'openzeppelin-solidity/contracts/math/Math.sol';
+import '../ERC20.sol';
+import '../../lib/Math.sol';
+import '../../lib/SafeMath.sol';
 import '../../lib/FixedMath.sol';
 import '../../lib/DateTime.sol';
+import '../../lib/SafeERC20.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
 import './DepositManager.sol';

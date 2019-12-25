@@ -1,14 +1,14 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import '../ERC20.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
 import './LoanManager.sol';
 import './AccountManager.sol';
 import '../../lib/DateTime.sol';
+import '../../lib/SafeMath.sol';
 import '../../lib/FixedMath.sol';
+import '../../lib/SafeERC20.sol';
 
 library DepositManager {
     using Configuration for Configuration.State;
@@ -119,8 +119,7 @@ library DepositManager {
                 self.enabledDepositTermList[i] = lastDepositTerm;
 
                 // Shrink array size
-                delete self.enabledDepositTermList[numDepositTerms - 1];
-                self.enabledDepositTermList.length--;
+                self.enabledDepositTermList.pop();
             }
         }
     }
@@ -184,9 +183,7 @@ library DepositManager {
                     .enabledDepositTokenAddressList[i] = lastDepositTokenAddress;
 
                 // Shrink array size
-                delete self.enabledDepositTokenAddressList[numDepositTokens -
-                    1];
-                self.enabledDepositTokenAddressList.length--;
+                self.enabledDepositTokenAddressList.pop();
 
                 break;
             }

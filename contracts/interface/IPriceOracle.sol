@@ -1,5 +1,5 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
-contract IPriceOracle {
-    function getPrice() external view returns (uint256);
+interface IPriceOracle {
+    function getPrice() external view virtual returns (uint256);
 }

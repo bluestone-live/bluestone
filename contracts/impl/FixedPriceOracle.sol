@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.0;
 
 import '../interface/IPriceOracle.sol';
 
@@ -10,7 +10,7 @@ contract FixedPriceOracle is IPriceOracle {
         _price = price;
     }
 
-    function getPrice() external view returns (uint256) {
+    function getPrice() external view override returns (uint256) {
         return _price;
     }
 }
