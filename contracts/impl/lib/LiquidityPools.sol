@@ -178,6 +178,8 @@ library LiquidityPools {
         uint256 firstPoolId = DateTime.toDays();
 
         // Repay loan back to each pool, proportional to the total loan from all pools
+        uint256 loanAmountFromThisPool;
+        uint256 repayAmountToThisPool;
         for (
             uint256 poolId = firstPoolId;
             poolId <= firstPoolId + poolGroup.numPools;
@@ -186,8 +188,7 @@ library LiquidityPools {
             if (remainingRepayAmount == 0) {
                 break;
             }
-            uint256 loanAmountFromThisPool = loanRecord
-                .loanAmountByPool[poolId];
+            loanAmountFromThisPool = loanRecord.loanAmountByPool[poolId];
 
             if (loanAmountFromThisPool == 0) {
                 // Skip this pool since it has no loan
@@ -197,7 +198,7 @@ library LiquidityPools {
             /// Calculate the amount to repay to this pool, e.g., if I loaned total of 100
             /// from all pools, where 10 is from this pool, and I want to repay 50 now.
             /// Then the amount pay back to this pool will be: 50 * 10 / 100 = 5
-            uint256 repayAmountToThisPool = repayAmount
+            repayAmountToThisPool = repayAmount
                 .mulFixed(loanAmountFromThisPool)
                 .divFixed(loanRecord.loanAmount);
 
