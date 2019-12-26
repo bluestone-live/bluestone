@@ -306,8 +306,8 @@ contract('LoanManager', function([
 
       expectEvent.inLogs(logs, 'AddCollateralSucceed', {
         accountAddress: loaner,
-        recordId: recordId,
-        amount: collateralAmount,
+        recordId,
+        collateralAmount,
       });
     });
   });

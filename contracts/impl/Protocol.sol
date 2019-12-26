@@ -59,7 +59,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     event AddCollateralSucceed(
         address indexed accountAddress,
         bytes32 indexed recordId,
-        uint256 amount
+        uint256 collateralAmount
     );
 
     /// --- Deposit Configurations---

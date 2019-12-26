@@ -147,7 +147,7 @@ library LoanManager {
     event AddCollateralSucceed(
         address indexed accountAddress,
         bytes32 indexed recordId,
-        uint256 amount
+        uint256 collateralAmount
     );
 
     function getLoanRecordById(State storage self, bytes32 loanId)
