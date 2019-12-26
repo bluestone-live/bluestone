@@ -120,9 +120,9 @@ library LiquidityPools {
         uint256 firstPoolId = DateTime.toDays();
 
         for (
-            uint256 poolId = firstPoolId + loanRecord.loanTerm;
-            poolId <= firstPoolId + poolGroup.numPools;
-            poolId++
+            uint256 poolId = firstPoolId.add(loanRecord.loanTerm);
+            poolId <= firstPoolId.add(poolGroup.numPools);
+            poolId = poolId.add(1)
         ) {
             if (remainingLoanAmount == 0) {
                 break;
@@ -182,8 +182,8 @@ library LiquidityPools {
         uint256 repayAmountToThisPool;
         for (
             uint256 poolId = firstPoolId;
-            poolId <= firstPoolId + poolGroup.numPools;
-            poolId++
+            poolId <= firstPoolId.add(poolGroup.numPools);
+            poolId = poolId.add(1)
         ) {
             if (remainingRepayAmount == 0) {
                 break;
@@ -289,7 +289,7 @@ library LiquidityPools {
             poolIndex <= poolGroup.numPools;
             poolIndex++
         ) {
-            uint256 poolId = firstPoolId + poolIndex;
+            uint256 poolId = firstPoolId.add(poolIndex);
             poolIdList[poolIndex] = poolId;
             depositAmountList[poolIndex] = poolGroup.poolsById[poolId]
                 .depositAmount;

@@ -160,7 +160,7 @@ contract LiquidityPoolsMock {
             LiquidityPools.Pool storage pool = poolGroup.poolsById[poolId];
             pool.depositAmount = depositAmountList[i];
             pool.availableAmount = availableAmountList[i];
-            poolId++;
+            poolId = poolId.add(1);
         }
     }
 

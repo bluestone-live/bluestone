@@ -224,9 +224,9 @@ library LoanManager {
 
         isOverDue =
             now >
-            loanRecord.createdAt +
-                loanRecord.loanTerm *
-                DateTime.dayInSeconds();
+            loanRecord.createdAt.add(
+                loanRecord.loanTerm.mul(DateTime.dayInSeconds())
+            );
 
         isLiquidatable =
             (currentCollateralRatio < loanRecord.minCollateralCoverageRatio) ||
@@ -789,9 +789,9 @@ library LoanManager {
             loanRecord.minCollateralCoverageRatio;
         localVars.isOverDue =
             now >
-            loanRecord.createdAt +
-                loanRecord.loanTerm *
-                DateTime.dayInSeconds();
+            loanRecord.createdAt.add(
+                loanRecord.loanTerm.mul(DateTime.dayInSeconds())
+            );
 
         require(
             localVars.isUnderCollateralCoverageRatio || localVars.isOverDue,

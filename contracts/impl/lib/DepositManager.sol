@@ -237,10 +237,9 @@ library DepositManager {
         );
 
         uint256 createdAt = now;
-        uint256 maturedAt = createdAt +
-            DateTime.secondsUntilMidnight(createdAt) +
-            depositParameters.depositTerm *
-            DateTime.dayInSeconds();
+        uint256 maturedAt = createdAt
+            .add(DateTime.secondsUntilMidnight(createdAt))
+            .add(depositParameters.depositTerm.mul(DateTime.dayInSeconds()));
 
         self.depositRecordById[currDepositId] = DepositRecord({
             depositId: currDepositId,
