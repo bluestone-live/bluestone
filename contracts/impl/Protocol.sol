@@ -64,27 +64,16 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     /// --- Deposit Configurations---
 
-    function enableDepositTerm(uint256 term)
-        external
-        whenNotPaused
-        onlyOwner
-        override
-    {
+    function enableDepositTerm(uint256 term) external onlyOwner override {
         _depositManager.enableDepositTerm(_liquidityPools, term);
     }
 
-    function disableDepositTerm(uint256 term)
-        external
-        whenNotPaused
-        onlyOwner
-        override
-    {
+    function disableDepositTerm(uint256 term) external onlyOwner override {
         _depositManager.disableDepositTerm(term);
     }
 
     function enableDepositToken(address tokenAddress)
         external
-        whenNotPaused
         onlyOwner
         override
     {
@@ -93,7 +82,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     function disableDepositToken(address tokenAddress)
         external
-        whenNotPaused
         onlyOwner
         override
     {
@@ -436,7 +424,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function enableLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress
-    ) external whenNotPaused onlyOwner override {
+    ) external onlyOwner override {
         _loanManager.enableLoanAndCollateralTokenPair(
             loanTokenAddress,
             collateralTokenAddress
@@ -446,7 +434,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function disableLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress
-    ) external whenNotPaused onlyOwner override {
+    ) external onlyOwner override {
         _loanManager.disableLoanAndCollateralTokenPair(
             loanTokenAddress,
             collateralTokenAddress
@@ -457,7 +445,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata minCollateralCoverageRatioList
-    ) external whenNotPaused onlyOwner override {
+    ) external onlyOwner override {
         _loanManager.setMinCollateralCoverageRatiosForToken(
             loanTokenAddress,
             collateralTokenAddressList,
@@ -469,7 +457,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         address loanTokenAddress,
         address[] calldata collateralTokenAddressList,
         uint256[] calldata liquidationDiscountList
-    ) external whenNotPaused onlyOwner override {
+    ) external onlyOwner override {
         _loanManager.setLiquidationDiscountsForToken(
             loanTokenAddress,
             collateralTokenAddressList,
@@ -522,7 +510,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
     /// --- Configuration ---
     function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
         external
-        whenNotPaused
         onlyOwner
         override
     {
@@ -531,7 +518,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     function setInterestModel(IInterestModel interestModel)
         external
-        whenNotPaused
         onlyOwner
         override
     {
@@ -540,7 +526,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     function setProtocolAddress(address protocolAddress)
         external
-        whenNotPaused
         onlyOwner
         override
     {
@@ -549,7 +534,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     function setProtocolReserveRatio(uint256 protocolReserveRatio)
         external
-        whenNotPaused
         onlyOwner
         override
     {
@@ -559,7 +543,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function setMaxDistributorFeeRatios(
         uint256 maxDepositDistributorFeeRatio,
         uint256 maxLoanDistributorFeeRatio
-    ) external whenNotPaused onlyOwner override {
+    ) external onlyOwner override {
         _configuration.setMaxDistributorFeeRatios(
             maxDepositDistributorFeeRatio,
             maxLoanDistributorFeeRatio
