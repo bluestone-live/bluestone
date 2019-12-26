@@ -97,26 +97,12 @@ interface IProtocol {
         );
 
     /// @notice Return details about all deposits
-    /// @return depositIdList
-    /// @return tokenAddressList
-    /// @return depositTermList
-    /// @return depositAmountList
-    /// @return createdAtList
-    /// @return maturedAtList
-    /// @return withdrewAtList
+    /// @return depositRecordList
     function getDepositRecordsByAccount(address accountAddress)
         external
         view
         virtual
-        returns (
-            bytes32[] memory depositIdList,
-            address[] memory tokenAddressList,
-            uint256[] memory depositTermList,
-            uint256[] memory depositAmountList,
-            uint256[] memory createdAtList,
-            uint256[] memory maturedAtList,
-            uint256[] memory withdrewAtList
-        );
+        returns (IStruct.DepositRecord[] memory depositRecordList);
 
     /// @notice Return whether a deposit can be early withdrew.
     /// @param depositId ID that identifies the deposit

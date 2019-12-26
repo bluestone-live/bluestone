@@ -469,73 +469,20 @@ library DepositManager {
         );
     }
 
-    function getDepositRecordsByAccount(State storage self, address account)
-        external
-        view
-        returns (
-            bytes32[] memory depositIdList,
-            address[] memory tokenAddressList,
-            uint256[] memory depositTermList,
-            uint256[] memory depositAmountList,
-            uint256[] memory createdAtList,
-            uint256[] memory maturedAtList,
-            uint256[] memory withdrewAtList
-        )
-    {
-        DepositRecordListView memory depositRecordListViewObject;
-        depositRecordListViewObject.depositIdList = self
-            .depositIdsByAccountAddress[account];
-        if (depositRecordListViewObject.depositIdList.length != 0) {
-            depositRecordListViewObject.tokenAddressList = new address[](
-                depositRecordListViewObject.depositIdList.length
-            );
-            depositRecordListViewObject.depositTermList = new uint256[](
-                depositRecordListViewObject.depositIdList.length
-            );
-            depositRecordListViewObject.depositAmountList = new uint256[](
-                depositRecordListViewObject.depositIdList.length
-            );
-            depositRecordListViewObject.createdAtList = new uint256[](
-                depositRecordListViewObject.depositIdList.length
-            );
-            depositRecordListViewObject.maturedAtList = new uint256[](
-                depositRecordListViewObject.depositIdList.length
-            );
-            depositRecordListViewObject.withdrewAtList = new uint256[](
-                depositRecordListViewObject.depositIdList.length
-            );
-            for (
-                uint256 i = 0;
-                i < depositRecordListViewObject.depositIdList.length;
-                i++
-            ) {
-                IStruct.DepositRecord memory depositRecord = self
-                    .depositRecordById[depositRecordListViewObject
-                    .depositIdList[i]];
-                depositRecordListViewObject.tokenAddressList[i] = depositRecord
-                    .tokenAddress;
-                depositRecordListViewObject.depositTermList[i] = depositRecord
-                    .depositTerm;
-                depositRecordListViewObject.depositAmountList[i] = depositRecord
-                    .depositAmount;
-                depositRecordListViewObject.createdAtList[i] = depositRecord
-                    .createdAt;
-                depositRecordListViewObject.maturedAtList[i] = depositRecord
-                    .maturedAt;
-                depositRecordListViewObject.withdrewAtList[i] = depositRecord
-                    .withdrewAt;
+    function getDepositRecordsByAccount(
+        State storage self,
+        address accountAddress
+    ) external view returns (IStruct.DepositRecord[] memory depositRecordList) {
+        bytes32[] memory depositIdList = self
+            .depositIdsByAccountAddress[accountAddress];
 
-            }
+        depositRecordList = new IStruct.DepositRecord[](depositIdList.length);
+
+        for (uint256 i = 0; i < depositIdList.length; i++) {
+            depositRecordList[i] = self.depositRecordById[depositIdList[i]];
         }
-        return (
-            depositRecordListViewObject.depositIdList,
-            depositRecordListViewObject.tokenAddressList,
-            depositRecordListViewObject.depositTermList,
-            depositRecordListViewObject.depositAmountList,
-            depositRecordListViewObject.createdAtList,
-            depositRecordListViewObject.maturedAtList,
-            depositRecordListViewObject.withdrewAtList
-        );
+
+        return depositRecordList;
     }
 
     function isDepositEarlyWithdrawable(

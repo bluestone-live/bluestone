@@ -434,22 +434,10 @@ contract('DepositManager', function([
   describe('#getDepositRecordsByAccount', () => {
     context("when user didn't have any deposit records", () => {
       it('should return empty resultSet', async () => {
-        const {
-          depositIdList,
-          tokenAddressList,
-          depositTermList,
-          depositAmountList,
-          createdAtList,
-          maturedAtList,
-          withdrewAtList,
-        } = await depositManager.getDepositRecordsByAccount(depositor);
-        expect(depositIdList.length).to.equal(0);
-        expect(tokenAddressList.length).to.equal(0);
-        expect(depositTermList.length).to.equal(0);
-        expect(depositAmountList.length).to.equal(0);
-        expect(createdAtList.length).to.equal(0);
-        expect(maturedAtList.length).to.equal(0);
-        expect(withdrewAtList.length).to.equal(0);
+        const depositRecordList = await depositManager.getDepositRecordsByAccount(
+          depositor,
+        );
+        expect(depositRecordList.length).to.equal(0);
       });
     });
 
@@ -479,24 +467,10 @@ contract('DepositManager', function([
       });
 
       it('succeed', async () => {
-        const {
-          depositIdList,
-          tokenAddressList,
-          depositTermList,
-          depositAmountList,
-          createdAtList,
-          maturedAtList,
-          withdrewAtList,
-        } = await depositManager.getDepositRecordsByAccount(depositor);
-
-        expect(depositIdList.length).to.equal(1);
-        expect(tokenAddressList.length).to.equal(1);
-        expect(depositTermList.length).to.equal(1);
-        expect(depositAmountList.length).to.equal(1);
-        expect(createdAtList.length).to.equal(1);
-        expect(maturedAtList.length).to.equal(1);
-        expect(withdrewAtList.length).to.equal(1);
-        expect(depositIdList[0]).to.equal(recordId);
+        const depositRecordList = await depositManager.getDepositRecordsByAccount(
+          depositor,
+        );
+        expect(depositRecordList.length).to.equal(1);
       });
     });
   });

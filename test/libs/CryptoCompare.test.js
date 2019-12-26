@@ -3,7 +3,7 @@ const config = require('config');
 const { expect } = require('chai');
 
 describe('lib: CryptoCompare', function() {
-  this.retries(2);
+  this.retries(5);
 
   const { apiKey } = config.get('cryptocompare');
   const cryptoCompare = new CryptoCompare(apiKey);

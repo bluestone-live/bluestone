@@ -188,15 +188,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         view
         whenNotPaused
         override
-        returns (
-            bytes32[] memory depositIdList,
-            address[] memory tokenAddressList,
-            uint256[] memory depositTermList,
-            uint256[] memory depositAmountList,
-            uint256[] memory createdAtList,
-            uint256[] memory maturedAtList,
-            uint256[] memory withdrewAtList
-        )
+        returns (IStruct.DepositRecord[] memory depositRecordList)
     {
         return _depositManager.getDepositRecordsByAccount(accountAddress);
     }
