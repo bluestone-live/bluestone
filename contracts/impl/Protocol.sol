@@ -1,10 +1,12 @@
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import './Ownable.sol';
 import './Pausable.sol';
 import '../interface/IProtocol.sol';
 import '../interface/IPriceOracle.sol';
 import '../interface/IInterestModel.sol';
+import '../interface/IStruct.sol';
 import './lib/Configuration.sol';
 import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';
@@ -158,17 +160,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         view
         whenNotPaused
         override
-        returns (
-            address tokenAddress,
-            uint256 depositTerm,
-            uint256 depositAmount,
-            uint256 poolId,
-            uint256 createdAt,
-            uint256 maturedAt,
-            uint256 withdrewAt,
-            bool isMatured,
-            bool isWithdrawn
-        )
+        returns (IStruct.DepositRecord memory depositRecord)
     {
         return _depositManager.getDepositRecordById(depositId);
     }

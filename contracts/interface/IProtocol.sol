@@ -1,7 +1,9 @@
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import './IInterestModel.sol';
 import './IPriceOracle.sol';
+import './IStruct.sol';
 
 /// @title Interface for main protocol
 interface IProtocol {
@@ -70,30 +72,12 @@ interface IProtocol {
 
     /// @notice Return details about a deposit
     /// @param depositId ID that identifies the deposit
-    /// @return tokenAddress
-    /// @return depositTerm
-    /// @return depositAmount
-    /// @return poolId
-    /// @return createdAt
-    /// @return maturedAt
-    /// @return withdrewAt
-    /// @return isMatured
-    /// @return isWithdrawn
+    /// @return depositRecord
     function getDepositRecordById(bytes32 depositId)
         external
         view
         virtual
-        returns (
-            address tokenAddress,
-            uint256 depositTerm,
-            uint256 depositAmount,
-            uint256 poolId,
-            uint256 createdAt,
-            uint256 maturedAt,
-            uint256 withdrewAt,
-            bool isMatured,
-            bool isWithdrawn
-        );
+        returns (IStruct.DepositRecord memory depositRecord);
 
     /// @notice Return interest distributed to different parties
     /// @param depositId ID that identifies the deposit

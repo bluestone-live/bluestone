@@ -295,13 +295,12 @@ contract(
 
         const {
           depositAmount: depositAmountForRecord,
-          isMatured,
         } = await protocol.getDepositRecordById(depositId);
         const {
           interestForDepositor,
         } = await protocol.getInterestDistributionByDepositId(depositId);
 
-        expect(isMatured).to.be.true;
+        // TODO(desmond): check maturedAt < now
 
         const prevDepositorBalance = await loanToken.balanceOf(depositor);
         const prevDepositDistributorBalance = await loanToken.balanceOf(
@@ -324,7 +323,7 @@ contract(
         );
 
         expect(depositorBalance.sub(prevDepositorBalance)).to.bignumber.equal(
-          depositAmountForRecord.add(interestForDepositor),
+          new BN(depositAmountForRecord).add(interestForDepositor),
         );
         expect(
           depositDistributorBalance.sub(prevDepositDistributorBalance),
@@ -401,10 +400,9 @@ contract(
 
         const {
           depositAmount: depositAmountForRecord,
-          isMatured,
         } = await protocol.getDepositRecordById(depositId);
 
-        expect(isMatured).to.be.false;
+        // TODO(desmond): check maturedAt >= now
 
         const isEarlyWithdrawable = await protocol.isDepositEarlyWithdrawable(
           depositId,
@@ -433,7 +431,7 @@ contract(
         );
 
         expect(depositorBalance.sub(prevDepositorBalance)).to.bignumber.equal(
-          depositAmountForRecord,
+          new BN(depositAmountForRecord),
         );
         expect(
           depositDistributorBalance.sub(prevDepositDistributorBalance),

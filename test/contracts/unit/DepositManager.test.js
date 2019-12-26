@@ -353,10 +353,10 @@ contract('DepositManager', function([
       it('should get deposit details', async () => {
         const deposit = await depositManager.getDepositRecordById(recordId);
         expect(deposit.tokenAddress).to.equal(token.address);
-        expect(deposit.depositTerm).to.bignumber.equal(new BN(depositTerm));
-        expect(deposit.depositAmount).to.bignumber.equal(depositAmount);
-        expect(deposit.isMatured).to.be.false;
-        expect(deposit.isWithdrawn).to.be.false;
+        expect(new BN(deposit.depositTerm)).to.bignumber.equal(
+          new BN(depositTerm),
+        );
+        expect(new BN(deposit.depositAmount)).to.bignumber.equal(depositAmount);
       });
     });
 

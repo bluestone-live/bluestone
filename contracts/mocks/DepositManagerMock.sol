@@ -1,4 +1,5 @@
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import '../impl/lib/Configuration.sol';
 import '../impl/lib/LiquidityPools.sol';
@@ -6,6 +7,7 @@ import '../impl/lib/DepositManager.sol';
 import '../impl/lib/LoanManager.sol';
 import '../impl/lib/AccountManager.sol';
 import '../interface/IInterestModel.sol';
+import '../interface/IStruct.sol';
 
 contract DepositManagerMock {
     using Configuration for Configuration.State;
@@ -105,17 +107,7 @@ contract DepositManagerMock {
     function getDepositRecordById(bytes32 depositId)
         external
         view
-        returns (
-            address tokenAddress,
-            uint256 depositTerm,
-            uint256 depositAmount,
-            uint256 poolId,
-            uint256 createdAt,
-            uint256 maturedAt,
-            uint256 withdrewAt,
-            bool isMatured,
-            bool isWithdrawn
-        )
+        returns (IStruct.DepositRecord memory depositRecord)
     {
         return _depositManager.getDepositRecordById(depositId);
     }
