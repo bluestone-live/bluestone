@@ -124,15 +124,7 @@ contract LoanManagerMock {
     function getLoanRecordsByAccount(address accountAddress)
         external
         view
-        returns (
-            bytes32[] memory loanIdList,
-            address[] memory loanTokenAddressList,
-            address[] memory collateralTokenAddressList,
-            uint256[] memory loanTermList,
-            uint256[] memory loanAmountList,
-            uint256[] memory collateralAmountList,
-            uint256[] memory createdAtList
-        )
+        returns (IStruct.LoanRecord[] memory loanRecordList)
     {
         return _loanManager.getLoanRecordsByAccount(accountAddress);
     }

@@ -125,22 +125,8 @@ contract('LoanManager', function([
   describe('#getLoanRecordsByAccount', () => {
     context("when user didn't have any loan records", () => {
       it('should return empty resultSet', async () => {
-        const {
-          loanIdList,
-          loanTokenAddressList,
-          collateralTokenAddressList,
-          loanTermList,
-          loanAmountList,
-          collateralAmountList,
-          createdAtList,
-        } = await loanManager.getLoanRecordsByAccount(owner);
-        expect(loanIdList.length).to.equal(0);
-        expect(loanTokenAddressList.length).to.equal(0);
-        expect(collateralTokenAddressList.length).to.equal(0);
-        expect(loanTermList.length).to.equal(0);
-        expect(loanAmountList.length).to.equal(0);
-        expect(collateralAmountList.length).to.equal(0);
-        expect(createdAtList.length).to.equal(0);
+        const loanRecordList = await loanManager.getLoanRecordsByAccount(owner);
+        expect(loanRecordList.length).to.equal(0);
       });
     });
 
@@ -210,24 +196,10 @@ contract('LoanManager', function([
       });
 
       it('succeeds', async () => {
-        const {
-          loanIdList,
-          loanTokenAddressList,
-          collateralTokenAddressList,
-          loanTermList,
-          loanAmountList,
-          collateralAmountList,
-          createdAtList,
-        } = await loanManager.getLoanRecordsByAccount(loaner);
-
-        expect(loanIdList.length).to.equal(1);
-        expect(loanTokenAddressList.length).to.equal(1);
-        expect(collateralTokenAddressList.length).to.equal(1);
-        expect(loanTermList.length).to.equal(1);
-        expect(loanAmountList.length).to.equal(1);
-        expect(collateralAmountList.length).to.equal(1);
-        expect(createdAtList.length).to.equal(1);
-        expect(loanIdList[0]).to.equal(recordId);
+        const loanRecordList = await loanManager.getLoanRecordsByAccount(
+          loaner,
+        );
+        expect(loanRecordList.length).to.equal(1);
       });
     });
   });

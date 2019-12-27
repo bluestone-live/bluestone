@@ -206,60 +206,16 @@ library LoanManager {
     function getLoanRecordsByAccount(State storage self, address accountAddress)
         external
         view
-        returns (
-            bytes32[] memory loanIdList,
-            address[] memory loanTokenAddressList,
-            address[] memory collateralTokenAddressList,
-            uint256[] memory loanTermList,
-            uint256[] memory loanAmountList,
-            uint256[] memory collateralAmountList,
-            uint256[] memory createdAtList
-        )
+        returns (IStruct.LoanRecord[] memory loanRecordList)
     {
-        LoanRecordListView memory loanRecordListView;
-        loanRecordListView.loanIdList = self.loanIdsByAccount[accountAddress];
-        if (loanRecordListView.loanIdList.length != 0) {
-            loanRecordListView.loanTokenAddressList = new address[](
-                loanRecordListView.loanIdList.length
-            );
-            loanRecordListView.collateralTokenAddressList = new address[](
-                loanRecordListView.loanIdList.length
-            );
-            loanRecordListView.loanTermList = new uint256[](
-                loanRecordListView.loanIdList.length
-            );
-            loanRecordListView.loanAmountList = new uint256[](
-                loanRecordListView.loanIdList.length
-            );
-            loanRecordListView.collateralAmountList = new uint256[](
-                loanRecordListView.loanIdList.length
-            );
-            loanRecordListView.createdAtList = new uint256[](
-                loanRecordListView.loanIdList.length
-            );
-            for (uint256 i = 0; i < loanRecordListView.loanIdList.length; i++) {
-                IStruct.LoanRecord memory loanRecord = self
-                    .loanRecordById[loanRecordListView.loanIdList[i]];
-                loanRecordListView.loanTokenAddressList[i] = loanRecord
-                    .loanTokenAddress;
-                loanRecordListView.collateralTokenAddressList[i] = loanRecord
-                    .collateralTokenAddress;
-                loanRecordListView.loanTermList[i] = loanRecord.loanTerm;
-                loanRecordListView.loanAmountList[i] = loanRecord.loanAmount;
-                loanRecordListView.collateralAmountList[i] = loanRecord
-                    .collateralAmount;
-                loanRecordListView.createdAtList[i] = loanRecord.createdAt;
-            }
+        bytes32[] memory loanIdList = self.loanIdsByAccount[accountAddress];
+        loanRecordList = new IStruct.LoanRecord[](loanIdList.length);
+
+        for (uint256 i = 0; i < loanIdList.length; i++) {
+            loanRecordList[i] = self.loanRecordById[loanIdList[i]];
         }
-        return (
-            loanRecordListView.loanIdList,
-            loanRecordListView.loanTokenAddressList,
-            loanRecordListView.collateralTokenAddressList,
-            loanRecordListView.loanTermList,
-            loanRecordListView.loanAmountList,
-            loanRecordListView.collateralAmountList,
-            loanRecordListView.createdAtList
-        );
+
+        return loanRecordList;
     }
 
     function addCollateral(

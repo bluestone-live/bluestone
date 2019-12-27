@@ -261,26 +261,12 @@ interface IProtocol {
         );
 
     /// @notice Return details of all loans owned by the caller
-    /// @return loanIdList
-    /// @return loanTokenAddressList
-    /// @return collateralTokenAddressList
-    /// @return loanTermList
-    /// @return loanAmountList
-    /// @return collateralAmountList
-    /// @return createdAtList
+    /// @return loanRecordList
     function getLoanRecordsByAccount(address accountAddress)
         external
         view
         virtual
-        returns (
-            bytes32[] memory loanIdList,
-            address[] memory loanTokenAddressList,
-            address[] memory collateralTokenAddressList,
-            uint256[] memory loanTermList,
-            uint256[] memory loanAmountList,
-            uint256[] memory collateralAmountList,
-            uint256[] memory createdAtList
-        );
+        returns (IStruct.LoanRecord[] memory loanRecordList);
 
     /// @notice Return details for each loan and collateral token pair
     /// @return loanTokenAddressList A list of loan token addresses
