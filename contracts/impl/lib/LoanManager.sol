@@ -1,4 +1,5 @@
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import '../ERC20.sol';
 import '../../lib/Math.sol';
@@ -6,6 +7,7 @@ import '../../lib/SafeMath.sol';
 import '../../lib/FixedMath.sol';
 import '../../lib/DateTime.sol';
 import '../../lib/SafeERC20.sol';
+import '../../interface/IStruct.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
 import './DepositManager.sol';
@@ -24,7 +26,7 @@ library LoanManager {
         TokenStorage loanTokens;
         TokenStorage collateralTokens;
         // ID -> LoanRecord
-        mapping(bytes32 => LoanRecord) loanRecordById;
+        mapping(bytes32 => IStruct.LoanRecord) loanRecordById;
         // accountAddress -> loanIds
         mapping(address => bytes32[]) loanIdsByAccount;
         // account -> tokenAddress -> availableCollateralamount
@@ -56,34 +58,6 @@ library LoanManager {
     uint256 private constant LOWER_BOUND_OF_CCR_FOR_ALL_PAIRS = 10**18; // 1.0 (100%)
     uint256 private constant ONE = 10**18;
     uint256 private constant MAX_LIQUIDATION_DISCOUNT = 2 * (10**17); // 0.2 (20%)
-
-    struct LoanRecord {
-        bool isValid;
-        bytes32 loanId;
-        address ownerAddress;
-        address loanTokenAddress;
-        address collateralTokenAddress;
-        uint256 loanAmount;
-        uint256 collateralAmount;
-        uint256 loanTerm;
-        uint256 annualInterestRate;
-        uint256 interest;
-        uint256 minCollateralCoverageRatio;
-        uint256 liquidationDiscount;
-        uint256 alreadyPaidAmount;
-        uint256 liquidatedAmount;
-        uint256 soldCollateralAmount;
-        uint256 createdAt;
-        uint256 lastInterestUpdatedAt;
-        uint256 lastRepaidAt;
-        uint256 lastLiquidatedAt;
-        bool isClosed;
-        // pool id -> loan amount
-        /// How much have one borrowed from a pool
-        mapping(uint256 => uint256) loanAmountByPool;
-        address distributorAddress;
-        uint256 distributorInterest;
-    }
 
     struct LoanRecordListView {
         bytes32[] loanIdList;
@@ -153,30 +127,17 @@ library LoanManager {
     function getLoanRecordById(State storage self, bytes32 loanId)
         external
         view
-        returns (
-            address loanTokenAddress,
-            address collateralTokenAddress,
-            uint256 loanTerm,
-            uint256 loanAmount,
-            uint256 collateralAmount,
-            uint256 createdAt
-        )
+        returns (IStruct.LoanRecord memory loanRecord)
     {
-        LoanRecord memory loanRecord = self.loanRecordById[loanId];
+        IStruct.LoanRecord memory loanRecord = self.loanRecordById[loanId];
 
         require(
             loanRecord.loanTokenAddress != address(0),
             'LoanManager: Loan ID is invalid'
         );
 
-        return (
-            loanRecord.loanTokenAddress,
-            loanRecord.collateralTokenAddress,
-            loanRecord.loanTerm,
-            loanRecord.loanAmount,
-            loanRecord.collateralAmount,
-            loanRecord.createdAt
-        );
+        return loanRecord;
+
     }
 
     function getLoanRecordDetailsById(
@@ -194,7 +155,8 @@ library LoanManager {
             bool isClosed
         )
     {
-        LoanRecord memory loanRecord = self.loanRecordById[loanId];
+        IStruct.LoanRecord memory loanRecord = self.loanRecordById[loanId];
+
         require(
             loanRecord.loanTokenAddress != address(0),
             'LoanManager: Loan ID is invalid'
@@ -276,7 +238,7 @@ library LoanManager {
                 loanRecordListView.loanIdList.length
             );
             for (uint256 i = 0; i < loanRecordListView.loanIdList.length; i++) {
-                LoanRecord memory loanRecord = self
+                IStruct.LoanRecord memory loanRecord = self
                     .loanRecordById[loanRecordListView.loanIdList[i]];
                 loanRecordListView.loanTokenAddressList[i] = loanRecord
                     .loanTokenAddress;
@@ -525,8 +487,7 @@ library LoanManager {
 
         localVars.loanId = keccak256(abi.encode(msg.sender, self.numLoans));
 
-        self.loanRecordById[localVars.loanId] = LoanRecord({
-            isValid: true,
+        self.loanRecordById[localVars.loanId] = IStruct.LoanRecord({
             loanId: localVars.loanId,
             ownerAddress: msg.sender,
             loanTokenAddress: loanParameters.loanTokenAddress,
@@ -679,7 +640,7 @@ library LoanManager {
         bytes32 loanId,
         uint256 repayAmount
     ) external returns (uint256 remainingDebt) {
-        LoanRecord storage loanRecord = self.loanRecordById[loanId];
+        IStruct.LoanRecord storage loanRecord = self.loanRecordById[loanId];
 
         require(
             self.isLoanTokenPairEnabled[loanRecord.loanTokenAddress][loanRecord
@@ -752,7 +713,7 @@ library LoanManager {
         bytes32 loanId,
         uint256 liquidateAmount
     ) external returns (uint256 remainingCollateral, uint256 liquidatedAmount) {
-        LoanRecord storage loanRecord = self.loanRecordById[loanId];
+        IStruct.LoanRecord storage loanRecord = self.loanRecordById[loanId];
 
         require(
             self.isLoanTokenPairEnabled[loanRecord.loanTokenAddress][loanRecord
@@ -866,7 +827,7 @@ library LoanManager {
         );
     }
 
-    function _calculateRemainingDebt(LoanRecord memory loanRecord)
+    function _calculateRemainingDebt(IStruct.LoanRecord memory loanRecord)
         internal
         pure
         returns (uint256 remainingDebt)

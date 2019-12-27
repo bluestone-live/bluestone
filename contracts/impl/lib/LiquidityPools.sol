@@ -4,13 +4,12 @@ import '../../lib/Math.sol';
 import '../../lib/SafeMath.sol';
 import '../../lib/FixedMath.sol';
 import '../../lib/DateTime.sol';
+import '../../interface/IStruct.sol';
 import './LoanManager.sol';
 
 library LiquidityPools {
     using SafeMath for uint256;
     using FixedMath for uint256;
-
-    event PrintLog(string indexed key, uint256 value);
 
     struct State {
         // token -> PoolGroup
@@ -21,6 +20,8 @@ library LiquidityPools {
         uint256 numPools;
         // Pool ID (in day) -> Pool
         mapping(uint256 => Pool) poolsById;
+        // Loan ID -> Pool ID -> Borrow amount
+        mapping(bytes32 => mapping(uint256 => uint256)) loanAmountByLoanIdAndPoolId;
     }
 
     struct Pool {
@@ -100,7 +101,7 @@ library LiquidityPools {
 
     function loanFromPools(
         State storage self,
-        LoanManager.LoanRecord storage loanRecord
+        IStruct.LoanRecord storage loanRecord
     ) external {
         PoolGroup storage poolGroup = self.poolGroups[loanRecord
             .loanTokenAddress];
@@ -157,7 +158,8 @@ library LiquidityPools {
             );
 
             // Record the actual pool we loan from, so we know which pool to repay back later
-            loanRecord.loanAmountByPool[poolId] = loanAmountFromPool;
+            poolGroup.loanAmountByLoanIdAndPoolId[loanRecord
+                .loanId][poolId] = loanAmountFromPool;
 
             remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
         }
@@ -168,7 +170,7 @@ library LiquidityPools {
 
     function repayLoanToPools(
         State storage self,
-        LoanManager.LoanRecord storage loanRecord,
+        IStruct.LoanRecord storage loanRecord,
         uint256 repayAmount
     ) external {
         PoolGroup storage poolGroup = self.poolGroups[loanRecord
@@ -188,7 +190,9 @@ library LiquidityPools {
             if (remainingRepayAmount == 0) {
                 break;
             }
-            loanAmountFromThisPool = loanRecord.loanAmountByPool[poolId];
+
+            uint256 loanAmountFromThisPool = poolGroup
+                .loanAmountByLoanIdAndPoolId[loanRecord.loanId][poolId];
 
             if (loanAmountFromThisPool == 0) {
                 // Skip this pool since it has no loan

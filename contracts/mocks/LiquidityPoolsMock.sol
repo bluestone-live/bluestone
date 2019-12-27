@@ -4,6 +4,7 @@ import '../impl/lib/LiquidityPools.sol';
 import '../impl/lib/LoanManager.sol';
 import '../lib/DateTime.sol';
 import '../lib/SafeMath.sol';
+import '../interface/IStruct.sol';
 
 contract LiquidityPoolsMock {
     using LiquidityPools for LiquidityPools.State;
@@ -57,14 +58,14 @@ contract LiquidityPoolsMock {
     }
 
     function loanFromPools(bytes32 loanId) external {
-        LoanManager.LoanRecord storage loanRecord = _loanManager
+        IStruct.LoanRecord storage loanRecord = _loanManager
             .loanRecordById[loanId];
 
         _liquidityPools.loanFromPools(loanRecord);
     }
 
     function repayLoanToPools(bytes32 loanId, uint256 repayAmount) external {
-        LoanManager.LoanRecord storage loanRecord = _loanManager
+        IStruct.LoanRecord storage loanRecord = _loanManager
             .loanRecordById[loanId];
 
         _liquidityPools.repayLoanToPools(loanRecord, repayAmount);
@@ -173,9 +174,10 @@ contract LiquidityPoolsMock {
             abi.encode(msg.sender, _loanManager.numLoans)
         );
 
-        LoanManager.LoanRecord storage loanRecord = _loanManager
+        IStruct.LoanRecord storage loanRecord = _loanManager
             .loanRecordById[loanId];
 
+        loanRecord.loanId = loanId;
         loanRecord.loanTokenAddress = loanTokenAddress;
         loanRecord.loanAmount = loanAmount;
         loanRecord.loanTerm = loanTerm;
@@ -188,9 +190,15 @@ contract LiquidityPoolsMock {
         view
         returns (uint256 loanAmountByPool)
     {
-        LoanManager.LoanRecord storage loanRecord = _loanManager
+        IStruct.LoanRecord storage loanRecord = _loanManager
             .loanRecordById[loanId];
 
-        return loanRecord.loanAmountByPool[DateTime.toDays().add(poolIndex)];
+        LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
+            .poolGroups[loanRecord.loanTokenAddress];
+
+        return
+            poolGroup.loanAmountByLoanIdAndPoolId[loanId][DateTime.toDays().add(
+                poolIndex
+            )];
     }
 }

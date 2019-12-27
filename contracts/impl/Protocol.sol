@@ -346,14 +346,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         view
         whenNotPaused
         override
-        returns (
-            address loanTokenAddress,
-            address collateralTokenAddress,
-            uint256 loanTerm,
-            uint256 loanAmount,
-            uint256 collateralAmount,
-            uint256 createdAt
-        )
+        returns (IStruct.LoanRecord memory loanRecord)
     {
         return _loanManager.getLoanRecordById(loanId);
     }

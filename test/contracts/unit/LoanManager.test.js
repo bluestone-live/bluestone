@@ -104,9 +104,11 @@ contract('LoanManager', function([
 
         expect(record.loanTokenAddress).to.equal(loanToken.address);
         expect(record.collateralTokenAddress).to.equal(collateralToken.address);
-        expect(record.loanTerm.toString()).to.equal(loanTerm.toString());
-        expect(record.loanAmount).to.bignumber.equal(loanAmount);
-        expect(record.collateralAmount).to.bignumber.equal(collateralAmount);
+        expect(new BN(record.loanTerm)).to.bignumber.equal(new BN(loanTerm));
+        expect(new BN(record.loanAmount)).to.bignumber.equal(loanAmount);
+        expect(new BN(record.collateralAmount)).to.bignumber.equal(
+          collateralAmount,
+        );
       });
     });
 

@@ -1,4 +1,5 @@
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import '../impl/lib/Configuration.sol';
 import '../impl/lib/LiquidityPools.sol';
@@ -7,6 +8,7 @@ import '../impl/lib/LoanManager.sol';
 import '../impl/lib/AccountManager.sol';
 import '../interface/IInterestModel.sol';
 import '../interface/IPriceOracle.sol';
+import '../interface/IStruct.sol';
 
 contract LoanManagerMock {
     using Configuration for Configuration.State;
@@ -100,14 +102,7 @@ contract LoanManagerMock {
     function getLoanRecordById(bytes32 loanId)
         external
         view
-        returns (
-            address loanTokenAddress,
-            address collateralTokenAddress,
-            uint256 loanTerm,
-            uint256 loanAmount,
-            uint256 collateralAmount,
-            uint256 createdAt
-        )
+        returns (IStruct.LoanRecord memory loanRecord)
     {
         return _loanManager.getLoanRecordById(loanId);
     }

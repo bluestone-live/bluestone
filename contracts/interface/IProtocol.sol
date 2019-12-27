@@ -132,6 +132,7 @@ interface IProtocol {
         address collateralTokenAddress
     ) external virtual;
 
+    /// @dev Remove documentation of return parameters in order to compile
     /// @notice Get maximum loan term of a token
     /// @param tokenAddress Token address
     /// @return maxLoanTerm
@@ -233,19 +234,12 @@ interface IProtocol {
 
     /// @notice Return basic info of a loan record
     /// @param loanId ID that identifies the loan record
-    /// @dev Remove documentation of return parameters in order to compile
+    /// @return loanRecord
     function getLoanRecordById(bytes32 loanId)
         external
         view
         virtual
-        returns (
-            address loanTokenAddress,
-            address collateralTokenAddress,
-            uint256 loanTerm,
-            uint256 loanAmount,
-            uint256 collateralAmount,
-            uint256 createdAt
-        );
+        returns (IStruct.LoanRecord memory loanRecord);
 
     /// @notice Return extra details of a loan record
     /// @param loanId ID that identifies the loan record
