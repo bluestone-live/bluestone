@@ -2,7 +2,6 @@ import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { Contract, EventOptions, EventData } from 'web3-eth-contract';
 import protocolDeclareFile from '../contracts/Protocol.json';
-import priceOracleDeclareFile from '../contracts/PriceOracle.json';
 import ERC20 from '../contracts/ERC20Mock.json';
 
 interface ITokenDeclaration {

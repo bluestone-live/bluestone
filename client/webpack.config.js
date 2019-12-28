@@ -9,12 +9,13 @@ if (!fs.existsSync(path.resolve(__dirname, dotEnvPath))) {
 }
 require('dotenv').config({ path: dotEnvPath });
 const webpack = require('webpack');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OfflinePlugin = require('offline-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin;
+const theme = require('./src/styles/theme');
 
 const express = require('express');
 
@@ -69,6 +70,17 @@ module.exports = env => ({
         use: [
           getStyleLoader(),
           { loader: 'css-loader', options: { importLoaders: 1 } },
+        ],
+      },
+      {
+        test: /\.(less)$/,
+        use: [
+          getStyleLoader(),
+          { loader: 'css-loader', options: { importLoaders: 1 } },
+          {
+            loader: 'less-loader',
+            options: { modifyVars: theme, javascriptEnabled: true },
+          },
         ],
       },
     ],

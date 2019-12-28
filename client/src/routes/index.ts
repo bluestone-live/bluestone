@@ -1,104 +1,28 @@
 import Loadable from 'react-loadable';
-import Loading from '../components/common/Loading';
+import Loading from '../components/Loading';
 
 const routes = [
   {
-    name: 'index',
-    path: '/',
+    name: 'deposit-overview',
+    path: ['/', '/deposit'],
     component: Loadable({
-      loader: () => import('../pages/FrontPage'),
+      loader: () => import('../pages/Overview'),
       loading: Loading,
     }),
   },
   {
-    name: 'monitor',
-    path: '/monitor',
+    name: 'borrow-overview',
+    path: '/borrow',
     component: Loadable({
-      loader: () => import('../pages/MonitorPage'),
+      loader: () => import('../pages/Overview'),
       loading: Loading,
     }),
   },
   {
-    name: 'account-manager',
+    name: 'account',
     path: '/account',
     component: Loadable({
-      loader: () => import('../pages/AccountManagerPage'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'deposit-overview',
-    path: '/deposit-overview',
-    component: Loadable({
-      loader: () => import('../pages/DepositOverviewPage'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'loan-overview',
-    path: '/loan-overview',
-    component: Loadable({
-      loader: () => import('../pages/LoanOverviewPage'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'loan',
-    path: '/loan',
-    component: Loadable({
-      loader: () => import('../pages/LoanFormPage'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'deposit',
-    path: ['/deposit', '/deposit/:tokenAddress'],
-    component: Loadable({
-      loader: () => import('../pages/DepositFormPage'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'withdraw-available-collateral',
-    path: '/withdraw/:tokenAddress',
-    component: Loadable({
-      loader: () => import('../pages/WithdrawAvailableCollateralPage'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'loan-add-collateral',
-    path: '/loan/collateral/add/:recordId',
-    component: Loadable({
-      loader: () => import('../pages/AddCollateralPage'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'loan-withdraw-collateral',
-    path: '/loan/collateral/withdraw/:recordAddress',
-    component: Loadable({
-      loader: () => import('../pages/WithdrawAvailableCollateralPage'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'loan-repay',
-    path: '/loan/repay/:recordId',
-    component: Loadable({
-      loader: () => import('../pages/RepayLoanPage'),
-      loading: Loading,
-    }),
-  },
-  {
-    name: 'record-page',
-    path: [
-      '/records',
-      '/records/:recordType',
-      '/records/:recordType/:recordAddress',
-    ],
-    component: Loadable({
-      loader: () => import('../pages/RecordPage'),
+      loader: () => import('../pages/Overview'),
       loading: Loading,
     }),
   },

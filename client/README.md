@@ -6,15 +6,17 @@ This is the web client for BlueStone.
 
 In `src` directory:
 
-- components: Dumb components. Cares about how things look.
-- containers: Smart components. Cares about how things work.
+- components: Semantic components. Combine and customize UI library components. Cares about how things look.
+- containers: Smart components. Maintaining component states, dispatch actions. Cares about how things work.
 - pages: Page components where each corresponds to a URL route.
 - layouts: Different layouts. for example: `DefaultLayout` for function page, `CoverLayout` for login or MetaMask alert page.
 - routes: React-router configs
 - stores: Redux stores
 - services: Implementation of the business call to the contract
   - Pipes: Some data transform function, we can transform input data to the desired output and validate input data if valid
-- styles: Themes variables
+- styles: Themes variables and customize styles
+  - main.less: Styles entry file. Put all styles imports into it.
+  - theme.js: Theme variable override declarations. reference: [style variables](https://github.com/ant-design/ant-design/blob/master/components/style/themes/default.less)
 - utils: Some useful utils or helpers
   - `*Provider.ts`: Provides a contract generic call interface for the Service
 

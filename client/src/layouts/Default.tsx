@@ -1,11 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import styled from 'styled-components';
-import Header from '../components/common/Header';
-import Card from '../components/common/Card';
-import Container from '../components/common/Container';
-import { ThemedProps } from '../styles/themes';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { useDispatch } from 'react-redux';
+import { Icon } from 'antd';
 import {
   useDefaultAccount,
   CommonActions,
@@ -14,42 +11,22 @@ import {
 } from '../stores';
 import { useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
-import { useDispatch } from 'react-redux';
 import parseQuery from '../utils/parseQuery';
 import { decodeDistributorConfig } from '../utils/decodeDistributorConfig';
 import { convertWeiToDecimal } from '../utils/BigNumber';
+import TabBar, { TabType } from '../components/TabBar';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
   title?: React.ReactChild | React.ReactChild[];
 }
 
-const StyledDefaultLayout = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding: ${(props: ThemedProps) => props.theme.gap.largest};
-  font-family: ${(props: ThemedProps) => props.theme.fontFamily};
-  font-size: ${(props: ThemedProps) => props.theme.fontSize.medium};
-`;
-
-const StyledHeaderCard = styled(Card)`
-  width: 1024px;
-  margin-bottom: ${(props: ThemedProps) => props.theme.gap.largest};
-`;
-
-const StyledMain = styled.main`
-  display: flex;
-  flex-direction: column;
-  width: 1024px;
-`;
-
 const DefaultLayout = (props: IProps) => {
   const {
     children,
     history,
     location: { search },
+    t,
   } = props;
   const dispatch = useDispatch();
   const enableEthereumNetwork = async () => {
@@ -65,6 +42,33 @@ const DefaultLayout = (props: IProps) => {
 
   // Selector
   const defaultAccount = useDefaultAccount();
+
+  // State
+  const [selectedTabType] = useState(TabType.Deposit);
+
+  const tabOptions = useMemo(
+    () => [
+      {
+        title: t('layout_default_deposit'),
+        type: TabType.Deposit,
+        icon: <Icon type="up" />,
+        content: children,
+      },
+      {
+        title: t('layout_default_borrow'),
+        type: TabType.Deposit,
+        icon: <Icon type="down" />,
+        content: children,
+      },
+      {
+        title: t('layout_default_account'),
+        type: TabType.Deposit,
+        icon: <Icon type="ellipsis" />,
+        content: children,
+      },
+    ],
+    [children],
+  );
 
   // Initialize
   useComponentMounted(async () => {
@@ -86,20 +90,24 @@ const DefaultLayout = (props: IProps) => {
     // Get distributor configs
     const protocolAddress = await commonService.getProtocolAddress();
 
-    const {
-      maxDepositDistributorFeeRatio,
-    } = await commonService.getMaxDistributorFeeRatios();
+    const distributorFeeRatios = await commonService.getMaxDistributorFeeRatios();
     const distributorConfig = decodeDistributorConfig(dconfig || btoa('{}'));
 
-    dispatch(
-      CommonActions.setDistributorConfig({
-        address: distributorConfig.address || protocolAddress,
-        depositFee: Math.min(
-          Number.parseFloat(convertWeiToDecimal(maxDepositDistributorFeeRatio)),
-          distributorConfig.depositFee,
-        ),
-      }),
-    );
+    if (distributorFeeRatios) {
+      dispatch(
+        CommonActions.setDistributorConfig({
+          address: distributorConfig.address || protocolAddress,
+          depositFee: Math.min(
+            Number.parseFloat(
+              convertWeiToDecimal(
+                distributorFeeRatios.maxDepositDistributorFeeRatio,
+              ),
+            ),
+            distributorConfig.depositFee,
+          ),
+        }),
+      );
+    }
 
     // Get deposit terms
     dispatch(
@@ -158,28 +166,7 @@ const DefaultLayout = (props: IProps) => {
     );
   });
 
-  // Callback
-  const onAccountClickHandler = useCallback(async () => {
-    if (defaultAccount) {
-      return history.push('/account');
-    }
-    enableEthereumNetwork();
-    getAccounts();
-  }, [defaultAccount]);
-
-  return (
-    <StyledDefaultLayout className="layout default">
-      <StyledHeaderCard>
-        <Header
-          defaultAccount={defaultAccount}
-          onAccountClick={onAccountClickHandler}
-        />
-      </StyledHeaderCard>
-      <StyledMain>
-        <Container>{defaultAccount && children}</Container>
-      </StyledMain>
-    </StyledDefaultLayout>
-  );
+  return <div className="layout default" />;
 };
 
 export default withTranslation()(withRouter(DefaultLayout));
