@@ -8,6 +8,7 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import flatten from './utils/flatten';
 import routes from './routes';
+import { Default } from './layouts';
 import 'normalize.css';
 import 'antd/dist/antd.less';
 import './styles/main.less';
@@ -20,7 +21,20 @@ const App = () => (
           {flatten(routes, 'subRoutes')
             .filter(route => route.path)
             .map(({ component: Component, layout: Layout, ...rest }) => {
-              const renderHandler = (props: any) => <Component {...props} />;
+              const renderHandler = (props: any) => {
+                if (Layout) {
+                  return (
+                    <Layout {...props} title={rest.title}>
+                      <Component {...props} />
+                    </Layout>
+                  );
+                }
+                return (
+                  <Default {...props} title={rest.title}>
+                    <Component {...props} />
+                  </Default>
+                );
+              };
               return (
                 <Route exact key={rest.path} {...rest} render={renderHandler} />
               );

@@ -1,3 +1,3 @@
 module.exports = {
-  '@brand-primary': '#FF6DC4',
+  '@primary-color': '#FF6DC4',
 };

@@ -6,7 +6,7 @@ const routes = [
     name: 'deposit-overview',
     path: ['/', '/deposit'],
     component: Loadable({
-      loader: () => import('../pages/Overview'),
+      loader: () => import('../pages/DepositOverview'),
       loading: Loading,
     }),
   },
@@ -14,7 +14,7 @@ const routes = [
     name: 'borrow-overview',
     path: '/borrow',
     component: Loadable({
-      loader: () => import('../pages/Overview'),
+      loader: () => import('../pages/BorrowOverview'),
       loading: Loading,
     }),
   },
@@ -22,7 +22,7 @@ const routes = [
     name: 'account',
     path: '/account',
     component: Loadable({
-      loader: () => import('../pages/Overview'),
+      loader: () => import('../pages/Account'),
       loading: Loading,
     }),
   },

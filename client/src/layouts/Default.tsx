@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch } from 'react-redux';
@@ -15,6 +15,7 @@ import parseQuery from '../utils/parseQuery';
 import { decodeDistributorConfig } from '../utils/decodeDistributorConfig';
 import { convertWeiToDecimal } from '../utils/BigNumber';
 import TabBar, { TabType } from '../components/TabBar';
+import { ClickParam } from 'antd/lib/menu';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
@@ -24,7 +25,6 @@ interface IProps extends WithTranslation, RouteComponentProps {
 const DefaultLayout = (props: IProps) => {
   const {
     children,
-    history,
     location: { search },
     t,
   } = props;
@@ -44,7 +44,7 @@ const DefaultLayout = (props: IProps) => {
   const defaultAccount = useDefaultAccount();
 
   // State
-  const [selectedTabType] = useState(TabType.Deposit);
+  const [selectedTab, setSelectedTab] = useState(TabType.Deposit);
 
   const tabOptions = useMemo(
     () => [
@@ -52,22 +52,19 @@ const DefaultLayout = (props: IProps) => {
         title: t('layout_default_deposit'),
         type: TabType.Deposit,
         icon: <Icon type="up" />,
-        content: children,
       },
       {
         title: t('layout_default_borrow'),
-        type: TabType.Deposit,
+        type: TabType.Borrow,
         icon: <Icon type="down" />,
-        content: children,
       },
       {
         title: t('layout_default_account'),
-        type: TabType.Deposit,
+        type: TabType.Account,
         icon: <Icon type="ellipsis" />,
-        content: children,
       },
     ],
-    [children],
+    [],
   );
 
   // Initialize
@@ -166,7 +163,22 @@ const DefaultLayout = (props: IProps) => {
     );
   });
 
-  return <div className="layout default" />;
+  // Callback
+  const onTabItemClick = useCallback(
+    (e: ClickParam) => setSelectedTab(TabType[e.key as keyof typeof TabType]),
+    [],
+  );
+
+  return (
+    <div className="layout default">
+      <div className="container">{defaultAccount && children} </div>
+      <TabBar
+        tabOptions={tabOptions}
+        selectedTab={selectedTab}
+        onItemClick={onTabItemClick}
+      />
+    </div>
+  );
 };
 
 export default withTranslation()(withRouter(DefaultLayout));

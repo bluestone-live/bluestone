@@ -1,46 +1,49 @@
-import React, { useCallback } from 'react';
-import { Tabs } from 'antd';
+import React, { useMemo } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { withRouter, RouteComponentProps } from 'react-router';
+import Menu, { ClickParam } from 'antd/lib/menu';
 
 export enum TabType {
-  Deposit = 'deposit',
-  Borrow = 'borrow',
-  Account = 'account',
+  Deposit = 'Deposit',
+  Borrow = 'Borrow',
+  Account = 'Account',
 }
 
 export interface ITabOption {
   title: string;
   type: TabType;
   icon: React.ReactElement;
-  content: Element | React.ReactChild | React.ReactChild[];
 }
 
 interface IProps extends WithTranslation, RouteComponentProps {
   selectedTab: TabType;
   tabOptions: ITabOption[];
-  onItemPress: (type: TabType) => () => void;
+  onItemClick: (e: ClickParam) => void;
 }
 
 const StyledTabBar = (props: IProps) => {
-  const { selectedTab, tabOptions, onItemPress } = props;
+  const { selectedTab, tabOptions, onItemClick } = props;
+
+  const tabWidth = useMemo(() => `${Math.round(100 / tabOptions.length)}%`, [
+    tabOptions,
+  ]);
 
   return (
-    <Tabs>
+    <Menu
+      className="tab-bar"
+      mode="horizontal"
+      onClick={onItemClick}
+      selectedKeys={[selectedTab]}
+    >
       {tabOptions.map(option => (
-        <Tabs.TabPane
-          tab={
-            <div>
-              <div>{option.icon}</div>
-              {option.title}
-            </div>
-          }
-          key={`tab-bar-${option.type}`}
-        >
-          {option.content}
-        </Tabs.TabPane>
+        <Menu.Item key={option.type} style={{ width: tabWidth }}>
+          <div className="tab-item">
+            <div>{option.icon}</div>
+            {option.title}
+          </div>
+        </Menu.Item>
       ))}
-    </Tabs>
+    </Menu>
   );
 };
 
