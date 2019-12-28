@@ -24,21 +24,20 @@ module.exports = {
 
   contract: {
     tokens: {
-      ETH: {
-        loanInterestRateLowerBound: 0.01,
-        loanInterestRateUpperBound: 0.1,
-      },
       DAI: {
-        loanInterestRateLowerBound: 0.01,
-        loanInterestRateUpperBound: 0.1,
+        name: 'Dai',
+        loanInterestRateLowerBound: 0.1,
+        loanInterestRateUpperBound: 0.15,
       },
       USDT: {
-        loanInterestRateLowerBound: 0.01,
-        loanInterestRateUpperBound: 0.1,
+        name: 'Tether',
+        loanInterestRateLowerBound: 0.07,
+        loanInterestRateUpperBound: 0.09,
       },
-      WETH: {
-        loanInterestRateLowerBound: 0.01,
-        loanInterestRateUpperBound: 0.1,
+      ETH: {
+        name: 'Native Ether',
+        loanInterestRateLowerBound: 0.06,
+        loanInterestRateUpperBound: 0.12,
       },
     },
     depositTerms: [30, 60, 90],

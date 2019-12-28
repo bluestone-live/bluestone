@@ -1,3 +1,4 @@
+const config = require('config');
 const { makeTruffleScript, saveNetwork, loadNetwork } = require('../utils.js');
 
 module.exports = makeTruffleScript(async network => {
@@ -6,11 +7,19 @@ module.exports = makeTruffleScript(async network => {
   const USDTMock = artifacts.require('./USDTMock.sol');
   const WrappedEther = artifacts.require('./WrappedEther.sol');
 
-  const { tokens } = loadNetwork(network);
+  const tokens = config.get('contract.tokens');
 
   const tokenSymbolList = Object.keys(tokens);
 
+  let savedTokens = {};
+
   for (symbol of tokenSymbolList) {
+    // We use address(1) to identify ETH
+    if (symbol === 'ETH') {
+      deployedToken = {
+        address: '0x0000000000000000000000000000000000000001',
+      };
+    }
     let token = tokens[symbol];
     if (symbol === 'WETH') {
       deployedToken = await WrappedEther.new();
@@ -20,7 +29,13 @@ module.exports = makeTruffleScript(async network => {
       deployedToken = await ERC20Mock.new(token.name, symbol);
     }
     debug(`Deployed ${symbol} at ${deployedToken.address}`);
-
-    saveNetwork(network, ['tokens', symbol, 'address'], deployedToken.address);
+    savedTokens = {
+      ...savedTokens,
+      [symbol]: {
+        name: token.name,
+        address: deployedToken.address,
+      },
+    };
   }
+  saveNetwork(network, ['tokens'], savedTokens);
 });

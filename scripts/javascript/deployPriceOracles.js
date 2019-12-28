@@ -14,7 +14,6 @@ const Protocol = artifacts.require('Protocol');
 module.exports = makeTruffleScript(async network => {
   const { tokens } = loadNetwork(network);
 
-  // TODO(desmond): use WETH instead of ETH after wrap is complete?
   const { ETH, DAI, USDT } = tokens;
 
   if (!ETH || !DAI || !USDT) {
