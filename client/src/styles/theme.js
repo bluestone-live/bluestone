@@ -3,5 +3,5 @@ module.exports = {
   '@border-radius-base': '0',
   '@input-height-lg': '42px',
   '@label-color': '#999',
-  '@@border-color-base': '#000',
+  '@border-color-base': '#000',
 };

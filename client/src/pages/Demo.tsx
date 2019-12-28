@@ -3,6 +3,7 @@ import TokenTab from '../components/TokenTab';
 import { useDepositTokens, IToken } from '../stores';
 import Form from 'antd/lib/form';
 import FormInput from '../components/FormInput';
+import TextBox from '../components/TextBox';
 
 const Demo = () => {
   const tokens = useDepositTokens();
@@ -49,6 +50,7 @@ const Demo = () => {
             ),
           }}
         />
+        <TextBox label="Total Debt">0.0000 DAI</TextBox>
       </Form>
     </Fragment>
   );
