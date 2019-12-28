@@ -1,0 +1,22 @@
+.token-tab {
+  height: 42px;
+  line-height: 42px;
+  border-bottom: 0;
+
+  .ant-menu-item {
+    text-align: center;
+    font-weight: bold;
+    height: 100%;
+    border-left: 1px solid #d9d9d9;
+    border-bottom: 0 !important;
+
+    &.first {
+      border-left: 0;
+    }
+
+    &.ant-menu-item-active {
+      background-color: @primary-color;
+      color: #fff;
+    }
+  }
+}

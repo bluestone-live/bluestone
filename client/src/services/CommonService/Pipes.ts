@@ -31,7 +31,7 @@ export const depositTokenPipe = async (
       .map(async ({ tokenAddress, erc20Instance }) => ({
         tokenAddress,
         erc20Instance,
-        tokenSymbol: (await erc20Instance.methods.symbol.call()) as string,
+        tokenSymbol: (await erc20Instance.methods.symbol().call()) as string,
       })),
   );
 };

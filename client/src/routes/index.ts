@@ -3,8 +3,16 @@ import Loading from '../components/Loading';
 
 const routes = [
   {
+    name: 'demo',
+    path: '/',
+    component: Loadable({
+      loader: () => import('../pages/Demo'),
+      loading: Loading,
+    }),
+  },
+  {
     name: 'deposit-overview',
-    path: ['/', '/deposit'],
+    path: '/deposit',
     component: Loadable({
       loader: () => import('../pages/DepositOverview'),
       loading: Loading,

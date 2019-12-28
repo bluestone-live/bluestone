@@ -42,6 +42,7 @@ export class MetaMaskProvider {
   private web3Instance?: Web3;
   private protocolInstance?: Contract;
   private eventBound: boolean = false;
+  private protocolAddress?: string;
 
   /**
    * Init protocolInstance by global Web3 provider and network configs
@@ -68,12 +69,12 @@ export class MetaMaskProvider {
 
     const networkFile = await this.getNetworkFile(this.web3Instance);
 
-    const protocolAddress =
+    this.protocolAddress =
       networkFile.contracts[protocolDeclareFile.contractName];
 
     this.protocolInstance = new this.web3Instance.eth.Contract(
       protocolDeclareFile.abi as AbiItem[],
-      protocolAddress,
+      this.protocolAddress,
     );
   }
 
@@ -106,6 +107,13 @@ export class MetaMaskProvider {
       throw new Error('MetaMaskProvider: Init failed');
     }
     return this.protocolInstance;
+  }
+
+  get protocolContractAddress() {
+    if (!this.protocolAddress) {
+      throw new Error('MetaMaskProvider: Init failed');
+    }
+    return this.protocolAddress;
   }
 
   get web3() {

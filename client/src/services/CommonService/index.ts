@@ -31,7 +31,7 @@ export class CommonService {
    * @returns protocol contract address
    */
   async getProtocolContractAddress(): Promise<string> {
-    return this.provider.protocol.address;
+    return this.provider.protocolContractAddress;
   }
 
   /**
