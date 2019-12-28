@@ -4,6 +4,7 @@ import React, {
   useCallback,
   Fragment,
   useState,
+  useRef,
 } from 'react';
 import Form from 'antd/lib/form';
 import Input from 'antd/lib/input';
@@ -20,11 +21,12 @@ interface IProps {
   label: string | React.ReactNode;
   size?: 'small' | 'default' | 'large';
   type: string;
-  defaultValue: string;
-  suffix: React.ReactNode | string;
+  defaultValue?: string | number;
+  suffix?: React.ReactNode | string;
   tip?: IFormItemTip;
   extra?: React.ReactElement | string;
-  value: string;
+  actionButtons?: React.ReactElement[];
+  value: string | number;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -36,6 +38,7 @@ const FormInput = (props: IProps) => {
     suffix,
     tip,
     extra,
+    actionButtons,
     value,
     onChange,
   } = props;
@@ -44,6 +47,8 @@ const FormInput = (props: IProps) => {
 
   const showTipModal = useCallback(() => setTipModalVisible(true), [tip]);
   const hideTipModal = useCallback(() => setTipModalVisible(false), [tip]);
+
+  const ref = useRef<HTMLDivElement>(null);
 
   const label = useMemo(() => {
     if (typeof props.label === 'string' && tip) {
@@ -62,19 +67,33 @@ const FormInput = (props: IProps) => {
     return props.label;
   }, [props.label]);
 
+  const inputWidth = useMemo(() => {
+    if (ref && ref.current && actionButtons && actionButtons.length > 0) {
+      return `${ref.current.offsetWidth - 90 * actionButtons.length}px`;
+    } else {
+      return '100%';
+    }
+  }, [ref.current, actionButtons]);
+
   return (
-    <Fragment>
-      <Form.Item label={label} className="form-input">
-        <Input
-          size={size}
-          type={type}
-          defaultValue={defaultValue}
-          value={value}
-          suffix={suffix}
-          onChange={onChange}
-        />
-        <div className="form-input__extra">{extra}</div>
-      </Form.Item>
+    <div className="form-input" ref={ref}>
+      {ref.current ? (
+        <Form.Item label={label}>
+          <Input
+            size={size}
+            type={type}
+            defaultValue={defaultValue}
+            value={value}
+            suffix={suffix}
+            onChange={onChange}
+            style={{ width: inputWidth }}
+          />
+          {actionButtons && (
+            <div className="action-buttons">{...actionButtons}</div>
+          )}
+          <div className="form-input__extra">{extra}</div>
+        </Form.Item>
+      ) : null}
       {tip && (
         <Modal
           visible={tipModalVisible}
@@ -89,7 +108,7 @@ const FormInput = (props: IProps) => {
           {tip.content}
         </Modal>
       )}
-    </Fragment>
+    </div>
   );
 };
 

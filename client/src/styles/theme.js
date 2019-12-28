@@ -4,4 +4,6 @@ module.exports = {
   '@input-height-lg': '42px',
   '@label-color': '#999',
   '@border-color-base': '#000',
+  '@input-border-color': '#000',
+  '@input-color': '#000',
 };
