@@ -433,27 +433,29 @@ library DepositManager {
             'DepositManager: Deposit ID is invalid'
         );
 
-        (, , uint256 loanInterest, uint256 totalDepositWeight, uint256 depositDistributorFeeRatio, uint256 loanDistributorFeeRatio, uint256 protocolReserveRatio) = liquidityPools
-            .getPoolById(depositRecord.tokenAddress, depositRecord.poolId);
+        IStruct.Pool memory pool = liquidityPools.getPoolById(
+            depositRecord.tokenAddress,
+            depositRecord.poolId
+        );
 
-        if (totalDepositWeight == 0) {
+        if (pool.totalDepositWeight == 0) {
             return (0, 0, 0, 0);
         }
 
-        uint256 totalInterest = loanInterest.mulFixed(
-            depositRecord.weight.divFixed(totalDepositWeight)
+        uint256 totalInterest = pool.loanInterest.mulFixed(
+            depositRecord.weight.divFixed(pool.totalDepositWeight)
         );
 
         interestForDepositDistributor = totalInterest.mulFixed(
-            depositDistributorFeeRatio
+            pool.depositDistributorFeeRatio
         );
 
         interestForLoanDistributor = totalInterest.mulFixed(
-            loanDistributorFeeRatio
+            pool.loanDistributorFeeRatio
         );
 
         interestForProtocolReserve = totalInterest.mulFixed(
-            protocolReserveRatio
+            pool.protocolReserveRatio
         );
 
         interestForDepositor = totalInterest
@@ -501,11 +503,11 @@ library DepositManager {
             return false;
         }
 
-        (, uint256 availableAmount, , , , , ) = liquidityPools.getPoolById(
+        IStruct.Pool memory pool = liquidityPools.getPoolById(
             depositRecord.tokenAddress,
             depositRecord.poolId
         );
 
-        return availableAmount >= depositRecord.depositAmount;
+        return pool.availableAmount >= depositRecord.depositAmount;
     }
 }

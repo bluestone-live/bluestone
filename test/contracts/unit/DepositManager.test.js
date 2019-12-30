@@ -410,9 +410,11 @@ contract('DepositManager', function([
           loanInterest,
         } = await depositManager.getPoolById(token.address, poolId);
 
-        const expectedInterest = loanInterest
-          .div(totalDepositAmount)
-          .sub(loanInterest.div(depositAmount).mul(protocolReserveRatio))
+        const expectedInterest = new BN(loanInterest)
+          .div(new BN(totalDepositAmount))
+          .sub(
+            new BN(loanInterest).div(depositAmount).mul(protocolReserveRatio),
+          )
           .mul(depositAmount);
 
         expect(interestForDepositor).to.bignumber.equal(expectedInterest);

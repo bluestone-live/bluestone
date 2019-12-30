@@ -460,20 +460,14 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     /// --- LiquidityPools ---
 
-    function getDetailsFromAllPools(address tokenAddress)
+    function getPoolsByToken(address tokenAddress)
         external
         view
         whenNotPaused
         override
-        returns (
-            uint256[] memory poolIdList,
-            uint256[] memory depositAmountList,
-            uint256[] memory availableAmountList,
-            uint256[] memory loanInterestList,
-            uint256[] memory totalDepositWeightList
-        )
+        returns (IStruct.Pool[] memory poolList)
     {
-        return _liquidityPools.getDetailsFromAllPools(tokenAddress);
+        return _liquidityPools.getPoolsByToken(tokenAddress);
     }
 
     /// --- Configuration ---

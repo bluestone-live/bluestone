@@ -163,37 +163,30 @@ contract(
       });
 
       it('returns correct pool data', async () => {
-        const {
-          poolIdList,
-          depositAmountList,
-          availableAmountList,
-          loanInterestList,
-        } = await protocol.getDetailsFromAllPools(loanToken.address);
+        const poolList = await protocol.getPoolsByToken(loanToken.address);
 
-        for (let i = 0; i < poolIdList.length; i++) {
-          const depositAmountInPool = depositAmountList[i];
-          const availableAmountInPool = availableAmountList[i];
-          const loanInterestInPool = loanInterestList[i];
+        for (let i = 0; i < poolList.length; i++) {
+          const pool = poolList[i];
 
-          if (i === poolIdList.length - 1) {
-            expect(depositAmountInPool).to.bignumber.equal(
+          if (i === poolList.length - 1) {
+            expect(new BN(pool.depositAmount)).to.bignumber.equal(
               toFixedBN(depositAmount),
             );
-            expect(availableAmountInPool).to.bignumber.equal(
+            expect(new BN(pool.availableAmount)).to.bignumber.equal(
               toFixedBN(depositAmount).sub(toFixedBN(loanAmount)),
             );
-            expect(loanInterestInPool).to.bignumber.equal(
+            expect(new BN(pool.loanInterest)).to.bignumber.equal(
               toFixedBN(loanAmount)
                 .mul(currentLoanInterestRate)
                 .div(toFixedBN(1))
                 .mul(new BN(loanTerm))
                 .div(new BN(365)),
             );
-            totalInterest = loanInterestInPool;
+            totalInterest = new BN(pool.loanInterest);
           } else {
-            expect(depositAmountInPool).to.bignumber.equal(ZERO);
-            expect(availableAmountInPool).to.bignumber.equal(ZERO);
-            expect(loanInterestInPool).to.bignumber.equal(ZERO);
+            expect(new BN(pool.depositAmount)).to.bignumber.equal(ZERO);
+            expect(new BN(pool.availableAmount)).to.bignumber.equal(ZERO);
+            expect(new BN(pool.loanInterest)).to.bignumber.equal(ZERO);
           }
         }
       });
@@ -250,23 +243,16 @@ contract(
         for (let j = 0; j < depositTerm; j++) {
           await time.increase(time.duration.days(1));
 
-          const {
-            poolIdList,
-            depositAmountList,
-            availableAmountList,
-            loanInterestList,
-          } = await protocol.getDetailsFromAllPools(loanToken.address);
+          const poolList = await protocol.getPoolsByToken(loanToken.address);
 
-          for (let poolIndex = 0; poolIndex < poolIdList.length; poolIndex++) {
-            const depositAmountInPool = depositAmountList[poolIndex];
-            const availableAmountInPool = availableAmountList[poolIndex];
-            const loanInterestInPool = loanInterestList[poolIndex];
+          for (let i = 0; i < poolList.length; i++) {
+            const pool = poolList[i];
 
-            if (poolIndex === depositTerm - j - 1) {
-              expect(depositAmountInPool).to.bignumber.equal(
+            if (i === depositTerm - j - 1) {
+              expect(new BN(pool.depositAmount)).to.bignumber.equal(
                 toFixedBN(depositAmount),
               );
-              expect(availableAmountInPool).to.bignumber.equal(
+              expect(new BN(pool.availableAmount)).to.bignumber.equal(
                 toFixedBN(depositAmount).add(
                   toFixedBN(loanAmount)
                     .mul(currentLoanInterestRate)
@@ -275,7 +261,7 @@ contract(
                     .div(new BN(365)),
                 ),
               );
-              expect(loanInterestInPool).to.bignumber.equal(
+              expect(new BN(pool.loanInterest)).to.bignumber.equal(
                 toFixedBN(loanAmount)
                   .mul(currentLoanInterestRate)
                   .div(toFixedBN(1))
@@ -283,9 +269,9 @@ contract(
                   .div(new BN(365)),
               );
             } else {
-              expect(depositAmountInPool).to.bignumber.equal(ZERO);
-              expect(availableAmountInPool).to.bignumber.equal(ZERO);
-              expect(loanInterestInPool).to.bignumber.equal(ZERO);
+              expect(new BN(pool.depositAmount)).to.bignumber.equal(ZERO);
+              expect(new BN(pool.availableAmount)).to.bignumber.equal(ZERO);
+              expect(new BN(pool.loanInterest)).to.bignumber.equal(ZERO);
             }
           }
         }

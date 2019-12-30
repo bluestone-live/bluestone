@@ -1,4 +1,5 @@
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import '../impl/lib/LiquidityPools.sol';
 import '../impl/lib/LoanManager.sol';
@@ -71,60 +72,31 @@ contract LiquidityPoolsMock {
         _liquidityPools.repayLoanToPools(loanRecord, repayAmount);
     }
 
-    function getPool(address tokenAddress, uint256 poolIndex)
+    function getPoolsByToken(address tokenAddress)
         external
         view
-        returns (
-            uint256 depositAmount,
-            uint256 availableAmount,
-            uint256 loanInterest,
-            uint256 totalDepositWeight,
-            uint256 depositDistributorFeeRatio,
-            uint256 loanDistributorFeeRatio,
-            uint256 protocolReserveRatio
-        )
+        returns (IStruct.Pool[] memory poolList)
     {
-        return _liquidityPools.getPool(tokenAddress, poolIndex);
+        return _liquidityPools.getPoolsByToken(tokenAddress);
     }
 
     function getPoolById(address tokenAddress, uint256 poolId)
         external
         view
-        returns (
-            uint256 depositAmount,
-            uint256 availableAmount,
-            uint256 loanInterest,
-            uint256 totalDepositWeight,
-            uint256 depositDistributorFeeRatio,
-            uint256 loanDistributorFeeRatio,
-            uint256 protocolReserveRatio
-        )
+        returns (IStruct.Pool memory pool)
     {
         return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 
-    function getDetailsFromAllPools(address tokenAddress)
+    function getPoolByIndex(address tokenAddress, uint256 poolIndex)
         external
         view
-        returns (
-            uint256[] memory poolIdList,
-            uint256[] memory depositAmountList,
-            uint256[] memory availableAmountList,
-            uint256[] memory loanInterestList,
-            uint256[] memory totalDepositWeightList
-        )
+        returns (IStruct.Pool memory pool)
     {
-        return _liquidityPools.getDetailsFromAllPools(tokenAddress);
-    }
-
-    function getAvailableAmountByLoanTerm(
-        address tokenAddress,
-        uint256 loanTerm
-    ) external view returns (uint256 availableAmountByLoanTerm) {
         return
-            _liquidityPools.getAvailableAmountByLoanTerm(
+            _liquidityPools.getPoolById(
                 tokenAddress,
-                loanTerm
+                DateTime.toDays().add(poolIndex)
             );
     }
 
@@ -158,7 +130,7 @@ contract LiquidityPoolsMock {
         uint256 poolId = DateTime.toDays();
 
         for (uint256 i = 0; i < depositAmountList.length; i++) {
-            LiquidityPools.Pool storage pool = poolGroup.poolsById[poolId];
+            IStruct.Pool storage pool = poolGroup.poolsById[poolId];
             pool.depositAmount = depositAmountList[i];
             pool.availableAmount = availableAmountList[i];
             poolId = poolId.add(1);
