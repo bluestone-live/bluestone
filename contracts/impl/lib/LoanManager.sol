@@ -88,17 +88,6 @@ library LoanManager {
         bool isOverDue;
     }
 
-    struct LoanParameters {
-        address loanTokenAddress;
-        address collateralTokenAddress;
-        uint256 loanAmount;
-        uint256 collateralAmount;
-        uint256 loanTerm;
-        bool useAvailableCollateral;
-        address distributorAddress;
-        uint256 loanDistributorFeeRatio;
-    }
-
     event LoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
@@ -345,12 +334,11 @@ library LoanManager {
         return availableCollateral;
     }
 
-    // TODO(ZhangRGK): We may need to combining params into one parameter struct
     function loan(
         State storage self,
         Configuration.State storage configuration,
         LiquidityPools.State storage liquidityPools,
-        LoanParameters storage loanParameters
+        IStruct.LoanParameters calldata loanParameters
     ) external returns (bytes32 loanId) {
         require(
             self.isLoanTokenPairEnabled[loanParameters
@@ -379,11 +367,6 @@ library LoanManager {
         require(
             loanParameters.distributorAddress != address(0),
             'LoanManager: invalid distributor address'
-        );
-        require(
-            loanParameters.loanDistributorFeeRatio <=
-                configuration.maxLoanDistributorFeeRatio,
-            'LoanManager: invalid loan distributor fee ratio'
         );
 
         localVars.remainingCollateralAmount = loanParameters.collateralAmount;

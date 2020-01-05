@@ -22,8 +22,6 @@ contract LoanManagerMock {
     DepositManager.State _depositManager;
     LoanManager.State _loanManager;
     AccountManager.State _accountManager;
-    LoanManager.LoanParameters _loanParameters;
-    DepositManager.DepositParameters _depositParameters;
 
     function setMaxDistributorFeeRatios(
         uint256 maxDepositDistributorFeeRatio,
@@ -44,18 +42,18 @@ contract LoanManagerMock {
         bool useAvailableCollateral,
         address distributorAddress
     ) external returns (bytes32 loanId) {
-        _loanParameters.loanTokenAddress = loanTokenAddress;
-        _loanParameters.collateralTokenAddress = collateralTokenAddress;
-        _loanParameters.loanAmount = loanAmount;
-        _loanParameters.collateralAmount = collateralAmount;
-        _loanParameters.loanTerm = loanTerm;
-        _loanParameters.useAvailableCollateral = useAvailableCollateral;
-        _loanParameters.distributorAddress = distributorAddress;
-        _loanParameters.loanDistributorFeeRatio = _configuration
-            .maxLoanDistributorFeeRatio;
+        IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
+            loanTokenAddress: loanTokenAddress,
+            collateralTokenAddress: collateralTokenAddress,
+            loanAmount: loanAmount,
+            collateralAmount: collateralAmount,
+            loanTerm: loanTerm,
+            useAvailableCollateral: useAvailableCollateral,
+            distributorAddress: distributorAddress
+        });
 
         return
-            _loanManager.loan(_configuration, _liquidityPools, _loanParameters);
+            _loanManager.loan(_configuration, _liquidityPools, loanParameters);
     }
 
     function repayLoan(bytes32 loanId, uint256 repayAmount)
@@ -220,17 +218,20 @@ contract LoanManagerMock {
         uint256 depositTerm,
         address distributorAddress
     ) external returns (bytes32 depositId) {
-        _depositParameters.tokenAddress = tokenAddress;
-        _depositParameters.depositAmount = depositAmount;
-        _depositParameters.depositTerm = depositTerm;
-        _depositParameters.distributorAddress = distributorAddress;
+        IStruct.DepositParameters memory depositParameters = IStruct
+            .DepositParameters({
+            tokenAddress: tokenAddress,
+            depositAmount: depositAmount,
+            depositTerm: depositTerm,
+            distributorAddress: distributorAddress
+        });
 
         return
             _depositManager.deposit(
                 _liquidityPools,
                 _accountManager,
                 _configuration,
-                _depositParameters
+                depositParameters
             );
     }
 

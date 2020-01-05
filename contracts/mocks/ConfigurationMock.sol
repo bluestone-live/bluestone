@@ -19,8 +19,6 @@ contract ConfigurationMock {
     DepositManager.State _depositManager;
     LoanManager.State _loanManager;
     AccountManager.State _accountManager;
-    LoanManager.LoanParameters _loanParameters;
-    DepositManager.DepositParameters _depositParameters;
 
     function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
         external

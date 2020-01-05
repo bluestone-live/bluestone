@@ -21,7 +21,6 @@ contract DepositManagerMock {
     DepositManager.State _depositManager;
     LoanManager.State _loanManager;
     AccountManager.State _accountManager;
-    DepositManager.DepositParameters _depositParameters;
 
     function enableDepositTerm(uint256 term) external {
         _depositManager.enableDepositTerm(_liquidityPools, term);
@@ -55,17 +54,20 @@ contract DepositManagerMock {
         uint256 depositTerm,
         address distributorAddress
     ) external returns (bytes32 depositId) {
-        _depositParameters.tokenAddress = tokenAddress;
-        _depositParameters.depositAmount = depositAmount;
-        _depositParameters.depositTerm = depositTerm;
-        _depositParameters.distributorAddress = distributorAddress;
+        IStruct.DepositParameters memory depositParameters = IStruct
+            .DepositParameters({
+            tokenAddress: tokenAddress,
+            depositAmount: depositAmount,
+            depositTerm: depositTerm,
+            distributorAddress: distributorAddress
+        });
 
         return
             _depositManager.deposit(
                 _liquidityPools,
                 _accountManager,
                 _configuration,
-                _depositParameters
+                depositParameters
             );
     }
 

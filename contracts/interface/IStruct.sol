@@ -63,4 +63,21 @@ interface IStruct {
         uint256 loanDistributorFeeRatio;
         uint256 protocolReserveRatio;
     }
+
+    struct DepositParameters {
+        address tokenAddress;
+        uint256 depositAmount;
+        uint256 depositTerm;
+        address distributorAddress;
+    }
+
+    struct LoanParameters {
+        address loanTokenAddress;
+        address collateralTokenAddress;
+        uint256 loanAmount;
+        uint256 collateralAmount;
+        uint256 loanTerm;
+        bool useAvailableCollateral;
+        address distributorAddress;
+    }
 }

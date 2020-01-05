@@ -26,8 +26,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
     DepositManager.State _depositManager;
     LoanManager.State _loanManager;
     AccountManager.State _accountManager;
-    LoanManager.LoanParameters _loanParameters;
-    DepositManager.DepositParameters _depositParameters;
 
     event DepositSucceed(
         address indexed accountAddress,
@@ -96,17 +94,20 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 depositTerm,
         address distributorAddress
     ) external whenNotPaused override returns (bytes32 depositId) {
-        _depositParameters.tokenAddress = tokenAddress;
-        _depositParameters.depositAmount = depositAmount;
-        _depositParameters.depositTerm = depositTerm;
-        _depositParameters.distributorAddress = distributorAddress;
+        IStruct.DepositParameters memory depositParameters = IStruct
+            .DepositParameters({
+            tokenAddress: tokenAddress,
+            depositAmount: depositAmount,
+            depositTerm: depositTerm,
+            distributorAddress: distributorAddress
+        });
 
         return
             _depositManager.deposit(
                 _liquidityPools,
                 _accountManager,
                 _configuration,
-                _depositParameters
+                depositParameters
             );
     }
 
@@ -227,27 +228,28 @@ contract Protocol is IProtocol, Ownable, Pausable {
         bool useAvailableCollateral,
         address distributorAddress
     ) external whenNotPaused override returns (bytes32 loanId) {
-        _loanParameters.loanTokenAddress = loanTokenAddress;
-        _loanParameters.collateralTokenAddress = collateralTokenAddress;
-        _loanParameters.loanAmount = loanAmount;
-        _loanParameters.collateralAmount = collateralAmount;
-        _loanParameters.loanTerm = loanTerm;
-        _loanParameters.useAvailableCollateral = useAvailableCollateral;
-
-        _loanParameters.distributorAddress = distributorAddress;
-        _loanParameters.loanDistributorFeeRatio = _configuration
-            .maxLoanDistributorFeeRatio;
+        IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
+            loanTokenAddress: loanTokenAddress,
+            collateralTokenAddress: collateralTokenAddress,
+            loanAmount: loanAmount,
+            collateralAmount: collateralAmount,
+            loanTerm: loanTerm,
+            useAvailableCollateral: useAvailableCollateral,
+            distributorAddress: distributorAddress
+        });
 
         loanId = _loanManager.loan(
             _configuration,
             _liquidityPools,
-            _loanParameters
+            loanParameters
         );
+
         _loanManager.addToLoanStat(
             _accountManager,
             loanTokenAddress,
             loanAmount
         );
+
         return loanId;
     }
 

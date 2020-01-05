@@ -56,13 +56,6 @@ library DepositManager {
         uint256[] withdrewAtList;
     }
 
-    struct DepositParameters {
-        address tokenAddress;
-        uint256 depositAmount;
-        uint256 depositTerm;
-        address distributorAddress;
-    }
-
     function enableDepositTerm(
         State storage self,
         LiquidityPools.State storage liquidityPools,
@@ -183,7 +176,7 @@ library DepositManager {
         LiquidityPools.State storage liquidityPools,
         AccountManager.State storage accountManager,
         Configuration.State storage configuration,
-        DepositParameters storage depositParameters
+        IStruct.DepositParameters calldata depositParameters
     ) external returns (bytes32 depositId) {
         require(
             self.isDepositTokenEnabled[depositParameters.tokenAddress],
