@@ -39,6 +39,14 @@ interface IStruct {
         uint256 distributorInterest;
     }
 
+    struct LoanAndCollateralTokenPair {
+        bool isEnabled;
+        address loanTokenAddress;
+        address collateralTokenAddress;
+        uint256 minCollateralCoverageRatio;
+        uint256 liquidationDiscount;
+    }
+
     struct Pool {
         // Total amount deposited to this pool
         uint256 depositAmount;

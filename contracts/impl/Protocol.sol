@@ -439,11 +439,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         view
         override
         returns (
-            address[] memory loanTokenAddressList,
-            address[] memory collateralTokenAddressList,
-            bool[] memory isEnabledList,
-            uint256[] memory minCollateralCoverageRatioList,
-            uint256[] memory liquidationDiscountList
+            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
         )
     {
         return _loanManager.getLoanAndCollateralTokenPairs();

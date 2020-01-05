@@ -1106,11 +1106,7 @@ contract('LoanManager', function([
     context('when not set token pairs', () => {
       it('succeeds', async () => {
         let result = await loanManager.getLoanAndCollateralTokenPairs();
-        expect(result.loanTokenAddressList.length).to.be.equal(0);
-        expect(result.collateralTokenAddressList.length).to.be.equal(0);
-        expect(result.isEnabledList.length).to.be.equal(0);
-        expect(result.minCollateralCoverageRatioList.length).to.be.equal(0);
-        expect(result.liquidationDiscountList.length).to.be.equal(0);
+        expect(result.length).to.equal(0);
       });
     });
 
@@ -1142,17 +1138,19 @@ contract('LoanManager', function([
           liquidationDiscountList,
         );
 
-        let result = await loanManager.getLoanAndCollateralTokenPairs();
-        expect(result.loanTokenAddressList).to.have.members([loanTokenAddress]);
-        expect(result.collateralTokenAddressList).to.have.members(
-          collateralTokenAddressList,
-        );
-        expect(result.isEnabledList).to.have.members([true, true]);
-        for (let i = 0; i < collateralTokenAddressList.length; i++) {
+        let tokenPairs = await loanManager.getLoanAndCollateralTokenPairs();
+
+        for (let i = 0; i < tokenPairs.length; i++) {
+          const tokenPair = tokenPairs[i];
+          expect(tokenPair.isEnabled).to.be.true;
+          expect(tokenPair.loanTokenAddress).to.equal(loanTokenAddress);
+          expect(tokenPair.collateralTokenAddress).to.equal(
+            collateralTokenAddressList[i],
+          );
           expect(
-            result.minCollateralCoverageRatioList[i],
-          ).to.be.bignumber.equal(minCollateralCoverageRatioList[i]);
-          expect(result.liquidationDiscountList[i]).to.be.bignumber.equal(
+            new BN(tokenPair.minCollateralCoverageRatio),
+          ).to.bignumber.equal(minCollateralCoverageRatioList[i]);
+          expect(new BN(tokenPair.liquidationDiscount)).to.bignumber.equal(
             liquidationDiscountList[i],
           );
         }

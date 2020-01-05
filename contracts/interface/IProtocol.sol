@@ -269,21 +269,13 @@ interface IProtocol {
         returns (IStruct.LoanRecord[] memory loanRecordList);
 
     /// @notice Return details for each loan and collateral token pair
-    /// @return loanTokenAddressList A list of loan token addresses
-    /// @return collateralTokenAddressList A list of collateral token addresses
-    /// @return isEnabledList A list of boolean value indicates whether the token pair is enabled
-    /// @return minCollateralCoverageRatioList A list of minimum collateral coverage ratios
-    /// @return liquidationDiscountList A list of liquidation discounts
+    /// @return loanAndCollateralTokenPairList A list of loan and collateral token pairs
     function getLoanAndCollateralTokenPairs()
         external
         view
         virtual
         returns (
-            address[] memory loanTokenAddressList,
-            address[] memory collateralTokenAddressList,
-            bool[] memory isEnabledList,
-            uint256[] memory minCollateralCoverageRatioList,
-            uint256[] memory liquidationDiscountList
+            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
         );
 
     /// @notice return token addresses for all loanable tokens

@@ -858,40 +858,46 @@ library LoanManager {
         external
         view
         returns (
-            address[] memory loanTokenAddressList,
-            address[] memory collateralTokenAddressList,
-            bool[] memory isEnabledList,
-            uint256[] memory minCollateralCoverageRatioList,
-            uint256[] memory liquidationDiscountList
+            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
         )
     {
-        loanTokenAddressList = self.loanTokens.tokenList;
-        collateralTokenAddressList = self.collateralTokens.tokenList;
-        uint256 loanLen = loanTokenAddressList.length;
-        uint256 collateralLen = collateralTokenAddressList.length;
-        isEnabledList = new bool[](loanLen * collateralLen);
-        minCollateralCoverageRatioList = new uint256[](loanLen * collateralLen);
-        liquidationDiscountList = new uint256[](loanLen * collateralLen);
-        uint256 k = 0;
-        for (uint256 i = 0; i < loanLen; ++i) {
-            for (uint256 j = 0; j < collateralLen; j++) {
-                isEnabledList[k] = self
-                    .isLoanTokenPairEnabled[loanTokenAddressList[i]][collateralTokenAddressList[j]];
-                minCollateralCoverageRatioList[k] = self
-                    .minCollateralCoverageRatios[loanTokenAddressList[i]][collateralTokenAddressList[j]];
-                liquidationDiscountList[k] = self
-                    .liquidationDiscounts[loanTokenAddressList[i]][collateralTokenAddressList[j]];
-                k++;
+        loanAndCollateralTokenPairList = new IStruct.LoanAndCollateralTokenPair[](
+            self.loanTokens.tokenList.length.mul(
+                self.collateralTokens.tokenList.length
+            )
+        );
+
+        address loanTokenAddress;
+        address collateralTokenAddress;
+        uint256 i;
+
+        for (uint256 m = 0; m < self.loanTokens.tokenList.length; m++) {
+            loanTokenAddress = self.loanTokens.tokenList[m];
+
+            for (
+                uint256 n = 0;
+                n < self.collateralTokens.tokenList.length;
+                n++
+            ) {
+                collateralTokenAddress = self.collateralTokens.tokenList[n];
+
+                loanAndCollateralTokenPairList[i] = IStruct
+                    .LoanAndCollateralTokenPair({
+                    isEnabled: self
+                        .isLoanTokenPairEnabled[loanTokenAddress][collateralTokenAddress],
+                    loanTokenAddress: loanTokenAddress,
+                    collateralTokenAddress: collateralTokenAddress,
+                    minCollateralCoverageRatio: self
+                        .minCollateralCoverageRatios[loanTokenAddress][collateralTokenAddress],
+                    liquidationDiscount: self
+                        .liquidationDiscounts[loanTokenAddress][collateralTokenAddress]
+                });
+
+                i++;
             }
         }
-        // The returned result needs to be matched by Cartesian product
-        return (
-            loanTokenAddressList,
-            collateralTokenAddressList,
-            isEnabledList,
-            minCollateralCoverageRatioList,
-            liquidationDiscountList
-        );
+
+        return loanAndCollateralTokenPairList;
     }
 
     function getTokenAddressList(State storage self, uint256 tokenType)
