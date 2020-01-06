@@ -41,7 +41,6 @@ contract('LoanManager', function([
       const loanAmount = toFixedBN(10);
       const collateralAmount = toFixedBN(30);
       const loanTerm = 30;
-      const useAvailableCollateral = false;
 
       let loanToken, collateralToken, recordId;
 
@@ -88,7 +87,6 @@ contract('LoanManager', function([
           loanAmount,
           collateralAmount,
           loanTerm,
-          useAvailableCollateral,
           distributorAddress,
           {
             from: loaner,
@@ -137,7 +135,6 @@ contract('LoanManager', function([
       const loanAmount = toFixedBN(10);
       const collateralAmount = toFixedBN(30);
       const loanTerm = 30;
-      const useAvailableCollateral = false;
 
       let loanToken, collateralToken, recordId;
 
@@ -184,7 +181,6 @@ contract('LoanManager', function([
           loanAmount,
           collateralAmount,
           loanTerm,
-          useAvailableCollateral,
           distributorAddress,
           {
             from: loaner,
@@ -211,7 +207,6 @@ contract('LoanManager', function([
     const loanAmount = toFixedBN(10);
     const collateralAmount = toFixedBN(30);
     const loanTerm = 30;
-    const useAvailableCollateral = false;
 
     let loanToken, collateralToken, recordId;
 
@@ -255,7 +250,6 @@ contract('LoanManager', function([
         loanAmount,
         collateralAmount,
         loanTerm,
-        useAvailableCollateral,
         distributorAddress,
         {
           from: loaner,
@@ -267,12 +261,10 @@ contract('LoanManager', function([
     });
 
     it('succeeds', async () => {
-      const useAvailableCollateralInAddCollateral = false;
       const collateralAmount = toFixedBN(10);
       const { logs } = await loanManager.addCollateral(
         recordId,
         collateralAmount,
-        useAvailableCollateralInAddCollateral,
         {
           from: loaner,
         },
@@ -283,165 +275,6 @@ contract('LoanManager', function([
         recordId,
         collateralAmount,
       });
-    });
-  });
-
-  describe('#getAvailableCollateralsByAccount', () => {
-    const initialSupply = toFixedBN(1000);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-
-      await loanManager.enableLoanAndCollateralTokenPair(
-        loanToken.address,
-        collateralToken.address,
-      );
-    });
-
-    context("when user didn't have available collateral amount", () => {
-      it('get zero', async () => {
-        const {
-          tokenAddressList,
-          availableCollateralAmountList,
-        } = await loanManager.getAvailableCollateralsByAccount(loaner);
-
-        expect(tokenAddressList[0]).to.equal(collateralToken.address);
-        expect(availableCollateralAmountList[0]).to.bignumber.equal(
-          toFixedBN(0),
-        );
-      });
-    });
-
-    context('when user have available collateral amount', () => {
-      const estimateAvailableCollateralToken = toFixedBN(5);
-
-      beforeEach(async () => {
-        await loanManager.addAvailableCollateral(
-          loaner,
-          collateralToken.address,
-          estimateAvailableCollateralToken,
-        );
-      });
-
-      it('get correctly amount', async () => {
-        const {
-          tokenAddressList,
-          availableCollateralAmountList,
-        } = await loanManager.getAvailableCollateralsByAccount(loaner);
-
-        expect(tokenAddressList[0]).to.equal(collateralToken.address);
-        expect(availableCollateralAmountList[0]).to.bignumber.equal(
-          estimateAvailableCollateralToken,
-        );
-      });
-    });
-  });
-
-  describe('#withdrawAvailableCollateral', () => {
-    const initialSupply = toFixedBN(1000);
-    const availableCollateralAmount = toFixedBN(100);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-      // Make sure there are enough token in protocol
-      await collateralToken.mint(loanManager.address, initialSupply);
-
-      await loanManager.enableLoanAndCollateralTokenPair(
-        loanToken.address,
-        collateralToken.address,
-      );
-      await loanManager.addAvailableCollateral(
-        loaner,
-        collateralToken.address,
-        availableCollateralAmount,
-      );
-    });
-
-    context('when amount is valid', () => {
-      it('succeeds', async () => {
-        const { logs } = await loanManager.withdrawAvailableCollateral(
-          collateralToken.address,
-          availableCollateralAmount,
-          {
-            from: loaner,
-          },
-        );
-
-        expectEvent.inLogs(logs, 'WithdrawAvailableCollateralSucceed', {
-          accountAddress: loaner,
-          amount: toFixedBN(0),
-        });
-      });
-    });
-
-    context('when amount is invalid', () => {
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.withdrawAvailableCollateral(
-            collateralToken.address,
-            availableCollateralAmount.add(toFixedBN(1)),
-            {
-              from: loaner,
-            },
-          ),
-          'LoanManager: available collateral amount is not enough',
-        );
-      });
-    });
-  });
-
-  describe('#addAvailableCollateral', () => {
-    const initialSupply = toFixedBN(1000);
-    const availableCollateralAmount = toFixedBN(100);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-
-      await loanManager.enableLoanAndCollateralTokenPair(
-        loanToken.address,
-        collateralToken.address,
-      );
-    });
-    it('succeeds', async () => {
-      await loanManager.addAvailableCollateral(
-        loaner,
-        collateralToken.address,
-        availableCollateralAmount,
-      );
-    });
-  });
-
-  describe('#subtractAvailableCollateral', () => {
-    const initialSupply = toFixedBN(1000);
-    const availableCollateralAmount = toFixedBN(100);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-
-      await loanManager.enableLoanAndCollateralTokenPair(
-        loanToken.address,
-        collateralToken.address,
-      );
-      await loanManager.addAvailableCollateral(
-        loaner,
-        collateralToken.address,
-        availableCollateralAmount,
-      );
-    });
-    it('succeeds', async () => {
-      await loanManager.subtractAvailableCollateral(
-        loaner,
-        collateralToken.address,
-        availableCollateralAmount,
-      );
     });
   });
 
@@ -607,7 +440,6 @@ contract('LoanManager', function([
         const loanAmount = toFixedBN(10);
         const collateralAmount = toFixedBN(30);
         const loanTerm = 30;
-        const useAvailableCollateral = false;
 
         const { logs } = await loanManager.loan(
           loanToken.address,
@@ -615,7 +447,6 @@ contract('LoanManager', function([
           loanAmount,
           collateralAmount,
           loanTerm,
-          useAvailableCollateral,
           distributorAddress,
           {
             from: loaner,
@@ -673,15 +504,12 @@ contract('LoanManager', function([
         },
       );
 
-      const useAvailableCollateral = false;
-
       const { logs } = await loanManager.loan(
         loanToken.address,
         collateralToken.address,
         loanAmount,
         collateralAmount,
         loanTerm,
-        useAvailableCollateral,
         distributorAddress,
         {
           from: loaner,
@@ -784,15 +612,12 @@ contract('LoanManager', function([
         },
       );
 
-      const useAvailableCollateral = false;
-
       const { logs } = await loanManager.loan(
         loanToken.address,
         collateralToken.address,
         loanAmount,
         collateralAmount,
         loanTerm,
-        useAvailableCollateral,
         distributorAddress,
         {
           from: loaner,

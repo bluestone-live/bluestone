@@ -29,8 +29,6 @@ library LoanManager {
         mapping(bytes32 => IStruct.LoanRecord) loanRecordById;
         // accountAddress -> loanIds
         mapping(address => bytes32[]) loanIdsByAccount;
-        // account -> tokenAddress -> availableCollateralamount
-        mapping(address => mapping(address => uint256)) availableCollateralsByAccount;
         /// loan token -> collateral token -> enabled
         /// An loan token pair refers to loan token A using collateral B, i.e., "B -> A",
         /// Loan-related transactions can happen only if "B -> A" is enabled.
@@ -82,7 +80,6 @@ library LoanManager {
         uint256 liquidatedAmount;
         uint256 loanInterest;
         uint256 soldCollateralAmount;
-        uint256 availableCollateral;
         uint256 maxLoanTerm;
         bool isUnderCollateralCoverageRatio;
         bool isOverDue;
@@ -101,10 +98,6 @@ library LoanManager {
     event LiquidateLoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
-        uint256 amount
-    );
-    event WithdrawAvailableCollateralSucceed(
-        address indexed accountAddress,
         uint256 amount
     );
     event AddCollateralSucceed(
@@ -210,36 +203,24 @@ library LoanManager {
     function addCollateral(
         State storage self,
         bytes32 loanId,
-        uint256 collateralAmount,
-        bool useAvailableCollateral
+        uint256 collateralAmount
     ) external returns (uint256 totalCollateralAmount) {
         require(
             !self.loanRecordById[loanId].isClosed,
             'LoanManager: loan is closed'
         );
 
-        uint256 remainingCollateralAmount = collateralAmount;
+        require(collateralAmount > 0, 'LoanManager: invalid collateralAmount');
+
         address collateralTokenAddress = self.loanRecordById[loanId]
             .collateralTokenAddress;
 
-        if (useAvailableCollateral) {
-            uint256 availableCollateral = subtractAvailableCollateral(
-                self,
-                msg.sender,
-                collateralTokenAddress,
-                collateralAmount
-            );
-            remainingCollateralAmount -= availableCollateral;
-        }
-
-        // Transfer remaining amount from user account to protocol
-        if (remainingCollateralAmount > 0) {
-            ERC20(collateralTokenAddress).safeTransferFrom(
-                msg.sender,
-                address(this),
-                remainingCollateralAmount
-            );
-        }
+        // Transfer collateral from user account to protocol
+        ERC20(collateralTokenAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            collateralAmount
+        );
 
         self.loanRecordById[loanId].collateralAmount = self
             .loanRecordById[loanId]
@@ -249,89 +230,6 @@ library LoanManager {
         emit AddCollateralSucceed(msg.sender, loanId, collateralAmount);
 
         return self.loanRecordById[loanId].collateralAmount;
-    }
-
-    function getAvailableCollateralsByAccount(
-        State storage self,
-        address accountAddress
-    )
-        external
-        view
-        returns (
-            address[] memory tokenAddressList,
-            uint256[] memory availableCollateralAmountList
-        )
-    {
-        availableCollateralAmountList = new uint256[](
-            self.collateralTokens.tokenList.length
-        );
-        for (uint256 i = 0; i < self.collateralTokens.tokenList.length; i++) {
-            availableCollateralAmountList[i] = self
-                .availableCollateralsByAccount[accountAddress][self
-                .collateralTokens
-                .tokenList[i]];
-        }
-        return (self.collateralTokens.tokenList, availableCollateralAmountList);
-    }
-
-    function withdrawAvailableCollateral(
-        State storage self,
-        address tokenAddress,
-        uint256 collateralAmount
-    ) external {
-        uint256 availableCollateral = self.availableCollateralsByAccount[msg
-            .sender][tokenAddress];
-
-        require(
-            availableCollateral >= collateralAmount,
-            'LoanManager: available collateral amount is not enough'
-        );
-
-        self.availableCollateralsByAccount[msg
-            .sender][tokenAddress] = availableCollateral.sub(collateralAmount);
-
-        // Transfer token from protocol to user.
-        ERC20(tokenAddress).safeTransfer(msg.sender, collateralAmount);
-
-        // Emit the remaining available collateral amount
-        emit WithdrawAvailableCollateralSucceed(
-            msg.sender,
-            self.availableCollateralsByAccount[msg.sender][tokenAddress]
-        );
-    }
-
-    function addAvailableCollateral(
-        State storage self,
-        address accountAddress,
-        address tokenAddress,
-        uint256 amount
-    ) internal {
-        self.availableCollateralsByAccount[accountAddress][tokenAddress] = self
-            .availableCollateralsByAccount[accountAddress][tokenAddress]
-            .add(amount);
-    }
-
-    function subtractAvailableCollateral(
-        State storage self,
-        address accountAddress,
-        address tokenAddress,
-        uint256 amount
-    ) internal returns (uint256) {
-        require(
-            amount > 0,
-            'LoanManager: The decrease in available collateral amount must be greater than 0.'
-        );
-
-        uint256 availableCollateral = Math.min(
-            self.availableCollateralsByAccount[accountAddress][tokenAddress],
-            amount
-        );
-
-        self.availableCollateralsByAccount[accountAddress][tokenAddress] = self
-            .availableCollateralsByAccount[accountAddress][tokenAddress]
-            .sub(availableCollateral);
-
-        return availableCollateral;
     }
 
     function loan(
@@ -368,21 +266,6 @@ library LoanManager {
             loanParameters.distributorAddress != address(0),
             'LoanManager: invalid distributor address'
         );
-
-        localVars.remainingCollateralAmount = loanParameters.collateralAmount;
-
-        if (loanParameters.useAvailableCollateral) {
-            localVars.availableCollateral = subtractAvailableCollateral(
-                self,
-                msg.sender,
-                loanParameters.collateralTokenAddress,
-                loanParameters.collateralAmount
-            );
-
-            localVars.remainingCollateralAmount = localVars
-                .remainingCollateralAmount
-                .sub(localVars.availableCollateral);
-        }
 
         localVars.loanInterestRate = configuration
             .interestModel
@@ -456,7 +339,7 @@ library LoanManager {
         ERC20(loanParameters.collateralTokenAddress).safeTransferFrom(
             msg.sender,
             address(this),
-            localVars.remainingCollateralAmount
+            loanParameters.collateralAmount
         );
 
         // Transfer loan tokens from protocol to loaner
@@ -615,17 +498,16 @@ library LoanManager {
 
         if (_calculateRemainingDebt(loanRecord) == 0) {
             loanRecord.isClosed = true;
-            uint256 availableCollateralAmount = loanRecord.collateralAmount.sub(
+
+            uint256 remainingCollateralAmount = loanRecord.collateralAmount.sub(
                 loanRecord.soldCollateralAmount
             );
 
-            if (availableCollateralAmount > 0) {
-                // Add available collateral to loaner's account
-                addAvailableCollateral(
-                    self,
+            if (remainingCollateralAmount > 0) {
+                // Transfer remaining collateral from protocol to loaner
+                ERC20(loanRecord.collateralTokenAddress).safeTransfer(
                     msg.sender,
-                    loanRecord.collateralTokenAddress,
-                    availableCollateralAmount
+                    remainingCollateralAmount
                 );
             }
 
@@ -720,17 +602,15 @@ library LoanManager {
             // Close the loan if debt is clear
             loanRecord.isClosed = true;
 
-            uint256 availableCollateralAmount = loanRecord.collateralAmount.sub(
-                loanRecord.soldCollateralAmount
-            );
+            localVars.remainingCollateralAmount = loanRecord
+                .collateralAmount
+                .sub(loanRecord.soldCollateralAmount);
 
-            if (availableCollateralAmount > 0) {
-                // Add available collateral to loaner's account
-                addAvailableCollateral(
-                    self,
+            if (localVars.remainingCollateralAmount > 0) {
+                // Transfer remaining collateral from protocol to loaner
+                ERC20(loanRecord.collateralTokenAddress).safeTransfer(
                     loanRecord.ownerAddress,
-                    loanRecord.collateralTokenAddress,
-                    availableCollateralAmount
+                    localVars.remainingCollateralAmount
                 );
             }
 

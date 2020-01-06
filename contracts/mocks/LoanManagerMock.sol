@@ -39,7 +39,6 @@ contract LoanManagerMock {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        bool useAvailableCollateral,
         address distributorAddress
     ) external returns (bytes32 loanId) {
         IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
@@ -48,7 +47,6 @@ contract LoanManagerMock {
             loanAmount: loanAmount,
             collateralAmount: collateralAmount,
             loanTerm: loanTerm,
-            useAvailableCollateral: useAvailableCollateral,
             distributorAddress: distributorAddress
         });
 
@@ -74,27 +72,6 @@ contract LoanManagerMock {
                 loanId,
                 liquidateAmount
             );
-    }
-
-    function getAvailableCollateralsByAccount(address accountAddress)
-        external
-        view
-        returns (
-            address[] memory tokenAddressList,
-            uint256[] memory availableCollateralAmountList
-        )
-    {
-        return _loanManager.getAvailableCollateralsByAccount(accountAddress);
-    }
-
-    function withdrawAvailableCollateral(
-        address tokenAddress,
-        uint256 collateralAmount
-    ) external {
-        _loanManager.withdrawAvailableCollateral(
-            tokenAddress,
-            collateralAmount
-        );
     }
 
     function getLoanRecordById(bytes32 loanId)
@@ -127,17 +104,11 @@ contract LoanManagerMock {
         return _loanManager.getLoanRecordsByAccount(accountAddress);
     }
 
-    function addCollateral(
-        bytes32 loanId,
-        uint256 collateralAmount,
-        bool useAvailableCollateral
-    ) external returns (uint256 totalCollateralAmount) {
-        return
-            _loanManager.addCollateral(
-                loanId,
-                collateralAmount,
-                useAvailableCollateral
-            );
+    function addCollateral(bytes32 loanId, uint256 collateralAmount)
+        external
+        returns (uint256 totalCollateralAmount)
+    {
+        return _loanManager.addCollateral(loanId, collateralAmount);
     }
 
     function enableLoanAndCollateralTokenPair(
@@ -263,29 +234,5 @@ contract LoanManagerMock {
 
     function setInterestModel(IInterestModel interestModel) external {
         _configuration.setInterestModel(interestModel);
-    }
-
-    function addAvailableCollateral(
-        address accountAddress,
-        address tokenAddress,
-        uint256 amount
-    ) external {
-        _loanManager.addAvailableCollateral(
-            accountAddress,
-            tokenAddress,
-            amount
-        );
-    }
-
-    function subtractAvailableCollateral(
-        address accountAddress,
-        address tokenAddress,
-        uint256 amount
-    ) external returns (uint256) {
-        _loanManager.subtractAvailableCollateral(
-            accountAddress,
-            tokenAddress,
-            amount
-        );
     }
 }

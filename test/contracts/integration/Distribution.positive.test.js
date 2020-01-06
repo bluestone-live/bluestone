@@ -152,7 +152,6 @@ contract(
           toFixedBN(loanAmount),
           toFixedBN(collateralAmount),
           loanTerm,
-          false,
           loanDistributor,
           {
             from: loaner,
@@ -371,7 +370,6 @@ contract(
           toFixedBN(loanAmount),
           toFixedBN(collateralAmount),
           loanTerm,
-          false,
           loanDistributor,
           {
             from: loaner,

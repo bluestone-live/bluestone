@@ -52,10 +52,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
         bytes32 recordId,
         uint256 amount
     );
-    event WithdrawAvailableCollateralSucceed(
-        address indexed accountAddress,
-        uint256 amount
-    );
     event AddCollateralSucceed(
         address indexed accountAddress,
         bytes32 indexed recordId,
@@ -225,7 +221,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        bool useAvailableCollateral,
         address distributorAddress
     ) external whenNotPaused override returns (bytes32 loanId) {
         IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
@@ -234,7 +229,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
             loanAmount: loanAmount,
             collateralAmount: collateralAmount,
             loanTerm: loanTerm,
-            useAvailableCollateral: useAvailableCollateral,
             distributorAddress: distributorAddress
         });
 
@@ -275,29 +269,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
                 loanId,
                 liquidateAmount
             );
-    }
-
-    function withdrawAvailableCollateral(
-        address tokenAddress,
-        uint256 collateralAmount
-    ) external whenNotPaused override {
-        _loanManager.withdrawAvailableCollateral(
-            tokenAddress,
-            collateralAmount
-        );
-    }
-
-    function getAvailableCollateralsByAccount(address accountAddress)
-        external
-        view
-        whenNotPaused
-        override
-        returns (
-            address[] memory tokenAddressList,
-            uint256[] memory availableCollateralAmountList
-        )
-    {
-        return _loanManager.getAvailableCollateralsByAccount(accountAddress);
     }
 
     function getLoanInterestRate(address tokenAddress, uint256 term)
@@ -379,17 +350,13 @@ contract Protocol is IProtocol, Ownable, Pausable {
         return _loanManager.getLoanRecordsByAccount(accountAddress);
     }
 
-    function addCollateral(
-        bytes32 loanId,
-        uint256 collateralAmount,
-        bool useAvailableCollateral
-    ) external whenNotPaused override returns (uint256 totalCollateralAmount) {
-        return
-            _loanManager.addCollateral(
-                loanId,
-                collateralAmount,
-                useAvailableCollateral
-            );
+    function addCollateral(bytes32 loanId, uint256 collateralAmount)
+        external
+        whenNotPaused
+        override
+        returns (uint256 totalCollateralAmount)
+    {
+        return _loanManager.addCollateral(loanId, collateralAmount);
     }
 
     function enableLoanAndCollateralTokenPair(

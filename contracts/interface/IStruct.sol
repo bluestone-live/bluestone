@@ -77,7 +77,6 @@ interface IStruct {
         uint256 loanAmount;
         uint256 collateralAmount;
         uint256 loanTerm;
-        bool useAvailableCollateral;
         address distributorAddress;
     }
 }

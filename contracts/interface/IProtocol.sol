@@ -168,7 +168,6 @@ interface IProtocol {
     /// @param loanAmount Amount to borrow
     /// @param collateralAmount Amount to collateralize
     /// @param loanTerm Loan term
-    /// @param useAvailableCollateral Whether to use available collateral in user's account
     /// @param distributorAddress Distributor account address
     /// @return loanId ID that identifies the loan
     function loan(
@@ -177,7 +176,6 @@ interface IProtocol {
         uint256 loanAmount,
         uint256 collateralAmount,
         uint256 loanTerm,
-        bool useAvailableCollateral,
         address distributorAddress
     ) external virtual returns (bytes32 loanId);
 
@@ -206,31 +204,10 @@ interface IProtocol {
     /// @param loanId ID that identifies the loan
     /// @param collateralAmount The collateral amount to be added to the loan
     /// @return totalCollateralAmount The total collateral amount after adding collateral
-    function addCollateral(
-        bytes32 loanId,
-        uint256 collateralAmount,
-        bool useAvailableCollateral
-    ) external virtual returns (uint256 totalCollateralAmount);
-
-    /// @notice Withdraw available collateral from caller's account
-    /// @param tokenAddress The collateral token address
-    /// @param collateralAmount The available collateral amount
-    function withdrawAvailableCollateral(
-        address tokenAddress,
-        uint256 collateralAmount
-    ) external virtual;
-
-    /// @notice Return amount of available collateral for each token in caller's account
-    /// @return tokenAddressList A list of token addresses
-    /// @return availableCollateralAmountList A list of available collateral amount for each token
-    function getAvailableCollateralsByAccount(address accountAddress)
+    function addCollateral(bytes32 loanId, uint256 collateralAmount)
         external
-        view
         virtual
-        returns (
-            address[] memory tokenAddressList,
-            uint256[] memory availableCollateralAmountList
-        );
+        returns (uint256 totalCollateralAmount);
 
     /// @notice Return basic info of a loan record
     /// @param loanId ID that identifies the loan record
