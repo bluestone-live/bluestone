@@ -1,7 +1,5 @@
 import { IToken, ILoanPair } from '../../stores';
 import { ERC20Factory } from '../../utils/MetaMaskProvider';
-import { BigNumber } from '../../utils/BigNumber';
-import { isAllEqual } from '../../utils/isAllEqual';
 
 /**
  * [depositTokenAddress[], isEnabled[]] -> IToken[]
@@ -26,55 +24,21 @@ export const depositTokenPipe = async (
   );
 };
 
-interface IGetLoanAndCollateralTokenPairsResultSet {
-  loanTokenAddressList: string[];
-  collateralTokenAddressList: string[];
-  isEnabledList: string[];
-  minCollateralCoverageRatioList: BigNumber[];
-  liquidationDiscountList: BigNumber[];
+interface IGetLoanAndCollateralTokenPairsResult {
+  loanTokenAddress: string;
+  collateralTokenAddress: string;
+  isEnabled: boolean;
+  minCollateralCoverageRatio: string;
+  liquidationDiscount: string;
 }
 
 export const loanPairPipe = async (
-  {
-    loanTokenAddressList,
-    collateralTokenAddressList,
-    isEnabledList,
-    minCollateralCoverageRatioList,
-    liquidationDiscountList,
-  }: IGetLoanAndCollateralTokenPairsResultSet,
+  resultSet: IGetLoanAndCollateralTokenPairsResult[],
   getERC20ByTokenAddress: ERC20Factory,
 ): Promise<ILoanPair[]> => {
-  if (
-    isAllEqual(
-      loanTokenAddressList.length * collateralTokenAddressList.length,
-      isEnabledList.length,
-      minCollateralCoverageRatioList.length,
-      liquidationDiscountList.length,
-    )
-  ) {
-    throw new Error('Client: Data length dose not match.');
-  }
   return Promise.all(
-    loanTokenAddressList
-      .reduce<
-        Array<{
-          loanTokenAddress: string;
-          collateralTokenAddress: string;
-        }>
-      >((loanPairs, loanTokenAddress) => {
-        return [
-          ...loanPairs,
-          ...collateralTokenAddressList.map(collateralTokenAddress => ({
-            loanTokenAddress,
-            collateralTokenAddress,
-          })),
-        ];
-      }, [])
-      .map((loanPair, index: number) => ({
-        ...loanPair,
-        minCollateralCoverageRatio: minCollateralCoverageRatioList[index],
-      }))
-      .filter((_, index: number) => isEnabledList[index])
+    resultSet
+      .filter(loanPair => loanPair.isEnabled)
       .map(
         ({
           loanTokenAddress,
@@ -90,7 +54,7 @@ export const loanPairPipe = async (
             erc20Instance: getERC20ByTokenAddress(collateralTokenAddress),
           },
           minCollateralCoverageRatio,
-          annualPercentageRate: new BigNumber(0),
+          annualPercentageRate: '0',
         }),
       )
       .map(

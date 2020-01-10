@@ -4,6 +4,7 @@ import Card from 'antd/lib/card';
 import { Row, Col } from 'antd/lib/grid';
 import TextBox from './TextBox';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { convertWeiToDecimal } from '../utils/BigNumber';
 
 interface IProps extends WithTranslation {
   pool: IPool;
@@ -45,7 +46,7 @@ const DepositPoolCard = (props: IProps) => {
                 highlightColumn === 'totalDeposit' ? 'highlight' : undefined
               }
             >
-              {pool.totalDeposit}
+              {convertWeiToDecimal(pool.totalDeposit)}
             </span>
           </TextBox>
         </Col>

@@ -80,7 +80,7 @@ const DepositFormPage = (props: IProps) => {
       dispatch(
         PoolAction.replacePools(
           selectedToken.tokenAddress,
-          await poolService.getDetailsFromAllPools(selectedToken.tokenAddress),
+          await poolService.getPoolsByToken(selectedToken.tokenAddress),
         ),
       );
     }
@@ -103,7 +103,7 @@ const DepositFormPage = (props: IProps) => {
       dispatch(
         PoolAction.replacePools(
           selectedToken.tokenAddress,
-          await poolService.getDetailsFromAllPools(selectedToken.tokenAddress),
+          await poolService.getPoolsByToken(selectedToken.tokenAddress),
         ),
       );
     }

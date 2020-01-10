@@ -49,7 +49,7 @@ const DepositOverview = (props: WithTranslation) => {
       dispatch(
         PoolAction.replacePools(
           selectedToken.tokenAddress,
-          await poolService.getDetailsFromAllPools(selectedToken.tokenAddress),
+          await poolService.getPoolsByToken(selectedToken.tokenAddress),
         ),
       );
     }

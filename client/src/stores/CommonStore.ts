@@ -34,9 +34,9 @@ export interface ITerm {
 export interface ILoanPair {
   loanToken: IToken;
   collateralToken: IToken;
-  annualPercentageRate?: BigNumber;
-  maxLoanTerm?: BigNumber;
-  minCollateralCoverageRatio: BigNumber;
+  annualPercentageRate?: string;
+  maxLoanTerm?: string;
+  minCollateralCoverageRatio: string;
 }
 
 interface ICommonState {

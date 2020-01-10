@@ -1,14 +1,26 @@
-import React, { useState, useCallback, ChangeEvent } from 'react';
+import React, { useState, useCallback, ChangeEvent, useMemo } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { withRouter, RouteComponentProps } from 'react-router';
-import { IPool, IToken, IBalance, CommonActions } from '../stores';
+import {
+  IPool,
+  IToken,
+  IBalance,
+  CommonActions,
+  AccountActions,
+  useLoading,
+  ViewAction,
+} from '../stores';
 import FormInput from '../components/FormInput';
 import TextBox from '../components/TextBox';
 import dayjs from 'dayjs';
 import Form from 'antd/lib/form';
 import Button from 'antd/lib/button';
 import { getService } from '../services';
-import { convertDecimalToWei, BigNumber } from '../utils/BigNumber';
+import {
+  convertDecimalToWei,
+  BigNumber,
+  convertWeiToDecimal,
+} from '../utils/BigNumber';
 import { useDispatch } from 'react-redux';
 
 interface IProps extends WithTranslation, RouteComponentProps {
@@ -33,6 +45,9 @@ const DepositForm = (props: IProps) => {
 
   const dispatch = useDispatch();
 
+  // Selectors
+  const loading = useLoading();
+
   // States
   const [depositAmount, setDepositAmount] = useState();
 
@@ -43,7 +58,12 @@ const DepositForm = (props: IProps) => {
   );
 
   const submit = useCallback(async () => {
-    const { depositService, commonService } = await getService();
+    const {
+      accountService,
+      depositService,
+      commonService,
+    } = await getService();
+    dispatch(ViewAction.setLoading(true));
     if (token.allowance && token.allowance.toString() === '0') {
       await commonService.approveFullAllowance(
         accountAddress,
@@ -61,15 +81,36 @@ const DepositForm = (props: IProps) => {
           ),
         ),
       );
+      dispatch(ViewAction.setLoading(false));
     }
-    return depositService.deposit(
+    await depositService.deposit(
       accountAddress,
       token.tokenAddress,
       convertDecimalToWei(depositAmount),
       new BigNumber(pool.term),
       distributorAddress,
     );
+
+    dispatch(
+      AccountActions.setTokenBalance(
+        token.tokenAddress,
+        await accountService.getTokenBalance(accountAddress, token),
+      ),
+    );
+    dispatch(ViewAction.setLoading(false));
   }, [token, depositAmount, pool]);
+
+  // Computed
+
+  const buttonText = useMemo(() => {
+    if (loading) {
+      return t('common_loading');
+    }
+    if (token.allowance && token.allowance.toString() === '0') {
+      return t('deposit_form_button_approve');
+    }
+    return t('deposit_form_button_deposit');
+  }, [loading, token]);
 
   return (
     <div className="deposit-from">
@@ -82,7 +123,7 @@ const DepositForm = (props: IProps) => {
           value={depositAmount}
           onChange={onDepositAmountChange}
           extra={t('deposit_form_input_extra_balance', {
-            balance: tokenBalance.balance.toString(),
+            balance: convertWeiToDecimal(tokenBalance.balance),
             unit: token.tokenSymbol,
           })}
         />
@@ -95,10 +136,8 @@ const DepositForm = (props: IProps) => {
             .endOf('day')
             .format('YYYY-MM-DD HH:mm ZZ')}
         </TextBox>
-        <Button type="primary" block onClick={submit}>
-          {token.allowance && token.allowance.toString() === '0'
-            ? t('deposit_form_button_approve')
-            : t('deposit_form_button_deposit')}
+        <Button type="primary" block onClick={submit} disabled={loading}>
+          {buttonText}
         </Button>
       </Form>
     </div>

@@ -4,14 +4,17 @@ import { BannerType } from '../components/Banner';
 
 export enum ViewActionType {
   SetBanner = 'SET_BANNER',
+  SetLoading = 'SET_LOADING',
 }
 
 interface IViewStore {
+  loading: boolean;
   banner?: string;
   bannerType: BannerType;
 }
 
 const initState: IViewStore = {
+  loading: false,
   banner: undefined,
   bannerType: BannerType.Success,
 };
@@ -22,6 +25,11 @@ export const ViewReducer = (
 ) => {
   switch (action.type) {
     case ViewActionType.SetBanner:
+      return {
+        ...state,
+        ...action.payload,
+      };
+    case ViewActionType.SetLoading:
       return {
         ...state,
         ...action.payload,
@@ -53,9 +61,21 @@ export class ViewAction {
       },
     };
   }
+
+  static setLoading(loading: boolean) {
+    return {
+      type: ViewActionType.SetLoading,
+      payload: {
+        actionButtonLoading: loading,
+      },
+    };
+  }
 }
 
 export const useBanner = () =>
   useSelector<IState, { banner: string; bannerType: BannerType }>(state => {
     return { banner: state.view.banner, bannerType: state.view.bannerType };
   });
+
+export const useLoading = () =>
+  useSelector<IState, boolean>(state => state.view.actionButtonLoading);

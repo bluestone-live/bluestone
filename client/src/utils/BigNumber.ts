@@ -4,9 +4,15 @@ export { BigNumber };
 
 const significant = 18;
 
-export const convertWeiToDecimal = (bn?: BigNumber, precision: number = 4) => {
+export const convertWeiToDecimal = (
+  bn?: BigNumber | string,
+  precision: number = 4,
+) => {
   if (!bn) {
     return '0';
+  }
+  if (typeof bn === 'string') {
+    bn = new BigNumber(bn);
   }
   const numberString = bn.toString();
 

@@ -1,65 +1,44 @@
-import { isAllEqual } from '../../utils/isAllEqual';
 import { IPool } from '../../stores/PoolStore';
 
 interface IGetAllPoolResponse {
-  poolIdList: string[];
-  depositAmountList: string[];
-  availableAmountList: string[];
-  loanInterestList: string[];
-  totalDepositWeightList: string[];
+  poolId: string;
+  depositAmount: string;
+  availableAmount: string;
+  loanInterest: string;
+  totalDepositWeight: string;
 }
 
 export const PoolsPipe = (
   tokenAddress: string,
-  {
-    poolIdList,
-    depositAmountList,
-    availableAmountList,
-    loanInterestList,
-    totalDepositWeightList,
-  }: IGetAllPoolResponse,
+  pools: IGetAllPoolResponse[],
 ): IPool[] => {
-  if (
-    isAllEqual(
-      poolIdList.length,
-      depositAmountList.length,
-      availableAmountList.length,
-      loanInterestList.length,
-      totalDepositWeightList.length,
-    )
-  ) {
-    throw new Error('Client: Data length dose not match.');
-  }
-
-  return depositAmountList.map((depositAmount, index) => {
+  return pools.map((pool, index) => {
     const APR =
-      totalDepositWeightList[index].toString() === '0'
+      pool.totalDepositWeight === '0'
         ? '0.00'
         : (
-            (Number.parseFloat(loanInterestList[index]) /
-              Number.parseFloat(totalDepositWeightList[index])) *
+            (Number.parseFloat(pool.loanInterest) /
+              Number.parseFloat(pool.totalDepositWeight)) *
             100
           ).toFixed(2);
 
     const utilization =
-      depositAmount.toString() === '0'
+      pool.depositAmount === '0'
         ? '0.00'
         : (
-            (Number.parseFloat(availableAmountList[index]) /
-              Number.parseFloat(depositAmount[index])) *
+            ((Number.parseFloat(pool.depositAmount) -
+              Number.parseFloat(pool.availableAmount)) /
+              Number.parseFloat(pool.depositAmount)) *
             100
           ).toFixed(2);
 
     return {
-      poolId: poolIdList[index],
+      ...pool,
       tokenAddress,
       term: index,
       APR,
       utilization,
-      totalDeposit: depositAmount,
-      availableAmount: availableAmountList[index],
-      loanInterest: loanInterestList[index],
-      totalDepositWeight: totalDepositWeightList[index],
+      totalDeposit: pool.depositAmount,
     };
   });
 };

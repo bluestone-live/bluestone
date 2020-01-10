@@ -1,4 +1,4 @@
-import { BigNumber, convertDecimalToWei } from '../../utils/BigNumber';
+import { BigNumber } from '../../utils/BigNumber';
 import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
 import { IDepositRecord } from '../../stores';
 import { depositRecordsPipe, depositRecordPipe } from './Pipes';
