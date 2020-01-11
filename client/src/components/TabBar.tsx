@@ -4,9 +4,9 @@ import { withRouter, RouteComponentProps } from 'react-router';
 import Menu, { ClickParam } from 'antd/lib/menu';
 
 export enum TabType {
-  Deposit = 'Deposit',
-  Borrow = 'Borrow',
-  Account = 'Account',
+  Deposit = '/deposit',
+  Borrow = '/borrow',
+  Account = '/account',
 }
 
 export interface ITabOption {
@@ -16,7 +16,7 @@ export interface ITabOption {
 }
 
 interface IProps extends WithTranslation, RouteComponentProps {
-  selectedTab: TabType;
+  selectedTab?: TabType;
   tabOptions: ITabOption[];
   onItemClick: (e: ClickParam) => void;
 }
@@ -33,7 +33,7 @@ const StyledTabBar = (props: IProps) => {
       className="tab-bar"
       mode="horizontal"
       onClick={onItemClick}
-      selectedKeys={[selectedTab]}
+      selectedKeys={[selectedTab || '']}
     >
       {tabOptions.map(option => (
         <Menu.Item key={option.type} style={{ width: tabWidth }}>

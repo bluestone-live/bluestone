@@ -9,7 +9,7 @@ import Form from 'antd/lib/form';
 import Input from 'antd/lib/input';
 import Icon from 'antd/lib/icon';
 import Modal from 'antd/lib/modal';
-import { Button } from 'antd';
+import Button from 'antd/lib/button';
 
 interface IFormItemTip {
   title: string;

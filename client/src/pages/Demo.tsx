@@ -24,7 +24,7 @@ import Menu, { ClickParam } from 'antd/lib/menu';
 import RecordStatus from '../components/RecordStatus';
 import dayjs from 'dayjs';
 import { convertDecimalToWei } from '../utils/BigNumber';
-import CollateralRatio from '../components/CollateralRaio';
+import CollateralCoverageRatio from '../components/CollateralCoverageRatio';
 
 const Demo = () => {
   const dispatch = useDispatch();
@@ -98,7 +98,7 @@ const Demo = () => {
     },
     depositAmount: convertDecimalToWei(0),
     createdAt: dayjs(),
-    maturedPoolID: '18090',
+    maturedPoolID: '18700',
     recordType: RecordType.Deposit,
     isMatured: true,
   };
@@ -178,7 +178,10 @@ const Demo = () => {
       </Form>
       <hr />
       <RecordStatus record={record} />
-      <CollateralRatio currentCollateralRatio={140} minCollateralRatio={150} />
+      <CollateralCoverageRatio
+        currentCollateralRatio={140}
+        minCollateralRatio={150}
+      />
     </Fragment>
   );
 };

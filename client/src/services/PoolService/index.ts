@@ -6,6 +6,7 @@ export class PoolService {
 
   async getDetailsFromAllPools(tokenAddress: string) {
     return PoolsPipe(
+      tokenAddress,
       await this.provider.protocol.methods
         .getDetailsFromAllPools(tokenAddress)
         .call(),

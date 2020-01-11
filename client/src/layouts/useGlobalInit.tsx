@@ -1,0 +1,151 @@
+import React, { useMemo } from 'react';
+import { useComponentMounted } from '../utils/useEffectAsync';
+import { parseQuery } from '../utils/parseQuery';
+import { getService } from '../services';
+import { Dispatch } from 'redux';
+import { AccountActions, CommonActions, IToken } from '../stores';
+import { decodeDistributorConfig } from '../utils/decodeDistributorConfig';
+import { convertWeiToDecimal } from '../utils/BigNumber';
+import { TFunction } from 'i18next';
+import { TabType } from '../components/TabBar';
+import Icon from 'antd/lib/icon';
+
+export const useGlobalInit = (
+  pathname: string,
+  search: string,
+  dispatch: Dispatch,
+  t: TFunction,
+) => {
+  useComponentMounted(async () => {
+    const { dconfig } = parseQuery(search);
+
+    const { accountService, commonService } = await getService();
+
+    await commonService.enableEthereumNetwork();
+    const getAccounts = async () => {
+      const availableAccounts = await accountService.getAccounts();
+      dispatch(AccountActions.setAccounts(availableAccounts));
+      return availableAccounts;
+    };
+
+    const accounts = await getAccounts();
+
+    // Bind account and network change event
+    commonService.bindEthereumStateChangeEvent(getAccounts, () => {
+      window.location.reload();
+    });
+
+    const protocolContractAddress = await commonService.getProtocolContractAddress();
+    dispatch(CommonActions.setProtocolContractAddress(protocolContractAddress));
+
+    // Get distributor configs
+    const protocolAddress = await commonService.getProtocolAddress();
+
+    const distributorFeeRatios = await commonService.getMaxDistributorFeeRatios();
+    const distributorConfig = decodeDistributorConfig(dconfig || btoa('{}'));
+
+    if (distributorFeeRatios) {
+      dispatch(
+        CommonActions.setDistributorConfig({
+          address: distributorConfig.address || protocolAddress,
+          depositFee: Math.min(
+            Number.parseFloat(
+              convertWeiToDecimal(
+                distributorFeeRatios.maxDepositDistributorFeeRatio,
+              ),
+            ),
+            distributorConfig.depositFee,
+          ),
+        }),
+      );
+    }
+
+    // Get deposit terms
+    dispatch(
+      CommonActions.setDepositTerms(await commonService.getDepositTerms()),
+    );
+
+    // Get deposit tokens
+    const depositTokens = await Promise.all(
+      (await commonService.getDepositTokens()).map(async (token: IToken) => ({
+        ...token,
+        allowance: await commonService.getTokenAllowance(
+          token,
+          accounts[0],
+          protocolContractAddress,
+        ),
+      })),
+    );
+    dispatch(CommonActions.setDepositTokens(depositTokens));
+
+    // Get loan pairs
+    const loanAndCollateralTokenPairs = await commonService.getLoanAndCollateralTokenPairs();
+    dispatch(
+      CommonActions.setLoanPairs(
+        await Promise.all(
+          loanAndCollateralTokenPairs.map(async pair => {
+            const { loanToken, collateralToken } = pair;
+            const maxLoanTerm = await commonService.getMaxLoanTerm(
+              pair.loanToken.tokenAddress,
+            );
+            const annualPercentageRate = await commonService.getLoanInterestRate(
+              pair.loanToken.tokenAddress,
+              maxLoanTerm,
+            );
+            const loanTokenPrice = await commonService.getPrice(
+              loanToken.tokenAddress,
+            );
+            const collateralTokenPrice = await commonService.getPrice(
+              collateralToken.tokenAddress,
+            );
+            return {
+              ...pair,
+              loanToken: {
+                ...loanToken,
+                price: loanTokenPrice,
+              },
+              collateralToken: {
+                ...collateralToken,
+                price: collateralTokenPrice,
+              },
+              maxLoanTerm,
+              annualPercentageRate,
+            };
+          }),
+        ),
+      ),
+    );
+  });
+
+  const tabOptions = useMemo(
+    () => [
+      {
+        title: t('layout_default_deposit'),
+        type: TabType.Deposit,
+        pathTester: /^\/deposit/,
+        icon: <Icon type="up" />,
+      },
+      {
+        title: t('layout_default_borrow'),
+        type: TabType.Borrow,
+        pathTester: /^\/borrow/,
+        icon: <Icon type="down" />,
+      },
+      {
+        title: t('layout_default_account'),
+        type: TabType.Account,
+        pathTester: /^\/account/,
+        icon: <Icon type="ellipsis" />,
+      },
+    ],
+    [],
+  );
+
+  const selectedTab = useMemo(() => {
+    return tabOptions.find(option => {
+      return option.pathTester.test(pathname);
+    });
+  }, [tabOptions, pathname]);
+
+  return { tabOptions, selectedTab };
+};

@@ -12,7 +12,7 @@ interface IParseObj {
  * const qsObj = parse(qs);
  * `
  */
-function parse(search: string): IParseObj {
+export function parseQuery(search: string): IParseObj {
   const o: IParseObj = {};
   if (search) {
     const splitArr = search.slice(1).split('&');
@@ -29,5 +29,3 @@ function parse(search: string): IParseObj {
   }
   return o;
 }
-
-export default parse;

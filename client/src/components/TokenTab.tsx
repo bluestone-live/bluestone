@@ -3,7 +3,7 @@ import { IToken } from '../stores';
 import Menu, { ClickParam } from 'antd/lib/menu';
 
 interface IProps {
-  selectedToken: IToken;
+  selectedToken?: IToken;
   tokens: IToken[];
   onTokenSelect: (token: IToken) => void;
 }
@@ -30,7 +30,7 @@ const TokenTab = (props: IProps) => {
       className="token-tab"
       mode="horizontal"
       onClick={onClick}
-      selectedKeys={[selectedToken && selectedToken.tokenAddress]}
+      selectedKeys={selectedToken ? [selectedToken.tokenAddress] : undefined}
     >
       {tokens.map((token, i) => (
         <Menu.Item

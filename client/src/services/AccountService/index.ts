@@ -1,6 +1,6 @@
 import { BigNumber } from '../../utils/BigNumber';
 import { EventName, MetaMaskProvider } from '../../utils/MetaMaskProvider';
-import { IAvailableCollateral } from '../../stores';
+import { IAvailableCollateral, IToken } from '../../stores';
 import { availableCollateralPipe } from './Pipes';
 
 export class AccountService {
@@ -13,6 +13,20 @@ export class AccountService {
   async getAccounts(): Promise<string[]> {
     return this.provider.web3.eth.getAccounts();
   }
+
+  /**
+   *
+   * @param accountAddress account address
+   * @param token IToken instance
+   * @returns Token balance of account address
+   */
+  async getTokenBalance(
+    accountAddress: string,
+    token: IToken,
+  ): Promise<BigNumber> {
+    return token.erc20Instance.methods.balanceOf(accountAddress).call();
+  }
+
   /**
    * Get general statistics by account address
    * @param accountAddress account address

@@ -9,6 +9,12 @@ enum AccountActionType {
   SetGeneralStat = 'SET_GENERAL_STAT',
   SetTokenStat = 'SET_TOKEN_STAT',
   SetAvailableCollaterals = 'SET_FREED_COLLATERALS',
+  SetAccountBalance = 'SET_ACCOUNT_BALANCE',
+}
+
+export interface IBalance {
+  tokenAddress: string;
+  balance: BigNumber;
 }
 
 export interface IAvailableCollateral {
@@ -34,6 +40,7 @@ export interface ITokenStats {
 
 interface IAccountState {
   accounts: string[];
+  tokenBalance: IBalance[];
   generalStats: IGeneralStats;
   tokenStats: ITokenStats[];
   availableCollaterals: IAvailableCollateral[];
@@ -41,6 +48,7 @@ interface IAccountState {
 
 const initState: IAccountState = {
   accounts: [],
+  tokenBalance: [],
   generalStats: {
     numberOfDeposits: new BigNumber(0),
     numberOfLoans: new BigNumber(0),
@@ -81,6 +89,25 @@ export const AccountReducer = (
             )
           : [...state.tokenStats, action.payload.tokenStat],
       };
+    case AccountActionType.SetAccountBalance:
+      if (
+        state.tokenBalance.find(
+          b => b.tokenAddress === action.payload.tokenAddress,
+        )
+      ) {
+        return {
+          ...state,
+          tokenBalance: state.tokenBalance.map(b =>
+            b.tokenAddress === action.payload.tokenAddress
+              ? { ...b, balance: action.payload.balance }
+              : b,
+          ),
+        };
+      }
+      return {
+        ...state,
+        tokenBalance: [...state.tokenBalance, action.payload],
+      };
     default:
       return state;
   }
@@ -91,6 +118,15 @@ export class AccountActions {
     return {
       type: AccountActionType.SetAccounts,
       payload: { accounts },
+    };
+  }
+  static setTokenBalance(tokenAddress: string, balance: BigNumber) {
+    return {
+      type: AccountActionType.SetAccountBalance,
+      payload: {
+        tokenAddress,
+        balance,
+      },
     };
   }
   static setAvailableCollaterals(availableCollaterals: IAvailableCollateral[]) {
@@ -130,6 +166,9 @@ export class AccountActions {
 
 export const useDefaultAccount = () =>
   useSelector<IState, string>(state => state.account.accounts[0]);
+
+export const useTokenBalance = () =>
+  useSelector<IState, IBalance[]>(state => state.account.tokenBalance);
 
 export const useAvailableCollaterals = () =>
   useSelector<IState, IAvailableCollateral[]>(

@@ -7,17 +7,14 @@ import TabBar from '../components/TabBar';
 import { ClickParam } from 'antd/lib/menu';
 import Banner from '../components/Banner';
 import { useGlobalInit } from './useGlobalInit';
-import Icon from 'antd/lib/icon';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
-  title: string;
 }
 
 const OverviewLayout = (props: IProps) => {
   const {
     children,
-    title,
     history,
     location: { pathname, search },
     t,
@@ -46,7 +43,7 @@ const OverviewLayout = (props: IProps) => {
   );
 
   return (
-    <div className="layout default">
+    <div className="layout overview">
       {banner && (
         <Banner
           onCloseButtonClick={onBannerCloseButtonClick}
@@ -58,10 +55,6 @@ const OverviewLayout = (props: IProps) => {
       <div className="container">
         <div className="full-width">
           <div className="brand">LendHoo</div>
-        </div>
-        <div className="default__title">
-          <Icon type="left" />
-          {t(title)}
         </div>
         {accountAddress && children}
       </div>

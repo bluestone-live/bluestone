@@ -1,4 +1,3 @@
-import { BigNumber } from '../utils/BigNumber';
 import { IAction, IState } from '.';
 import { useSelector } from 'react-redux';
 
@@ -7,12 +6,15 @@ export enum PoolActionType {
 }
 
 export interface IPool {
-  poolIndex: number;
-  poolId: BigNumber;
-  depositAmount: BigNumber;
-  availableAmount: BigNumber;
-  loanInterest: BigNumber;
-  totalDepositWeight: BigNumber;
+  term: number;
+  APR: string;
+  utilization: string;
+  poolId: string;
+  totalDeposit: string;
+  availableAmount: string;
+  loanInterest: string;
+  totalDepositWeight: string;
+  tokenAddress: string;
 }
 
 interface IPoolStore {

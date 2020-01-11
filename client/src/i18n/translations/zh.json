@@ -3,6 +3,18 @@
     "language": "中文",
     "layout_default_deposit": "存钱",
     "layout_default_borrow": "借钱",
-    "layout_default_account": "账户"
+    "layout_default_account": "账户",
+    "deposit_pool_card_term": "{{term}}天",
+    "deposit_pool_card_text_apr": " 年化利率",
+    "deposit_pool_card_text_total_deposit": "总存款额",
+    "deposit_pool_card_text_utilization": " 使用率",
+    "deposit_form_input_amount": " 金额",
+    "deposit_form_input_extra_balance": " 可用余额:{{balance}}{{unit}}",
+    "deposit_form_text_current_apr": "当前年化利率",
+    "deposit_form_text_maturity_date": " 到期时间",
+    "deposit_form_button_deposit": " 存款",
+    "deposit_overview_title": "选择存款周期",
+    "route_title_confirm": " 确认",
+    "deposit_form_page_title_select_term": "选择存款周期"
   }
 }
