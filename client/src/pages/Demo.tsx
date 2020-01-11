@@ -1,11 +1,29 @@
-import React, { useCallback, useState, Fragment, ChangeEvent } from 'react';
+import React, {
+  useCallback,
+  useState,
+  Fragment,
+  ChangeEvent,
+  useMemo,
+} from 'react';
 import TokenTab from '../components/TokenTab';
-import { useDepositTokens, IToken, ViewAction } from '../stores';
+import {
+  useDepositTokens,
+  IToken,
+  ViewAction,
+  IDepositRecord,
+  RecordType,
+} from '../stores';
 import Form from 'antd/lib/form';
 import FormInput from '../components/FormInput';
 import TextBox from '../components/TextBox';
 import Button from 'antd/lib/button';
 import { useDispatch } from 'react-redux';
+import Dropdown from 'antd/lib/dropdown';
+import Icon from 'antd/lib/icon';
+import Menu, { ClickParam } from 'antd/lib/menu';
+import RecordStatus from '../components/RecordStatus';
+import dayjs from 'dayjs';
+import { convertDecimalToWei } from '../utils/BigNumber';
 
 const Demo = () => {
   const dispatch = useDispatch();
@@ -18,6 +36,13 @@ const Demo = () => {
 
   const [borrowAmount, setBorrowAmount] = useState('100');
   const [collateralRatio, setCollateralRatio] = useState(150);
+
+  const sortingParams = useMemo(
+    () => ['term', 'ARP', 'utilization', 'totalDeposit'],
+    [],
+  );
+
+  const [sortBy, setSortBy] = useState(sortingParams[0]);
 
   const onTokenSelect = useCallback(
     (token: IToken) => setSelectedToken(token),
@@ -45,6 +70,38 @@ const Demo = () => {
     [collateralRatio],
   );
 
+  const onDropDownChange = useCallback(
+    (param: ClickParam) => {
+      setSortBy(param.key);
+    },
+    [sortingParams],
+  );
+
+  const DropDownMenu = useMemo(
+    () => (
+      <Menu onClick={onDropDownChange}>
+        {sortingParams.map(menu => (
+          <Menu.Item key={menu}>{menu}</Menu.Item>
+        ))}
+      </Menu>
+    ),
+    [onDropDownChange, sortingParams],
+  );
+
+  const record: IDepositRecord = {
+    recordId: '1',
+    tokenAddress: '0x0000000000000000000000000000001',
+    depositTerm: {
+      text: '30',
+      value: 30,
+    },
+    depositAmount: convertDecimalToWei(0),
+    createdAt: dayjs(),
+    maturedPoolID: '18090',
+    recordType: RecordType.Deposit,
+    isMatured: true,
+  };
+
   return (
     <Fragment>
       <TokenTab
@@ -53,6 +110,15 @@ const Demo = () => {
         selectedToken={selectedToken}
       />
       <hr />
+      <Dropdown
+        overlay={DropDownMenu}
+        trigger={['click']}
+        placement="bottomCenter"
+      >
+        <Button>
+          {sortBy} <Icon type="caret-down" />
+        </Button>
+      </Dropdown>
       <Form>
         <FormInput
           label="Borrow Amount"
@@ -109,6 +175,8 @@ const Demo = () => {
           }}
         />
       </Form>
+      <hr />
+      <RecordStatus record={record} />
     </Fragment>
   );
 };

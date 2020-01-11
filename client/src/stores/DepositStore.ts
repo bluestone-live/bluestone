@@ -16,8 +16,8 @@ export interface IDepositRecord {
   depositAmount: BigNumber;
   poolId?: BigNumber;
   createdAt: Dayjs;
-  maturedAt: Dayjs;
-  withdrewAt: Dayjs;
+  maturedPoolID: string;
+  withdrewPoolID?: string;
   isMatured?: boolean;
   isWithdrawn?: boolean;
   interest?: BigNumber;

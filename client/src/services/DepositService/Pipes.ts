@@ -56,8 +56,8 @@ export const depositRecordsPipe = ({
     depositTerm: getTermObjectByValue(depositTermList[index].toString()),
     depositAmount: depositAmountList[index],
     createdAt: dayjs(formatSolidityTime(createdAtList[index])),
-    maturedAt: dayjs(formatSolidityTime(maturedAtList[index])),
-    withdrewAt: dayjs(formatSolidityTime(withdrewAtList[index])),
+    maturedPoolID: maturedAtList[index].toString(),
+    withdrewPoolID: withdrewAtList[index].toString(),
     recordType: RecordType.Deposit,
   }));
 };
@@ -87,8 +87,8 @@ export const depositRecordPipe = (
     depositAmount,
     poolId,
     createdAt: dayjs(formatSolidityTime(createdAt)),
-    maturedAt: dayjs(formatSolidityTime(maturedAt)),
-    withdrewAt: dayjs(formatSolidityTime(withdrewAt)),
+    maturedPoolID: dayjs(formatSolidityTime(maturedAt)),
+    withdrewPoolID: dayjs(formatSolidityTime(withdrewAt)),
     isMatured,
     isWithdrawn,
     interest,
