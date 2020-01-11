@@ -7,8 +7,8 @@ import TabBar from '../components/TabBar';
 import { ClickParam } from 'antd/lib/menu';
 import Banner from '../components/Banner';
 import { useGlobalInit } from './useGlobalInit';
-import Icon from 'antd/lib/icon';
 import Brand from '../components/Brand';
+import CustomIcon from '../components/CustomIcon';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
@@ -61,7 +61,7 @@ const OverviewLayout = (props: IProps) => {
       <Brand />
       <div className="container">
         <div className="default__title">
-          <Icon type="left" onClick={onBackButtonClick} />
+          <CustomIcon type="back" onClick={onBackButtonClick} />
           {t(title)}
         </div>
         {accountAddress && children}

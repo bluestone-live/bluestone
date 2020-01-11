@@ -11,6 +11,7 @@
     "analyzer": "NODE_ENV=analyzer webpack --progress --env=production -p"
   },
   "dependencies": {
+    "@antv/data-set": "^0.10.2",
     "antd": "^3.26.4",
     "babel-polyfill": "^6.26.0",
     "bn.js": "^4.11.8",
@@ -33,6 +34,7 @@
     "react-router-dom": "^5.1.2",
     "redux": "^4.0.4",
     "tslib": "^1.10.0",
+    "viser-react": "^2.4.8",
     "web3": "^1.2.4",
     "web3-eth-contract": "^1.2.4",
     "web3-utils": "^1.2.4"

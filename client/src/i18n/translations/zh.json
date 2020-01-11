@@ -9,12 +9,17 @@
     "deposit_pool_card_text_total_deposit": "总存款额",
     "deposit_pool_card_text_utilization": " 使用率",
     "deposit_form_input_amount": " 金额",
-    "deposit_form_input_extra_balance": " 可用余额:{{balance}}{{unit}}",
+    "deposit_form_input_extra_balance": " 可用余额:{{balance}} {{unit}}",
     "deposit_form_text_current_apr": "当前年化利率",
     "deposit_form_text_maturity_date": " 到期时间",
     "deposit_form_button_deposit": " 存款",
     "deposit_overview_title": "选择存款周期",
     "route_title_confirm": " 确认",
-    "deposit_form_page_title_select_term": "选择存款周期"
+    "deposit_form_page_title_select_term": "选择存款周期",
+    "borrow_overview_title_select_term": " 选择贷款周期",
+    "borrow_overview_button_next": "下一步",
+    "borrow_pool_card_term": "{{term}}天",
+    "borrow_pool_card_text_apr": "年化利率",
+    "borrow_pool_card_text_available_amount": "可用余额"
   }
 }

@@ -9,12 +9,17 @@
     "deposit_pool_card_text_total_deposit": "Total Deposit",
     "deposit_pool_card_text_utilization": "Utilization",
     "deposit_form_input_amount": "Amount",
-    "deposit_form_input_extra_balance": "Available amount:{{balance}}{{unit}}",
+    "deposit_form_input_extra_balance": "Available amount:{{balance}} {{unit}}",
     "deposit_form_text_current_apr": "Current APR",
     "deposit_form_text_maturity_date": "Maturity Date",
     "deposit_form_button_deposit": "Deposit",
     "deposit_overview_title": "Select Term",
     "route_title_confirm": "Confirm",
-    "deposit_form_page_title_select_term": "Select Term"
+    "deposit_form_page_title_select_term": "Select Term",
+    "borrow_overview_title_select_term": "Select Term",
+    "borrow_overview_button_next": "Next",
+    "borrow_pool_card_term": "{{term}}-day",
+    "borrow_pool_card_text_apr": "APR",
+    "borrow_pool_card_text_available_amount": "Available"
   }
 }
