@@ -5,6 +5,7 @@ import { DepositReducer, IDepositRecord } from './DepositStore';
 import { LoanReducer, ILoanRecord } from './LoanStore';
 import { TransactionReducer } from './TransactionStore';
 import { PoolReducer } from './PoolStore';
+import { ViewReducer } from './ViewStore';
 
 export interface IAction<T> {
   type: T;
@@ -23,6 +24,7 @@ const reducers = combineReducers({
   loan: LoanReducer,
   transaction: TransactionReducer,
   pool: PoolReducer,
+  view: ViewReducer,
 });
 
 export const store = createStore(reducers);
@@ -37,3 +39,4 @@ export * from './DepositStore';
 export * from './LoanStore';
 export * from './TransactionStore';
 export * from './PoolStore';
+export * from './ViewStore';

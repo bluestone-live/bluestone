@@ -8,6 +8,8 @@ import {
   CommonActions,
   IToken,
   AccountActions,
+  useBanner,
+  ViewAction,
 } from '../stores';
 import { useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
@@ -16,6 +18,7 @@ import { decodeDistributorConfig } from '../utils/decodeDistributorConfig';
 import { convertWeiToDecimal } from '../utils/BigNumber';
 import TabBar, { TabType } from '../components/TabBar';
 import { ClickParam } from 'antd/lib/menu';
+import Banner from '../components/Banner';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
@@ -42,6 +45,7 @@ const DefaultLayout = (props: IProps) => {
 
   // Selector
   const defaultAccount = useDefaultAccount();
+  const { banner, bannerType } = useBanner();
 
   // State
   const [selectedTab, setSelectedTab] = useState(TabType.Deposit);
@@ -169,8 +173,21 @@ const DefaultLayout = (props: IProps) => {
     [],
   );
 
+  const onBannerCloseButtonClick = useCallback(
+    () => dispatch(ViewAction.removeBanner()),
+    [],
+  );
+
   return (
     <div className="layout default">
+      {banner && (
+        <Banner
+          onCloseButtonClick={onBannerCloseButtonClick}
+          bannerType={bannerType}
+        >
+          {banner}
+        </Banner>
+      )}
       <div className="container">{defaultAccount && children} </div>
       <TabBar
         tabOptions={tabOptions}

@@ -2,7 +2,6 @@ import React, {
   ChangeEvent,
   useMemo,
   useCallback,
-  Fragment,
   useState,
   useRef,
 } from 'react';

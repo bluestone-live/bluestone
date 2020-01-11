@@ -1,12 +1,17 @@
 import React, { useCallback, useState, Fragment, ChangeEvent } from 'react';
 import TokenTab from '../components/TokenTab';
-import { useDepositTokens, IToken } from '../stores';
+import { useDepositTokens, IToken, ViewAction } from '../stores';
 import Form from 'antd/lib/form';
 import FormInput from '../components/FormInput';
 import TextBox from '../components/TextBox';
 import Button from 'antd/lib/button';
+import { useDispatch } from 'react-redux';
 
 const Demo = () => {
+  const dispatch = useDispatch();
+
+  dispatch(ViewAction.setBanner('Add Collateral Succeed'));
+
   const tokens = useDepositTokens();
 
   const [selectedToken, setSelectedToken] = useState();
