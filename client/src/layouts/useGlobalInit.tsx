@@ -9,6 +9,7 @@ import { convertWeiToDecimal } from '../utils/BigNumber';
 import { TFunction } from 'i18next';
 import { TabType } from '../components/TabBar';
 import Icon from 'antd/lib/icon';
+import CustomIcon from '../components/CustomIcon';
 
 export const useGlobalInit = (
   pathname: string,
@@ -123,19 +124,19 @@ export const useGlobalInit = (
         title: t('layout_default_deposit'),
         type: TabType.Deposit,
         pathTester: /^\/deposit/,
-        icon: <Icon type="up" />,
+        icon: <CustomIcon type="deposit" />,
       },
       {
         title: t('layout_default_borrow'),
         type: TabType.Borrow,
         pathTester: /^\/borrow/,
-        icon: <Icon type="down" />,
+        icon: <CustomIcon type="borrow" />,
       },
       {
         title: t('layout_default_account'),
         type: TabType.Account,
         pathTester: /^\/account/,
-        icon: <Icon type="ellipsis" />,
+        icon: <CustomIcon type="account" />,
       },
     ],
     [],

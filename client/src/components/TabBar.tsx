@@ -38,7 +38,7 @@ const StyledTabBar = (props: IProps) => {
       {tabOptions.map(option => (
         <Menu.Item key={option.type} style={{ width: tabWidth }}>
           <div className="tab-item">
-            <div>{option.icon}</div>
+            <div className="icon">{option.icon}</div>
             {option.title}
           </div>
         </Menu.Item>

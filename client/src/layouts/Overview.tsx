@@ -7,6 +7,7 @@ import TabBar from '../components/TabBar';
 import { ClickParam } from 'antd/lib/menu';
 import Banner from '../components/Banner';
 import { useGlobalInit } from './useGlobalInit';
+import Brand from '../components/Brand';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
@@ -52,12 +53,8 @@ const OverviewLayout = (props: IProps) => {
           {banner}
         </Banner>
       )}
-      <div className="container">
-        <div className="full-width">
-          <div className="brand">LendHoo</div>
-        </div>
-        {accountAddress && children}
-      </div>
+      <Brand />
+      <div className="container">{accountAddress && children}</div>
       <TabBar
         tabOptions={tabOptions}
         selectedTab={selectedTab && selectedTab.type}

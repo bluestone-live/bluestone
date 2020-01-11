@@ -12,6 +12,7 @@ import { Default } from './layouts';
 import 'normalize.css';
 import 'antd/dist/antd.less';
 import './styles/main.less';
+import './styles/iconfont/iconfont';
 
 const App = () => (
   <I18nextProvider i18n={i18n}>

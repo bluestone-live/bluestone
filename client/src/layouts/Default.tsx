@@ -8,6 +8,7 @@ import { ClickParam } from 'antd/lib/menu';
 import Banner from '../components/Banner';
 import { useGlobalInit } from './useGlobalInit';
 import Icon from 'antd/lib/icon';
+import Brand from '../components/Brand';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
@@ -45,6 +46,8 @@ const OverviewLayout = (props: IProps) => {
     [],
   );
 
+  const onBackButtonClick = useCallback(() => history.goBack(), []);
+
   return (
     <div className="layout default">
       {banner && (
@@ -55,12 +58,10 @@ const OverviewLayout = (props: IProps) => {
           {banner}
         </Banner>
       )}
+      <Brand />
       <div className="container">
-        <div className="full-width">
-          <div className="brand">LendHoo</div>
-        </div>
         <div className="default__title">
-          <Icon type="left" />
+          <Icon type="left" onClick={onBackButtonClick} />
           {t(title)}
         </div>
         {accountAddress && children}

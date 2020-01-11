@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "NODE_ENV=dev webpack-dev-server --progress --hot --env=development -d",
     "build": "NODE_ENV=production webpack --progress --env=production -p",
+    "icon": "node ./scripts/get-icon-fonts",
     "deploy:dev": "rsync -av dist/ root@bluestone.live:/var/www/alpha.bluestone.live/html",
     "translations": "node ./scripts/make-translations.js",
     "analyzer": "NODE_ENV=analyzer webpack --progress --env=production -p"
@@ -53,6 +54,7 @@
     "@types/react-redux": "^7.1.4",
     "@types/react-router-dom": "^4.3.3",
     "@types/redux": "^3.6.0",
+    "axios": "^0.19.0",
     "babel-loader": "^8.0.6",
     "babel-plugin-import": "^1.13.0",
     "clean-webpack-plugin": "^3.0.0",
