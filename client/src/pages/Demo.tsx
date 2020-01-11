@@ -24,6 +24,7 @@ import Menu, { ClickParam } from 'antd/lib/menu';
 import RecordStatus from '../components/RecordStatus';
 import dayjs from 'dayjs';
 import { convertDecimalToWei } from '../utils/BigNumber';
+import CollateralRatio from '../components/CollateralRaio';
 
 const Demo = () => {
   const dispatch = useDispatch();
@@ -177,6 +178,7 @@ const Demo = () => {
       </Form>
       <hr />
       <RecordStatus record={record} />
+      <CollateralRatio currentCollateralRatio={140} minCollateralRatio={150} />
     </Fragment>
   );
 };
