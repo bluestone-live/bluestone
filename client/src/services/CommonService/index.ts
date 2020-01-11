@@ -119,12 +119,11 @@ export class CommonService {
       },
       token.erc20Instance,
     );
-
     return flow(async erc20 => {
-      const amount = (await erc20.methods.totalSupply.call()) || 19000;
+      const amount = (await erc20.methods.totalSupply().call()) / 1e18 || 19000;
 
       return erc20.methods
-        .approve(protocolContractAddress, amount.toString())
+        .approve(protocolContractAddress, amount)
         .send({ from: accountAddress });
     });
   }

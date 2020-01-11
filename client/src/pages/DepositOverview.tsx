@@ -137,7 +137,8 @@ const DepositOverview = (props: WithTranslation) => {
           (pool, index) =>
             pool && (
               <Link
-                to={`/deposit/${pool.poolId}`}
+                to={`/deposit/${pool.poolId}?tokenAddress=${selectedToken &&
+                  selectedToken.tokenAddress}`}
                 key={`link_${pool.poolId.toString()}`}
               >
                 <DepositPoolCard

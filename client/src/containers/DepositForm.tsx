@@ -1,7 +1,7 @@
 import React, { useState, useCallback, ChangeEvent } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { withRouter, RouteComponentProps } from 'react-router';
-import { IPool, IToken, IBalance } from '../stores';
+import { IPool, IToken, IBalance, CommonActions } from '../stores';
 import FormInput from '../components/FormInput';
 import TextBox from '../components/TextBox';
 import dayjs from 'dayjs';
@@ -9,9 +9,11 @@ import Form from 'antd/lib/form';
 import Button from 'antd/lib/button';
 import { getService } from '../services';
 import { convertDecimalToWei, BigNumber } from '../utils/BigNumber';
+import { useDispatch } from 'react-redux';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
+  protocolContractAddress: string;
   distributorAddress: string;
   token: IToken;
   pool: IPool;
@@ -21,12 +23,15 @@ interface IProps extends WithTranslation, RouteComponentProps {
 const DepositForm = (props: IProps) => {
   const {
     accountAddress,
+    protocolContractAddress,
     distributorAddress,
     token,
     pool,
     tokenBalance,
     t,
   } = props;
+
+  const dispatch = useDispatch();
 
   // States
   const [depositAmount, setDepositAmount] = useState();
@@ -38,16 +43,33 @@ const DepositForm = (props: IProps) => {
   );
 
   const submit = useCallback(async () => {
-    const { depositService } = await getService();
+    const { depositService, commonService } = await getService();
+    if (token.allowance && token.allowance.toString() === '0') {
+      await commonService.approveFullAllowance(
+        accountAddress,
+        token,
+        protocolContractAddress,
+      );
 
-    await depositService.deposit(
+      dispatch(
+        CommonActions.setAllowance(
+          token.tokenAddress,
+          await commonService.getTokenAllowance(
+            token,
+            accountAddress,
+            protocolContractAddress,
+          ),
+        ),
+      );
+    }
+    return depositService.deposit(
       accountAddress,
       token.tokenAddress,
       convertDecimalToWei(depositAmount),
       new BigNumber(pool.term),
       distributorAddress,
     );
-  }, [depositAmount, pool]);
+  }, [token, depositAmount, pool]);
 
   return (
     <div className="deposit-from">
@@ -74,7 +96,9 @@ const DepositForm = (props: IProps) => {
             .format('YYYY-MM-DD HH:mm ZZ')}
         </TextBox>
         <Button type="primary" block onClick={submit}>
-          {t('deposit_form_button_deposit')}
+          {token.allowance && token.allowance.toString() === '0'
+            ? t('deposit_form_button_approve')
+            : t('deposit_form_button_deposit')}
         </Button>
       </Form>
     </div>

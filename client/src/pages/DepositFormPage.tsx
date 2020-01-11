@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import DepositForm from '../containers/DepositForm';
 import { withRouter, RouteComponentProps } from 'react-router';
 import { parseQuery } from '../utils/parseQuery';
@@ -10,11 +10,12 @@ import {
   useDistributorConfig,
   AccountActions,
   PoolAction,
+  IState,
 } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import DepositPoolCard from '../components/DepositPoolCard';
 import DepositPoolCardPlaceholder from '../placeholders/DepositPoolCardPlaceholder';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getService } from '../services';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
@@ -39,15 +40,26 @@ const DepositFormPage = (props: IProps) => {
   const pools = usePools();
   const tokenBalance = useTokenBalance();
   const { address: distributorAddress } = useDistributorConfig();
-
-  // Computed
-  const selectedToken = depositTokens.find(
-    token => token.tokenAddress === queryParams.tokenAddress,
+  const protocolAddress = useSelector<IState, string>(
+    state => state.common.protocolContractAddress,
   );
 
-  const selectedPool = pools[queryParams.tokenAddress]
-    ? pools[queryParams.tokenAddress].find(p => p.poolId === params.poolId)
-    : null;
+  // Computed
+  const selectedToken = useMemo(
+    () =>
+      depositTokens.find(
+        token => token.tokenAddress === queryParams.tokenAddress,
+      ),
+    [depositTokens, queryParams.tokenAddress],
+  );
+
+  const selectedPool = useMemo(
+    () =>
+      pools[queryParams.tokenAddress]
+        ? pools[queryParams.tokenAddress].find(p => p.poolId === params.poolId)
+        : null,
+    [pools, queryParams.tokenAddress],
+  );
 
   const selectedTokenBalance =
     selectedToken &&
@@ -84,6 +96,19 @@ const DepositFormPage = (props: IProps) => {
     }
   }, [queryParams.tokenAddress, params.poolId]);
 
+  useDepsUpdated(async () => {
+    if (selectedToken && !pools[selectedToken.tokenAddress]) {
+      const { poolService } = await getService();
+
+      dispatch(
+        PoolAction.replacePools(
+          selectedToken.tokenAddress,
+          await poolService.getDetailsFromAllPools(selectedToken.tokenAddress),
+        ),
+      );
+    }
+  }, [selectedToken]);
+
   return (
     <div className="deposit-form-page">
       <div className="secondary-title">
@@ -101,6 +126,7 @@ const DepositFormPage = (props: IProps) => {
           tokenBalance={selectedTokenBalance}
           token={selectedToken}
           pool={selectedPool}
+          protocolContractAddress={protocolAddress}
         />
       )}
     </div>
