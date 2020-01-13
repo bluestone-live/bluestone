@@ -463,7 +463,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         view
         whenNotPaused
         override
-        returns (IStruct.Pool[] memory poolList)
+        returns (IStruct.getPoolsByTokenResponse[] memory poolList)
     {
         return _liquidityPools.getPoolsByToken(tokenAddress);
     }

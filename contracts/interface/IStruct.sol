@@ -64,6 +64,14 @@ interface IStruct {
         uint256 protocolReserveRatio;
     }
 
+    struct getPoolsByTokenResponse {
+        uint256 poolId;
+        uint256 depositAmount;
+        uint256 availableAmount;
+        uint256 loanInterest;
+        uint256 totalDepositWeight;
+    }
+
     struct DepositParameters {
         address tokenAddress;
         uint256 depositAmount;

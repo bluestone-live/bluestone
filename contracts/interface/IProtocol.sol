@@ -280,7 +280,7 @@ interface IProtocol {
         external
         view
         virtual
-        returns (IStruct.Pool[] memory poolList);
+        returns (IStruct.getPoolsByTokenResponse[] memory poolList);
 
     /// @notice Set price oracle address
     /// @param tokenAddress Token address
