@@ -8,6 +8,8 @@ import {
   useTokenBalance,
   useLoanPairs,
   useDefaultAccount,
+  useDistributorConfig,
+  useActionButtonLoading,
 } from '../stores';
 import { RouteComponentProps } from 'react-router';
 import { parseQuery } from '../utils/parseQuery';
@@ -32,6 +34,10 @@ const BorrowFormPage = (props: IProps) => {
   const tokens = useDepositTokens();
 
   const accountAddress = useDefaultAccount();
+
+  const { address: distributorAddress } = useDistributorConfig();
+
+  const loading = useActionButtonLoading();
 
   const loanToken = useMemo(() => {
     if (queryParams.tokenAddress) {
@@ -80,6 +86,8 @@ const BorrowFormPage = (props: IProps) => {
         accountAddress={accountAddress}
         loanPairs={loanPairs}
         tokenBalance={tokenBalance}
+        distributorAddress={distributorAddress}
+        loading={loading}
       />
     </div>
   );

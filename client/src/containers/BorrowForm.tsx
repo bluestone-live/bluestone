@@ -46,7 +46,7 @@ const BorrowForm = (props: IProps) => {
   // States
   const [borrowAmount, setBorrowAmount] = useState<number>(0);
   const [collateralToken, setCollateralToken] = useState<IToken>();
-  const [collateralRatio, setCollateralRatio] = useState<number>();
+  const [collateralRatio, setCollateralRatio] = useState<number>(0);
   const [collateralAmount, setCollateralAmount] = useState<number>(0);
 
   // Initialize
@@ -129,6 +129,9 @@ const BorrowForm = (props: IProps) => {
   );
 
   const submit = useCallback(async () => {
+    if (!loanToken || !collateralToken || !selectedPool) {
+      return;
+    }
     const { loanService } = await getService();
     loanService.loan(
       accountAddress,
@@ -137,10 +140,17 @@ const BorrowForm = (props: IProps) => {
       convertDecimalToWei(borrowAmount),
       convertDecimalToWei(collateralAmount),
       selectedPool.term,
-      false,
       distributorAddress,
     );
-  }, []);
+  }, [
+    loanToken,
+    collateralToken,
+    selectedPool,
+    accountAddress,
+    borrowAmount,
+    collateralAmount,
+    distributorAddress,
+  ]);
 
   // Computed
   const selectedLoanPair = useMemo(() => {
@@ -183,12 +193,14 @@ const BorrowForm = (props: IProps) => {
   );
 
   const totalDebt = useMemo(() => {
-    if (selectedLoanPair) {
+    if (selectedLoanPair && selectedPool) {
       return calcEstimateRepayAmount(
         borrowAmount,
         selectedPool.term,
-        Number.parseFloat(selectedLoanPair.annualPercentageRate),
-      );
+        Number.parseFloat(
+          convertWeiToDecimal(selectedLoanPair.annualPercentageRate) || '0',
+        ),
+      ).toFixed(4);
     }
   }, [selectedLoanPair, borrowAmount, selectedPool]);
 
