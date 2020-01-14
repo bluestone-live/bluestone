@@ -1,5 +1,4 @@
 import { Dayjs } from 'dayjs';
-import { BigNumber } from '../utils/BigNumber';
 import { ITerm, IAction, RecordType, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
 import { uniqueBy } from '../utils/uniqueBy';
@@ -15,12 +14,12 @@ export interface ILoanRecord {
   recordId: string;
   loanTokenAddress: string;
   collateralTokenAddress: string;
-  loanAmount: BigNumber;
+  loanAmount: string;
   loanTerm: ITerm;
-  collateralAmount: BigNumber;
-  currentCollateralRatio?: BigNumber;
-  interest?: BigNumber;
-  remainingDebt?: BigNumber;
+  collateralAmount: string;
+  currentCollateralRatio?: string;
+  interest?: string;
+  remainingDebt?: string;
   createdAt: Dayjs;
   isOverDue?: boolean;
   isClosed?: boolean;
@@ -35,7 +34,7 @@ interface ILoanState {
 
 interface IInterestRate {
   term: string;
-  interestRate?: BigNumber;
+  interestRate?: string;
 }
 
 const initState: ILoanState = {
@@ -101,7 +100,7 @@ export class LoanActions {
       },
     };
   }
-  static SetLoanInterestRate(term: number, interestRate: BigNumber) {
+  static SetLoanInterestRate(term: number, interestRate: string) {
     return {
       type: LoanActionType.SetLoanInterestRate,
       payload: {

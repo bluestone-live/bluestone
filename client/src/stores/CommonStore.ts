@@ -1,4 +1,3 @@
-import { BigNumber } from '../utils/BigNumber';
 import { IAction, IState } from '.';
 import { Contract } from 'web3-eth-contract';
 import { useSelector } from 'react-redux';
@@ -21,8 +20,8 @@ const enum CommonActionType {
 export interface IToken {
   tokenAddress: string;
   tokenSymbol: string;
-  allowance?: BigNumber;
-  price?: BigNumber;
+  allowance?: string;
+  price?: string;
   erc20Instance: Contract;
 }
 
@@ -41,7 +40,7 @@ export interface ILoanPair {
 
 interface ICommonState {
   currentNetwork?: number;
-  depositTerms: BigNumber[];
+  depositTerms: string[];
   depositTokens: IToken[];
   loanPairs: ILoanPair[];
   protocolContractAddress?: string;
@@ -177,7 +176,7 @@ export class CommonActions {
     };
   }
 
-  static setAllowance(tokenAddress: string, allowanceAmount: BigNumber) {
+  static setAllowance(tokenAddress: string, allowanceAmount: string) {
     return {
       type: CommonActionType.SetAllowance,
       payload: {
@@ -189,9 +188,9 @@ export class CommonActions {
 
   static setTokenPrice(
     loanTokenAddress: string,
-    loanPrice: BigNumber,
+    loanPrice: string,
     collateralTokenAddress: string,
-    collateralTokenPrice: BigNumber,
+    collateralTokenPrice: string,
   ) {
     return {
       type: CommonActionType.SetTokenPrice,
@@ -204,7 +203,7 @@ export class CommonActions {
     };
   }
 
-  static setDepositTerms(depositTerms: BigNumber[]) {
+  static setDepositTerms(depositTerms: string[]) {
     return {
       type: CommonActionType.SetDepositTerms,
       payload: {
@@ -213,7 +212,7 @@ export class CommonActions {
     };
   }
 
-  static setMaxLoanTerm(tokenAddress: string, maxLoanTerm: BigNumber) {
+  static setMaxLoanTerm(tokenAddress: string, maxLoanTerm: string) {
     return {
       type: CommonActionType.SetMaxLoanTerm,
       payload: {
@@ -223,7 +222,7 @@ export class CommonActions {
     };
   }
 
-  static setLoanAPR(tokenAddress: string, annualPercentageRate: BigNumber) {
+  static setLoanAPR(tokenAddress: string, annualPercentageRate: string) {
     return {
       type: CommonActionType.SetLoanAPR,
       payload: {
@@ -260,7 +259,7 @@ export const useDepositTokens = () =>
 export const useDepositTerms = () =>
   useSelector<IState, ITerm[]>(state =>
     state.common.depositTerms
-      .map((bigNumber: BigNumber) => ({ value: bigNumber.toString() }))
+      .map((bigNumber: string) => ({ value: bigNumber.toString() }))
       .map(({ value }: { value: string }) => ({
         text: `${value}-Day`,
         value: Number.parseInt(value, 10),

@@ -17,6 +17,9 @@ export enum RecordType {
   Loan = 'loan',
 }
 
+export const ETHIdentificationAddress =
+  '0x0000000000000000000000000000000000000001';
+
 const reducers = combineReducers({
   account: AccountReducer,
   common: CommonReducer,

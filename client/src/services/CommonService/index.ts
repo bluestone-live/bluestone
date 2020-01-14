@@ -1,4 +1,3 @@
-import { BigNumber } from '../../utils/BigNumber';
 import { depositTokenPipe, loanPairPipe } from './Pipes';
 import { IToken, ILoanPair } from '../../stores';
 import { EventName, MetaMaskProvider } from '../../utils/MetaMaskProvider';
@@ -45,7 +44,7 @@ export class CommonService {
     token: IToken,
     accountAddress: string,
     protocolContractAddress: string,
-  ): Promise<BigNumber> {
+  ): Promise<string> {
     return token.erc20Instance.methods
       .allowance(accountAddress, protocolContractAddress)
       .call();
@@ -61,7 +60,7 @@ export class CommonService {
     );
   }
 
-  async getDepositTerms(): Promise<BigNumber[]> {
+  async getDepositTerms(): Promise<string[]> {
     return this.provider.protocol.methods.getDepositTerms().call();
   }
 
@@ -77,7 +76,7 @@ export class CommonService {
     );
   }
 
-  async getMaxLoanTerm(tokenAddress: string): Promise<BigNumber> {
+  async getMaxLoanTerm(tokenAddress: string): Promise<string> {
     return this.provider.protocol.methods.getMaxLoanTerm(tokenAddress).call();
   }
 
@@ -89,10 +88,10 @@ export class CommonService {
    */
   async getLoanInterestRate(
     tokenAddress: string,
-    maxLoanTerm: BigNumber,
-  ): Promise<BigNumber> {
+    maxLoanTerm: string,
+  ): Promise<string> {
     return this.provider.protocol.methods
-      .getLoanInterestRate(tokenAddress, maxLoanTerm.toString())
+      .getLoanInterestRate(tokenAddress, maxLoanTerm)
       .call();
   }
 
@@ -100,7 +99,7 @@ export class CommonService {
    * Get price by token address
    * @param tokenAddress token address
    */
-  async getPrice(tokenAddress: string): Promise<BigNumber> {
+  async getPrice(tokenAddress: string): Promise<string> {
     return this.provider.protocol.methods.getTokenPrice(tokenAddress).call();
   }
 
@@ -139,8 +138,8 @@ export class CommonService {
    * Get deposit and loan distributor fee ratio
    */
   async getMaxDistributorFeeRatios(): Promise<{
-    maxDepositDistributorFeeRatio: BigNumber;
-    maxLoanDistributorFeeRatio: BigNumber;
+    maxDepositDistributorFeeRatio: string;
+    maxLoanDistributorFeeRatio: string;
   }> {
     return this.provider.protocol.methods.getMaxDistributorFeeRatios().call();
   }

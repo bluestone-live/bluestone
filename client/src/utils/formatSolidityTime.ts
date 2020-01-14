@@ -1,4 +1,2 @@
-import { BigNumber } from './BigNumber';
-
-export const formatSolidityTime = (originalTime: BigNumber) =>
-  Number.parseInt(originalTime.toString(), 10) * 1000;
+export const formatSolidityTime = (originalTime: string) =>
+  Number.parseInt(originalTime, 10) * 1000;

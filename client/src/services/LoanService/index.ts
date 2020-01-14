@@ -1,7 +1,6 @@
-import { BigNumber } from '../../utils/BigNumber';
 import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
-import { loanRecordsPipe, loanRecordPipe } from './Pipes';
-import { ILoanRecord } from '../../stores';
+import { loanRecordsPipe } from './Pipes';
+import { ILoanRecord, ETHIdentificationAddress } from '../../stores';
 
 export class LoanService {
   constructor(private readonly provider: MetaMaskProvider) {}
@@ -27,13 +26,9 @@ export class LoanService {
    * @returns loan detail information
    */
   async getLoanRecordById(recordId: string): Promise<ILoanRecord> {
-    return loanRecordPipe(
-      recordId,
+    return loanRecordsPipe([
       await this.provider.protocol.methods.getLoanRecordById(recordId).call(),
-      await this.provider.protocol.methods
-        .getLoanRecordDetailsById(recordId)
-        .call(),
-    );
+    ])[0];
   }
 
   /**
@@ -43,10 +38,9 @@ export class LoanService {
     accountAddress: string,
     loanTokenAddress: string,
     collateralTokenAddress: string,
-    loanAmount: BigNumber,
-    collateralAmount: BigNumber,
+    loanAmount: string,
+    collateralAmount: string,
     loanTerm: number,
-    useAvailableCollateral: boolean,
     distributorAddress: string,
   ): Promise<string> {
     const flow = await this.provider.getContractEventFlow(
@@ -60,6 +54,18 @@ export class LoanService {
     const {
       returnValues: { loanId },
     } = await flow(async protocol => {
+      if (collateralTokenAddress === ETHIdentificationAddress) {
+        return protocol.methods
+          .loan(
+            loanTokenAddress,
+            collateralTokenAddress,
+            loanAmount.toString(),
+            '0',
+            loanTerm.toString(),
+            distributorAddress,
+          )
+          .send({ from: accountAddress, value: loanAmount });
+      }
       return protocol.methods
         .loan(
           loanTokenAddress,
@@ -67,7 +73,6 @@ export class LoanService {
           loanAmount.toString(),
           collateralAmount.toString(),
           loanTerm.toString(),
-          useAvailableCollateral,
           distributorAddress,
         )
         .send({ from: accountAddress });
@@ -78,11 +83,7 @@ export class LoanService {
   /**
    * @returns remainingDebt remaining debt of this loan
    */
-  async repayLoan(
-    accountAddress: string,
-    loanId: string,
-    repayAmount: BigNumber,
-  ) {
+  async repayLoan(accountAddress: string, loanId: string, repayAmount: string) {
     const flow = await this.provider.getContractEventFlow(
       EventName.RepayLoanSucceed,
       {
@@ -101,8 +102,8 @@ export class LoanService {
   async addCollateral(
     accountAddress: string,
     loanId: string,
-    collateralAmount: BigNumber,
-    useAvailableCollateral: boolean,
+    collateralTokenAddress: string,
+    collateralAmount: string,
   ) {
     const flow = await this.provider.getContractEventFlow(
       EventName.AddCollateralSucceed,
@@ -113,12 +114,13 @@ export class LoanService {
       },
     );
     return flow(protocol => {
+      if (collateralTokenAddress === ETHIdentificationAddress) {
+        return protocol.methods
+          .addCollateral(loanId, '0')
+          .send({ from: accountAddress, value: collateralAmount.toString() });
+      }
       return protocol.methods
-        .addCollateral(
-          loanId,
-          collateralAmount.toString(),
-          useAvailableCollateral,
-        )
+        .addCollateral(loanId, collateralAmount.toString())
         .send({ from: accountAddress });
     });
   }

@@ -1,98 +1,48 @@
-import { BigNumber } from '../../utils/BigNumber';
 import { IDepositRecord, RecordType } from '../../stores';
-import { isAllEqual } from '../../utils/isAllEqual';
 import { getTermObjectByValue } from '../../utils/getTermObjectByValue';
 import { formatSolidityTime } from '../../utils/formatSolidityTime';
 import dayjs from 'dayjs';
 
-interface IGetDepositRecordsResultSet {
-  depositIdList: string[];
-  tokenAddressList: string[];
-  depositTermList: BigNumber[];
-  depositAmountList: BigNumber[];
-  createdAtList: BigNumber[];
-  maturedAtList: BigNumber[];
-  withdrewAtList: BigNumber[];
-}
-
-interface IGetDepositRecordByIdResult {
+interface IGetDepositRecordResponse {
+  depositId: string;
   tokenAddress: string;
-  depositTerm: BigNumber;
-  depositAmount: BigNumber;
-  poolId: BigNumber;
-  createdAt: BigNumber;
-  maturedAt: BigNumber;
-  withdrewAt: BigNumber;
-  isMatured: boolean;
-  isWithdrawn: boolean;
+  depositTerm: string;
+  depositAmount: string;
+  poolId: string;
+  createdAt: string;
+  maturedAt: string;
+  withdrewAt: string;
 }
 
-export const depositRecordsPipe = ({
-  depositIdList,
-  tokenAddressList,
-  depositTermList,
-  depositAmountList,
-  createdAtList,
-  maturedAtList,
-  withdrewAtList,
-}: IGetDepositRecordsResultSet): IDepositRecord[] => {
-  if (
-    isAllEqual(
-      depositIdList.length,
-      tokenAddressList.length,
-      depositTermList.length,
-      depositAmountList.length,
-      createdAtList.length,
-      maturedAtList.length,
-      withdrewAtList.length,
-    )
-  ) {
-    throw new Error('Client: Data length dose not match.');
-  }
-
-  return depositIdList.map((depositId: string, index: number) => ({
-    recordId: depositId,
-    tokenAddress: tokenAddressList[index],
-    depositTerm: getTermObjectByValue(depositTermList[index].toString()),
-    depositAmount: depositAmountList[index],
-    createdAt: dayjs(formatSolidityTime(createdAtList[index])),
-    maturedPoolID: maturedAtList[index].toString(),
-    withdrewPoolID: withdrewAtList[index].toString(),
+export const depositRecordsPipe = (
+  resultSet: IGetDepositRecordResponse[],
+): IDepositRecord[] => {
+  return resultSet.map((depositRecord: IGetDepositRecordResponse) => ({
+    ...depositRecord,
+    recordId: depositRecord.depositId,
+    depositTerm: getTermObjectByValue(depositRecord.depositTerm.toString()),
+    createdAt: dayjs(formatSolidityTime(depositRecord.createdAt)),
+    maturedPoolID: depositRecord.maturedAt,
+    withdrewPoolID: depositRecord.withdrewAt,
     recordType: RecordType.Deposit,
   }));
 };
 
 export const depositRecordPipe = (
   depositId: string,
-  record: IGetDepositRecordByIdResult,
-  interest: BigNumber,
+  record: IGetDepositRecordResponse,
+  interest: string,
   isEarlyWithdrawable: boolean,
 ): IDepositRecord => {
-  const {
-    tokenAddress,
-    depositTerm,
-    depositAmount,
-    poolId,
-    createdAt,
-    maturedAt,
-    withdrewAt,
-    isMatured,
-    isWithdrawn,
-  } = record;
-
   return {
     recordId: depositId,
-    tokenAddress,
-    depositTerm: getTermObjectByValue(depositTerm.toString()),
-    depositAmount,
-    poolId,
-    createdAt: dayjs(formatSolidityTime(createdAt)),
-    maturedPoolID: dayjs(formatSolidityTime(maturedAt)),
-    withdrewPoolID: dayjs(formatSolidityTime(withdrewAt)),
-    isMatured,
-    isWithdrawn,
+    ...record,
+    depositTerm: getTermObjectByValue(record.depositTerm.toString()),
+    createdAt: dayjs(formatSolidityTime(record.createdAt)),
+    maturedPoolID: record.maturedAt,
+    withdrewPoolID: record.withdrewAt,
+    recordType: RecordType.Deposit,
     interest,
     isEarlyWithdrawable,
-    recordType: RecordType.Deposit,
   };
 };

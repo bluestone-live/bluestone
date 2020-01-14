@@ -16,11 +16,7 @@ import dayjs from 'dayjs';
 import Form from 'antd/lib/form';
 import Button from 'antd/lib/button';
 import { getService } from '../services';
-import {
-  convertDecimalToWei,
-  BigNumber,
-  convertWeiToDecimal,
-} from '../utils/BigNumber';
+import { convertDecimalToWei, convertWeiToDecimal } from '../utils/BigNumber';
 import { useDispatch } from 'react-redux';
 
 interface IProps extends WithTranslation, RouteComponentProps {
@@ -87,7 +83,7 @@ const DepositForm = (props: IProps) => {
       accountAddress,
       token.tokenAddress,
       convertDecimalToWei(depositAmount),
-      new BigNumber(pool.term),
+      pool.term.toString(),
       distributorAddress,
     );
 

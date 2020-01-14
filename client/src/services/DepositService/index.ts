@@ -1,4 +1,3 @@
-import { BigNumber } from '../../utils/BigNumber';
 import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
 import { IDepositRecord } from '../../stores';
 import { depositRecordsPipe, depositRecordPipe } from './Pipes';
@@ -35,7 +34,7 @@ export class DepositService {
       ? (await this.provider.protocol.methods
           .getInterestDistributionByDepositId(depositId)
           .call()).interestForDepositor
-      : new BigNumber(0);
+      : '0';
     const isEarlyWithdrawable = await this.provider.protocol.methods
       .isDepositEarlyWithdrawable(depositId)
       .call();
@@ -54,8 +53,8 @@ export class DepositService {
   async deposit(
     accountAddress: string,
     tokenAddress: string,
-    depositAmount: BigNumber,
-    depositTerm: BigNumber,
+    depositAmount: string,
+    depositTerm: string,
     distributorAddress: string,
   ): Promise<string> {
     const flow = await this.provider.getContractEventFlow(
@@ -91,7 +90,7 @@ export class DepositService {
   async withdrawDeposit(
     accountAddress: string,
     depositId: string,
-  ): Promise<BigNumber> {
+  ): Promise<string> {
     return this.provider.protocol.methods
       .withdraw(depositId)
       .send({ from: accountAddress });

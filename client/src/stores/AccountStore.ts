@@ -1,6 +1,5 @@
 import { IAction, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
-import { BigNumber } from '../utils/BigNumber';
 import { useSelector } from 'react-redux';
 import { IToken } from './CommonStore';
 
@@ -17,25 +16,20 @@ export interface IBalance {
   balance: string;
 }
 
-export interface IAvailableCollateral {
-  tokenAddress: string;
-  amount: BigNumber;
-}
-
 export interface IGeneralStats {
-  numberOfDeposits: BigNumber;
-  numberOfLoans: BigNumber;
-  numberOfDefaults: BigNumber;
+  numberOfDeposits: string;
+  numberOfLoans: string;
+  numberOfDefaults: string;
 }
 
 export interface ITokenStats {
   tokenAddress: string;
   tokenSymbol: string;
-  numberOfDeposits: BigNumber;
-  totalDepositAmount: BigNumber;
-  numberOfLoans: BigNumber;
-  totalLoanAmount: BigNumber;
-  numberOfDefaults: BigNumber;
+  numberOfDeposits: string;
+  totalDepositAmount: string;
+  numberOfLoans: string;
+  totalLoanAmount: string;
+  numberOfDefaults: string;
 }
 
 interface IAccountState {
@@ -43,19 +37,17 @@ interface IAccountState {
   tokenBalance: IBalance[];
   generalStats: IGeneralStats;
   tokenStats: ITokenStats[];
-  availableCollaterals: IAvailableCollateral[];
 }
 
 const initState: IAccountState = {
   accounts: [],
   tokenBalance: [],
   generalStats: {
-    numberOfDeposits: new BigNumber(0),
-    numberOfLoans: new BigNumber(0),
-    numberOfDefaults: new BigNumber(0),
+    numberOfDeposits: '0',
+    numberOfLoans: '0',
+    numberOfDefaults: '0',
   },
   tokenStats: [],
-  availableCollaterals: [],
 };
 
 export const AccountReducer = (
@@ -65,11 +57,6 @@ export const AccountReducer = (
   switch (action.type) {
     case AccountActionType.SetAccounts:
       return replaceBy(state, { accounts: action.payload.accounts });
-    case AccountActionType.SetAvailableCollaterals:
-      return {
-        ...state,
-        availableCollaterals: action.payload.availableCollaterals,
-      };
     case AccountActionType.SetGeneralStat:
       return {
         ...state,
@@ -120,7 +107,7 @@ export class AccountActions {
       payload: { accounts },
     };
   }
-  static setTokenBalance(tokenAddress: string, balance: BigNumber) {
+  static setTokenBalance(tokenAddress: string, balance: string) {
     return {
       type: AccountActionType.SetAccountBalance,
       payload: {
@@ -129,15 +116,7 @@ export class AccountActions {
       },
     };
   }
-  static setAvailableCollaterals(availableCollaterals: IAvailableCollateral[]) {
-    return {
-      type: AccountActionType.SetAvailableCollaterals,
-      payload: {
-        availableCollaterals,
-      },
-    };
-  }
-  static setGeneralStat(key: keyof IGeneralStats, value: BigNumber) {
+  static setGeneralStat(key: keyof IGeneralStats, value: string) {
     return {
       type: AccountActionType.SetGeneralStat,
       payload: {
@@ -147,7 +126,7 @@ export class AccountActions {
       },
     };
   }
-  static setTokenStat(token: IToken, key: keyof ITokenStats, value: BigNumber) {
+  static setTokenStat(token: IToken, key: keyof ITokenStats, value: string) {
     return {
       type: AccountActionType.SetTokenStat,
       payload: {
@@ -169,11 +148,6 @@ export const useDefaultAccount = () =>
 
 export const useTokenBalance = () =>
   useSelector<IState, IBalance[]>(state => state.account.tokenBalance);
-
-export const useAvailableCollaterals = () =>
-  useSelector<IState, IAvailableCollateral[]>(
-    state => state.account.availableCollaterals,
-  );
 
 export const useGeneralStats = () =>
   useSelector<IState, IGeneralStats>(state => state.account.generalStats);

@@ -37,15 +37,15 @@ export const convertWeiToDecimal = (
 };
 
 /**
- * Convert number to BigNumber with specified significant.
+ * Convert number to big number string with specified significant.
  * toFixedBN(100) -> 100e18
  * toFixedBN(1.5) -> 15e17
  * toFixed(0.03) -> 3e16
  * toFixed(5, 16) -> 5e16
  */
-export const convertDecimalToWei = (num: number | string) => {
+export const convertDecimalToWei = (num: number | string): string => {
   if (!num) {
-    return new BigNumber(0);
+    return '0';
   }
 
   const fixedNumber = typeof num === 'number' ? num.toFixed(significant) : num;
@@ -53,22 +53,15 @@ export const convertDecimalToWei = (num: number | string) => {
     .length;
 
   if (decimalPlaces === 0) {
-    return new BigNumber(num).mul(
-      new BigNumber(10).pow(new BigNumber(significant)),
-    );
+    return new BigNumber(num)
+      .mul(new BigNumber(10).pow(new BigNumber(significant)))
+      .toString();
   } else {
     const integer = fixedNumber.replace(/0*$/, '').replace('.', '');
-    return new BigNumber(integer).mul(
-      new BigNumber(10).pow(new BigNumber(significant - decimalPlaces)),
-    );
+    return new BigNumber(integer)
+      .mul(new BigNumber(10).pow(new BigNumber(significant - decimalPlaces)))
+      .toString();
   }
 };
-
-/**
- * format a bignumber.js instance to BN.js instance
- * @param bn bignumber.js instance
- */
-export const formatBigNumber = (bn: BigNumber) =>
-  convertDecimalToWei(convertWeiToDecimal(bn));
 
 export const ZERO = new BigNumber(0);

@@ -1,5 +1,4 @@
 import { Dayjs } from 'dayjs';
-import { BigNumber } from '../utils/BigNumber';
 import { ITerm, IAction, RecordType, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
 import { useSelector } from 'react-redux';
@@ -13,14 +12,14 @@ export interface IDepositRecord {
   recordId: string;
   tokenAddress: string;
   depositTerm: ITerm;
-  depositAmount: BigNumber;
-  poolId?: BigNumber;
+  depositAmount: string;
+  poolId?: string;
   createdAt: Dayjs;
   maturedPoolID: string;
   withdrewPoolID?: string;
   isMatured?: boolean;
   isWithdrawn?: boolean;
-  interest?: BigNumber;
+  interest?: string;
   recordType: RecordType;
   isEarlyWithdrawable?: boolean;
 }
