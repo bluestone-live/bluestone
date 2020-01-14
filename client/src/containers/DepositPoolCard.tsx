@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { IPool } from '../stores';
 import Card from 'antd/lib/card';
 import { Row, Col } from 'antd/lib/grid';
-import TextBox from './TextBox';
+import TextBox from '../components/TextBox';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { convertWeiToDecimal } from '../utils/BigNumber';
 

@@ -37,6 +37,21 @@
     "borrow_form_text_label_total_debt": "Total Debt",
     "borrow_form_text_label_due_date": "Due Date",
     "borrow_form_button_approve": "Approve",
-    "borrow_form_button_borrow": "Borrow"
+    "borrow_form_button_borrow": "Borrow",
+    "record_card_due_date_matured": "Matured",
+    "record_card_due_date_closed": "Closed",
+    "record_card_due_date_mature_in": "Mature in {{day}} days",
+    "record_card_due_date_overdue": "Overdue",
+    "record_card_due_date_due_in": "Due in {{day}} days",
+    "record_card_title_deposit": "Deposit",
+    "record_card_title_borrow": "Borrow",
+    "record_card_label_current_apr": "Current APR",
+    "record_card_label_estimated_earned": "Estimated Earned",
+    "record_card_label_remaining_debt": "Remaining Debt",
+    "record_card_label_collateral_ratio": "Collateral Ratio",
+    "account_overview_tab_active": "Active",
+    "account_overview_tab_closed": "Closed",
+    "account_overview_tab_deposit": "Deposit",
+    "account_overview_tab_borrow": "Borrow"
   }
 }

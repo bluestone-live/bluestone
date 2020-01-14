@@ -14,7 +14,7 @@ export interface IDepositRecord {
   depositTerm: ITerm;
   depositAmount: string;
   poolId?: string;
-  createdAt: Dayjs;
+  createdAt: string;
   maturedPoolID: string;
   withdrewPoolID?: string;
   isMatured?: boolean;
@@ -86,10 +86,5 @@ export class DepositActions {
   }
 }
 
-export const useDeposit = () =>
-  useSelector<IState, IDepositRecord[]>(state =>
-    state.deposit.depositRecords.sort(
-      (record1: IDepositRecord, record2: IDepositRecord) =>
-        record2.createdAt.valueOf() - record1.createdAt.valueOf(),
-    ),
-  );
+export const useDepositRecords = () =>
+  useSelector<IState, IDepositRecord[]>(state => state.deposit.depositRecords);

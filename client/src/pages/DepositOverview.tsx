@@ -10,7 +10,7 @@ import {
 } from '../stores';
 import TokenTab from '../components/TokenTab';
 import { useDepsUpdated } from '../utils/useEffectAsync';
-import DepositPoolCard from '../components/DepositPoolCard';
+import DepositPoolCard from '../containers/DepositPoolCard';
 import { getService } from '../services';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';

@@ -52,7 +52,7 @@ const routes = [
     name: 'account',
     path: '/account',
     component: Loadable({
-      loader: () => import('../pages/Account'),
+      loader: () => import('../pages/AccountOverview'),
       loading: Loading,
     }),
     layout: Overview,

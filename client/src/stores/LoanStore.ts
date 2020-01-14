@@ -19,7 +19,7 @@ export interface ILoanRecord {
   currentCollateralRatio?: string;
   interest?: string;
   remainingDebt?: string;
-  createdAt: Dayjs;
+  createdAt: string;
   isOverDue?: boolean;
   isClosed?: boolean;
   isLiquidatable?: boolean;
@@ -110,9 +110,4 @@ export const useLoanInterestRates = () =>
   useSelector<IState, IInterestRate[]>(state => state.loan.loanInterestRates);
 
 export const useLoanRecords = () =>
-  useSelector<IState, ILoanRecord[]>(state =>
-    state.loan.loanRecords.sort(
-      (record1: ILoanRecord, record2: ILoanRecord) =>
-        record2.createdAt.valueOf() - record1.createdAt.valueOf(),
-    ),
-  );
+  useSelector<IState, ILoanRecord[]>(state => state.loan.loanRecords);

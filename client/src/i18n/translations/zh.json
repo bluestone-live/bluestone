@@ -37,6 +37,21 @@
     "borrow_form_text_label_total_debt": "应还金额",
     "borrow_form_text_label_due_date": "过期时间",
     "borrow_form_button_approve": "授权",
-    "borrow_form_button_borrow": "借款"
+    "borrow_form_button_borrow": "借款",
+    "record_card_due_date_matured": "已到期",
+    "record_card_due_date_closed": " 已关闭",
+    "record_card_due_date_mature_in": "将在{{day}}天到期",
+    "record_card_due_date_overdue": " 已过期",
+    "record_card_due_date_due_in": " 将在{{day}}天后过期",
+    "record_card_title_deposit": " 存",
+    "record_card_title_borrow": "贷",
+    "record_card_label_current_apr": "当前年化",
+    "record_card_label_estimated_earned": "预计收益",
+    "record_card_label_remaining_debt": "剩余应还",
+    "record_card_label_collateral_ratio": "当前抵押率",
+    "account_overview_tab_active": "当前",
+    "account_overview_tab_closed": "已关闭",
+    "account_overview_tab_deposit": "存款",
+    "account_overview_tab_borrow": "贷款"
   }
 }

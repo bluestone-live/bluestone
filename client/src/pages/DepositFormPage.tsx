@@ -13,7 +13,7 @@ import {
   IState,
 } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
-import DepositPoolCard from '../components/DepositPoolCard';
+import DepositPoolCard from '../containers/DepositPoolCard';
 import DepositPoolCardPlaceholder from '../placeholders/DepositPoolCardPlaceholder';
 import { useDispatch, useSelector } from 'react-redux';
 import { getService } from '../services';

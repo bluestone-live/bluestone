@@ -61,3 +61,14 @@ export const usePools = () =>
   useSelector<IState, { [tokenAddress: string]: IPool[] }>(state => {
     return state.pool.poolMap;
   });
+
+export const useAllPools = () =>
+  useSelector<IState, IPool[]>(state => {
+    return Object.keys(state.pool.poolMap).reduce(
+      (allPools: IPool[], key: string) => [
+        ...allPools,
+        ...state.pool.poolMap[key],
+      ],
+      [],
+    );
+  });
