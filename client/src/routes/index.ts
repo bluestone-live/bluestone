@@ -57,6 +57,24 @@ const routes = [
     }),
     layout: Overview,
   },
+  {
+    name: 'deposit-detail',
+    path: '/account/deposit/:recordId',
+    component: Loadable({
+      loader: () => import('../pages/DepositDetailPage'),
+      loading: Loading,
+    }),
+    title: 'route_title_deposit_detail',
+  },
+  {
+    name: 'loan-detail',
+    path: '/account/loan/:recordId',
+    component: Loadable({
+      loader: () => import('../pages/BorrowDetailPage'),
+      loading: Loading,
+    }),
+    title: 'route_title_borrow_detail',
+  },
 ];
 
 export default routes;

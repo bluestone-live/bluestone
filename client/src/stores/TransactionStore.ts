@@ -1,5 +1,6 @@
 import { EventName } from '../utils/MetaMaskProvider';
-import { IAction } from '.';
+import { IAction, IState } from '.';
+import { useSelector } from 'react-redux';
 
 export enum TransactionActionType {
   ReplaceTransactions = 'REPLACE_TRANSACTIONS',
@@ -43,3 +44,6 @@ export class TransactionActions {
     };
   }
 }
+
+export const useTransactions = () =>
+  useSelector<IState, ITransaction[]>(state => state.transaction.transactions);

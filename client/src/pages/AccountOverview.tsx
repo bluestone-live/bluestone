@@ -106,7 +106,7 @@ const AccountOverview = (props: IProps) => {
 
   const onClick = useCallback(
     (record: IRecord) => {
-      history.push(`/records/${record.recordType}/${record.recordId}`);
+      history.push(`/account/${record.recordType}/${record.recordId}`);
     },
     [records],
   );
