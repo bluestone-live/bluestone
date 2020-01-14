@@ -89,6 +89,10 @@
     "add_collateral_form_tip_title": "",
     "add_collateral_form_label_targeting_collateral_amount": "追加抵押金额",
     "add_collateral_form_input_extra_price": "价格: ${{price}}",
-    "add_collateral_form_button_add_collateral": " 追加抵押"
+    "add_collateral_form_button_add_collateral": " 追加抵押",
+    "repay_form_label_remaining_debt": "剩余应还",
+    "repay_form_label_due_date": "过期时间",
+    "repay_form_input_label_repay": "还款金额",
+    "repay_form_button_repay": "还款"
   }
 }

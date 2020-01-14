@@ -84,6 +84,15 @@ const routes = [
     }),
     title: 'route_title_add_collateral',
   },
+  {
+    name: 'repay-form',
+    path: '/borrow/:recordId/repay',
+    component: Loadable({
+      loader: () => import('../pages/RepayFormPage'),
+      loading: Loading,
+    }),
+    title: 'route_title_repay',
+  },
 ];
 
 export default routes;
