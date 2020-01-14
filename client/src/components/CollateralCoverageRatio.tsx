@@ -5,8 +5,8 @@ import Icon from 'antd/lib/icon';
 import Button from 'antd/lib/button';
 
 interface IProps {
-  currentCollateralRatio?: number;
-  minCollateralRatio?: number;
+  currentCollateralRatio?: string;
+  minCollateralRatio?: string;
 }
 
 const CollateralCoverageRatio = (props: IProps) => {
@@ -14,7 +14,10 @@ const CollateralCoverageRatio = (props: IProps) => {
 
   const ratioStatus = useMemo(() => {
     if (currentCollateralRatio && minCollateralRatio) {
-      return currentCollateralRatio >= minCollateralRatio ? 'safe' : 'danger';
+      return Number.parseFloat(currentCollateralRatio) >=
+        Number.parseFloat(minCollateralRatio)
+        ? 'safe'
+        : 'danger';
     }
   }, [currentCollateralRatio, minCollateralRatio]);
 

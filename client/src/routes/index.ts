@@ -75,6 +75,15 @@ const routes = [
     }),
     title: 'route_title_borrow_detail',
   },
+  {
+    name: 'add-collateral-form',
+    path: '/borrow/:recordId/add-collateral',
+    component: Loadable({
+      loader: () => import('../pages/AddCollateralFormPage'),
+      loading: Loading,
+    }),
+    title: 'route_title_add_collateral',
+  },
 ];
 
 export default routes;

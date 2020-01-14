@@ -80,6 +80,15 @@
     "borrow_detail_label_total_debt": "Total Debt",
     "borrow_detail_label_due_date": "Due Date",
     "borrow_detail_button_add_collateral": "Add Collateral",
-    "borrow_detail_button_repay": "Repay"
+    "borrow_detail_button_repay": "Repay",
+    "route_title_add_collateral": "Add Collateral",
+    "route_title_repay": "Repay",
+    "add_collateral_form_notice": "Notice: when below {{minCollateralCoverageRatio}}, there will be balala.",
+    "add_collateral_form_label_collateral_amount": "Collateral Amount",
+    "add_collateral_form_label_update_collateral_ratio": "Update Collateral Ratio",
+    "add_collateral_form_tip_title": "",
+    "add_collateral_form_label_targeting_collateral_amount": " Targeting Collateral Amount",
+    "add_collateral_form_input_extra_price": "Price: ${{price}}",
+    "add_collateral_form_button_add_collateral": "Add Collateral"
   }
 }

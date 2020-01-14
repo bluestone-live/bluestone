@@ -80,6 +80,15 @@
     "borrow_detail_label_total_debt": "总应还",
     "borrow_detail_label_due_date": "过期时间",
     "borrow_detail_button_add_collateral": "追加抵押",
-    "borrow_detail_button_repay": "还款"
+    "borrow_detail_button_repay": "还款",
+    "route_title_add_collateral": "追加抵押",
+    "route_title_repay": "还款",
+    "add_collateral_form_notice": "请注意: {{minCollateralCoverageRatio}}",
+    "add_collateral_form_label_collateral_amount": "抵押金额",
+    "add_collateral_form_label_update_collateral_ratio": "更新抵押率",
+    "add_collateral_form_tip_title": "",
+    "add_collateral_form_label_targeting_collateral_amount": "追加抵押金额",
+    "add_collateral_form_input_extra_price": "价格: ${{price}}",
+    "add_collateral_form_button_add_collateral": " 追加抵押"
   }
 }
