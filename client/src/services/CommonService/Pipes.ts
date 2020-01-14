@@ -66,11 +66,15 @@ export const loanPairPipe = async (
         }) => ({
           loanToken: {
             ...loanToken,
-            tokenSymbol: (await loanToken.erc20Instance.methods.symbol.call()) as string,
+            tokenSymbol: (await loanToken.erc20Instance.methods
+              .symbol()
+              .call()) as string,
           },
           collateralToken: {
             ...collateralToken,
-            tokenSymbol: (await collateralToken.erc20Instance.methods.symbol.call()) as string,
+            tokenSymbol: (await collateralToken.erc20Instance.methods
+              .symbol()
+              .call()) as string,
           },
           minCollateralCoverageRatio,
           annualPercentageRate,

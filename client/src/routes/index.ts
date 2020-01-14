@@ -40,6 +40,15 @@ const routes = [
     layout: Overview,
   },
   {
+    name: 'borrow-form',
+    path: '/borrow/:poolId',
+    component: Loadable({
+      loader: () => import('../pages/BorrowFormPage'),
+      loading: Loading,
+    }),
+    title: 'route_title_confirm',
+  },
+  {
     name: 'account',
     path: '/account',
     component: Loadable({

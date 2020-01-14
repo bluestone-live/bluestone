@@ -20,6 +20,21 @@
     "borrow_overview_button_next": "Next",
     "borrow_pool_card_term": "{{term}}-day",
     "borrow_pool_card_text_apr": "APR",
-    "borrow_pool_card_text_available_amount": "Available"
+    "borrow_pool_card_text_available_amount": "Available",
+    "deposit_form_button_approve": "Approve",
+    "borrow_form_label_term": "Term",
+    "borrow_form_text_term": "{{term}}-day",
+    "borrow_form_text_apr": "APR",
+    "borrow_form_input_label_borrow_amount": "Borrow Amount",
+    "borrow_form_input_extra_available_amount": "Available Amount:{{balance}} {{unit}}",
+    "borrow_form_tip_content": "{{minCollateralCoverageRatio}}% is safe line for the collateral. If below {{minCollateralCoverageRatio}}%, this borrow will be balallala automatically. THIS REMINDER NEED TO UPDATE.",
+    "borrow_form_tip_title": "Notice",
+    "borrow_form_input_button_max": "MAX",
+    "borrow_form_select_label_collateral_token": "Collateral Token",
+    "borrow_form_input_label_collateral_ratio": "Collateral Ratio",
+    "borrow_form_input_label_collateral_amount": "Collateral Amount",
+    "borrow_form_input_extra_price": "Price: ${{price}}",
+    "borrow_form_text_label_total_debt": "Total Debt",
+    "borrow_form_text_label_due_date": "Due Date"
   }
 }

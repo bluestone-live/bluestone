@@ -8,7 +8,7 @@ import {
   CommonActions,
   AccountActions,
   useLoading,
-  ViewAction,
+  ViewActions,
 } from '../stores';
 import FormInput from '../components/FormInput';
 import TextBox from '../components/TextBox';
@@ -63,7 +63,7 @@ const DepositForm = (props: IProps) => {
       depositService,
       commonService,
     } = await getService();
-    dispatch(ViewAction.setLoading(true));
+    dispatch(ViewActions.setLoading(true));
     if (token.allowance && token.allowance.toString() === '0') {
       await commonService.approveFullAllowance(
         accountAddress,
@@ -81,7 +81,7 @@ const DepositForm = (props: IProps) => {
           ),
         ),
       );
-      dispatch(ViewAction.setLoading(false));
+      dispatch(ViewActions.setLoading(false));
     }
     await depositService.deposit(
       accountAddress,
@@ -97,7 +97,7 @@ const DepositForm = (props: IProps) => {
         await accountService.getTokenBalance(accountAddress, token),
       ),
     );
-    dispatch(ViewAction.setLoading(false));
+    dispatch(ViewActions.setLoading(false));
   }, [token, depositAmount, pool]);
 
   // Computed

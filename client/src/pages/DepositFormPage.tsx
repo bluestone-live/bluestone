@@ -9,7 +9,7 @@ import {
   useDefaultAccount,
   useDistributorConfig,
   AccountActions,
-  PoolAction,
+  PoolActions,
   IState,
 } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
@@ -78,7 +78,7 @@ const DepositFormPage = (props: IProps) => {
         ),
       );
       dispatch(
-        PoolAction.replacePools(
+        PoolActions.replacePools(
           selectedToken.tokenAddress,
           await poolService.getPoolsByToken(selectedToken.tokenAddress),
         ),
@@ -101,7 +101,7 @@ const DepositFormPage = (props: IProps) => {
       const { poolService } = await getService();
 
       dispatch(
-        PoolAction.replacePools(
+        PoolActions.replacePools(
           selectedToken.tokenAddress,
           await poolService.getPoolsByToken(selectedToken.tokenAddress),
         ),

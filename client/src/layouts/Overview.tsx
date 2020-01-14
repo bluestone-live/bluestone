@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch } from 'react-redux';
-import { useDefaultAccount, useBanner, ViewAction } from '../stores';
+import { useDefaultAccount, useBanner, ViewActions } from '../stores';
 import TabBar from '../components/TabBar';
 import { ClickParam } from 'antd/lib/menu';
 import Banner from '../components/Banner';
@@ -39,7 +39,7 @@ const OverviewLayout = (props: IProps) => {
   }, []);
 
   const onBannerCloseButtonClick = useCallback(
-    () => dispatch(ViewAction.removeBanner()),
+    () => dispatch(ViewActions.removeBanner()),
     [],
   );
 

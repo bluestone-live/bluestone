@@ -9,7 +9,7 @@ import TokenTab from '../components/TokenTab';
 import {
   useDepositTokens,
   IToken,
-  ViewAction,
+  ViewActions,
   IDepositRecord,
   RecordType,
 } from '../stores';
@@ -29,7 +29,7 @@ import CollateralCoverageRatio from '../components/CollateralCoverageRatio';
 const Demo = () => {
   const dispatch = useDispatch();
 
-  dispatch(ViewAction.setBanner('Add Collateral Succeed'));
+  dispatch(ViewActions.setBanner('Add Collateral Succeed'));
 
   const tokens = useDepositTokens();
 

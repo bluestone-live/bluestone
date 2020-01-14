@@ -20,6 +20,21 @@
     "borrow_overview_button_next": "下一步",
     "borrow_pool_card_term": "{{term}}天",
     "borrow_pool_card_text_apr": "年化利率",
-    "borrow_pool_card_text_available_amount": "可用余额"
+    "borrow_pool_card_text_available_amount": "可用余额",
+    "deposit_form_button_approve": "授权",
+    "borrow_form_label_term": "借款周期",
+    "borrow_form_text_term": "{{term}}天",
+    "borrow_form_text_apr": "年化利率",
+    "borrow_form_input_label_borrow_amount": "借款金额",
+    "borrow_form_input_extra_available_amount": "可借金额:{{balance}} {{unit}}",
+    "borrow_form_tip_content": "贷款抵押率不能低于 {{minCollateralCoverageRatio}}% ",
+    "borrow_form_tip_title": "请注意",
+    "borrow_form_input_button_max": "最大",
+    "borrow_form_select_label_collateral_token": "抵押物",
+    "borrow_form_input_label_collateral_ratio": "抵押率",
+    "borrow_form_input_label_collateral_amount": "抵押金额",
+    "borrow_form_input_extra_price": "价格: ${{price}}",
+    "borrow_form_text_label_total_debt": "应还金额",
+    "borrow_form_text_label_due_date": "过期时间"
   }
 }

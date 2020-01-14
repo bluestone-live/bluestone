@@ -45,7 +45,7 @@ export const PoolReducer = (
   }
 };
 
-export class PoolAction {
+export class PoolActions {
   static replacePools(tokenAddress: string, pools: IPool[]) {
     return {
       type: PoolActionType.ReplacePools,

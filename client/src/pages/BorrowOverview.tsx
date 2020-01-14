@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { useDepositTokens, usePools, PoolAction, IToken } from '../stores';
+import { useDepositTokens, usePools, PoolActions, IToken } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import TokenTab from '../components/TokenTab';
@@ -32,7 +32,7 @@ const BorrowOverview = (props: IProps) => {
       const { poolService } = await getService();
 
       dispatch(
-        PoolAction.replacePools(
+        PoolActions.replacePools(
           selectedToken.tokenAddress,
           await poolService.getPoolsByToken(selectedToken.tokenAddress),
         ),
@@ -55,9 +55,9 @@ const BorrowOverview = (props: IProps) => {
     setSelectedTerm,
   ]);
   const onNextButtonClick = useCallback(() => {
-    if (selectedToken && selectedTerm) {
+    if (selectedToken && selectedPool) {
       history.push(
-        `/borrow/${selectedTerm}?tokenAddress=${selectedToken.tokenAddress}`,
+        `/borrow/${selectedPool.poolId}?tokenAddress=${selectedToken.tokenAddress}`,
       );
     }
   }, [selectedToken, selectedTerm]);
@@ -73,6 +73,7 @@ const BorrowOverview = (props: IProps) => {
   const computedPools = useMemo(
     () =>
       selectedPools.map((pool, i, array) => ({
+        poolId: pool.poolId,
         term: pool.term,
         availableAmount:
           parseFloat(convertWeiToDecimal(pool.availableAmount)) +

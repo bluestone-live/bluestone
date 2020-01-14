@@ -1,9 +1,10 @@
 import React from 'react';
 import Form from 'antd/lib/form';
+import { TFunctionResult } from 'i18next';
 
 interface IProps {
   label: string;
-  children: React.ReactChild | React.ReactChild[];
+  children: TFunctionResult | React.ReactChild | React.ReactChild[];
 }
 
 const TextBox = (props: IProps) => {

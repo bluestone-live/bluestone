@@ -45,7 +45,7 @@ export class LoanService {
     collateralTokenAddress: string,
     loanAmount: BigNumber,
     collateralAmount: BigNumber,
-    loanTerm: BigNumber,
+    loanTerm: number,
     useAvailableCollateral: boolean,
     distributorAddress: string,
   ): Promise<string> {

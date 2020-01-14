@@ -39,7 +39,7 @@ export const ViewReducer = (
   }
 };
 
-export class ViewAction {
+export class ViewActions {
   static setBanner(
     banner?: string,
     bannerType: BannerType = BannerType.Success,

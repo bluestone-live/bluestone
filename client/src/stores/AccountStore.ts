@@ -14,7 +14,7 @@ enum AccountActionType {
 
 export interface IBalance {
   tokenAddress: string;
-  balance: BigNumber;
+  balance: string;
 }
 
 export interface IAvailableCollateral {

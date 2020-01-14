@@ -3,7 +3,7 @@ import {
   useDepositTokens,
   IToken,
   usePools,
-  PoolAction,
+  PoolActions,
   useDepositTerms,
   ITerm,
   IPool,
@@ -47,7 +47,7 @@ const DepositOverview = (props: WithTranslation) => {
       const { poolService } = await getService();
 
       dispatch(
-        PoolAction.replacePools(
+        PoolActions.replacePools(
           selectedToken.tokenAddress,
           await poolService.getPoolsByToken(selectedToken.tokenAddress),
         ),
