@@ -107,6 +107,29 @@ export const CommonReducer = (
             ? { ...token, allowance: action.payload.allowanceAmount }
             : token,
         ),
+        loanPairs: state.loanPairs.map(pair => {
+          if (pair.loanToken.tokenAddress === action.payload.tokenAddress) {
+            return {
+              ...pair,
+              loanToken: {
+                ...pair.loanToken,
+                allowance: action.payload.allowanceAmount,
+              },
+            };
+          }
+          if (
+            pair.collateralToken.tokenAddress === action.payload.tokenAddress
+          ) {
+            return {
+              ...pair,
+              collateralToken: {
+                ...pair.collateralToken,
+                allowance: action.payload.allowanceAmount,
+              },
+            };
+          }
+          return pair;
+        }),
       };
     case CommonActionType.SetDepositTerms:
       return {

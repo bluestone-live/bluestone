@@ -77,22 +77,22 @@ const DepositForm = (props: IProps) => {
           ),
         ),
       );
-      dispatch(ViewActions.setLoading(false));
-    }
-    await depositService.deposit(
-      accountAddress,
-      token.tokenAddress,
-      convertDecimalToWei(depositAmount),
-      pool.term.toString(),
-      distributorAddress,
-    );
-
-    dispatch(
-      AccountActions.setTokenBalance(
+    } else {
+      await depositService.deposit(
+        accountAddress,
         token.tokenAddress,
-        await accountService.getTokenBalance(accountAddress, token),
-      ),
-    );
+        convertDecimalToWei(depositAmount),
+        pool.term.toString(),
+        distributorAddress,
+      );
+
+      dispatch(
+        AccountActions.setTokenBalance(
+          token.tokenAddress,
+          await accountService.getTokenBalance(accountAddress, token),
+        ),
+      );
+    }
     dispatch(ViewActions.setLoading(false));
   }, [token, depositAmount, pool]);
 

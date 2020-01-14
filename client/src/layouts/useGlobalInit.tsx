@@ -104,10 +104,20 @@ export const useGlobalInit = (
               loanToken: {
                 ...loanToken,
                 price: loanTokenPrice,
+                allowance: await commonService.getTokenAllowance(
+                  loanToken,
+                  accounts[0],
+                  protocolContractAddress,
+                ),
               },
               collateralToken: {
                 ...collateralToken,
                 price: collateralTokenPrice,
+                allowance: await commonService.getTokenAllowance(
+                  collateralToken,
+                  accounts[0],
+                  protocolContractAddress,
+                ),
               },
               maxLoanTerm,
               annualPercentageRate,

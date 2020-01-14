@@ -7,7 +7,7 @@ const DataSet = require('@antv/data-set');
 interface IProps {
   pools: Array<{
     term: number;
-    APR: number;
+    loanInterestRate: number;
     availableAmount: number;
   }>;
   maxBorrowTerm: number;
@@ -23,7 +23,7 @@ const BorrowPoolChart = (props: IProps) => {
       pools.find(pool => pool.term === selectedTerm) || {
         term: selectedTerm,
         availableAmount: 0,
-        APR: 0,
+        loanInterestRate: 0,
       },
     [pools, selectedTerm],
   );
@@ -86,11 +86,11 @@ const BorrowPoolChart = (props: IProps) => {
           />
           <Guide
             type="html"
-            position={[selectedTerm, pointValue.APR]}
+            position={[selectedTerm, pointValue.loanInterestRate]}
             html={APRCrossPoint}
             offsetX={2}
           />
-          <SmoothLine position="term*APR" color="#e1e1e1" />
+          <SmoothLine position="term*loanInterestRate" color="#e1e1e1" />
         </View>
         <View
           data={dataSet}

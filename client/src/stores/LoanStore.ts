@@ -1,7 +1,6 @@
 import { Dayjs } from 'dayjs';
 import { ITerm, IAction, RecordType, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
-import { uniqueBy } from '../utils/uniqueBy';
 import { useSelector } from 'react-redux';
 
 export enum LoanActionType {
@@ -32,9 +31,9 @@ interface ILoanState {
   loanInterestRates: IInterestRate[];
 }
 
-interface IInterestRate {
-  term: string;
-  interestRate?: string;
+export interface IInterestRate {
+  term: number;
+  interestRate: string;
 }
 
 const initState: ILoanState = {
@@ -72,10 +71,7 @@ export const LoanReducer = (
     case LoanActionType.SetLoanInterestRate:
       return {
         ...state,
-        loanInterestRates: uniqueBy(
-          [...state.loanInterestRates, action.payload.loanInterestRate],
-          'term',
-        ),
+        loanInterestRates: action.payload.interestRates,
       };
     default:
       return state;
@@ -100,26 +96,18 @@ export class LoanActions {
       },
     };
   }
-  static SetLoanInterestRate(term: number, interestRate: string) {
+  static SetLoanInterestRate(interestRates: IInterestRate[]) {
     return {
       type: LoanActionType.SetLoanInterestRate,
       payload: {
-        loanInterestRate: {
-          term: term.toString(),
-          interestRate,
-        },
+        interestRates,
       },
     };
   }
 }
 
-export const useLoanInterestRate = (term: number) =>
-  useSelector<IState, IInterestRate>(
-    state =>
-      state.loan.loanInterestRates.find(
-        loanInterestRate => loanInterestRate.term === term.toString(),
-      ) || { term: term.toString(), interestRate: null },
-  );
+export const useLoanInterestRates = () =>
+  useSelector<IState, IInterestRate[]>(state => state.loan.loanInterestRates);
 
 export const useLoanRecords = () =>
   useSelector<IState, ILoanRecord[]>(state =>

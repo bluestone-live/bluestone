@@ -2,7 +2,7 @@ import React from 'react';
 
 interface IProps {
   type: string;
-  onClick: (event: React.MouseEvent<SVGSVGElement, MouseEvent>) => void;
+  onClick?: (event: React.MouseEvent<SVGSVGElement, MouseEvent>) => void;
 }
 
 const CustomIcon = (props: IProps) => {

@@ -1,10 +1,10 @@
-import { convertWeiToDecimal, BigNumber } from './BigNumber';
+import { convertWeiToDecimal } from './BigNumber';
 
 export const calcCollateralRatio = (
   collateralAmount: string,
   remainingDebt: string,
-  collateralAssetPrice?: BigNumber,
-  loanAssetPrice?: BigNumber,
+  collateralAssetPrice?: string,
+  loanAssetPrice?: string,
 ) => {
   if (
     !Number.parseFloat(collateralAmount) ||
@@ -12,7 +12,7 @@ export const calcCollateralRatio = (
     !loanAssetPrice ||
     !collateralAssetPrice
   ) {
-    return '-.--';
+    return '0.0000';
   }
   return (
     ((Number.parseFloat(collateralAmount) *
@@ -21,4 +21,26 @@ export const calcCollateralRatio = (
       Number.parseFloat(remainingDebt)) *
     100
   ).toFixed(2);
+};
+
+export const calcCollateralAmount = (
+  collateralRatio: string,
+  remainingDebt: string,
+  collateralAssetPrice?: string,
+  loanAssetPrice?: string,
+) => {
+  if (
+    !Number.parseFloat(collateralRatio) ||
+    !Number.parseFloat(remainingDebt) ||
+    !loanAssetPrice ||
+    !collateralAssetPrice
+  ) {
+    return '0.00';
+  }
+  return (
+    (Number.parseFloat(collateralRatio) *
+      Number.parseFloat(remainingDebt) *
+      Number.parseFloat(convertWeiToDecimal(loanAssetPrice, 18))) /
+    Number.parseFloat(convertWeiToDecimal(collateralAssetPrice, 18))
+  ).toFixed(4);
 };

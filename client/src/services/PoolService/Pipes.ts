@@ -35,7 +35,7 @@ export const PoolsPipe = (
     return {
       ...pool,
       tokenAddress,
-      term: index,
+      term: index + 1,
       APR,
       utilization,
       totalDeposit: pool.depositAmount,

@@ -5,7 +5,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 interface IProps extends WithTranslation {
   pool: {
     term: number;
-    APR: number;
+    loanInterestRate: number;
     availableAmount: number;
   };
 }
@@ -27,7 +27,7 @@ const BorrowPoolCard = (props: IProps) => {
   return (
     <Card className="borrow-pool-card" title={title} bordered={false}>
       <p>
-        {t('borrow_pool_card_text_apr')}: {pool.APR}% <br />
+        {t('borrow_pool_card_text_apr')}: {pool.loanInterestRate}% <br />
         {t('borrow_pool_card_text_available_amount')}: {pool.availableAmount}
       </p>
     </Card>

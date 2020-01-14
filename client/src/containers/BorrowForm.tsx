@@ -7,6 +7,7 @@ import {
   PoolActions,
   AccountActions,
   IPool,
+  CommonActions,
 } from '../stores';
 import Form from 'antd/lib/form';
 import FormInput from '../components/FormInput';
@@ -19,8 +20,13 @@ import { useDispatch } from 'react-redux';
 import { calcEstimateRepayAmount } from '../utils/calcEstimateRepayAmount';
 import TextBox from '../components/TextBox';
 import dayjs from 'dayjs';
+import {
+  calcCollateralRatio,
+  calcCollateralAmount,
+} from '../utils/calcCollateralRatio';
 
 interface IProps extends WithTranslation {
+  protocolContractAddress: string;
   accountAddress: string;
   loanToken?: IToken;
   loanPairs: ILoanPair[];
@@ -33,6 +39,7 @@ interface IProps extends WithTranslation {
 const BorrowForm = (props: IProps) => {
   const {
     accountAddress,
+    protocolContractAddress,
     loanToken,
     loanPairs,
     tokenBalance,
@@ -44,10 +51,10 @@ const BorrowForm = (props: IProps) => {
   const dispatch = useDispatch();
 
   // States
-  const [borrowAmount, setBorrowAmount] = useState<number>(0);
+  const [borrowAmount, setBorrowAmount] = useState();
   const [collateralToken, setCollateralToken] = useState<IToken>();
-  const [collateralRatio, setCollateralRatio] = useState<number>(0);
-  const [collateralAmount, setCollateralAmount] = useState<number>(0);
+  const [collateralRatio, setCollateralRatio] = useState();
+  const [collateralAmount, setCollateralAmount] = useState();
 
   // Initialize
   useDepsUpdated(async () => {
@@ -111,37 +118,42 @@ const BorrowForm = (props: IProps) => {
     }
   }, [selectedBalance]);
 
-  const onCollateralRatioChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) =>
-      setCollateralRatio(Number.parseFloat(e.target.value)),
-    [],
-  );
-
-  const modifyCollateralRatio = useCallback(
-    (num: number) => () => setCollateralRatio(collateralRatio + num),
-    [collateralRatio],
-  );
-
-  const onCollateralAmountChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) =>
-      setCollateralAmount(Number.parseFloat(e.target.value)),
-    [setCollateralAmount],
-  );
-
   const submit = useCallback(async () => {
     if (!loanToken || !collateralToken || !selectedPool) {
       return;
     }
-    const { loanService } = await getService();
-    loanService.loan(
-      accountAddress,
-      loanToken.tokenAddress,
-      collateralToken.tokenAddress,
-      convertDecimalToWei(borrowAmount),
-      convertDecimalToWei(collateralAmount),
-      selectedPool.term,
-      distributorAddress,
-    );
+    const { loanService, commonService } = await getService();
+    if (
+      collateralToken.allowance &&
+      collateralToken.allowance.toString() === '0'
+    ) {
+      await commonService.approveFullAllowance(
+        accountAddress,
+        collateralToken,
+        protocolContractAddress,
+      );
+
+      dispatch(
+        CommonActions.setAllowance(
+          collateralToken.tokenAddress,
+          await commonService.getTokenAllowance(
+            collateralToken,
+            accountAddress,
+            protocolContractAddress,
+          ),
+        ),
+      );
+    } else {
+      await loanService.loan(
+        accountAddress,
+        loanToken.tokenAddress,
+        collateralToken.tokenAddress,
+        convertDecimalToWei(borrowAmount),
+        convertDecimalToWei(collateralAmount),
+        selectedPool.term,
+        distributorAddress,
+      );
+    }
   }, [
     loanToken,
     collateralToken,
@@ -194,15 +206,70 @@ const BorrowForm = (props: IProps) => {
 
   const totalDebt = useMemo(() => {
     if (selectedLoanPair && selectedPool) {
-      return calcEstimateRepayAmount(
+      const remainingDebt = calcEstimateRepayAmount(
         borrowAmount,
         selectedPool.term,
         Number.parseFloat(
           convertWeiToDecimal(selectedLoanPair.annualPercentageRate) || '0',
         ),
-      ).toFixed(4);
+      );
+
+      return Number.isNaN(remainingDebt) ? '0.0000' : remainingDebt.toFixed(4);
     }
   }, [selectedLoanPair, borrowAmount, selectedPool]);
+
+  const onCollateralAmountChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setCollateralAmount(Number.parseFloat(e.target.value));
+      if (collateralToken && loanToken) {
+        setCollateralRatio(
+          calcCollateralRatio(
+            e.target.value,
+            totalDebt || '0',
+            collateralToken.price,
+            loanToken.price,
+          ),
+        );
+      }
+    },
+    [collateralToken, loanToken, totalDebt],
+  );
+
+  const onCollateralRatioChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setCollateralRatio(
+        Number.parseFloat(e.target.value === '' ? '0' : e.target.value),
+      );
+      if (collateralToken && loanToken) {
+        setCollateralAmount(
+          calcCollateralAmount(
+            e.target.value,
+            totalDebt || '0',
+            collateralToken.price,
+            loanToken.price,
+          ),
+        );
+      }
+    },
+    [collateralToken, loanToken, totalDebt],
+  );
+
+  const modifyCollateralRatio = useCallback(
+    (num: number) => () => {
+      setCollateralRatio(collateralRatio + num);
+      if (collateralToken && loanToken) {
+        setCollateralAmount(
+          calcCollateralAmount(
+            collateralRatio + num,
+            totalDebt || '0',
+            collateralToken.price,
+            loanToken.price,
+          ),
+        );
+      }
+    },
+    [collateralRatio, collateralToken, loanToken, totalDebt],
+  );
 
   const buttonText = useMemo(() => {
     if (loading) {
@@ -220,12 +287,11 @@ const BorrowForm = (props: IProps) => {
 
   return (
     <Form>
-      {loanToken && selectedBalance && (
+      {loanToken && selectedPool && (
         <FormInput
           label={t('borrow_form_input_label_borrow_amount')}
           type="number"
           suffix={loanToken.tokenSymbol}
-          defaultValue={borrowAmount}
           value={borrowAmount}
           onChange={onBorrowAmountChange}
           extra={t('borrow_form_input_extra_available_amount', {
@@ -262,7 +328,8 @@ const BorrowForm = (props: IProps) => {
         <FormInput
           label={t('borrow_form_input_label_collateral_ratio')}
           type="text"
-          value={`${collateralRatio}%`}
+          value={collateralRatio}
+          suffix="%"
           onChange={onCollateralRatioChange}
           actionButtons={[
             <Button

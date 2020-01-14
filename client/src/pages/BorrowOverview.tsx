@@ -1,7 +1,14 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { useDepositTokens, usePools, PoolActions, IToken } from '../stores';
+import {
+  useDepositTokens,
+  usePools,
+  PoolActions,
+  IToken,
+  LoanActions,
+  useLoanInterestRates,
+} from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import TokenTab from '../components/TokenTab';
@@ -21,6 +28,7 @@ const BorrowOverview = (props: IProps) => {
   // Selectors
   const tokens = useDepositTokens();
   const allPools = usePools();
+  const interestRates = useLoanInterestRates();
 
   // States
   const [selectedToken, setSelectedToken] = useState<IToken>();
@@ -39,12 +47,6 @@ const BorrowOverview = (props: IProps) => {
       );
     }
   }, [selectedToken]);
-
-  useDepsUpdated(async () => {
-    if (tokens.length > 0) {
-      setSelectedToken(tokens[0]);
-    }
-  }, [tokens]);
 
   // Callbacks
   const onTokenSelect = useCallback(
@@ -70,6 +72,30 @@ const BorrowOverview = (props: IProps) => {
     return [];
   }, [allPools, selectedToken]);
 
+  useDepsUpdated(async () => {
+    if (tokens.length > 0) {
+      setSelectedToken(tokens[0]);
+    }
+  }, [tokens]);
+
+  useDepsUpdated(async () => {
+    if (selectedPools && selectedToken) {
+      const { loanService } = await getService();
+
+      dispatch(
+        LoanActions.SetLoanInterestRate(
+          (await loanService.getLoanInterestRate(
+            selectedToken.tokenAddress,
+            selectedPools.length,
+          )).map(({ term, interestRate }) => ({
+            term,
+            interestRate: convertWeiToDecimal(interestRate),
+          })),
+        ),
+      );
+    }
+  }, [selectedToken, selectedPools]);
+
   const computedPools = useMemo(
     () =>
       selectedPools.map((pool, i, array) => ({
@@ -84,9 +110,15 @@ const BorrowOverview = (props: IProps) => {
                 sum + parseFloat(convertWeiToDecimal(p.availableAmount)),
               0,
             ),
-        APR: parseFloat(convertWeiToDecimal(pool.APR)),
+        loanInterestRate: Number.parseFloat(
+          (
+            interestRates.find(interestRate => {
+              return interestRate.term === pool.term;
+            }) || { interestRate: '0' }
+          ).interestRate,
+        ),
       })),
-    [selectedPools],
+    [selectedPools, interestRates],
   );
 
   const selectedPool = useMemo(
