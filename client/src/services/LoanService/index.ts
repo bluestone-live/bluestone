@@ -124,17 +124,4 @@ export class LoanService {
         .send({ from: accountAddress });
     });
   }
-
-  async getLoanInterestRate(loanTokenAddress: string, maxLoanTerm: number) {
-    const interestRates = [];
-    for (let i = 1; i < maxLoanTerm; i++) {
-      interestRates.push({
-        term: i,
-        interestRate: await this.provider.protocol.methods
-          .getLoanInterestRate(loanTokenAddress, i)
-          .call(),
-      });
-    }
-    return interestRates;
-  }
 }

@@ -8,9 +8,9 @@ import {
   useLoanPairs,
   useDefaultAccount,
   useDistributorConfig,
-  useActionButtonLoading,
-  useLoanInterestRates,
   IState,
+  useLoading,
+  useLoanInterestRates,
 } from '../stores';
 import { RouteComponentProps } from 'react-router';
 import { parseQuery } from '../utils/parseQuery';
@@ -37,7 +37,7 @@ const BorrowFormPage = (props: IProps) => {
 
   const { address: distributorAddress } = useDistributorConfig();
 
-  const loading = useActionButtonLoading();
+  const loading = useLoading();
 
   const allPools = usePools();
 

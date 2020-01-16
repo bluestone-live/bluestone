@@ -38,6 +38,22 @@ contract InterestModel is IInterestModel, Ownable {
         return H.sub(H.sub(L).mul(loanTerm).div(maxLoanTerm));
     }
 
+    function getLoanParameters(address tokenAddress)
+        external
+        view
+        returns (
+            uint256 loanInterestRateLowerBound,
+            uint256 loanInterestRateUpperBound
+        )
+    {
+        return (
+            _loanParametersByTokenAddress[tokenAddress]
+                .loanInterestRateLowerBound,
+            _loanParametersByTokenAddress[tokenAddress]
+                .loanInterestRateUpperBound
+        );
+    }
+
     function setLoanParameters(
         address tokenAddress,
         uint256 loanInterestRateLowerBound,

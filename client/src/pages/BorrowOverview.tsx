@@ -8,6 +8,8 @@ import {
   IToken,
   LoanActions,
   useLoanInterestRates,
+  CommonActions,
+  useInterestModelParameters,
 } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
@@ -17,6 +19,7 @@ import Button from 'antd/lib/button';
 import { withRouter, RouteComponentProps } from 'react-router';
 import BorrowPoolCard from '../containers/BorrowPoolCard';
 import { convertWeiToDecimal } from '../utils/BigNumber';
+import { getLoanInterestRates } from '../utils/interestModel';
 
 interface IProps extends WithTranslation, RouteComponentProps {}
 
@@ -29,6 +32,7 @@ const BorrowOverview = (props: IProps) => {
   const tokens = useDepositTokens();
   const allPools = usePools();
   const interestRates = useLoanInterestRates();
+  const interestModelParameters = useInterestModelParameters();
 
   // States
   const [selectedToken, setSelectedToken] = useState<IToken>();
@@ -37,12 +41,19 @@ const BorrowOverview = (props: IProps) => {
   // Init
   useDepsUpdated(async () => {
     if (selectedToken) {
-      const { poolService } = await getService();
+      const { poolService, commonService } = await getService();
 
       dispatch(
         PoolActions.replacePools(
           selectedToken.tokenAddress,
           await poolService.getPoolsByToken(selectedToken.tokenAddress),
+        ),
+      );
+      dispatch(
+        CommonActions.setInterestModelParameters(
+          await commonService.getInterestModelParameters(
+            selectedToken.tokenAddress,
+          ),
         ),
       );
     }
@@ -79,22 +90,22 @@ const BorrowOverview = (props: IProps) => {
   }, [tokens]);
 
   useDepsUpdated(async () => {
-    if (selectedPools && selectedToken) {
-      const { loanService } = await getService();
-
+    if (selectedPools.length > 0 && selectedToken && interestModelParameters) {
       dispatch(
         LoanActions.SetLoanInterestRate(
-          (await loanService.getLoanInterestRate(
-            selectedToken.tokenAddress,
-            selectedPools.length,
-          )).map(({ term, interestRate }) => ({
-            term,
-            interestRate: convertWeiToDecimal(interestRate),
+          getLoanInterestRates(
+            interestModelParameters.loanInterestRateLowerBound,
+            interestModelParameters.loanInterestRateUpperBound,
+            '1',
+            selectedPools.length.toString(),
+          ).map((interestRate, index) => ({
+            term: index + 1,
+            interestRate,
           })),
         ),
       );
     }
-  }, [selectedToken, selectedPools]);
+  }, [selectedToken, selectedPools, interestModelParameters]);
 
   const computedPools = useMemo(
     () =>

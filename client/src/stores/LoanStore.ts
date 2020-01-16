@@ -1,4 +1,3 @@
-import { Dayjs } from 'dayjs';
 import { ITerm, IAction, RecordType, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
 import { useSelector } from 'react-redux';

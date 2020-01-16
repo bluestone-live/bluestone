@@ -1,5 +1,5 @@
 import { depositTokenPipe, loanPairPipe } from './Pipes';
-import { IToken, ILoanPair } from '../../stores';
+import { IToken, ILoanPair, IInterestModelParameters } from '../../stores';
 import { EventName, MetaMaskProvider } from '../../utils/MetaMaskProvider';
 
 export class CommonService {
@@ -142,5 +142,13 @@ export class CommonService {
     maxLoanDistributorFeeRatio: string;
   }> {
     return this.provider.protocol.methods.getMaxDistributorFeeRatios().call();
+  }
+
+  async getInterestModelParameters(
+    tokenAddress: string,
+  ): Promise<IInterestModelParameters> {
+    return this.provider.interestModel.methods
+      .getLoanParameters(tokenAddress)
+      .call();
   }
 }

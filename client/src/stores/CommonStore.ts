@@ -15,6 +15,7 @@ const enum CommonActionType {
   SetProtocolContractAddress = 'SET_PROTOCOL_CONTRACT_ADDRESS',
   SetTokenPrice = 'SET_TOKEN_PRICE',
   SetDistributorConfig = 'SET_DISTRIBUTOR_CONFIG',
+  SetInterestModelParameters = 'SET_INTEREST_MODEL_PARAMETERS',
 }
 
 export interface IToken {
@@ -38,6 +39,11 @@ export interface ILoanPair {
   minCollateralCoverageRatio: string;
 }
 
+export interface IInterestModelParameters {
+  loanInterestRateUpperBound: string;
+  loanInterestRateLowerBound: string;
+}
+
 interface ICommonState {
   currentNetwork?: number;
   depositTerms: string[];
@@ -45,6 +51,7 @@ interface ICommonState {
   loanPairs: ILoanPair[];
   protocolContractAddress?: string;
   distributorConfig?: IDistributorConfig;
+  interestModelParameters: IInterestModelParameters;
 }
 
 const initState: ICommonState = {
@@ -54,6 +61,10 @@ const initState: ICommonState = {
   loanPairs: [],
   protocolContractAddress: undefined,
   distributorConfig: undefined,
+  interestModelParameters: {
+    loanInterestRateUpperBound: '0',
+    loanInterestRateLowerBound: '0',
+  },
 };
 
 export const CommonReducer = (
@@ -166,6 +177,11 @@ export const CommonReducer = (
         ...state,
         distributorConfig: action.payload.distributorConfig,
       };
+    case CommonActionType.SetInterestModelParameters:
+      return {
+        ...state,
+        interestModelParameters: action.payload.interestModelParameters,
+      };
     default:
       return state;
   }
@@ -272,6 +288,17 @@ export class CommonActions {
       },
     };
   }
+
+  static setInterestModelParameters(
+    interestModelParameters: IInterestModelParameters,
+  ) {
+    return {
+      type: CommonActionType.SetInterestModelParameters,
+      payload: {
+        interestModelParameters,
+      },
+    };
+  }
 }
 
 // Selectors
@@ -295,4 +322,9 @@ export const useLoanPairs = () =>
 export const useDistributorConfig = () =>
   useSelector<IState, IDistributorConfig>(
     state => state.common.distributorConfig || {},
+  );
+
+export const useInterestModelParameters = () =>
+  useSelector<IState, IInterestModelParameters>(
+    state => state.common.interestModelParameters,
   );

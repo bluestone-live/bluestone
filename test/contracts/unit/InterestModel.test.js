@@ -43,4 +43,25 @@ contract('InterestModel', function([owner]) {
       );
     });
   });
+
+  describe('#getLoanParameters', () => {
+    it('succeed', async () => {
+      const lowerBound = toFixedBN(0.1);
+      const upperBound = toFixedBN(0.15);
+
+      await interestModel.setLoanParameters(
+        token.address,
+        lowerBound,
+        upperBound,
+      );
+
+      const {
+        loanInterestRateLowerBound,
+        loanInterestRateUpperBound,
+      } = await interestModel.getLoanParameters(token.address);
+
+      expect(loanInterestRateLowerBound).to.bignumber.equal(lowerBound);
+      expect(loanInterestRateUpperBound).to.bignumber.equal(upperBound);
+    });
+  });
 });

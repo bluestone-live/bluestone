@@ -5,7 +5,7 @@ module.exports = makeTruffleScript(async network => {
   const debug = require('debug')('script:deployTokens');
   const ERC20Mock = artifacts.require('./ERC20Mock.sol');
   const USDTMock = artifacts.require('./USDTMock.sol');
-  const WrappedEther = artifacts.require('./WrappedEther.sol');
+  const WETH9 = artifacts.require('./WETH9.sol');
 
   const tokens = config.get('contract.tokens');
 
@@ -22,7 +22,7 @@ module.exports = makeTruffleScript(async network => {
     }
     let token = tokens[symbol];
     if (symbol === 'WETH') {
-      deployedToken = await WrappedEther.new();
+      deployedToken = await WETH9.new();
     } else if (symbol === 'USDT') {
       deployedToken = await USDTMock.new(token.name, symbol);
     } else {

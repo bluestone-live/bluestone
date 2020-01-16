@@ -3,6 +3,7 @@ import { AbiItem } from 'web3-utils';
 import { Contract, EventOptions, EventData } from 'web3-eth-contract';
 import protocolDeclareFile from '../contracts/Protocol.json';
 import ERC20 from '../contracts/ERC20Mock.json';
+import interestModelDeclareFile from '../contracts/InterestModel.json';
 
 interface ITokenDeclaration {
   name: string;
@@ -41,6 +42,7 @@ export type EventFlowFactory = (
 export class MetaMaskProvider {
   private web3Instance?: Web3;
   private protocolInstance?: Contract;
+  private interestModelInstance?: Contract;
   private eventBound: boolean = false;
   private protocolAddress?: string;
 
@@ -76,6 +78,11 @@ export class MetaMaskProvider {
       protocolDeclareFile.abi as AbiItem[],
       this.protocolAddress,
     );
+
+    this.interestModelInstance = new this.web3Instance.eth.Contract(
+      interestModelDeclareFile.abi as AbiItem[],
+      networkFile.contracts[interestModelDeclareFile.contractName],
+    );
   }
 
   async enableEthereumNetwork() {
@@ -107,6 +114,13 @@ export class MetaMaskProvider {
       throw new Error('MetaMaskProvider: Init failed');
     }
     return this.protocolInstance;
+  }
+
+  get interestModel() {
+    if (!this.interestModelInstance) {
+      throw new Error('MetaMaskProvider: Init failed');
+    }
+    return this.interestModelInstance;
   }
 
   get protocolContractAddress() {
