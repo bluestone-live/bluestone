@@ -57,16 +57,6 @@ library LoanManager {
     uint256 private constant ONE = 10**18;
     uint256 private constant MAX_LIQUIDATION_DISCOUNT = 2 * (10**17); // 0.2 (20%)
 
-    struct LoanRecordListView {
-        bytes32[] loanIdList;
-        address[] loanTokenAddressList;
-        address[] collateralTokenAddressList;
-        uint256[] loanTermList;
-        uint256[] loanAmountList;
-        uint256[] collateralAmountList;
-        uint256[] createdAtList;
-    }
-
     struct LocalVars {
         bytes32 loanId;
         uint256 remainingCollateralAmount;
@@ -330,6 +320,7 @@ library LoanManager {
             liquidatedAmount: 0,
             soldCollateralAmount: 0,
             createdAt: now,
+            dueAt: loanParameters.loanTerm.mul(DateTime.dayInSeconds()) + now,
             lastInterestUpdatedAt: now,
             lastRepaidAt: 0,
             lastLiquidatedAt: 0,

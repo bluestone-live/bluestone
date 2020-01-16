@@ -1,6 +1,7 @@
 const Protocol = artifacts.require('Protocol');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
+const DateTime = artifacts.require('DateTime');
 const { BN, time } = require('openzeppelin-test-helpers');
 const { toFixedBN, createERC20Token } = require('../../utils/index');
 const { setupTestEnv } = require('../../utils/setupTestEnv');
@@ -16,7 +17,7 @@ contract(
     loanDistributor,
     protocolAddress,
   ]) => {
-    let protocol, interestModel, loanToken, collateralToken;
+    let protocol, interestModel, loanToken, collateralToken, datetime;
 
     const initialSupply = toFixedBN(10000);
     const ZERO = toFixedBN(0);
@@ -54,6 +55,7 @@ contract(
       interestModel = await InterestModel.deployed();
       loanTokenPriceOracle = await SingleFeedPriceOracle.new();
       collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
+      datetime = await DateTime.new();
 
       // Create token
       loanToken = await createERC20Token(depositor, initialSupply);
@@ -280,12 +282,18 @@ contract(
 
         const {
           depositAmount: depositAmountForRecord,
+          poolId,
         } = await protocol.getDepositRecordById(depositId);
         const {
           interestForDepositor,
         } = await protocol.getInterestDistributionByDepositId(depositId);
 
-        // TODO(desmond): check maturedAt < now
+        const currentPoolId = Number.parseInt(
+          (await datetime.toDays()).toString(),
+          10,
+        );
+
+        expect(Number.parseInt(poolId, 10)).to.be.lt(currentPoolId);
 
         const prevDepositorBalance = await loanToken.balanceOf(depositor);
         const prevDepositDistributorBalance = await loanToken.balanceOf(

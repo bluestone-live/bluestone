@@ -9,7 +9,6 @@ interface IStruct {
         uint256 depositAmount;
         uint256 poolId;
         uint256 createdAt;
-        uint256 maturedAt;
         uint256 withdrewAt;
         uint256 weight;
         address payable distributorAddress;
@@ -32,6 +31,7 @@ interface IStruct {
         uint256 liquidatedAmount;
         uint256 soldCollateralAmount;
         uint256 createdAt;
+        uint256 dueAt;
         uint256 lastInterestUpdatedAt;
         uint256 lastRepaidAt;
         uint256 lastLiquidatedAt;

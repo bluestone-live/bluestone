@@ -46,16 +46,6 @@ library DepositManager {
         uint256 amount
     );
 
-    struct DepositRecordListView {
-        bytes32[] depositIdList;
-        address[] tokenAddressList;
-        uint256[] depositTermList;
-        uint256[] depositAmountList;
-        uint256[] createdAtList;
-        uint256[] maturedAtList;
-        uint256[] withdrewAtList;
-    }
-
     function enableDepositTerm(
         State storage self,
         LiquidityPools.State storage liquidityPools,
@@ -218,9 +208,6 @@ library DepositManager {
         );
 
         uint256 createdAt = now;
-        uint256 maturedAt = createdAt
-            .add(DateTime.secondsUntilMidnight(createdAt))
-            .add(depositParameters.depositTerm.mul(DateTime.dayInSeconds()));
 
         self.depositRecordById[currDepositId] = IStruct.DepositRecord({
             depositId: currDepositId,
@@ -230,7 +217,6 @@ library DepositManager {
             depositAmount: depositParameters.depositAmount,
             poolId: poolId,
             createdAt: createdAt,
-            maturedAt: maturedAt,
             withdrewAt: 0,
             weight: depositWeight,
             distributorAddress: depositParameters.distributorAddress
@@ -307,7 +293,7 @@ library DepositManager {
             'DepositManager: deposit is withdrawn'
         );
         require(
-            depositRecord.maturedAt <= now,
+            depositRecord.poolId < DateTime.toDays(),
             'DepositManager: deposit is not matured'
         );
 
@@ -523,7 +509,7 @@ library DepositManager {
         if (
             depositRecord.tokenAddress == address(0) ||
             depositRecord.withdrewAt != 0 ||
-            depositRecord.maturedAt <= now
+            depositRecord.poolId <= DateTime.toDays()
         ) {
             return false;
         }

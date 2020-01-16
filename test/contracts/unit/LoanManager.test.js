@@ -121,6 +121,12 @@ contract('LoanManager', function([
         expect(new BN(record.collateralAmount)).to.bignumber.equal(
           collateralAmount,
         );
+        expect(record.dueAt).to.equal(
+          (
+            Number.parseInt(record.createdAt, 10) +
+            86400 * record.loanTerm
+          ).toString(),
+        );
       });
     });
 
