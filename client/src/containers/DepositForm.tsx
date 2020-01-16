@@ -36,6 +36,7 @@ const DepositForm = (props: IProps) => {
     token,
     pool,
     tokenBalance,
+    history,
     t,
   } = props;
 
@@ -78,7 +79,7 @@ const DepositForm = (props: IProps) => {
         ),
       );
     } else {
-      await depositService.deposit(
+      const recordId = await depositService.deposit(
         accountAddress,
         token.tokenAddress,
         convertDecimalToWei(depositAmount),
@@ -92,6 +93,8 @@ const DepositForm = (props: IProps) => {
           await accountService.getTokenBalance(accountAddress, token),
         ),
       );
+
+      history.push(`/account/deposit/${recordId}`);
     }
     dispatch(ViewActions.setLoading(false));
   }, [token, depositAmount, pool]);

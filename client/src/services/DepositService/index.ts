@@ -30,16 +30,11 @@ export class DepositService {
       .getDepositRecordById(depositId)
       .call();
 
-    const interest = record.isClosed
-      ? (await this.provider.protocol.methods
-          .getInterestDistributionByDepositId(depositId)
-          .call()).interestForDepositor
-      : '0';
     const isEarlyWithdrawable = await this.provider.protocol.methods
       .isDepositEarlyWithdrawable(depositId)
       .call();
 
-    return depositRecordPipe(depositId, record, interest, isEarlyWithdrawable);
+    return depositRecordPipe(record, isEarlyWithdrawable);
   }
 
   /**
@@ -66,7 +61,7 @@ export class DepositService {
       },
     );
     const {
-      returnValues: { depositId },
+      returnValues: { recordId },
     } = await flow(async protocol => {
       return protocol.methods
         .deposit(
@@ -78,7 +73,7 @@ export class DepositService {
         .send({ from: accountAddress });
     });
 
-    return depositId;
+    return recordId;
   }
 
   /**

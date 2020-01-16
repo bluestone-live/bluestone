@@ -43,36 +43,36 @@ const BorrowDetail = (props: IProps) => {
   return (
     <div className="borrow-detail">
       <Row>
-        <Col span="24">
+        <Col span={24}>
           <RecordStatus record={record} />
         </Col>
       </Row>
       <Row>
-        <Col span="12">
+        <Col span={12}>
           <TextBox label={t('borrow_detail_label_amount')}>
             {convertWeiToDecimal(record.loanAmount)}
           </TextBox>
         </Col>
-        <Col span="12">
+        <Col span={12}>
           <TextBox label={t('borrow_detail_label_term')}>
             {t('borrow_detail_text_term', { term: record.loanTerm.value })}
           </TextBox>
         </Col>
       </Row>
       <Row>
-        <Col span="12">
+        <Col span={12}>
           <TextBox label={t('borrow_detail_label_total_collateral')}>
             {convertWeiToDecimal(record.loanAmount)}
           </TextBox>
         </Col>
-        <Col span="12">
+        <Col span={12}>
           <TextBox label={t('borrow_detail_label_collateral_ratio')}>
             {collateralRatio}
           </TextBox>
         </Col>
       </Row>
       <Row>
-        <Col span="24">
+        <Col span={24}>
           <TextBox label={t('borrow_detail_label_liquidated_collateral')}>
             {convertWeiToDecimal('0')}{' '}
             {selectedLoanPair.collateralToken.tokenSymbol}
@@ -81,19 +81,19 @@ const BorrowDetail = (props: IProps) => {
         </Col>
       </Row>
       <Row>
-        <Col span="12">
+        <Col span={12}>
           <TextBox label={t('borrow_detail_label_remaining_debt')}>
             {convertWeiToDecimal(record.remainingDebt)}
           </TextBox>
         </Col>
-        <Col span="12">
+        <Col span={12}>
           <TextBox label={t('borrow_detail_label_total_debt')}>
             {convertWeiToDecimal('0')} {/* TODO: Add total debt */}
           </TextBox>
         </Col>
       </Row>
       <Row>
-        <Col span="24">
+        <Col span={24}>
           <TextBox label={t('borrow_detail_label_due_date')}>
             {record.createdAt + record.loanTerm.value}
             {/* TODO: Add total debt */}
@@ -101,7 +101,7 @@ const BorrowDetail = (props: IProps) => {
         </Col>
       </Row>
       <Row className="action-buttons">
-        <Col span="12">
+        <Col span={12}>
           <Button
             block
             onClick={goTo(`/borrow/${record.recordId}/add-collateral`)}
@@ -109,7 +109,7 @@ const BorrowDetail = (props: IProps) => {
             {t('borrow_detail_button_add_collateral')}
           </Button>
         </Col>
-        <Col span="12">
+        <Col span={12}>
           <Button block onClick={goTo(`/borrow/${record.recordId}/repay`)}>
             {t('borrow_detail_button_repay')}
           </Button>

@@ -65,8 +65,7 @@ const AccountOverview = (props: IProps) => {
         .concat(borrowRecords as IRecord[])
         .sort(
           (r1: IRecord, r2: IRecord) =>
-            Number.parseInt(r1.createdAt, 10) -
-            Number.parseInt(r2.createdAt, 10),
+            r1.createdAt.valueOf() - r2.createdAt.valueOf(),
         ),
     [depositRecords, borrowRecords],
   );

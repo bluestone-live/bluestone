@@ -11,6 +11,7 @@ import {
 import { Row, Col } from 'antd/lib/grid';
 import dayjs from 'dayjs';
 import { EventName } from '../utils/MetaMaskProvider';
+import { convertWeiToDecimal } from '../utils/BigNumber';
 
 interface IProps extends WithTranslation {
   tokens: IToken[];
@@ -28,9 +29,8 @@ const TransactionList = (props: IProps) => {
           token =>
             token.tokenAddress === (record as IDepositRecord).tokenAddress,
         );
-
         return t(`transaction_list_event_${tx.event}`, {
-          amount: tx.amount,
+          amount: convertWeiToDecimal(tx.amount, 2),
           unit: depositToken ? depositToken.tokenSymbol : '',
         });
       } else {
@@ -68,8 +68,10 @@ const TransactionList = (props: IProps) => {
       </div>
       {transactions.map(tx => (
         <Row key={tx.transactionHash} className="transaction-item">
-          <Col span="12">{dayjs(tx.time).format('YYYY-MM-DD HH:mm')}</Col>
-          <Col span="12">{txDescription}</Col>
+          <Col span={12}>
+            {dayjs(tx.time * 1000).format('YYYY-MM-DD HH:mm')}
+          </Col>
+          <Col span={12}>{txDescription(tx)}</Col>
         </Row>
       ))}
     </div>

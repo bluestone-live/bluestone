@@ -1,7 +1,7 @@
-import { Dayjs } from 'dayjs';
 import { ITerm, IAction, RecordType, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
 import { useSelector } from 'react-redux';
+import { Dayjs } from 'dayjs';
 
 export enum DepositActionType {
   ReplaceDepositRecords = 'REPLACE_DEPOSIT_RECORDS',
@@ -13,13 +13,12 @@ export interface IDepositRecord {
   tokenAddress: string;
   depositTerm: ITerm;
   depositAmount: string;
-  poolId?: string;
-  createdAt: string;
-  maturedPoolID: string;
-  withdrewPoolID?: string;
-  isMatured?: boolean;
-  isWithdrawn?: boolean;
-  interest?: string;
+  poolId: string;
+  createdAt: Dayjs;
+  withdrewAt: Dayjs;
+  isMatured: boolean;
+  isWithdrawn: boolean;
+  interest: string;
   recordType: RecordType;
   isEarlyWithdrawable?: boolean;
 }

@@ -93,6 +93,12 @@
     "repay_form_label_remaining_debt": "Remaining Debt",
     "repay_form_label_due_date": "Due Date",
     "repay_form_input_label_repay": "Repay",
-    "repay_form_button_repay": "Repay"
+    "repay_form_button_repay": "Repay",
+    "record_status_text_matured": "Matured",
+    "record_status_text_closed": "Closed",
+    "record_status_text_matured_in": "Mature in {{days}} days",
+    "record_status_text_overdue": "Overdue",
+    "record_status_text_due_in": "Due in {{days}} days",
+    "deposit_overview_button_sort_by": "Sort by {{key}}"
   }
 }

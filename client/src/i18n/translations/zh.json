@@ -93,6 +93,12 @@
     "repay_form_label_remaining_debt": "剩余应还",
     "repay_form_label_due_date": "过期时间",
     "repay_form_input_label_repay": "还款金额",
-    "repay_form_button_repay": "还款"
+    "repay_form_button_repay": "还款",
+    "record_status_text_matured": "已到期",
+    "record_status_text_closed": "已关闭",
+    "record_status_text_matured_in": "将在{{days}}天后到期",
+    "record_status_text_overdue": "已过期",
+    "record_status_text_due_in": " 将在{{days}}天后过期",
+    "deposit_overview_button_sort_by": "{{key}}"
   }
 }

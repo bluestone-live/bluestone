@@ -126,8 +126,9 @@ const DepositOverview = (props: WithTranslation) => {
           trigger={['click']}
           placement="bottomCenter"
         >
-          <Button>
-            {sortBy} <Icon type="caret-down" />
+          <Button className="sort-by">
+            {t('deposit_overview_button_sort_by', { key: sortBy })}
+            <Icon type="caret-down" />
           </Button>
         </Dropdown>
       </div>

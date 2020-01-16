@@ -1,42 +1,63 @@
 import React, { useMemo } from 'react';
 import { RecordType, IRecord, IDepositRecord, ILoanRecord } from '../stores';
 import Form from 'antd/lib/form';
+import { getCurrentPoolId } from '../utils/poolIdCalculator';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
-interface IProps {
+interface IProps extends WithTranslation {
   record: IRecord;
 }
 
 const RecordStatus = (props: IProps) => {
-  const { record } = props;
-
-  const currentPoolID = useMemo(() => {
-    return Math.floor(new Date().valueOf() / 1000 / 3600 / 24);
-  }, [new Date().getUTCDate()]);
+  const { record, t } = props;
 
   const content = useMemo(() => {
     if (record.recordType === RecordType.Deposit) {
       const depositRecord = record as IDepositRecord;
+      const currentPoolID = getCurrentPoolId();
+
       if (depositRecord.isMatured) {
-        return <span className="ant-form-text matured">Matured</span>;
+        return (
+          <span className="ant-form-text matured">
+            {t('record_status_text_matured')}
+          </span>
+        );
       } else if (depositRecord.isWithdrawn) {
-        return <span className="ant-form-text closed">Closed</span>;
+        return (
+          <span className="ant-form-text closed">
+            {t('record_status_text_closed')}
+          </span>
+        );
       }
       return (
         <span className="ant-form-text">
-          Mature in{' '}
-          {Number.parseInt(depositRecord.maturedPoolID, 10) - currentPoolID}
-          days
+          {t('record_status_text_matured_in', {
+            days: Number.parseInt(depositRecord.poolId, 10) - currentPoolID,
+          })}
         </span>
       );
     } else {
       const loanRecord = record as ILoanRecord;
       if (loanRecord.isClosed) {
-        return <span className="ant-form-text closed">Closed</span>;
+        return (
+          <span className="ant-form-text closed">
+            {t('record_status_text_closed')}
+          </span>
+        );
       } else if (loanRecord.isOverDue) {
-        return <span className="ant-form-text overdue">Overdue</span>;
+        return (
+          <span className="ant-form-text overdue">
+            {t('record_status_text_overdue')}
+          </span>
+        );
       }
-      // TODO(ZhangRGK): Due in days = OverDue Pool ID - Current Pool ID. I will replace the hard code after contract modified
-      return <span className="ant-form-text">Due in {8} days</span>;
+      return (
+        <span className="ant-form-text">
+          {t('record_status_text_due_in', {
+            days: loanRecord.dueAt.diff(loanRecord.createdAt, 'day'),
+          })}
+        </span>
+      );
     }
   }, [record]);
 
@@ -47,4 +68,4 @@ const RecordStatus = (props: IProps) => {
   );
 };
 
-export default RecordStatus;
+export default withTranslation()(RecordStatus);

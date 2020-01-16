@@ -19,6 +19,7 @@ export const PoolsPipe = (
         : (
             (Number.parseFloat(pool.loanInterest) /
               Number.parseFloat(pool.totalDepositWeight)) *
+            365 *
             100
           ).toFixed(2);
 
@@ -35,7 +36,7 @@ export const PoolsPipe = (
     return {
       ...pool,
       tokenAddress,
-      term: index + 1,
+      term: index,
       APR,
       utilization,
       totalDeposit: pool.depositAmount,

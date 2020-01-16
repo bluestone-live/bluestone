@@ -12,6 +12,7 @@ import { Row, Col } from 'antd/lib/grid';
 import TextBox from '../components/TextBox';
 import { convertWeiToDecimal } from '../utils/BigNumber';
 import Icon from 'antd/lib/icon';
+import { getCurrentPoolId } from '../utils/poolIdCalculator';
 
 interface IProps extends WithTranslation {
   record: IDepositRecord | ILoanRecord;
@@ -38,9 +39,8 @@ const RecordCard = (props: IProps) => {
         <span>
           {t('record_card_due_date_mature_in', {
             day:
-              Number.parseInt(depositRecord.maturedPoolID, 10) -
-              Number.parseInt(depositRecord.poolId || '0', 10) +
-              depositRecord.depositTerm.value,
+              Number.parseInt(depositRecord.poolId || '0', 10) -
+              getCurrentPoolId(),
           })}
         </span>
       );
