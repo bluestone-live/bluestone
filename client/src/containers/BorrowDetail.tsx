@@ -19,18 +19,36 @@ const BorrowDetail = (props: IProps) => {
   const { record, selectedLoanPair, transactions, history, t } = props;
 
   const collateralRatio = useMemo(() => {
-    return `${Number.parseFloat(
-      convertWeiToDecimal(record.currentCollateralRatio),
-    )}%
-    /
-    ${Number.parseFloat(
-      convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
-    ) * 100}%`;
+    const currentCollateralRatio = Number.parseFloat(
+      convertWeiToDecimal(record.currentCollateralRatio, 2),
+    );
+
+    const minCollateralCoverageRatio =
+      Number.parseFloat(
+        convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
+      ) * 100;
+
+    const currentCollateralRatioColor =
+      currentCollateralRatio < minCollateralCoverageRatio ? 'yellow' : 'green';
+
+    return (
+      <span>
+        <span className={currentCollateralRatioColor}>
+          {currentCollateralRatio}%
+        </span>
+        /{minCollateralCoverageRatio}%;
+      </span>
+    );
   }, [record, selectedLoanPair]);
 
   const tokens = useMemo(
     () => [selectedLoanPair.loanToken, selectedLoanPair.collateralToken],
     [selectedLoanPair],
+  );
+
+  const transactionsOfRecord = useMemo(
+    () => transactions.filter(tx => tx.recordId === record.recordId),
+    [transactions, record],
   );
 
   const goTo = useCallback(
@@ -74,9 +92,8 @@ const BorrowDetail = (props: IProps) => {
       <Row>
         <Col span={24}>
           <TextBox label={t('borrow_detail_label_liquidated_collateral')}>
-            {convertWeiToDecimal('0')}{' '}
+            {convertWeiToDecimal(record.liquidatedAmount)}{' '}
             {selectedLoanPair.collateralToken.tokenSymbol}
-            {/* TODO: Add liquidated amount */}
           </TextBox>
         </Col>
       </Row>
@@ -88,15 +105,19 @@ const BorrowDetail = (props: IProps) => {
         </Col>
         <Col span={12}>
           <TextBox label={t('borrow_detail_label_total_debt')}>
-            {convertWeiToDecimal('0')} {/* TODO: Add total debt */}
+            {convertWeiToDecimal(
+              (
+                Number.parseFloat(record.loanAmount) +
+                Number.parseFloat(record.interest)
+              ).toString(),
+            )}
           </TextBox>
         </Col>
       </Row>
       <Row>
         <Col span={24}>
           <TextBox label={t('borrow_detail_label_due_date')}>
-            {record.createdAt + record.loanTerm.value}
-            {/* TODO: Add total debt */}
+            {record.dueAt.format('YYYY.MM.DD HH:mm ZZ')}
           </TextBox>
         </Col>
       </Row>
@@ -118,7 +139,7 @@ const BorrowDetail = (props: IProps) => {
       <TransactionList
         tokens={tokens}
         record={record}
-        transactions={transactions}
+        transactions={transactionsOfRecord}
       />
     </div>
   );

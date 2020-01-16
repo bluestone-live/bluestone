@@ -52,7 +52,7 @@ export class LoanService {
       },
     );
     const {
-      returnValues: { loanId },
+      returnValues: { recordId },
     } = await flow(async protocol => {
       if (collateralTokenAddress === ETHIdentificationAddress) {
         return protocol.methods
@@ -77,7 +77,7 @@ export class LoanService {
         )
         .send({ from: accountAddress });
     });
-    return loanId;
+    return recordId;
   }
 
   /**

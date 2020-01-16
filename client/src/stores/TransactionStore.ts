@@ -10,7 +10,7 @@ export interface ITransaction {
   transactionHash: string;
   event: EventName;
   recordId: string;
-  time: number;
+  time: string | number;
   amount: string;
 }
 

@@ -1,6 +1,7 @@
 import { ITerm, IAction, RecordType, IState } from '.';
 import { replaceBy } from '../utils/replaceBy';
 import { useSelector } from 'react-redux';
+import { Dayjs } from 'dayjs';
 
 export enum LoanActionType {
   ReplaceLoanRecords = 'REPLACE_LOAN_RECORDS',
@@ -13,15 +14,20 @@ export interface ILoanRecord {
   loanTokenAddress: string;
   collateralTokenAddress: string;
   loanAmount: string;
-  loanTerm: ITerm;
   collateralAmount: string;
-  currentCollateralRatio?: string;
-  interest?: string;
-  remainingDebt?: string;
-  createdAt: string;
-  isOverDue?: boolean;
-  isClosed?: boolean;
-  isLiquidatable?: boolean;
+  loanTerm: ITerm;
+  annualInterestRate: string;
+  interest: string;
+  currentCollateralRatio: string;
+  minCollateralCoverageRatio: string;
+  alreadyPaidAmount: string;
+  soldCollateralAmount: string;
+  liquidatedAmount: string;
+  remainingDebt: string;
+  createdAt: Dayjs;
+  dueAt: Dayjs;
+  isOverDue: boolean;
+  isClosed: boolean;
   recordType: RecordType;
 }
 
@@ -50,13 +56,13 @@ export const LoanReducer = (
     case LoanActionType.UpdateLoanRecord:
       if (
         state.loanRecords.find(
-          record => action.payload.recordId === record.recordId,
+          record => action.payload.loanRecord.recordId === record.recordId,
         )
       ) {
         return {
           ...state,
           loanRecords: state.loanRecords.map(record =>
-            record.recordId === action.payload.recordId
+            record.recordId === action.payload.loanRecord.recordId
               ? replaceBy(record, action.payload.loanRecord)
               : record,
           ),
@@ -86,11 +92,10 @@ export class LoanActions {
       },
     };
   }
-  static UpdateLoanRecord(recordId: string, loanRecord: ILoanRecord) {
+  static UpdateLoanRecord(loanRecord: ILoanRecord) {
     return {
       type: LoanActionType.UpdateLoanRecord,
       payload: {
-        recordId,
         loanRecord,
       },
     };

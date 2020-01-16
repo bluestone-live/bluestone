@@ -18,7 +18,7 @@ import BorrowPoolChart from '../containers/BorrowPoolChart';
 import Button from 'antd/lib/button';
 import { withRouter, RouteComponentProps } from 'react-router';
 import BorrowPoolCard from '../containers/BorrowPoolCard';
-import { convertWeiToDecimal } from '../utils/BigNumber';
+import { composePools } from '../utils/composePools';
 import { getLoanInterestRates } from '../utils/interestModel';
 
 interface IProps extends WithTranslation, RouteComponentProps {}
@@ -108,27 +108,7 @@ const BorrowOverview = (props: IProps) => {
   }, [selectedToken, selectedPools, interestModelParameters]);
 
   const computedPools = useMemo(
-    () =>
-      selectedPools.map((pool, i, array) => ({
-        poolId: pool.poolId,
-        term: pool.term,
-        availableAmount:
-          parseFloat(convertWeiToDecimal(pool.availableAmount)) +
-          array
-            .slice(i + 1, array.length)
-            .reduce(
-              (sum, p) =>
-                sum + parseFloat(convertWeiToDecimal(p.availableAmount)),
-              0,
-            ),
-        loanInterestRate: Number.parseFloat(
-          (
-            interestRates.find(interestRate => {
-              return interestRate.term === pool.term;
-            }) || { interestRate: '0' }
-          ).interestRate,
-        ),
-      })),
+    () => composePools(selectedPools, interestRates),
     [selectedPools, interestRates],
   );
 

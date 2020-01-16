@@ -12,20 +12,24 @@ import {
 } from '../utils/calcCollateralRatio';
 import Button from 'antd/lib/button';
 import { getService } from '../services';
+import { RouteComponentProps, withRouter } from 'react-router';
 
-interface IProps extends WithTranslation {
+interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
   record: ILoanRecord;
   selectedLoanPair: ILoanPair;
 }
 
 const AddCollateralForm = (props: IProps) => {
-  const { accountAddress, record, selectedLoanPair, t } = props;
+  const { accountAddress, record, selectedLoanPair, history, t } = props;
 
   const [collateralRatio, setCollateralRatio] = useState<number>(
-    Number.parseFloat(
-      convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
-    ) * 100,
+    Math.max(
+      Number.parseFloat(convertWeiToDecimal(record.currentCollateralRatio)),
+      Number.parseFloat(
+        convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
+      ) * 100,
+    ),
   );
   const [collateralAmount, setCollateralAmount] = useState<number>(0);
 
@@ -39,11 +43,11 @@ const AddCollateralForm = (props: IProps) => {
           Number.parseFloat(
             calcCollateralAmount(
               e.target.value,
-              record.remainingDebt || '0', // TODO(ZhangRGK): use total debt instead
+              convertWeiToDecimal(record.remainingDebt) || '0',
               selectedLoanPair.collateralToken.price,
               selectedLoanPair.loanToken.price,
             ),
-          ),
+          ) - Number.parseFloat(convertWeiToDecimal(record.collateralAmount)),
         );
       }
     },
@@ -58,11 +62,11 @@ const AddCollateralForm = (props: IProps) => {
           Number.parseFloat(
             calcCollateralAmount(
               (collateralRatio + num).toString(),
-              record.remainingDebt || '0', // TODO(ZhangRGK): use total debt instead
+              convertWeiToDecimal(record.remainingDebt) || '0',
               selectedLoanPair.collateralToken.price,
               selectedLoanPair.loanToken.price,
             ),
-          ),
+          ) - Number.parseFloat(convertWeiToDecimal(record.collateralAmount)),
         );
       }
     },
@@ -76,8 +80,11 @@ const AddCollateralForm = (props: IProps) => {
         setCollateralRatio(
           Number.parseFloat(
             calcCollateralRatio(
-              e.target.value,
-              record.remainingDebt || '0', // TODO(ZhangRGK): use total debt instead
+              (
+                Number.parseFloat(e.target.value) +
+                Number.parseFloat(convertWeiToDecimal(record.collateralAmount))
+              ).toString(),
+              record.remainingDebt || '0',
               selectedLoanPair.collateralToken.price,
               selectedLoanPair.loanToken.price,
             ),
@@ -97,23 +104,24 @@ const AddCollateralForm = (props: IProps) => {
       record.collateralTokenAddress,
       convertDecimalToWei(collateralAmount),
     );
+
+    history.push(`/account/borrow/${record.recordId}`);
   }, [accountAddress, record, collateralAmount]);
 
   return (
     <div className="add-collateral-form">
       <div className="notice">
         {t('add_collateral_form_notice', {
-          minCollateralRatio: convertWeiToDecimal(
-            selectedLoanPair.minCollateralCoverageRatio,
-          ),
+          minCollateralCoverageRatio:
+            Number.parseFloat(
+              convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
+            ) * 100,
         })}
       </div>
       <Form>
         <CollateralCoverageRatio
-          currentCollateralRatio={(
-            Number.parseFloat(
-              convertWeiToDecimal(record.currentCollateralRatio),
-            ) * 100
+          currentCollateralRatio={Number.parseFloat(
+            convertWeiToDecimal(record.currentCollateralRatio),
           ).toFixed(2)}
           minCollateralRatio={(
             Number.parseFloat(
@@ -185,4 +193,4 @@ const AddCollateralForm = (props: IProps) => {
   );
 };
 
-export default withTranslation()(AddCollateralForm);
+export default withTranslation()(withRouter(AddCollateralForm));

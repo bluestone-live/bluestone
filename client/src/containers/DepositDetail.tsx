@@ -12,7 +12,6 @@ import { getService } from '../services';
 import TransactionList from '../components/TransactionList';
 import { getTimestampByPoolId } from '../utils/poolIdCalculator';
 import dayjs from 'dayjs';
-import { useDispatch } from 'react-redux';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;

@@ -6,7 +6,6 @@ import {
   IToken,
   PoolActions,
   AccountActions,
-  IPool,
   CommonActions,
 } from '../stores';
 import Form from 'antd/lib/form';
@@ -24,14 +23,20 @@ import {
   calcCollateralRatio,
   calcCollateralAmount,
 } from '../utils/calcCollateralRatio';
+import { RouteComponentProps, withRouter } from 'react-router';
 
-interface IProps extends WithTranslation {
+interface IProps extends WithTranslation, RouteComponentProps {
   protocolContractAddress: string;
   accountAddress: string;
   loanToken?: IToken;
   loanPairs: ILoanPair[];
   tokenBalance: IBalance[];
-  selectedPool?: IPool;
+  selectedPool?: {
+    poolId: string;
+    term: number;
+    availableAmount: number;
+    loanInterestRate: number;
+  };
   distributorAddress: string;
   loading: boolean;
 }
@@ -46,6 +51,7 @@ const BorrowForm = (props: IProps) => {
     selectedPool,
     loading,
     distributorAddress,
+    history,
     t,
   } = props;
   const dispatch = useDispatch();
@@ -144,7 +150,7 @@ const BorrowForm = (props: IProps) => {
         ),
       );
     } else {
-      await loanService.loan(
+      const recordId = await loanService.loan(
         accountAddress,
         loanToken.tokenAddress,
         collateralToken.tokenAddress,
@@ -153,6 +159,8 @@ const BorrowForm = (props: IProps) => {
         selectedPool.term,
         distributorAddress,
       );
+
+      history.push(`/account/borrow/${recordId}`);
     }
   }, [
     loanToken,
@@ -295,9 +303,9 @@ const BorrowForm = (props: IProps) => {
           value={borrowAmount}
           onChange={onBorrowAmountChange}
           extra={t('borrow_form_input_extra_available_amount', {
-            balance: convertWeiToDecimal(
-              selectedPool ? selectedPool.availableAmount : '0',
-            ),
+            balance: selectedPool
+              ? selectedPool.availableAmount.toString()
+              : '0',
             unit: loanToken.tokenSymbol,
           })}
           actionButtons={[
@@ -366,21 +374,32 @@ const BorrowForm = (props: IProps) => {
         <FormInput
           label={t('borrow_form_input_label_collateral_amount')}
           type="text"
+          className="collateral-amount-input"
           value={collateralAmount}
           onChange={onCollateralAmountChange}
           suffix={collateralToken.tokenSymbol}
           extra={
             <span className="bold">
               {t('borrow_form_input_extra_price', {
+                symbol: collateralToken.tokenSymbol,
                 price: convertWeiToDecimal(collateralToken.price, 2),
               })}
             </span>
           }
         />
       )}
-      <TextBox label={t('borrow_form_text_label_total_debt')}>
-        {totalDebt}
-      </TextBox>
+      {loanToken && (
+        <TextBox label={t('borrow_form_text_label_total_debt')}>
+          <span
+            className={
+              Number.parseFloat(totalDebt || '0') === 0 ? 'grey' : 'primary'
+            }
+          >
+            {totalDebt}
+          </span>{' '}
+          {loanToken.tokenSymbol}
+        </TextBox>
+      )}
       {selectedPool && (
         <TextBox label={t('borrow_form_text_label_due_date')}>
           {dayjs()
@@ -395,4 +414,4 @@ const BorrowForm = (props: IProps) => {
   );
 };
 
-export default withTranslation()(BorrowForm);
+export default withTranslation()(withRouter(BorrowForm));

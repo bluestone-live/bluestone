@@ -14,7 +14,7 @@ export interface IAction<T> {
 
 export enum RecordType {
   Deposit = 'deposit',
-  Loan = 'loan',
+  Borrow = 'borrow',
 }
 
 export const ETHIdentificationAddress =

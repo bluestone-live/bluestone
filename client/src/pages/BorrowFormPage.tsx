@@ -11,11 +11,20 @@ import {
   IState,
   useLoading,
   useLoanInterestRates,
+  useDepositTokens,
+  PoolActions,
+  CommonActions,
+  LoanActions,
+  useInterestModelParameters,
 } from '../stores';
 import { RouteComponentProps } from 'react-router';
 import { parseQuery } from '../utils/parseQuery';
 import BorrowForm from '../containers/BorrowForm';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { composePools } from '../utils/composePools';
+import { useDepsUpdated } from '../utils/useEffectAsync';
+import { getService } from '../services';
+import { getLoanInterestRates } from '../utils/interestModel';
 
 interface IProps
   extends WithTranslation,
@@ -32,6 +41,8 @@ const BorrowFormPage = (props: IProps) => {
 
   const queryParams = parseQuery(location.search);
 
+  const dispatch = useDispatch();
+
   // Selectors
   const accountAddress = useDefaultAccount();
 
@@ -39,35 +50,38 @@ const BorrowFormPage = (props: IProps) => {
 
   const loading = useLoading();
 
-  const allPools = usePools();
+  const pools = usePools();
+
+  const tokens = useDepositTokens();
 
   const interestRates = useLoanInterestRates();
+
+  const interestModelParameters = useInterestModelParameters();
 
   const protocolContractAddress = useSelector<IState, string>(
     state => state.common.protocolContractAddress,
   );
 
+  const selectedPools = useMemo(() => pools[queryParams.tokenAddress], [
+    queryParams.tokenAddress,
+    pools,
+  ]);
+
+  const computedPools = useMemo(
+    () => composePools(selectedPools, interestRates),
+    [selectedPools, interestRates],
+  );
+
   const selectedPool = useMemo(() => {
-    if (
-      poolId &&
-      queryParams.tokenAddress &&
-      allPools[queryParams.tokenAddress]
-    ) {
-      const pool = allPools[queryParams.tokenAddress].find(
-        p => p.poolId === poolId,
-      );
-      if (pool) {
-        return {
-          ...pool,
-          loanInterestRate: (
-            interestRates.find(r => r.term === pool.term) || {
-              interestRate: '0',
-            }
-          ).interestRate,
-        };
-      }
+    if (poolId && computedPools) {
+      return computedPools.find(p => p.poolId === poolId);
     }
-  }, [allPools, poolId, queryParams.tokenAddress]);
+  }, [computedPools, poolId]);
+
+  const selectedToken = useMemo(
+    () => tokens.find(token => token.tokenAddress === queryParams.tokenAddress),
+    [tokens, queryParams.tokenAddress],
+  );
 
   const tokenBalance = useTokenBalance();
 
@@ -80,6 +94,50 @@ const BorrowFormPage = (props: IProps) => {
         .find(token => token.tokenAddress === queryParams.tokenAddress);
     }
   }, [loanPairs, queryParams.tokenAddress]);
+
+  // Initialize
+  useDepsUpdated(async () => {
+    if (selectedToken) {
+      const { poolService, commonService } = await getService();
+
+      dispatch(
+        PoolActions.replacePools(
+          selectedToken.tokenAddress,
+          await poolService.getPoolsByToken(selectedToken.tokenAddress),
+        ),
+      );
+      dispatch(
+        CommonActions.setInterestModelParameters(
+          await commonService.getInterestModelParameters(
+            selectedToken.tokenAddress,
+          ),
+        ),
+      );
+    }
+  }, [selectedToken]);
+
+  useDepsUpdated(async () => {
+    if (
+      selectedPools &&
+      selectedPools.length > 0 &&
+      selectedToken &&
+      interestModelParameters
+    ) {
+      dispatch(
+        LoanActions.SetLoanInterestRate(
+          getLoanInterestRates(
+            interestModelParameters.loanInterestRateLowerBound,
+            interestModelParameters.loanInterestRateUpperBound,
+            '1',
+            selectedPools.length.toString(),
+          ).map((interestRate, index) => ({
+            term: index + 1,
+            interestRate,
+          })),
+        ),
+      );
+    }
+  }, [selectedToken, selectedPools, interestModelParameters]);
 
   return (
     <div className="borrow-form-page">
@@ -96,16 +154,18 @@ const BorrowFormPage = (props: IProps) => {
           </TextBox>
         </Col>
       </Row>
-      <BorrowForm
-        protocolContractAddress={protocolContractAddress}
-        selectedPool={selectedPool}
-        loanToken={loanToken}
-        accountAddress={accountAddress}
-        loanPairs={loanPairs}
-        tokenBalance={tokenBalance}
-        distributorAddress={distributorAddress}
-        loading={loading}
-      />
+      {selectedPool && (
+        <BorrowForm
+          protocolContractAddress={protocolContractAddress}
+          selectedPool={selectedPool}
+          loanToken={loanToken}
+          accountAddress={accountAddress}
+          loanPairs={loanPairs}
+          tokenBalance={tokenBalance}
+          distributorAddress={distributorAddress}
+          loading={loading}
+        />
+      )}
     </div>
   );
 };

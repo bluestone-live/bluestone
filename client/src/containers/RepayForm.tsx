@@ -7,15 +7,16 @@ import FormInput from '../components/FormInput';
 import Form from 'antd/lib/form';
 import Button from 'antd/lib/button';
 import { getService } from '../services';
+import { RouteComponentProps, withRouter } from 'react-router';
 
-interface IProps extends WithTranslation {
+interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
   record: ILoanRecord;
   selectedLoanPair: ILoanPair;
 }
 
 const RepayForm = (props: IProps) => {
-  const { accountAddress, record, selectedLoanPair, t } = props;
+  const { accountAddress, record, selectedLoanPair, history, t } = props;
 
   const [repayAmount, setRepayAmount] = useState(0);
 
@@ -34,6 +35,8 @@ const RepayForm = (props: IProps) => {
       record.recordId,
       convertDecimalToWei(repayAmount),
     );
+
+    history.push(`/account/borrow/${record.recordId}`);
   }, [record, repayAmount]);
 
   return (
@@ -43,7 +46,7 @@ const RepayForm = (props: IProps) => {
         {selectedLoanPair.loanToken.tokenSymbol}
       </TextBox>
       <TextBox label={t('repay_form_label_due_date')}>
-        {record.createdAt + record.loanTerm.value}
+        {record.dueAt.format('YYYY.MM.DD HH:mm ZZ')}
       </TextBox>
       <Form>
         <FormInput
@@ -54,7 +57,7 @@ const RepayForm = (props: IProps) => {
           suffix={selectedLoanPair.loanToken.tokenSymbol}
         />
 
-        <Button type="primary" block size="large" onChange={submit}>
+        <Button type="primary" block size="large" onClick={submit}>
           {t('repay_form_button_repay')}
         </Button>
       </Form>
@@ -62,4 +65,4 @@ const RepayForm = (props: IProps) => {
   );
 };
 
-export default withTranslation()(RepayForm);
+export default withTranslation()(withRouter(RepayForm));

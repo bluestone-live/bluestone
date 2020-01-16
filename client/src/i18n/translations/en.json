@@ -33,7 +33,7 @@
     "borrow_form_select_label_collateral_token": "Collateral Token",
     "borrow_form_input_label_collateral_ratio": "Collateral Ratio",
     "borrow_form_input_label_collateral_amount": "Collateral Amount",
-    "borrow_form_input_extra_price": "Price: ${{price}}",
+    "borrow_form_input_extra_price": "{{symbol}} Price: ${{price}}",
     "borrow_form_text_label_total_debt": "Total Debt",
     "borrow_form_text_label_due_date": "Due Date",
     "borrow_form_button_approve": "Approve",

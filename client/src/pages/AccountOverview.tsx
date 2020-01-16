@@ -91,7 +91,7 @@ const AccountOverview = (props: IProps) => {
       case 'deposit':
         return records.filter(r => r.recordType === RecordType.Deposit);
       case 'borrow':
-        return records.filter(r => r.recordType === RecordType.Loan);
+        return records.filter(r => r.recordType === RecordType.Borrow);
       default:
         return records;
     }
@@ -128,14 +128,16 @@ const AccountOverview = (props: IProps) => {
           </Menu.Item>
         ))}
       </Menu>
-      {filteredRecords.map(record => (
-        <RecordCard
-          key={record.recordId}
-          record={record}
-          pools={pools}
-          onClick={onClick}
-        />
-      ))}
+      <div className="record-cards">
+        {filteredRecords.map(record => (
+          <RecordCard
+            key={record.recordId}
+            record={record}
+            pools={pools}
+            onClick={onClick}
+          />
+        ))}
+      </div>
     </div>
   );
 };

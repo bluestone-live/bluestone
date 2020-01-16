@@ -26,6 +26,7 @@ interface IProps {
   extra?: React.ReactElement | string;
   actionButtons?: React.ReactElement[];
   value: string | number;
+  className?: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -39,6 +40,7 @@ const FormInput = (props: IProps) => {
     extra,
     actionButtons,
     value,
+    className,
     onChange,
   } = props;
 
@@ -75,7 +77,7 @@ const FormInput = (props: IProps) => {
   }, [ref.current, actionButtons]);
 
   return (
-    <div className="form-input" ref={ref}>
+    <div className={`form-input ${className || ''}`} ref={ref}>
       {ref.current ? (
         <Form.Item label={label}>
           <Input

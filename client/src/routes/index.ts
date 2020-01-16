@@ -68,7 +68,7 @@ const routes = [
   },
   {
     name: 'loan-detail',
-    path: '/account/loan/:recordId',
+    path: '/account/borrow/:recordId',
     component: Loadable({
       loader: () => import('../pages/BorrowDetailPage'),
       loading: Loading,

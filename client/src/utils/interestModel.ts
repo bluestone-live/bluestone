@@ -25,7 +25,9 @@ export const getLoanInterestRates = (
   maxLoanTerm: string,
 ) => {
   const interests = Array.from(
-    new Array(Number.parseInt(maxLoanTerm, 10) - Number.parseInt(loanTerm, 10)),
+    new Array(
+      Number.parseInt(maxLoanTerm + 1, 10) - Number.parseInt(loanTerm, 10),
+    ),
   )
     .map((_, i) => i + Number.parseInt(loanTerm, 10))
     .map((term: number) =>

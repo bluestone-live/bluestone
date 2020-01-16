@@ -9,6 +9,9 @@ export const getTransactionPipe = async (
   transactionHash: event.transactionHash,
   event: event.event as EventName,
   recordId: event.returnValues.recordId,
-  amount: event.returnValues.amount,
+  amount:
+    (event.event as EventName) === EventName.AddCollateralSucceed
+      ? event.returnValues.collateralAmount
+      : event.returnValues.amount,
   time: await getTimestampByBlockHash(event.blockHash),
 });

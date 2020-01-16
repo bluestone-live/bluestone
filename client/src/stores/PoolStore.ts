@@ -17,6 +17,13 @@ export interface IPool {
   tokenAddress: string;
 }
 
+export interface IComputedPool {
+  poolId: string;
+  term: number;
+  availableAmount: number;
+  loanInterestRate: number;
+}
+
 interface IPoolStore {
   poolMap: {
     [tokenAddress: string]: IPool[];

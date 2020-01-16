@@ -46,12 +46,12 @@ const TransactionList = (props: IProps) => {
 
         if (tx.event === EventName.AddCollateralSucceed) {
           return t(`transaction_list_event_${tx.event}`, {
-            amount: tx.amount,
+            amount: convertWeiToDecimal(tx.amount, 2),
             unit: collateralToken ? collateralToken.tokenSymbol : '',
           });
         }
         return t(`transaction_list_event_${tx.event}`, {
-          amount: tx.amount,
+          amount: convertWeiToDecimal(tx.amount, 2),
           unit: loanToken ? loanToken.tokenSymbol : '',
         });
       }
