@@ -96,36 +96,14 @@ library LoanManager {
         uint256 collateralAmount
     );
 
-    function getLoanRecordById(State storage self, bytes32 loanId)
-        external
-        view
-        returns (IStruct.LoanRecord memory loanRecord)
-    {
-        IStruct.LoanRecord memory loanRecord = self.loanRecordById[loanId];
-
-        require(
-            loanRecord.loanTokenAddress != address(0),
-            'LoanManager: Loan ID is invalid'
-        );
-
-        return loanRecord;
-
-    }
-
-    function getLoanRecordDetailsById(
+    function getLoanRecordById(
         State storage self,
         Configuration.State storage configuration,
         bytes32 loanId
     )
-        internal
+        public
         view
-        returns (
-            uint256 remainingDebt,
-            uint256 currentCollateralRatio,
-            bool isLiquidatable,
-            bool isOverDue,
-            bool isClosed
-        )
+        returns (IStruct.GetLoanRecordResponse memory loanRecordResponse)
     {
         IStruct.LoanRecord memory loanRecord = self.loanRecordById[loanId];
 
@@ -134,7 +112,8 @@ library LoanManager {
             'LoanManager: Loan ID is invalid'
         );
 
-        remainingDebt = _calculateRemainingDebt(loanRecord);
+        uint256 remainingDebt = _calculateRemainingDebt(loanRecord);
+        uint256 currentCollateralRatio;
 
         if (loanRecord.isClosed) {
             // If loan is closed, collateral coverage ratio becomes meaningless
@@ -156,35 +135,46 @@ library LoanManager {
                 .divFixed(loanTokenPrice);
         }
 
-        isOverDue =
-            now >
-            loanRecord.createdAt.add(
-                loanRecord.loanTerm.mul(DateTime.dayInSeconds())
-            );
+        loanRecordResponse = IStruct.GetLoanRecordResponse({
+            isClosed: loanRecord.isClosed,
+            loanId: loanRecord.loanId,
+            loanTokenAddress: loanRecord.loanTokenAddress,
+            collateralTokenAddress: loanRecord.collateralTokenAddress,
+            loanAmount: loanRecord.loanAmount,
+            collateralAmount: loanRecord.collateralAmount,
+            loanTerm: loanRecord.loanTerm,
+            annualInterestRate: loanRecord.annualInterestRate,
+            interest: loanRecord.interest,
+            currentCollateralRatio: currentCollateralRatio,
+            minCollateralCoverageRatio: loanRecord.minCollateralCoverageRatio,
+            alreadyPaidAmount: loanRecord.alreadyPaidAmount,
+            soldCollateralAmount: loanRecord.soldCollateralAmount,
+            createdAt: loanRecord.createdAt,
+            dueAt: loanRecord.dueAt,
+            remainingDebt: remainingDebt
+        });
 
-        isLiquidatable =
-            (currentCollateralRatio < loanRecord.minCollateralCoverageRatio) ||
-            isOverDue;
-
-        return (
-            remainingDebt,
-            currentCollateralRatio,
-            isLiquidatable,
-            isOverDue,
-            loanRecord.isClosed
-        );
+        return loanRecordResponse;
     }
 
-    function getLoanRecordsByAccount(State storage self, address accountAddress)
+    function getLoanRecordsByAccount(
+        State storage self,
+        Configuration.State storage configuration,
+        address accountAddress
+    )
         external
         view
-        returns (IStruct.LoanRecord[] memory loanRecordList)
+        returns (IStruct.GetLoanRecordResponse[] memory loanRecordList)
     {
         bytes32[] memory loanIdList = self.loanIdsByAccount[accountAddress];
-        loanRecordList = new IStruct.LoanRecord[](loanIdList.length);
+        loanRecordList = new IStruct.GetLoanRecordResponse[](loanIdList.length);
 
         for (uint256 i = 0; i < loanIdList.length; i++) {
-            loanRecordList[i] = self.loanRecordById[loanIdList[i]];
+            loanRecordList[i] = getLoanRecordById(
+                self,
+                configuration,
+                loanIdList[i]
+            );
         }
 
         return loanRecordList;

@@ -14,6 +14,18 @@ interface IStruct {
         address payable distributorAddress;
     }
 
+    struct GetDepositRecordResponse {
+        bytes32 depositId;
+        address tokenAddress;
+        uint256 depositTerm;
+        uint256 depositAmount;
+        uint256 poolId;
+        uint256 interest;
+        uint256 createdAt;
+        uint256 withdrewAt;
+        uint256 weight;
+    }
+
     struct LoanRecord {
         bool isClosed;
         bytes32 loanId;
@@ -37,6 +49,25 @@ interface IStruct {
         uint256 lastLiquidatedAt;
         address payable distributorAddress;
         uint256 distributorInterest;
+    }
+
+    struct GetLoanRecordResponse {
+        bool isClosed;
+        bytes32 loanId;
+        address loanTokenAddress;
+        address collateralTokenAddress;
+        uint256 loanAmount;
+        uint256 collateralAmount;
+        uint256 loanTerm;
+        uint256 annualInterestRate;
+        uint256 interest;
+        uint256 currentCollateralRatio;
+        uint256 minCollateralCoverageRatio;
+        uint256 alreadyPaidAmount;
+        uint256 soldCollateralAmount;
+        uint256 createdAt;
+        uint256 dueAt;
+        uint256 remainingDebt;
     }
 
     struct LoanAndCollateralTokenPair {

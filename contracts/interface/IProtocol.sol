@@ -78,24 +78,7 @@ interface IProtocol {
         external
         view
         virtual
-        returns (IStruct.DepositRecord memory depositRecord);
-
-    /// @notice Return interest distributed to different parties
-    /// @param depositId ID that identifies the deposit
-    /// @return interestForDepositor
-    /// @return interestForDepositDistributor
-    /// @return interestForLoanDistributor
-    /// @return interestForProtocolReserve
-    function getInterestDistributionByDepositId(bytes32 depositId)
-        external
-        view
-        virtual
-        returns (
-            uint256 interestForDepositor,
-            uint256 interestForDepositDistributor,
-            uint256 interestForLoanDistributor,
-            uint256 interestForProtocolReserve
-        );
+        returns (IStruct.GetDepositRecordResponse memory depositRecord);
 
     /// @notice Return details about all deposits
     /// @return depositRecordList
@@ -103,7 +86,7 @@ interface IProtocol {
         external
         view
         virtual
-        returns (IStruct.DepositRecord[] memory depositRecordList);
+        returns (IStruct.GetDepositRecordResponse[] memory depositRecordList);
 
     /// @notice Return whether a deposit can be early withdrew.
     /// @param depositId ID that identifies the deposit
@@ -217,26 +200,7 @@ interface IProtocol {
         external
         view
         virtual
-        returns (IStruct.LoanRecord memory loanRecord);
-
-    /// @notice Return extra details of a loan record
-    /// @param loanId ID that identifies the loan record
-    /// @return remainingDebt
-    /// @return currentCollateralRatio
-    /// @return isLiquidatable
-    /// @return isOverDue
-    /// @return isClosed
-    function getLoanRecordDetailsById(bytes32 loanId)
-        external
-        view
-        virtual
-        returns (
-            uint256 remainingDebt,
-            uint256 currentCollateralRatio,
-            bool isLiquidatable,
-            bool isOverDue,
-            bool isClosed
-        );
+        returns (IStruct.GetLoanRecordResponse memory loanRecord);
 
     /// @notice Return details of all loans owned by the caller
     /// @return loanRecordList
@@ -244,7 +208,7 @@ interface IProtocol {
         external
         view
         virtual
-        returns (IStruct.LoanRecord[] memory loanRecordList);
+        returns (IStruct.GetLoanRecordResponse[] memory loanRecordList);
 
     /// @notice Return details for each loan and collateral token pair
     /// @return loanAndCollateralTokenPairList A list of loan and collateral token pairs

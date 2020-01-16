@@ -170,27 +170,9 @@ contract Protocol is IProtocol, Ownable, Pausable {
         view
         whenNotPaused
         override
-        returns (IStruct.DepositRecord memory depositRecord)
+        returns (IStruct.GetDepositRecordResponse memory depositRecord)
     {
-        return _depositManager.getDepositRecordById(depositId);
-    }
-
-    function getInterestDistributionByDepositId(bytes32 depositId)
-        external
-        view
-        override
-        returns (
-            uint256 interestForDepositor,
-            uint256 interestForDepositDistributor,
-            uint256 interestForLoanDistributor,
-            uint256 interestForProtocolReserve
-        )
-    {
-        return
-            _depositManager.getInterestDistributionByDepositId(
-                _liquidityPools,
-                depositId
-            );
+        return _depositManager.getDepositRecordById(_liquidityPools, depositId);
     }
 
     function getDepositRecordsByAccount(address accountAddress)
@@ -198,9 +180,9 @@ contract Protocol is IProtocol, Ownable, Pausable {
         view
         whenNotPaused
         override
-        returns (IStruct.DepositRecord[] memory depositRecordList)
+        returns (IStruct.GetDepositRecordResponse[] memory depositRecordList)
     {
-        return _depositManager.getDepositRecordsByAccount(accountAddress);
+        return _depositManager.getDepositRecordsByAccount(_liquidityPools, accountAddress);
     }
 
     function isDepositEarlyWithdrawable(bytes32 depositId)
@@ -343,25 +325,9 @@ contract Protocol is IProtocol, Ownable, Pausable {
         view
         whenNotPaused
         override
-        returns (IStruct.LoanRecord memory loanRecord)
+        returns (IStruct.GetLoanRecordResponse memory loanRecord)
     {
-        return _loanManager.getLoanRecordById(loanId);
-    }
-
-    function getLoanRecordDetailsById(bytes32 loanId)
-        external
-        view
-        whenNotPaused
-        override
-        returns (
-            uint256 remainingDebt,
-            uint256 currentCollateralRatio,
-            bool isLiquidatable,
-            bool isOverDue,
-            bool isClosed
-        )
-    {
-        return _loanManager.getLoanRecordDetailsById(_configuration, loanId);
+        return _loanManager.getLoanRecordById(_configuration, loanId);
     }
 
     function getLoanRecordsByAccount(address accountAddress)
@@ -369,9 +335,9 @@ contract Protocol is IProtocol, Ownable, Pausable {
         view
         whenNotPaused
         override
-        returns (IStruct.LoanRecord[] memory loanRecordList)
+        returns (IStruct.GetLoanRecordResponse[] memory loanRecordList)
     {
-        return _loanManager.getLoanRecordsByAccount(accountAddress);
+        return _loanManager.getLoanRecordsByAccount(_configuration, accountAddress);
     }
 
     /// @dev Once the msg.value greater than 0, it will ignore collateralAmount parameter and use msg.value instead

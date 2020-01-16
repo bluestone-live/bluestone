@@ -297,7 +297,7 @@ library DepositManager {
             'DepositManager: deposit is not matured'
         );
 
-        (uint256 interestForDepositor, uint256 interestForDepositDistributor, , uint256 interestForProtocolReserve) = getInterestDistributionByDepositId(
+        (uint256 interestForDepositor, uint256 interestForDepositDistributor, , uint256 interestForProtocolReserve) = _getInterestDistributionByDepositId(
             self,
             liquidityPools,
             depositId
@@ -406,10 +406,14 @@ library DepositManager {
         return depositRecord.depositAmount;
     }
 
-    function getDepositRecordById(State storage self, bytes32 depositId)
-        external
+    function getDepositRecordById(
+        State storage self,
+        LiquidityPools.State storage liquidityPools,
+        bytes32 depositId
+    )
+        public
         view
-        returns (IStruct.DepositRecord memory depositRecord)
+        returns (IStruct.GetDepositRecordResponse memory depositRecord)
     {
         IStruct.DepositRecord memory depositRecord = self
             .depositRecordById[depositId];
@@ -419,15 +423,34 @@ library DepositManager {
             'DepositManager: Deposit ID is invalid'
         );
 
-        return depositRecord;
+        (uint256 interestForDepositor, , , ) = _getInterestDistributionByDepositId(
+            self,
+            liquidityPools,
+            depositId
+        );
+
+        IStruct.GetDepositRecordResponse memory depositRecordResponse = IStruct
+            .GetDepositRecordResponse({
+            depositId: depositId,
+            tokenAddress: depositRecord.tokenAddress,
+            depositTerm: depositRecord.depositTerm,
+            depositAmount: depositRecord.depositAmount,
+            poolId: depositRecord.poolId,
+            interest: interestForDepositor,
+            createdAt: depositRecord.createdAt,
+            withdrewAt: depositRecord.withdrewAt,
+            weight: depositRecord.weight
+        });
+
+        return depositRecordResponse;
     }
 
-    function getInterestDistributionByDepositId(
+    function _getInterestDistributionByDepositId(
         State storage self,
         LiquidityPools.State storage liquidityPools,
         bytes32 depositId
     )
-        public
+        internal
         view
         returns (
             uint256 interestForDepositor,
@@ -484,15 +507,26 @@ library DepositManager {
 
     function getDepositRecordsByAccount(
         State storage self,
+        LiquidityPools.State storage liquidityPools,
         address accountAddress
-    ) external view returns (IStruct.DepositRecord[] memory depositRecordList) {
+    )
+        external
+        view
+        returns (IStruct.GetDepositRecordResponse[] memory depositRecordList)
+    {
         bytes32[] memory depositIdList = self
             .depositIdsByAccountAddress[accountAddress];
 
-        depositRecordList = new IStruct.DepositRecord[](depositIdList.length);
+        depositRecordList = new IStruct.GetDepositRecordResponse[](
+            depositIdList.length
+        );
 
         for (uint256 i = 0; i < depositIdList.length; i++) {
-            depositRecordList[i] = self.depositRecordById[depositIdList[i]];
+            depositRecordList[i] = getDepositRecordById(
+                self,
+                liquidityPools,
+                depositIdList[i]
+            );
         }
 
         return depositRecordList;

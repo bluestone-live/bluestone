@@ -88,31 +88,21 @@ contract LoanManagerMock {
     function getLoanRecordById(bytes32 loanId)
         external
         view
-        returns (IStruct.LoanRecord memory loanRecord)
+        returns (IStruct.GetLoanRecordResponse memory loanRecord)
     {
-        return _loanManager.getLoanRecordById(loanId);
-    }
-
-    function getLoanRecordDetailsById(bytes32 loanId)
-        external
-        view
-        returns (
-            uint256 remainingDebt,
-            uint256 currentCollateralRatio,
-            bool isLiquidatable,
-            bool isOverDue,
-            bool isClosed
-        )
-    {
-        return _loanManager.getLoanRecordDetailsById(_configuration, loanId);
+        return _loanManager.getLoanRecordById(_configuration, loanId);
     }
 
     function getLoanRecordsByAccount(address accountAddress)
         external
         view
-        returns (IStruct.LoanRecord[] memory loanRecordList)
+        returns (IStruct.GetLoanRecordResponse[] memory loanRecordList)
     {
-        return _loanManager.getLoanRecordsByAccount(accountAddress);
+        return
+            _loanManager.getLoanRecordsByAccount(
+                _configuration,
+                accountAddress
+            );
     }
 
     function addCollateral(bytes32 loanId, uint256 collateralAmount)

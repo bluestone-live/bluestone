@@ -643,10 +643,8 @@ contract('LoanManager', function([
     // How about if a loan pair disabled?
     context('when loan and collateral token pair is enabled', () => {
       it('repays fully', async () => {
-        const prevLoanRecord = await loanManager.getLoanRecordDetailsById(
-          recordId,
-        );
-        const prevETHLoanRecord = await loanManager.getLoanRecordDetailsById(
+        const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
+        const prevETHLoanRecord = await loanManager.getLoanRecordById(
           ETHRecordId,
         );
         const prevDistributorBalance = await loanToken.balanceOf(
@@ -655,7 +653,9 @@ contract('LoanManager', function([
 
         await loanToken.approve(
           loanManager.address,
-          prevLoanRecord.remainingDebt.add(prevETHLoanRecord.remainingDebt),
+          new BN(prevLoanRecord.remainingDebt).add(
+            new BN(prevETHLoanRecord.remainingDebt),
+          ),
           {
             from: loaner,
           },
@@ -683,17 +683,17 @@ contract('LoanManager', function([
           recordId: ETHRecordId,
         });
 
-        const currLoanRecord = await loanManager.getLoanRecordDetailsById(
-          recordId,
+        const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+        expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+          new BN(0),
         );
-        expect(currLoanRecord.remainingDebt).to.bignumber.equal(new BN(0));
         expect(currLoanRecord.isClosed).to.be.true;
         expect(
           await loanToken.balanceOf(distributorAddress),
         ).to.bignumber.equal(
-          prevDistributorBalance.add(
-            prevLoanRecord.remainingDebt
-              .sub(loanAmount)
+          new BN(prevDistributorBalance).add(
+            new BN(prevLoanRecord.remainingDebt)
+              .sub(new BN(loanAmount))
               .mul(loanDistributorFeeRatio),
           ),
         );
@@ -793,16 +793,16 @@ contract('LoanManager', function([
       });
 
       it('liquidates fully', async () => {
-        const prevLoanRecord = await loanManager.getLoanRecordDetailsById(
-          recordId,
-        );
-        const prevETHLoanRecord = await loanManager.getLoanRecordDetailsById(
+        const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
+        const prevETHLoanRecord = await loanManager.getLoanRecordById(
           ETHRecordId,
         );
 
         await loanToken.approve(
           loanManager.address,
-          prevLoanRecord.remainingDebt.add(prevETHLoanRecord.remainingDebt),
+          new BN(prevLoanRecord.remainingDebt).add(
+            new BN(prevETHLoanRecord.remainingDebt),
+          ),
           {
             from: liquidator,
           },
@@ -835,10 +835,10 @@ contract('LoanManager', function([
           recordId: ETHRecordId,
         });
 
-        const currLoanRecord = await loanManager.getLoanRecordDetailsById(
-          recordId,
+        const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+        expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+          new BN(0),
         );
-        expect(currLoanRecord.remainingDebt).to.bignumber.equal(new BN(0));
         expect(currLoanRecord.isClosed).to.be.true;
       });
     });

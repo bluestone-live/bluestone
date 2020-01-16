@@ -193,11 +193,9 @@ contract(
       });
 
       it('returns correct interest for depositor', async () => {
-        const {
-          interestForDepositor,
-        } = await protocol.getInterestDistributionByDepositId(depositId);
+        const { interest } = await protocol.getDepositRecordById(depositId);
 
-        expect(interestForDepositor).to.bignumber.equal(
+        expect(new BN(interest)).to.bignumber.equal(
           totalInterest
             .sub(
               totalInterest
@@ -220,9 +218,7 @@ contract(
         const prevLoanDistributorBalance = await loanToken.balanceOf(
           loanDistributor,
         );
-        const { remainingDebt } = await protocol.getLoanRecordDetailsById(
-          loanId,
-        );
+        const { remainingDebt } = await protocol.getLoanRecordById(loanId);
 
         await protocol.repayLoan(loanId, remainingDebt, {
           from: loaner,
@@ -283,10 +279,8 @@ contract(
         const {
           depositAmount: depositAmountForRecord,
           poolId,
+          interest,
         } = await protocol.getDepositRecordById(depositId);
-        const {
-          interestForDepositor,
-        } = await protocol.getInterestDistributionByDepositId(depositId);
 
         const currentPoolId = Number.parseInt(
           (await datetime.toDays()).toString(),
@@ -316,7 +310,7 @@ contract(
         );
 
         expect(depositorBalance.sub(prevDepositorBalance)).to.bignumber.equal(
-          new BN(depositAmountForRecord).add(interestForDepositor),
+          new BN(depositAmountForRecord).add(new BN(interest)),
         );
         expect(
           depositDistributorBalance.sub(prevDepositDistributorBalance),

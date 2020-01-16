@@ -120,9 +120,9 @@ contract DepositManagerMock {
     function getDepositRecordById(bytes32 depositId)
         external
         view
-        returns (IStruct.DepositRecord memory depositRecord)
+        returns (IStruct.GetDepositRecordResponse memory depositRecord)
     {
-        return _depositManager.getDepositRecordById(depositId);
+        return _depositManager.getDepositRecordById(_liquidityPools, depositId);
     }
 
     function getInterestDistributionByDepositId(bytes32 depositId)
@@ -136,7 +136,7 @@ contract DepositManagerMock {
         )
     {
         return
-            _depositManager.getInterestDistributionByDepositId(
+            _depositManager._getInterestDistributionByDepositId(
                 _liquidityPools,
                 depositId
             );
@@ -145,9 +145,13 @@ contract DepositManagerMock {
     function getDepositRecordsByAccount(address accountAddress)
         external
         view
-        returns (IStruct.DepositRecord[] memory depositRecordList)
+        returns (IStruct.GetDepositRecordResponse[] memory depositRecordList)
     {
-        return _depositManager.getDepositRecordsByAccount(accountAddress);
+        return
+            _depositManager.getDepositRecordsByAccount(
+                _liquidityPools,
+                accountAddress
+            );
     }
 
     function isDepositEarlyWithdrawable(bytes32 depositId)
