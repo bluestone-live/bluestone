@@ -11,6 +11,10 @@ contract EthPriceOracle is IPriceOracle {
         medianizer = IMedianizer(medianizerAddress);
     }
 
+    function updatePriceIfNeeded() external override {
+        return;
+    }
+
     function getPrice() external view override returns (uint256) {
         (bytes32 value, ) = medianizer.peek();
         return uint256(value);

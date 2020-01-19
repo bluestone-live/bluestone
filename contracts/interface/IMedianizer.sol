@@ -6,4 +6,5 @@ pragma solidity ^0.6.0;
 /// https://github.com/makerdao/medianizer/blob/master/src/medianizer.sol
 interface IMedianizer {
     function peek() external view virtual returns (bytes32, bool);
+    function read() external view virtual returns (bytes32);
 }

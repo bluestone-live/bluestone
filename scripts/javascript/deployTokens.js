@@ -5,7 +5,6 @@ module.exports = makeTruffleScript(async network => {
   const debug = require('debug')('script:deployTokens');
   const ERC20Mock = artifacts.require('./ERC20Mock.sol');
   const USDTMock = artifacts.require('./USDTMock.sol');
-  const WETH9 = artifacts.require('./WETH9.sol');
 
   const { tokens: deployedTokens } = loadNetwork(network);
 
@@ -16,20 +15,22 @@ module.exports = makeTruffleScript(async network => {
   let savedTokens = {};
 
   for (symbol of tokenSymbolList) {
-    // We use address(1) to identify ETH
     const token = tokens[symbol];
     let deployedToken = deployedTokens[symbol];
 
-    if (deployedToken && deployedToken.address) {
-      debug(`Found ${symbol} at ${deployedToken.address}`);
+    if (symbol === 'USDT') {
+      deployedToken = await USDTMock.new(token.name, symbol);
+    } else if (symbol === 'ETH') {
+      // We use address(1) to identify ETH
+      deployedToken = Object.assign({}, deployedToken, {
+        address: '0x0000000000000000000000000000000000000001',
+      });
     } else {
-      if (symbol === 'USDT') {
-        deployedToken = await USDTMock.new(token.name, symbol);
-      } else {
-        deployedToken = await ERC20Mock.new(token.name, symbol);
-      }
-      debug(`Deployed ${symbol} at ${deployedToken.address}`);
+      deployedToken = await ERC20Mock.new(token.name, symbol);
     }
+
+    debug(`Deployed ${symbol} at ${deployedToken.address}`);
+
     savedTokens = {
       ...savedTokens,
       [symbol]: {

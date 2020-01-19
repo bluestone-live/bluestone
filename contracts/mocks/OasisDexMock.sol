@@ -8,6 +8,8 @@ contract OasisDexMock is IOasisDex {
 
     bool public stopped;
     uint256 private _ethPrice;
+    uint256 private _buyAmount;
+    uint256 private _payAmount;
 
     function buyEnabled() external view override returns (bool) {
         return true;
@@ -25,19 +27,27 @@ contract OasisDexMock is IOasisDex {
         _ethPrice = ethPrice;
     }
 
+    function setBuyAmount(uint256 buyAmount) external {
+        _buyAmount = buyAmount;
+    }
+
+    function setPayAmount(uint256 payAmount) external {
+        _payAmount = payAmount;
+    }
+
     function getBuyAmount(
         address, /* buy_gem */
         address, /* pay_gem */
-        uint256 pay_amt
+        uint256 /* pay_amt */
     ) external view override returns (uint256) {
-        return _ethPrice.mulFixed(pay_amt);
+        return _buyAmount;
     }
 
     function getPayAmount(
         address, /* pay_gem */
         address, /* buy_gem */
-        uint256 buy_amt
+        uint256 /* buy_amt */
     ) external view override returns (uint256) {
-        return _ethPrice.mulFixed(buy_amt);
+        return _payAmount;
     }
 }

@@ -8,6 +8,10 @@ contract SingleFeedPriceOracle is IPriceOracle, Ownable {
     uint256 private _price;
     uint256 public lastUpdatedAt;
 
+    function updatePriceIfNeeded() external override {
+        return;
+    }
+
     function getPrice() external view override returns (uint256) {
         return _price;
     }

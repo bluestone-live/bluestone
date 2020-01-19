@@ -7,6 +7,7 @@ const AccountManager = artifacts.require('AccountManager');
 const DateTime = artifacts.require('DateTime');
 const WETH9 = artifacts.require('WETH9');
 const PayableProxy = artifacts.require('PayableProxy');
+const DaiPriceOracle = artifacts.require('DaiPriceOracle');
 const { deploy, toFixedBN } = require('../scripts/utils');
 
 // Mocks
@@ -38,6 +39,7 @@ module.exports = async function(deployer, network) {
     LoanManagerMock,
     LiquidityPools,
     LiquidityPoolsMock,
+    DaiPriceOracle,
   ]);
 
   await deployer.deploy(LiquidityPools);

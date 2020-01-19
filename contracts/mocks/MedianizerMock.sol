@@ -14,4 +14,10 @@ contract MedianizerMock is IMedianizer {
     function peek() external view override returns (bytes32, bool) {
         return (bytes32(val), has);
     }
+
+    function read() external view override returns (bytes32) {
+        require(has);
+
+        return bytes32(val);
+    }
 }

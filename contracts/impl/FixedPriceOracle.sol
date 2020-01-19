@@ -10,6 +10,10 @@ contract FixedPriceOracle is IPriceOracle {
         _price = price;
     }
 
+    function updatePriceIfNeeded() external override {
+        return;
+    }
+
     function getPrice() external view override returns (uint256) {
         return _price;
     }
