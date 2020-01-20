@@ -91,6 +91,24 @@ const routes = [
     }),
     title: 'route_title_repay',
   },
+  {
+    name: 'monitor',
+    path: '/monitor',
+    component: Loadable({
+      loader: () => import('../pages/MonitorPage'),
+      loading: Loading,
+    }),
+    title: 'route_title_monitor',
+  },
+  {
+    name: 'monitor',
+    path: '/monitor/:poolId',
+    component: Loadable({
+      loader: () => import('../pages/MonitorDetailPage'),
+      loading: Loading,
+    }),
+    title: 'route_title_monitor_detail',
+  },
 ];
 
 export default routes;

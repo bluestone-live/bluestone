@@ -100,6 +100,22 @@
     "record_status_text_overdue": "Overdue",
     "record_status_text_due_in": "Due in {{days}} days",
     "deposit_overview_button_sort_by": "Sort by {{key}}",
-    "deposit_detail_label_interest_earned": "Interest Earned"
+    "deposit_detail_label_interest_earned": "Interest Earned",
+    "monitor_pool_card_title": "PoolID: {{poolId}}",
+    "monitor_pool_card_label_total_deposit": "Total Deposit",
+    "monitor_pool_card_label_available_amount": "Available Amount",
+    "monitor_pool_card_label_loan_interest": "Loan Interest",
+    "monitor_pool_card_label_total_deposit_weight": "Deposit Weight",
+    "route_title_monitor": "Monitor",
+    "route_title_monitor_detail": "Monitor Detail",
+    "monitor_detail_page_label_token_symbol": "Token",
+    "monitor_detail_page_label_pool_id": "Pool ID",
+    "monitor_detail_page_label_current_term": "Current Term",
+    "monitor_detail_page_label_total_deposit": "Total Deposit",
+    "monitor_detail_page_label_total_deposit_weight": "Total Deposit Weight",
+    "monitor_detail_page_label_loan_interest": "Loan Interest",
+    "monitor_detail_page_label_apr": "APR",
+    "monitor_detail_page_label_available_amount": "Available Amount",
+    "monitor_detail_page_label_utilization": "Utilization"
   }
 }

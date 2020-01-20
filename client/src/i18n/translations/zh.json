@@ -100,6 +100,22 @@
     "record_status_text_overdue": "已过期",
     "record_status_text_due_in": " 将在{{days}}天后过期",
     "deposit_overview_button_sort_by": "{{key}}",
-    "deposit_detail_label_interest_earned": "获得利息"
+    "deposit_detail_label_interest_earned": "获得利息",
+    "monitor_pool_card_title": "PoolID: {{poolId}}",
+    "monitor_pool_card_label_total_deposit": "总存款",
+    "monitor_pool_card_label_available_amount": "可用余额",
+    "monitor_pool_card_label_loan_interest": "总利息",
+    "monitor_pool_card_label_total_deposit_weight": "总权重",
+    "route_title_monitor": "监测",
+    "route_title_monitor_detail": "监测详情",
+    "monitor_detail_page_label_token_symbol": "币种",
+    "monitor_detail_page_label_pool_id": "Pool ID",
+    "monitor_detail_page_label_current_term": "当前周期",
+    "monitor_detail_page_label_total_deposit": "总存款",
+    "monitor_detail_page_label_total_deposit_weight": "总权重",
+    "monitor_detail_page_label_loan_interest": "总利息",
+    "monitor_detail_page_label_apr": "年化利率",
+    "monitor_detail_page_label_available_amount": "可用余额",
+    "monitor_detail_page_label_utilization": "利用率"
   }
 }

@@ -28,6 +28,7 @@ const DepositDetail = (props: IProps) => {
     record,
     transactions,
     reloadRecord,
+    history,
     t,
   } = props;
 
@@ -51,6 +52,14 @@ const DepositDetail = (props: IProps) => {
   const transactionsOfRecord = useMemo(
     () => transactions.filter(tx => tx.recordId === record.recordId),
     [transactions, record],
+  );
+
+  const goTo = useCallback(
+    () =>
+      history.push(
+        `/monitor/${record.poolId}?tokenAddress=${record.tokenAddress}`,
+      ),
+    [record.tokenAddress, record.poolId],
   );
 
   return (
@@ -102,7 +111,7 @@ const DepositDetail = (props: IProps) => {
         </Col>
       </Row>
       <Row>
-        <Col span={24} className="pool-link">
+        <Col span={24} className="pool-link" onClick={goTo}>
           {t('deposit_detail_text_pool', { poolId: record.poolId })}
           <Icon type="question-circle" theme="filled" />
         </Col>

@@ -56,7 +56,7 @@ const DepositOverview = (props: WithTranslation) => {
   }, [selectedToken]);
 
   useDepsUpdated(async () => {
-    if (tokens.length > 0) {
+    if (tokens.length > 0 && !selectedToken) {
       setSelectedToken(tokens[0]);
     }
   }, [tokens]);
