@@ -12,9 +12,8 @@ module.exports = makeTruffleScript(async network => {
       debug(`${symbol} is not deployed yet.`);
       return;
     }
-    let deployedToken = await ERC20Mock.at(token.address);
     const protocol = await Protocol.deployed();
-    await protocol.enableDepositToken(deployedToken.address);
+    await protocol.enableDepositToken(token.address);
     debug(`${symbol} is enabled.`);
   }
 });

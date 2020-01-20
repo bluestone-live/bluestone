@@ -91,18 +91,6 @@ module.exports = env => ({
   },
   target: 'web',
   devServer: {
-    proxy: {
-      [process.env.API_PATH]: {
-        target: process.env.DEV_SERVER_PROXY,
-        secure: false,
-        changeOrigin: true,
-      },
-      [process.env.OTC_SERVER]: {
-        target: process.env.DEV_SERVER_PROXY,
-        secure: false,
-        changeOrigin: true,
-      },
-    },
     disableHostCheck: true,
     port: process.env.DEV_SERVER_PORT,
     historyApiFallback: true,

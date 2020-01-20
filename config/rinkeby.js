@@ -2,26 +2,11 @@ module.exports = {
   server: {
     port: 3000,
   },
-  coinmarketcap: {
-    sandbox: true,
-    // To get a sandbox API key, signup for a sandbox account and choose the Professional Plan:
-    // https://sandbox.coinmarketcap.com/signup
-    apiKey: '<ADD-YOUR-API-KEY>',
-  },
-  cryptocompare: {
-    // Get a free key here: https://min-api.cryptocompare.com/pricing
-    apiKey: '<ADD-YOUR-API-KEY>',
-  },
   infura: {
     // Go to https://infura.io/dashboard, click "VIEW PROJECT" and get the project ID.
-    projectId: '<ADD-PROJECT-ID>',
+    projectId: '24cc9d4197c643ec81bbe2ecbaa26d31',
   },
   // The twelve word phrase the wallet uses to generate public/private key pairs.
-  // This is needed when we deploy contracts to testnet.
-  mnemonic: '<ADD-YOUR-MNEMONIC>',
-  // address index in your account based by zero.
-  accountIndex: 0,
-
   contract: {
     tokens: {
       DAI: {
@@ -45,19 +30,25 @@ module.exports = {
       {
         loanTokenSymbol: 'DAI',
         collateralTokenSymbol: 'ETH',
-        minCollateralCoverageRatio: 1.2,
+        minCollateralCoverageRatio: 1.5,
         liquidationDiscount: 0.03,
       },
       {
         loanTokenSymbol: 'USDT',
         collateralTokenSymbol: 'ETH',
-        minCollateralCoverageRatio: 1.2,
+        minCollateralCoverageRatio: 1.5,
+        liquidationDiscount: 0.03,
+      },
+      {
+        loanTokenSymbol: 'USDT',
+        collateralTokenSymbol: 'DAI',
+        minCollateralCoverageRatio: 1.5,
         liquidationDiscount: 0.03,
       },
     ],
-    protocolReserveRatio: 0.1,
+    protocolReserveRatio: 0.07,
     maxDepositDistributorFeeRatio: 0.01,
     maxLoanDistributorFeeRatio: 0.02,
-    protocolAddress: '<ADD-ADDRESS>',
+    protocolAddress: '0x25A02a9cc5Fe6d44f6ff2ACCb2854BA634806F8e',
   },
 };

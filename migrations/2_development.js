@@ -5,6 +5,10 @@ const DepositManager = artifacts.require('DepositManager');
 const LoanManager = artifacts.require('LoanManager');
 const AccountManager = artifacts.require('AccountManager');
 const DateTime = artifacts.require('DateTime');
+const PayableProxy = artifacts.require('PayableProxy');
+const { deploy, toFixedBN } = require('../scripts/utils');
+
+// Mocks
 const ConfigurationMock = artifacts.require('ConfigurationMock');
 const LiquidityPoolsMock = artifacts.require('LiquidityPoolsMock');
 const DepositManagerMock = artifacts.require('DepositManagerMock');
@@ -14,14 +18,11 @@ const PayableProxyMock = artifacts.require('PayableProxyMock');
 const InterestModel = artifacts.require('InterestModel');
 const MedianizerMock = artifacts.require('MedianizerMock');
 const OasisDexMock = artifacts.require('OasisDexMock');
-const { deploy, toFixedBN } = require('../scripts/utils');
 
 module.exports = async function(deployer, network) {
-  // TODO(desmond): remove it once contract refactor is complete
   if (network !== 'development') {
     return;
   }
-
   await deployer.deploy(DateTime);
   await deployer.deploy(Configuration);
   await deployer.deploy(AccountManager);

@@ -12,13 +12,12 @@ const exec = (scriptName, network) =>
   );
 
 module.exports = makeTruffleScript(async network => {
-  if (network === 'development') {
-    debug('Deploy Tokens');
-    exec('deployTokens', network);
+  debug('Deploy Tokens');
+  exec('deployTokens', network);
 
-    debug('Deploy price oracles');
-    exec('deployPriceOracles', network);
-  }
+  debug('Deploy price oracles');
+  exec('deployPriceOracles', network);
+
   debug('Setup Deposit Environment');
   exec('enableDepositTerm', network);
   exec('enableDepositToken', network);

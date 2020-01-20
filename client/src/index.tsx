@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import { store } from './stores';
 import * as OfflinePluginRuntime from 'offline-plugin/runtime';
 import { Switch, Route, BrowserRouter } from 'react-router-dom';
@@ -7,7 +7,7 @@ import { Provider as ReduxProvider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import flatten from './utils/flatten';
-import routes from './routes';
+import routes from './routes/index';
 import { Default } from './layouts';
 import 'normalize.css';
 import 'antd/dist/antd.less';

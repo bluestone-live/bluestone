@@ -6,28 +6,26 @@
     "AccountManager": "0x0D6C90452865821a9cD2128df79F704Be0a0D51c",
     "DepositManager": "0xCF58d082363A5eca2102211713bEd5eAF33E29C5",
     "LoanManager": "0xac29521B19B98EA8413E806CA7f2562748F02289",
-    "LiquidityPools": "0xE6CaB933A217Bc7083f0AAd2BEAc455Fb6f68E29"
+    "LiquidityPools": "0xE6CaB933A217Bc7083f0AAd2BEAc455Fb6f68E29",
+    "Protocol": "0x748417C7663CEa8b7C495ba46e7B55e0e81bB85c",
+    "InterestModel": "0xdAA83F25134f912A75090F12dc63bC19910312Cb",
+    "PayableProxy": "0x7834fDB63cE2695811eA16262DFae5292b74D027"
   },
   "tokens": {
-    "ETH": {
-      "name": "Ether",
-      "symbol": "ETH",
-      "address": "0x4b675E84a5fdFE8a2C567B75BE49B2f824a52243"
-    },
     "DAI": {
       "name": "Dai",
-      "symbol": "DAI",
-      "address": "0xb32DFe7089e51e39cc5d3849356ACf44315959d8"
+      "address": "0xb32DFe7089e51e39cc5d3849356ACf44315959d8",
+      "priceOracleAddress": "0xfe5A44Cc4af16C6adc6553AFbba36B0bd6Fd6370"
     },
     "USDT": {
       "name": "Tether",
-      "symbol": "USDT",
-      "address": "0xEeB181Cbc4a55B6AeDF509A1682de5d4d28f527F"
+      "address": "0xEeB181Cbc4a55B6AeDF509A1682de5d4d28f527F",
+      "priceOracleAddress": "0x24fB257439C90B5Db6Cfc8A1c921CBcc6bAe3822"
     },
-    "WETH": {
-      "name": "Wrapped Ether",
-      "symbol": "WETH",
-      "address": "0x05426C5d2E04F4d31c6096e6411Ad0e3Fd5fc683"
+    "ETH": {
+      "name": "Native Ether",
+      "address": "0x4b675E84a5fdFE8a2C567B75BE49B2f824a52243",
+      "priceOracleAddress": "0x1283771181f49d3F735EfCd15bAC825dCb01efD9"
     }
   }
 }

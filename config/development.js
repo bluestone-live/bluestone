@@ -16,12 +16,6 @@ module.exports = {
     // Go to https://infura.io/dashboard, click "VIEW PROJECT" and get the project ID.
     projectId: '<ADD-PROJECT-ID>',
   },
-  // The twelve word phrase the wallet uses to generate public/private key pairs.
-  // This is needed when we deploy contracts to testnet.
-  mnemonic: '<ADD-YOUR-MNEMONIC>',
-  // address index in your account based by zero.
-  accountIndex: 0,
-
   contract: {
     tokens: {
       DAI: {

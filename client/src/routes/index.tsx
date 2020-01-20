@@ -1,16 +1,14 @@
+import React from 'react';
 import Loadable from 'react-loadable';
 import Loading from '../components/Loading';
 import { Overview } from '../layouts';
+import { Redirect } from 'react-router';
 
 const routes = [
   {
-    name: 'demo',
+    name: 'root',
     path: '/',
-    component: Loadable({
-      loader: () => import('../pages/Demo'),
-      loading: Loading,
-    }),
-    layout: Overview,
+    component: () => <Redirect to="/deposit" />,
   },
   {
     name: 'deposit-overview',

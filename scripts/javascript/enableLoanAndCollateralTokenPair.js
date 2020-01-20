@@ -24,10 +24,8 @@ module.exports = makeTruffleScript(async network => {
     ) {
       return debug(`${pair.collateralTokenSymbol} is not deployed yet.`);
     }
-    const loanToken = await ERC20Mock.at(tokens[pair.loanTokenSymbol].address);
-    const collateralToken = await ERC20Mock.at(
-      tokens[pair.collateralTokenSymbol].address,
-    );
+    const loanToken = tokens[pair.loanTokenSymbol];
+    const collateralToken = tokens[pair.collateralTokenSymbol];
     const protocol = await Protocol.deployed();
     await protocol.enableLoanAndCollateralTokenPair(
       loanToken.address,
