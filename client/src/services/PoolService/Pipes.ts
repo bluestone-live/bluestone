@@ -37,11 +37,11 @@ export const PoolsPipe = (
       return {
         ...pool,
         tokenAddress,
-        term: index + 1,
+        term: index,
         APR,
         utilization,
         totalDeposit: pool.depositAmount,
       };
     })
-    .slice(0, pools.length - 1);
+    .slice(1, pools.length);
 };

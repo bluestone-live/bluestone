@@ -83,7 +83,7 @@
     "borrow_detail_button_repay": "Repay",
     "route_title_add_collateral": "Add Collateral",
     "route_title_repay": "Repay Borrow",
-    "add_collateral_form_notice": "Notice: when below {{minCollateralCoverageRatio}}, there will be balala.",
+    "add_collateral_form_notice": "Notice: when below {{minCollateralCoverageRatio}}%, there will be balala.",
     "add_collateral_form_label_collateral_amount": "Collateral Amount",
     "add_collateral_form_label_update_collateral_ratio": "Update Collateral Ratio",
     "add_collateral_form_tip_title": "",
@@ -99,6 +99,7 @@
     "record_status_text_matured_in": "Mature in {{days}} days",
     "record_status_text_overdue": "Overdue",
     "record_status_text_due_in": "Due in {{days}} days",
-    "deposit_overview_button_sort_by": "Sort by {{key}}"
+    "deposit_overview_button_sort_by": "Sort by {{key}}",
+    "deposit_detail_label_interest_earned": "Interest Earned"
   }
 }

@@ -58,7 +58,7 @@ const RecordCard = (props: IProps) => {
       return (
         <span>
           {t('record_card_due_date_due_in', {
-            day: 0, // TODO(ZhangRGK): Waiting for the pool id refactor finish.
+            day: borrowRecord.dueAt.diff(borrowRecord.createdAt, 'day'),
           })}
         </span>
       );

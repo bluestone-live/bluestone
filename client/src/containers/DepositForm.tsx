@@ -9,6 +9,7 @@ import {
   AccountActions,
   useLoading,
   ViewActions,
+  ETHIdentificationAddress,
 } from '../stores';
 import FormInput from '../components/FormInput';
 import TextBox from '../components/TextBox';
@@ -90,7 +91,9 @@ const DepositForm = (props: IProps) => {
       dispatch(
         AccountActions.setTokenBalance(
           token.tokenAddress,
-          await accountService.getTokenBalance(accountAddress, token),
+          token.tokenAddress === ETHIdentificationAddress
+            ? await accountService.getETHBalance(accountAddress)
+            : await accountService.getTokenBalance(accountAddress, token),
         ),
       );
 

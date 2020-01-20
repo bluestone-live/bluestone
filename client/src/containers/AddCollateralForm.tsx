@@ -120,8 +120,10 @@ const AddCollateralForm = (props: IProps) => {
       </div>
       <Form>
         <CollateralCoverageRatio
-          currentCollateralRatio={Number.parseFloat(
-            convertWeiToDecimal(record.currentCollateralRatio),
+          currentCollateralRatio={(
+            Number.parseFloat(
+              convertWeiToDecimal(record.currentCollateralRatio),
+            ) * 100
           ).toFixed(2)}
           minCollateralRatio={(
             Number.parseFloat(

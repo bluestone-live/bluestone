@@ -83,7 +83,7 @@
     "borrow_detail_button_repay": "还款",
     "route_title_add_collateral": "追加抵押",
     "route_title_repay": "还款",
-    "add_collateral_form_notice": "请注意: {{minCollateralCoverageRatio}}",
+    "add_collateral_form_notice": "请注意: {{minCollateralCoverageRatio}}%",
     "add_collateral_form_label_collateral_amount": "抵押金额",
     "add_collateral_form_label_update_collateral_ratio": "更新抵押率",
     "add_collateral_form_tip_title": "",
@@ -99,6 +99,7 @@
     "record_status_text_matured_in": "将在{{days}}天后到期",
     "record_status_text_overdue": "已过期",
     "record_status_text_due_in": " 将在{{days}}天后过期",
-    "deposit_overview_button_sort_by": "{{key}}"
+    "deposit_overview_button_sort_by": "{{key}}",
+    "deposit_detail_label_interest_earned": "获得利息"
   }
 }

@@ -23,7 +23,7 @@ export interface IToken {
   tokenSymbol: string;
   allowance?: string;
   price?: string;
-  erc20Instance: Contract;
+  erc20Instance?: Contract;
 }
 
 export interface ITerm {

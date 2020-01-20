@@ -7,6 +7,7 @@ import {
   PoolActions,
   AccountActions,
   CommonActions,
+  ETHIdentificationAddress,
 } from '../stores';
 import Form from 'antd/lib/form';
 import FormInput from '../components/FormInput';
@@ -103,7 +104,12 @@ const BorrowForm = (props: IProps) => {
       dispatch(
         AccountActions.setTokenBalance(
           collateralToken.tokenAddress,
-          await accountService.getTokenBalance(accountAddress, collateralToken),
+          collateralToken.tokenAddress === ETHIdentificationAddress
+            ? await accountService.getETHBalance(accountAddress)
+            : await accountService.getTokenBalance(
+                accountAddress,
+                collateralToken,
+              ),
         ),
       );
     }
@@ -264,7 +270,7 @@ const BorrowForm = (props: IProps) => {
 
   const modifyCollateralRatio = useCallback(
     (num: number) => () => {
-      setCollateralRatio(collateralRatio + num);
+      setCollateralRatio(Number.parseFloat(collateralRatio) + num);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(

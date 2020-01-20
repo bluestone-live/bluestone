@@ -64,7 +64,7 @@ export class LoanService {
             loanTerm.toString(),
             distributorAddress,
           )
-          .send({ from: accountAddress, value: loanAmount });
+          .send({ from: accountAddress, value: collateralAmount });
       }
       return protocol.methods
         .loan(

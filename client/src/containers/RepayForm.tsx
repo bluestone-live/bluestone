@@ -42,7 +42,7 @@ const RepayForm = (props: IProps) => {
   return (
     <div className="repay-form">
       <TextBox label={t('repay_form_label_remaining_debt')}>
-        {convertWeiToDecimal(record.remainingDebt)}{' '}
+        {convertWeiToDecimal(record.remainingDebt, 18)}{' '}
         {selectedLoanPair.loanToken.tokenSymbol}
       </TextBox>
       <TextBox label={t('repay_form_label_due_date')}>

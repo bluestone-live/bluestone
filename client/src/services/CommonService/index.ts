@@ -45,8 +45,8 @@ export class CommonService {
     accountAddress: string,
     protocolContractAddress: string,
   ): Promise<string> {
-    return token.erc20Instance.methods
-      .allowance(accountAddress, protocolContractAddress)
+    return token
+      .erc20Instance!.methods.allowance(accountAddress, protocolContractAddress)
       .call();
   }
 

@@ -19,9 +19,9 @@ const BorrowDetail = (props: IProps) => {
   const { record, selectedLoanPair, transactions, history, t } = props;
 
   const collateralRatio = useMemo(() => {
-    const currentCollateralRatio = Number.parseFloat(
-      convertWeiToDecimal(record.currentCollateralRatio, 2),
-    );
+    const currentCollateralRatio =
+      Number.parseFloat(convertWeiToDecimal(record.currentCollateralRatio, 2)) *
+      100;
 
     const minCollateralCoverageRatio =
       Number.parseFloat(
@@ -80,14 +80,16 @@ const BorrowDetail = (props: IProps) => {
       <Row>
         <Col span={12}>
           <TextBox label={t('borrow_detail_label_total_collateral')}>
-            {convertWeiToDecimal(record.loanAmount)}
+            {convertWeiToDecimal(record.collateralAmount)}
           </TextBox>
         </Col>
-        <Col span={12}>
-          <TextBox label={t('borrow_detail_label_collateral_ratio')}>
-            {collateralRatio}
-          </TextBox>
-        </Col>
+        {!record.isClosed && (
+          <Col span={12}>
+            <TextBox label={t('borrow_detail_label_collateral_ratio')}>
+              {collateralRatio}
+            </TextBox>
+          </Col>
+        )}
       </Row>
       <Row>
         <Col span={24}>
@@ -98,11 +100,13 @@ const BorrowDetail = (props: IProps) => {
         </Col>
       </Row>
       <Row>
-        <Col span={12}>
-          <TextBox label={t('borrow_detail_label_remaining_debt')}>
-            {convertWeiToDecimal(record.remainingDebt)}
-          </TextBox>
-        </Col>
+        {!record.isClosed && (
+          <Col span={12}>
+            <TextBox label={t('borrow_detail_label_remaining_debt')}>
+              {convertWeiToDecimal(record.remainingDebt)}
+            </TextBox>
+          </Col>
+        )}
         <Col span={12}>
           <TextBox label={t('borrow_detail_label_total_debt')}>
             {convertWeiToDecimal(
@@ -121,21 +125,23 @@ const BorrowDetail = (props: IProps) => {
           </TextBox>
         </Col>
       </Row>
-      <Row className="action-buttons">
-        <Col span={12}>
-          <Button
-            block
-            onClick={goTo(`/borrow/${record.recordId}/add-collateral`)}
-          >
-            {t('borrow_detail_button_add_collateral')}
-          </Button>
-        </Col>
-        <Col span={12}>
-          <Button block onClick={goTo(`/borrow/${record.recordId}/repay`)}>
-            {t('borrow_detail_button_repay')}
-          </Button>
-        </Col>
-      </Row>
+      {!record.isClosed && (
+        <Row className="action-buttons">
+          <Col span={12}>
+            <Button
+              block
+              onClick={goTo(`/borrow/${record.recordId}/add-collateral`)}
+            >
+              {t('borrow_detail_button_add_collateral')}
+            </Button>
+          </Col>
+          <Col span={12}>
+            <Button block onClick={goTo(`/borrow/${record.recordId}/repay`)}>
+              {t('borrow_detail_button_repay')}
+            </Button>
+          </Col>
+        </Row>
+      )}
       <TransactionList
         tokens={tokens}
         record={record}

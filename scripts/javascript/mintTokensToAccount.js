@@ -11,6 +11,9 @@ module.exports = makeTruffleScript(async (network, accountAddress) => {
       debug(`${symbol} is not deployed yet.`);
       return;
     }
+    if (symbol === 'ETH') {
+      continue;
+    }
     const erc20 = await ERC20Mock.at(token.address);
     const scaledValue = toFixedBN(1000000);
     debug(`Token symbol: ${symbol}`);

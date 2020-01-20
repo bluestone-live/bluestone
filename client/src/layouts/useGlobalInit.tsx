@@ -3,12 +3,16 @@ import { useComponentMounted } from '../utils/useEffectAsync';
 import { parseQuery } from '../utils/parseQuery';
 import { getService } from '../services';
 import { Dispatch } from 'redux';
-import { AccountActions, CommonActions, IToken } from '../stores';
+import {
+  AccountActions,
+  CommonActions,
+  IToken,
+  ETHIdentificationAddress,
+} from '../stores';
 import { decodeDistributorConfig } from '../utils/decodeDistributorConfig';
 import { convertWeiToDecimal } from '../utils/BigNumber';
 import { TFunction } from 'i18next';
 import { TabType } from '../components/TabBar';
-import Icon from 'antd/lib/icon';
 import CustomIcon from '../components/CustomIcon';
 
 export const useGlobalInit = (
@@ -68,14 +72,22 @@ export const useGlobalInit = (
 
     // Get deposit tokens
     const depositTokens = await Promise.all(
-      (await commonService.getDepositTokens()).map(async (token: IToken) => ({
-        ...token,
-        allowance: await commonService.getTokenAllowance(
-          token,
-          accounts[0],
-          protocolContractAddress,
-        ),
-      })),
+      (await commonService.getDepositTokens()).map(async (token: IToken) => {
+        if (token.tokenAddress === ETHIdentificationAddress) {
+          return {
+            ...token,
+            allowance: undefined,
+          };
+        }
+        return {
+          ...token,
+          allowance: await commonService.getTokenAllowance(
+            token,
+            accounts[0],
+            protocolContractAddress,
+          ),
+        };
+      }),
     );
     dispatch(CommonActions.setDepositTokens(depositTokens));
 
@@ -104,20 +116,26 @@ export const useGlobalInit = (
               loanToken: {
                 ...loanToken,
                 price: loanTokenPrice,
-                allowance: await commonService.getTokenAllowance(
-                  loanToken,
-                  accounts[0],
-                  protocolContractAddress,
-                ),
+                allowance:
+                  loanToken.tokenAddress === ETHIdentificationAddress
+                    ? undefined
+                    : await commonService.getTokenAllowance(
+                        loanToken,
+                        accounts[0],
+                        protocolContractAddress,
+                      ),
               },
               collateralToken: {
                 ...collateralToken,
                 price: collateralTokenPrice,
-                allowance: await commonService.getTokenAllowance(
-                  collateralToken,
-                  accounts[0],
-                  protocolContractAddress,
-                ),
+                allowance:
+                  collateralToken.tokenAddress === ETHIdentificationAddress
+                    ? undefined
+                    : await commonService.getTokenAllowance(
+                        collateralToken,
+                        accounts[0],
+                        protocolContractAddress,
+                      ),
               },
               maxLoanTerm,
               annualPercentageRate,

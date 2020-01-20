@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import {
   ITransaction,
@@ -12,6 +12,7 @@ import { Row, Col } from 'antd/lib/grid';
 import dayjs from 'dayjs';
 import { EventName } from '../utils/MetaMaskProvider';
 import { convertWeiToDecimal } from '../utils/BigNumber';
+import Icon from 'antd/lib/icon';
 
 interface IProps extends WithTranslation {
   tokens: IToken[];
@@ -21,6 +22,12 @@ interface IProps extends WithTranslation {
 
 const TransactionList = (props: IProps) => {
   const { tokens, record, transactions, t } = props;
+
+  const [showList, setShowList] = useState(true);
+
+  const toggleShowList = useCallback(() => {
+    setShowList(!showList);
+  }, [showList]);
 
   const txDescription = useCallback(
     (tx: ITransaction) => {
@@ -61,19 +68,23 @@ const TransactionList = (props: IProps) => {
 
   return (
     <div className="transaction-list">
-      <div className="head">
+      <div className="head" onClick={toggleShowList}>
+        {showList ? <Icon type="caret-down" /> : <Icon type="caret-right" />}
         {t('transaction_list_title_transactions', {
           count: transactions.length,
         })}
       </div>
-      {transactions.map(tx => (
-        <Row key={tx.transactionHash} className="transaction-item">
-          <Col span={12}>
-            {dayjs(tx.time * 1000).format('YYYY-MM-DD HH:mm')}
-          </Col>
-          <Col span={12}>{txDescription(tx)}</Col>
-        </Row>
-      ))}
+      {showList &&
+        transactions.map(tx => (
+          <Row key={tx.transactionHash} className="transaction-item">
+            <Col span={12}>
+              {dayjs(Number.parseInt(tx.time.toString(), 10) * 1000).format(
+                'YYYY-MM-DD HH:mm',
+              )}
+            </Col>
+            <Col span={12}>{txDescription(tx)}</Col>
+          </Row>
+        ))}
     </div>
   );
 };

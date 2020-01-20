@@ -1,4 +1,4 @@
-import { IToken, ILoanPair } from '../../stores';
+import { IToken, ILoanPair, ETHIdentificationAddress } from '../../stores';
 import { ERC20Factory } from '../../utils/MetaMaskProvider';
 
 /**
@@ -14,12 +14,18 @@ export const depositTokenPipe = async (
     depositTokenAddressList
       .map((tokenAddress: string) => ({
         tokenAddress,
-        erc20Instance: getERC20ByTokenAddress(tokenAddress),
+        erc20Instance:
+          tokenAddress === ETHIdentificationAddress
+            ? undefined
+            : getERC20ByTokenAddress(tokenAddress),
       }))
       .map(async ({ tokenAddress, erc20Instance }) => ({
         tokenAddress,
         erc20Instance,
-        tokenSymbol: (await erc20Instance.methods.symbol().call()) as string,
+        tokenSymbol:
+          tokenAddress === ETHIdentificationAddress
+            ? 'ETH'
+            : ((await erc20Instance!.methods.symbol().call()) as string),
       })),
   );
 };
@@ -47,11 +53,17 @@ export const loanPairPipe = async (
         }) => ({
           loanToken: {
             tokenAddress: loanTokenAddress,
-            erc20Instance: getERC20ByTokenAddress(loanTokenAddress),
+            erc20Instance:
+              loanTokenAddress === ETHIdentificationAddress
+                ? undefined
+                : getERC20ByTokenAddress(loanTokenAddress),
           },
           collateralToken: {
             tokenAddress: collateralTokenAddress,
-            erc20Instance: getERC20ByTokenAddress(collateralTokenAddress),
+            erc20Instance:
+              collateralTokenAddress === ETHIdentificationAddress
+                ? undefined
+                : getERC20ByTokenAddress(collateralTokenAddress),
           },
           minCollateralCoverageRatio,
           annualPercentageRate: '0',
@@ -66,15 +78,21 @@ export const loanPairPipe = async (
         }) => ({
           loanToken: {
             ...loanToken,
-            tokenSymbol: (await loanToken.erc20Instance.methods
-              .symbol()
-              .call()) as string,
+            tokenSymbol:
+              loanToken.tokenAddress === ETHIdentificationAddress
+                ? 'ETH'
+                : ((await loanToken
+                    .erc20Instance!.methods.symbol()
+                    .call()) as string),
           },
           collateralToken: {
             ...collateralToken,
-            tokenSymbol: (await collateralToken.erc20Instance.methods
-              .symbol()
-              .call()) as string,
+            tokenSymbol: (collateralToken.tokenAddress ===
+            ETHIdentificationAddress
+              ? 'ETH'
+              : await collateralToken
+                  .erc20Instance!.methods.symbol()
+                  .call()) as string,
           },
           minCollateralCoverageRatio,
           annualPercentageRate,

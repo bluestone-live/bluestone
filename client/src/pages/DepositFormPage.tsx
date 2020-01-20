@@ -11,6 +11,7 @@ import {
   AccountActions,
   PoolActions,
   IState,
+  ETHIdentificationAddress,
 } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import DepositPoolCard from '../containers/DepositPoolCard';
@@ -74,9 +75,15 @@ const DepositFormPage = (props: IProps) => {
       dispatch(
         AccountActions.setTokenBalance(
           selectedToken.tokenAddress,
-          await accountService.getTokenBalance(accountAddress, selectedToken),
+          selectedToken.tokenAddress === ETHIdentificationAddress
+            ? await accountService.getETHBalance(accountAddress)
+            : await accountService.getTokenBalance(
+                accountAddress,
+                selectedToken,
+              ),
         ),
       );
+
       dispatch(
         PoolActions.replacePools(
           selectedToken.tokenAddress,

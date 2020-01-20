@@ -22,7 +22,16 @@ export class AccountService {
     accountAddress: string,
     token: IToken,
   ): Promise<string> {
-    return token.erc20Instance.methods.balanceOf(accountAddress).call();
+    return token.erc20Instance!.methods.balanceOf(accountAddress).call();
+  }
+
+  /**
+   *
+   * @param accountAddress account address
+   * @returns ETH balance of account address
+   */
+  async getETHBalance(accountAddress: string): Promise<string> {
+    return this.provider.web3.eth.getBalance(accountAddress);
   }
 
   /**

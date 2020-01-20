@@ -73,13 +73,21 @@ const DepositDetail = (props: IProps) => {
         </Col>
       </Row>
       <Row>
+        {!record.isWithdrawn && (
+          <Col span={12}>
+            <TextBox label={t('deposit_detail_label_current_apr')}>
+              {APR.toFixed(2)}%
+            </TextBox>
+          </Col>
+        )}
         <Col span={12}>
-          <TextBox label={t('deposit_detail_label_current_apr')}>
-            {APR.toFixed(2)}%
-          </TextBox>
-        </Col>
-        <Col span={12}>
-          <TextBox label={t('deposit_detail_label_estimated_interest')}>
+          <TextBox
+            label={
+              record.isWithdrawn
+                ? t('deposit_detail_label_interest_earned')
+                : t('deposit_detail_label_estimated_interest')
+            }
+          >
             {convertWeiToDecimal(record.interest)}
           </TextBox>
         </Col>
@@ -99,20 +107,22 @@ const DepositDetail = (props: IProps) => {
           <Icon type="question-circle" theme="filled" />
         </Col>
       </Row>
-      <Row style={{ marginTop: '40px' }}>
-        <Col span={24}>
-          {record.isEarlyWithdrawable && (
-            <Button block size="large" onClick={earlyWithdraw}>
-              {t('deposit_detail_button_early_withdraw')}
-            </Button>
-          )}
-          {record.isMatured && (
-            <Button block size="large" onClick={withdraw}>
-              {t('deposit_detail_button_withdraw')}
-            </Button>
-          )}
-        </Col>
-      </Row>
+      {!record.isWithdrawn && (
+        <Row style={{ marginTop: '40px' }}>
+          <Col span={24}>
+            {record.isEarlyWithdrawable && (
+              <Button block size="large" onClick={earlyWithdraw}>
+                {t('deposit_detail_button_early_withdraw')}
+              </Button>
+            )}
+            {record.isMatured && (
+              <Button block size="large" onClick={withdraw}>
+                {t('deposit_detail_button_withdraw')}
+              </Button>
+            )}
+          </Col>
+        </Row>
+      )}
       <TransactionList
         tokens={tokens}
         record={record}

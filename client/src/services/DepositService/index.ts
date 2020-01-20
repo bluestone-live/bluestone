@@ -1,5 +1,5 @@
 import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
-import { IDepositRecord } from '../../stores';
+import { IDepositRecord, ETHIdentificationAddress } from '../../stores';
 import { depositRecordsPipe, depositRecordPipe } from './Pipes';
 
 export class DepositService {
@@ -63,6 +63,16 @@ export class DepositService {
     const {
       returnValues: { recordId },
     } = await flow(async protocol => {
+      if (tokenAddress === ETHIdentificationAddress) {
+        return protocol.methods
+          .deposit(
+            tokenAddress,
+            '0',
+            depositTerm.toString(),
+            distributorAddress,
+          )
+          .send({ from: accountAddress, value: depositAmount });
+      }
       return protocol.methods
         .deposit(
           tokenAddress,
