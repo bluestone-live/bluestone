@@ -120,7 +120,7 @@ const DepositOverview = (props: WithTranslation) => {
         selectedToken={selectedToken}
       />
       <div className="full-width title">
-        <div>{t('deposit_overview_title')}</div>
+        <div className="title__text">{t('deposit_overview_title')}</div>
         <Dropdown
           overlay={DropDownMenu}
           trigger={['click']}

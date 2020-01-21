@@ -4,7 +4,7 @@
   overflow: hidden;
 
   .title {
-    display: flex;
+    display: block;
     margin: 10px -20px;
     padding: 20px;
     background-color: #fff;
@@ -13,19 +13,31 @@
     font-weight: bold;
     color: #000;
 
-    > div {
-      flex: 1;
+    .title__text {
+      float: left;
     }
 
-    .ant-btn.ant-dropdown-trigger {
-      width: 120px;
-      font-size: 12px;
-      padding: 0 7px;
+    .sort-by {
+      float: right;
+      width: 210px;
+      margin-top: 20px;
+
+      .ant-btn.ant-dropdown-trigger {
+        width: 120px;
+        font-size: 12px;
+        padding: 0 7px;
+      }
+
+      .anticon {
+        margin-left: 4px;
+        font-size: 8px;
+      }
     }
 
-    .anticon {
-      margin-left: 4px;
-      font-size: 8px;
+    &::after {
+      content: '';
+      clear: both;
+      display: table;
     }
   }
   .pools {
