@@ -1,6 +1,6 @@
 const Configuration = artifacts.require('ConfigurationMock');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const PayableProxy = artifacts.require('PayableProxyMock');
+const PayableProxy = artifacts.require('PayableProxy');
 const WETH9 = artifacts.require('WETH9');
 const {
   expectRevert,
@@ -17,8 +17,7 @@ contract('Configuration', function([owner]) {
   beforeEach(async () => {
     weth = await WETH9.new();
     configuration = await Configuration.new();
-    payableProxy = await PayableProxy.new(configuration.address);
-    await payableProxy.setWETHAddress(weth.address);
+    payableProxy = await PayableProxy.new(configuration.address, weth.address);
   });
 
   describe('#setPriceOracle', () => {

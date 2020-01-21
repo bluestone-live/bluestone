@@ -1,5 +1,5 @@
 const DepositManager = artifacts.require('DepositManagerMock');
-const PayableProxy = artifacts.require('PayableProxyMock');
+const PayableProxy = artifacts.require('PayableProxy');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
 const WETH9 = artifacts.require('WETH9');
@@ -32,7 +32,6 @@ contract('DepositManager', function([
   beforeEach(async () => {
     depositManager = await DepositManager.new();
     interestModel = await InterestModel.new();
-    payableProxy = await PayableProxy.new(depositManager.address);
     datetime = await DateTime.new();
     token = await createERC20Token(depositor);
     weth = await WETH9.new();
@@ -42,7 +41,7 @@ contract('DepositManager', function([
       loanDistributorFeeRatio,
     );
     await depositManager.setProtocolAddress(protocolAddress);
-    await payableProxy.setWETHAddress(weth.address);
+    payableProxy = await PayableProxy.new(depositManager.address, weth.address);
 
     await depositManager.setPayableProxy(payableProxy.address);
   });

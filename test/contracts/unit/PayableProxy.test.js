@@ -1,4 +1,4 @@
-const PayableProxy = artifacts.require('PayableProxyMock');
+const PayableProxy = artifacts.require('PayableProxy');
 const Protocol = artifacts.require('Protocol');
 const WETH9 = artifacts.require('WETH9');
 const { BN } = require('openzeppelin-test-helpers');
@@ -12,8 +12,7 @@ contract('PayableProxy', function([owner, account]) {
   beforeEach(async () => {
     WETH = await WETH9.new();
     protocol = await Protocol.new();
-    payableProxy = await PayableProxy.new(protocol.address);
-    payableProxy.setWETHAddress(WETH.address);
+    payableProxy = await PayableProxy.new(protocol.address, WETH.address);
 
     protocol.setPayableProxy(payableProxy.address);
   });

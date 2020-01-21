@@ -7,7 +7,7 @@ const {
   createERC20Token,
   ETHIdentificationAddress,
 } = require('../../utils/index.js');
-const PayableProxy = artifacts.require('PayableProxyMock');
+const PayableProxy = artifacts.require('PayableProxy');
 const {
   BN,
   expectRevert,
@@ -34,7 +34,6 @@ contract('LoanManager', function([
     loanManager = await LoanManager.new();
     priceOracle = await SingleFeedPriceOracle.new();
     interestModel = await InterestModel.new();
-    payableProxy = await PayableProxy.new(loanManager.address);
 
     weth = await WETH9.new();
     await loanManager.setInterestModel(interestModel.address);
@@ -42,7 +41,7 @@ contract('LoanManager', function([
       depositDistributorFeeRatio,
       loanDistributorFeeRatio,
     );
-    await payableProxy.setWETHAddress(weth.address);
+    payableProxy = await PayableProxy.new(loanManager.address, weth.address);
 
     await loanManager.setPayableProxy(payableProxy.address);
   });
