@@ -116,6 +116,7 @@
     "monitor_detail_page_label_loan_interest": "总利息",
     "monitor_detail_page_label_apr": "年化利率",
     "monitor_detail_page_label_available_amount": "可用余额",
-    "monitor_detail_page_label_utilization": "利用率"
+    "monitor_detail_page_label_utilization": "利用率",
+    "route_title_mint_token": "获得测试 Token"
   }
 }

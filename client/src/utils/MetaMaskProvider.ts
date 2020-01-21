@@ -44,6 +44,7 @@ export class MetaMaskProvider {
   private interestModelInstance?: Contract;
   private eventBound: boolean = false;
   private protocolAddress?: string;
+  private networkType?: string;
 
   /**
    * Init protocolInstance by global Web3 provider and network configs
@@ -68,7 +69,8 @@ export class MetaMaskProvider {
       );
     }
 
-    const networkFile = await this.getNetworkFile(this.web3Instance);
+    this.networkType = await this.web3Instance.eth.net.getNetworkType();
+    const networkFile = await this.getNetworkFile(this.networkType);
 
     this.protocolAddress =
       networkFile.contracts[protocolDeclareFile.contractName];
@@ -99,9 +101,7 @@ export class MetaMaskProvider {
     }
   }
 
-  private async getNetworkFile(web3: Web3): Promise<INetworkFile> {
-    const networkType = await web3.eth.net.getNetworkType();
-
+  private async getNetworkFile(networkType: string): Promise<INetworkFile> {
     // Map web3 network type to that in network.json
     const currentNetwork =
       networkType === 'private' ? 'development' : networkType;
@@ -134,6 +134,13 @@ export class MetaMaskProvider {
       throw new Error('MetaMaskProvider: Init failed');
     }
     return this.web3Instance;
+  }
+
+  get network() {
+    if (!this.networkType) {
+      throw new Error('MetaMaskProvider: Init failed');
+    }
+    return this.networkType;
   }
 
   getERC20ByTokenAddress: ERC20Factory = (tokenAddress: string) => {

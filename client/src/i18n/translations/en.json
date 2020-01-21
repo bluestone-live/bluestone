@@ -116,6 +116,7 @@
     "monitor_detail_page_label_loan_interest": "Loan Interest",
     "monitor_detail_page_label_apr": "APR",
     "monitor_detail_page_label_available_amount": "Available Amount",
-    "monitor_detail_page_label_utilization": "Utilization"
+    "monitor_detail_page_label_utilization": "Utilization",
+    "route_title_mint_token": "Mint Test Token"
   }
 }

@@ -26,6 +26,21 @@ export class AccountService {
   }
 
   /**
+   * @dev Only for test-net
+   * @param accountAddress account address
+   * @param token IToken instance
+   * @param amount mint value
+   */
+  async mintToken(accountAddress: string, token: IToken, amount: string) {
+    if (this.provider.network === 'main') {
+      return;
+    }
+    return token
+      .erc20Instance!.methods.mint(accountAddress, amount)
+      .send({ from: accountAddress });
+  }
+
+  /**
    *
    * @param accountAddress account address
    * @returns ETH balance of account address

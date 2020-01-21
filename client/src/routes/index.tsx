@@ -101,13 +101,22 @@ const routes = [
     title: 'route_title_monitor',
   },
   {
-    name: 'monitor',
+    name: 'monitor-detail',
     path: '/monitor/:poolId',
     component: Loadable({
       loader: () => import('../pages/MonitorDetailPage'),
       loading: Loading,
     }),
     title: 'route_title_monitor_detail',
+  },
+  {
+    name: 'mint',
+    path: '/mint',
+    component: Loadable({
+      loader: () => import('../pages/MintTokenPage'),
+      loading: Loading,
+    }),
+    title: 'route_title_mint_token',
   },
 ];
 

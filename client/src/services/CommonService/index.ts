@@ -9,7 +9,7 @@ export class CommonService {
    * @returns current network type - 'primary' for local test net
    */
   async getCurrentNetwork(): Promise<string> {
-    return this.provider.web3.eth.net.getNetworkType();
+    return this.provider.network;
   }
 
   async enableEthereumNetwork() {

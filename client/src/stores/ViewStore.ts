@@ -5,18 +5,21 @@ import { BannerType } from '../components/Banner';
 export enum ViewActionType {
   SetBanner = 'SET_BANNER',
   SetLoading = 'SET_LOADING',
+  SetNetwork = 'SET_NETWORK',
 }
 
 interface IViewStore {
   loading: boolean;
   banner?: string;
   bannerType: BannerType;
+  network: string;
 }
 
 const initState: IViewStore = {
   loading: false,
   banner: undefined,
   bannerType: BannerType.Success,
+  network: 'primary',
 };
 
 export const ViewReducer = (
@@ -70,6 +73,15 @@ export class ViewActions {
       },
     };
   }
+
+  static setNetwork(network: string) {
+    return {
+      type: ViewActionType.SetNetwork,
+      payload: {
+        network,
+      },
+    };
+  }
 }
 
 export const useBanner = () =>
@@ -79,3 +91,6 @@ export const useBanner = () =>
 
 export const useLoading = () =>
   useSelector<IState, boolean>(state => state.view.actionButtonLoading);
+
+export const useNetwork = () =>
+  useSelector<IState, string>(state => state.view.network);
