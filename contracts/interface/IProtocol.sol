@@ -326,27 +326,4 @@ interface IProtocol {
         uint256 maxDepositDistributorFeeRatio,
         uint256 maxLoanDistributorFeeRatio
     ) external virtual;
-
-    /// --- Account ---
-
-    /// @notice Return a specific general statistic for an account
-    /// @param accountAddress Account address
-    /// @param key The key to retrieve corresponding stat
-    /// @return stat The statistical value
-    function getAccountGeneralStat(address accountAddress, string calldata key)
-        external
-        view
-        virtual
-        returns (uint256 stat);
-
-    /// @notice Return a token-specific statistic for an account
-    /// @param accountAddress Account address
-    /// @param tokenAddress Token address
-    /// @param key The key to retrieve corresponding stat
-    /// @return stat The statistical value
-    function getAccountTokenStat(
-        address accountAddress,
-        address tokenAddress,
-        string calldata key
-    ) external view virtual returns (uint256 stat);
 }

@@ -4,7 +4,6 @@ import '../impl/lib/Configuration.sol';
 import '../impl/lib/LiquidityPools.sol';
 import '../impl/lib/DepositManager.sol';
 import '../impl/lib/LoanManager.sol';
-import '../impl/lib/AccountManager.sol';
 import '../interface/IPriceOracle.sol';
 
 contract ConfigurationMock {
@@ -12,13 +11,11 @@ contract ConfigurationMock {
     using LiquidityPools for LiquidityPools.State;
     using DepositManager for DepositManager.State;
     using LoanManager for LoanManager.State;
-    using AccountManager for AccountManager.State;
 
     Configuration.State _configuration;
     LiquidityPools.State _liquidityPools;
     DepositManager.State _depositManager;
     LoanManager.State _loanManager;
-    AccountManager.State _accountManager;
 
     function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
         external

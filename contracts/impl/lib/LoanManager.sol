@@ -11,13 +11,11 @@ import '../../interface/IStruct.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
 import './DepositManager.sol';
-import './AccountManager.sol';
 
 library LoanManager {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
     using DepositManager for DepositManager.State;
-    using AccountManager for AccountManager.State;
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
     using FixedMath for uint256;
@@ -358,27 +356,6 @@ library LoanManager {
         );
 
         return localVars.loanId;
-    }
-
-    function addToLoanStat(
-        State storage,
-        AccountManager.State storage accountManager,
-        address loanTokenAddress,
-        uint256 loanAmount
-    ) external {
-        accountManager.addToAccountGeneralStat(msg.sender, 'numberOfLoans', 1);
-        accountManager.addToAccountTokenStat(
-            msg.sender,
-            loanTokenAddress,
-            'numberOfLoans',
-            1
-        );
-        accountManager.addToAccountTokenStat(
-            msg.sender,
-            loanTokenAddress,
-            'totalLoanAmount',
-            loanAmount
-        );
     }
 
     function enableLoanAndCollateralTokenPair(

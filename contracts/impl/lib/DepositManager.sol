@@ -5,7 +5,6 @@ import '../ERC20.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
 import './LoanManager.sol';
-import './AccountManager.sol';
 import '../../lib/DateTime.sol';
 import '../../lib/SafeMath.sol';
 import '../../lib/FixedMath.sol';
@@ -16,7 +15,6 @@ library DepositManager {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
     using LoanManager for LoanManager.State;
-    using AccountManager for AccountManager.State;
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
     using FixedMath for uint256;
@@ -164,7 +162,6 @@ library DepositManager {
     function deposit(
         State storage self,
         LiquidityPools.State storage liquidityPools,
-        AccountManager.State storage accountManager,
         Configuration.State storage configuration,
         IStruct.DepositParameters calldata depositParameters
     ) external returns (bytes32 depositId) {
@@ -234,23 +231,6 @@ library DepositManager {
                 depositParameters.depositAmount
             );
         }
-        accountManager.addToAccountGeneralStat(
-            accountAddress,
-            'numberOfDeposits',
-            1
-        );
-        accountManager.addToAccountTokenStat(
-            accountAddress,
-            depositParameters.tokenAddress,
-            'numberOfDeposits',
-            1
-        );
-        accountManager.addToAccountTokenStat(
-            accountAddress,
-            depositParameters.tokenAddress,
-            'totalDepositAmount',
-            depositParameters.depositAmount
-        );
 
         self.depositIdsByAccountAddress[accountAddress].push(currDepositId);
         emit DepositSucceed(

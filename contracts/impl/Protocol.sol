@@ -11,7 +11,6 @@ import './lib/Configuration.sol';
 import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';
 import './lib/LoanManager.sol';
-import './lib/AccountManager.sol';
 
 /// @title Main contract
 contract Protocol is IProtocol, Ownable, Pausable {
@@ -19,13 +18,11 @@ contract Protocol is IProtocol, Ownable, Pausable {
     using LiquidityPools for LiquidityPools.State;
     using DepositManager for DepositManager.State;
     using LoanManager for LoanManager.State;
-    using AccountManager for AccountManager.State;
 
     Configuration.State _configuration;
     LiquidityPools.State _liquidityPools;
     DepositManager.State _depositManager;
     LoanManager.State _loanManager;
-    AccountManager.State _accountManager;
 
     event DepositSucceed(
         address indexed accountAddress,
@@ -109,7 +106,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
         return
             _depositManager.deposit(
                 _liquidityPools,
-                _accountManager,
                 _configuration,
                 depositParameters
             );
@@ -238,12 +234,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
             loanParameters
         );
 
-        _loanManager.addToLoanStat(
-            _accountManager,
-            loanTokenAddress,
-            loanAmount
-        );
-
         return loanId;
     }
 
@@ -290,31 +280,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
                 _liquidityPools,
                 tokenAddress,
                 term
-            );
-    }
-
-    /// --- AccountManager ---
-
-    function getAccountGeneralStat(address accountAddress, string calldata key)
-        external
-        view
-        whenNotPaused
-        override
-        returns (uint256)
-    {
-        return _accountManager.getAccountGeneralStat(accountAddress, key);
-    }
-
-    function getAccountTokenStat(
-        address accountAddress,
-        address tokenAddress,
-        string calldata key
-    ) external view whenNotPaused override returns (uint256) {
-        return
-            _accountManager.getAccountTokenStat(
-                accountAddress,
-                tokenAddress,
-                key
             );
     }
 
