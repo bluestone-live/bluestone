@@ -323,47 +323,27 @@ contract Protocol is IProtocol, Ownable, Pausable {
         }
     }
 
-    function enableLoanAndCollateralTokenPair(
+    function setLoanAndCollateralTokenPair(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 minCollateralCoverageRatio,
+        uint256 liquidationDiscount
+    ) external onlyOwner override {
+        _loanManager.setLoanAndCollateralTokenPair(
+            loanTokenAddress,
+            collateralTokenAddress,
+            minCollateralCoverageRatio,
+            liquidationDiscount
+        );
+    }
+
+    function removeLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress
     ) external onlyOwner override {
-        _loanManager.enableLoanAndCollateralTokenPair(
+        _loanManager.removeLoanAndCollateralTokenPair(
             loanTokenAddress,
             collateralTokenAddress
-        );
-    }
-
-    function disableLoanAndCollateralTokenPair(
-        address loanTokenAddress,
-        address collateralTokenAddress
-    ) external onlyOwner override {
-        _loanManager.disableLoanAndCollateralTokenPair(
-            loanTokenAddress,
-            collateralTokenAddress
-        );
-    }
-
-    function setMinCollateralCoverageRatiosForToken(
-        address loanTokenAddress,
-        address[] calldata collateralTokenAddressList,
-        uint256[] calldata minCollateralCoverageRatioList
-    ) external onlyOwner override {
-        _loanManager.setMinCollateralCoverageRatiosForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            minCollateralCoverageRatioList
-        );
-    }
-
-    function setLiquidationDiscountsForToken(
-        address loanTokenAddress,
-        address[] calldata collateralTokenAddressList,
-        uint256[] calldata liquidationDiscountList
-    ) external onlyOwner override {
-        _loanManager.setLiquidationDiscountsForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            liquidationDiscountList
         );
     }
 
@@ -376,15 +356,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
         )
     {
         return _loanManager.getLoanAndCollateralTokenPairs();
-    }
-
-    function getTokenAddressList(uint256 tokenType)
-        external
-        view
-        override
-        returns (address[] memory tokenAddressList, bool[] memory isActive)
-    {
-        return _loanManager.getTokenAddressList(tokenType);
     }
 
     /// --- LiquidityPools ---

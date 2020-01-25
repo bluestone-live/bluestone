@@ -99,18 +99,22 @@ interface IProtocol {
 
     /// --- Loan ---
 
-    /// @notice Enable a loan and collateral token pair, e.g., ETH_DAI.
+    /// @notice Set a loan and collateral token pair, e.g., ETH_DAI.
     /// @param loanTokenAddress Loan token address
     /// @param collateralTokenAddress Collateral token address
-    function enableLoanAndCollateralTokenPair(
+    /// @param minCollateralCoverageRatio Minimum collateral coverage ratio
+    /// @param liquidationDiscount Liquidation Discount
+    function setLoanAndCollateralTokenPair(
         address loanTokenAddress,
-        address collateralTokenAddress
+        address collateralTokenAddress,
+        uint256 minCollateralCoverageRatio,
+        uint256 liquidationDiscount
     ) external virtual;
 
-    /// @notice Disable a loan and collateral token pair, e.g., ETH_DAI
+    /// @notice Remove a loan and collateral token pair, e.g., ETH_DAI
     /// @param loanTokenAddress Loan token address
     /// @param collateralTokenAddress collateral token address
-    function disableLoanAndCollateralTokenPair(
+    function removeLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress
     ) external virtual;
@@ -124,26 +128,6 @@ interface IProtocol {
         view
         virtual
         returns (uint256 maxLoanTerm);
-
-    /// @notice Set minimum collateral coverage ratio for each loan and collateral token pair
-    /// @param loanTokenAddress A loan token addresses
-    /// @param collateralTokenAddressList A list of collateral token addresses
-    /// @param minCollateralCoverageRatioList A list of minimum collateral coverage ratios
-    function setMinCollateralCoverageRatiosForToken(
-        address loanTokenAddress,
-        address[] calldata collateralTokenAddressList,
-        uint256[] calldata minCollateralCoverageRatioList
-    ) external virtual;
-
-    /// @notice Set liquidation discount for each loan and collateral token pair
-    /// @param loanTokenAddress A loan token addresses
-    /// @param collateralTokenAddressList A list of collateral token addresses
-    /// @param liquidationDiscountList A list of liquidation discounts
-    function setLiquidationDiscountsForToken(
-        address loanTokenAddress,
-        address[] calldata collateralTokenAddressList,
-        uint256[] calldata liquidationDiscountList
-    ) external virtual;
 
     /// @notice Borrow token in a specific term
     /// @param loanTokenAddress token to borrow
@@ -219,16 +203,6 @@ interface IProtocol {
         returns (
             IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
         );
-
-    /// @notice return token addresses for all loanable tokens
-    /// @param tokenType Type flag, 0 for loan token and 1 for collateral token
-    /// @return tokenAddressList A list of loan token addresses
-    /// @return isActive A list that shows if the loan token is active now
-    function getTokenAddressList(uint256 tokenType)
-        external
-        view
-        virtual
-        returns (address[] memory tokenAddressList, bool[] memory isActive);
 
     /// @notice Return loan interest rate for given token
     /// @return loanInterestRate loan interest rate

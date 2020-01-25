@@ -1,7 +1,6 @@
-const debug = require('debug')('script:enableLoanAndCollateralTokenPair');
-const ERC20Mock = artifacts.require('./ERC20Mock.sol');
+const debug = require('debug')('script:setLoanAndCollateralTokenPairs');
 const Protocol = artifacts.require('./Protocol.sol');
-const { loadNetwork, makeTruffleScript } = require('../utils.js');
+const { loadNetwork, makeTruffleScript, toFixedBN } = require('../utils.js');
 const config = require('config');
 
 module.exports = makeTruffleScript(async network => {
@@ -27,9 +26,11 @@ module.exports = makeTruffleScript(async network => {
     const loanToken = tokens[pair.loanTokenSymbol];
     const collateralToken = tokens[pair.collateralTokenSymbol];
     const protocol = await Protocol.deployed();
-    await protocol.enableLoanAndCollateralTokenPair(
+    await protocol.setLoanAndCollateralTokenPair(
       loanToken.address,
       collateralToken.address,
+      toFixedBN(pair.minCollateralCoverageRatio),
+      toFixedBN(pair.liquidationDiscount),
     );
     debug(
       `Loan pair: ${pair.collateralTokenSymbol} -> ${pair.loanTokenSymbol} is enabled.`,

@@ -102,16 +102,6 @@ contract ConfigurationMock {
         _depositManager.enableDepositToken(_liquidityPools, tokenAddress);
     }
 
-    function enableLoanAndCollateralTokenPair(
-        address loanTokenAddress,
-        address collateralTokenAddress
-    ) external {
-        _loanManager.enableLoanAndCollateralTokenPair(
-            loanTokenAddress,
-            collateralTokenAddress
-        );
-    }
-
     function enableDepositTerm(uint256 term) external {
         _depositManager.enableDepositTerm(_liquidityPools, term);
     }

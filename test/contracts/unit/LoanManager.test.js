@@ -26,8 +26,9 @@ contract('LoanManager', function([
   let loanManager, priceOracle, interestModel, payableProxy;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
+  const minCollateralCoverageRatio = toFixedBN(1.2);
+  const liquidationDiscount = toFixedBN(0.05);
 
-  const ZEROAddress = '0x0000000000000000000000000000000000000000';
   let weth;
 
   beforeEach(async () => {
@@ -89,9 +90,11 @@ contract('LoanManager', function([
           },
         );
 
-        await loanManager.enableLoanAndCollateralTokenPair(
+        await loanManager.setLoanAndCollateralTokenPair(
           loanToken.address,
           collateralToken.address,
+          minCollateralCoverageRatio,
+          liquidationDiscount,
         );
 
         const { logs } = await loanManager.loan(
@@ -155,7 +158,7 @@ contract('LoanManager', function([
       const collateralAmount = toFixedBN(30);
       const loanTerm = 30;
 
-      let loanToken, collateralToken, recordId;
+      let loanToken, collateralToken;
 
       beforeEach(async () => {
         loanToken = await createERC20Token(depositor, initialSupply);
@@ -189,9 +192,11 @@ contract('LoanManager', function([
           },
         );
 
-        await loanManager.enableLoanAndCollateralTokenPair(
+        await loanManager.setLoanAndCollateralTokenPair(
           loanToken.address,
           collateralToken.address,
+          minCollateralCoverageRatio,
+          liquidationDiscount,
         );
 
         const { logs } = await loanManager.loan(
@@ -262,14 +267,18 @@ contract('LoanManager', function([
         },
       );
 
-      await loanManager.enableLoanAndCollateralTokenPair(
+      await loanManager.setLoanAndCollateralTokenPair(
         loanToken.address,
         collateralToken.address,
+        minCollateralCoverageRatio,
+        liquidationDiscount,
       );
 
-      await loanManager.enableLoanAndCollateralTokenPair(
+      await loanManager.setLoanAndCollateralTokenPair(
         loanToken.address,
         ETHIdentificationAddress,
+        minCollateralCoverageRatio,
+        liquidationDiscount,
       );
 
       const { logs } = await loanManager.loan(
@@ -337,7 +346,7 @@ contract('LoanManager', function([
     });
   });
 
-  describe('#enableLoanAndCollateralTokenPair', () => {
+  describe('#setLoanAndCollateralTokenPair', () => {
     const initialSupply = toFixedBN(1000);
     let loanToken, collateralToken;
 
@@ -349,9 +358,11 @@ contract('LoanManager', function([
     context('when loan and collateral token are the same', () => {
       it('reverts', async () => {
         await expectRevert(
-          loanManager.enableLoanAndCollateralTokenPair(
+          loanManager.setLoanAndCollateralTokenPair(
             loanToken.address,
             loanToken.address,
+            minCollateralCoverageRatio,
+            liquidationDiscount,
             { from: owner },
           ),
           'LoanManager: two tokens must be different.',
@@ -362,34 +373,18 @@ contract('LoanManager', function([
     context('when loan and collateral token are different', () => {
       it('success', async () => {
         // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
-        await loanManager.enableLoanAndCollateralTokenPair(
+        await loanManager.setLoanAndCollateralTokenPair(
           loanToken.address,
           collateralToken.address,
+          minCollateralCoverageRatio,
+          liquidationDiscount,
           { from: owner },
-        );
-      });
-    });
-
-    context('when the pair already exists', () => {
-      it('reverts', async () => {
-        await loanManager.enableLoanAndCollateralTokenPair(
-          loanToken.address,
-          collateralToken.address,
-          { from: owner },
-        );
-        await expectRevert(
-          loanManager.enableLoanAndCollateralTokenPair(
-            loanToken.address,
-            collateralToken.address,
-            { from: owner },
-          ),
-          'LoanManager: loan token pair is already enabled.',
         );
       });
     });
   });
 
-  describe('#disableLoanAndCollateralTokenPair', () => {
+  describe('#removeLoanAndCollateralTokenPair', () => {
     const initialSupply = toFixedBN(1000);
     let loanToken, collateralToken;
 
@@ -401,51 +396,30 @@ contract('LoanManager', function([
     context('when the pair does not exist', () => {
       it('reverts', async () => {
         await expectRevert(
-          loanManager.disableLoanAndCollateralTokenPair(
+          loanManager.removeLoanAndCollateralTokenPair(
             loanToken.address,
             collateralToken.address,
             { from: owner },
           ),
-          'LoanManager: loan token pair is already disabled.',
+          'LoanManager: token pair does not exist',
         );
       });
     });
 
-    context('when the pair are disabled after being enabled', () => {
+    context('when the pair gets removed after being added', () => {
       it('success', async () => {
         // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
-        await loanManager.enableLoanAndCollateralTokenPair(
+        await loanManager.setLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralToken.address,
+          minCollateralCoverageRatio,
+          liquidationDiscount,
+          { from: owner },
+        );
+        await loanManager.removeLoanAndCollateralTokenPair(
           loanToken.address,
           collateralToken.address,
           { from: owner },
-        );
-        await loanManager.disableLoanAndCollateralTokenPair(
-          loanToken.address,
-          collateralToken.address,
-          { from: owner },
-        );
-      });
-    });
-
-    context('when the pair is already disabled', () => {
-      it('reverts', async () => {
-        await loanManager.enableLoanAndCollateralTokenPair(
-          loanToken.address,
-          collateralToken.address,
-          { from: owner },
-        );
-        await loanManager.disableLoanAndCollateralTokenPair(
-          loanToken.address,
-          collateralToken.address,
-          { from: owner },
-        );
-        await expectRevert(
-          loanManager.disableLoanAndCollateralTokenPair(
-            loanToken.address,
-            collateralToken.address,
-            { from: owner },
-          ),
-          'LoanManager: loan token pair is already disabled.',
         );
       });
     });
@@ -493,9 +467,11 @@ contract('LoanManager', function([
 
     context('when loan and collateral token pair is enabled', () => {
       beforeEach(async () => {
-        await loanManager.enableLoanAndCollateralTokenPair(
+        await loanManager.setLoanAndCollateralTokenPair(
           loanToken.address,
           collateralToken.address,
+          minCollateralCoverageRatio,
+          liquidationDiscount,
         );
       });
 
@@ -524,9 +500,11 @@ contract('LoanManager', function([
 
     context('when loan token by collateral ETH', () => {
       beforeEach(async () => {
-        await loanManager.enableLoanAndCollateralTokenPair(
+        await loanManager.setLoanAndCollateralTokenPair(
           loanToken.address,
           ETHIdentificationAddress,
+          minCollateralCoverageRatio,
+          liquidationDiscount,
         );
       });
 
@@ -578,14 +556,18 @@ contract('LoanManager', function([
         priceOracle.address,
       );
       await loanManager.enableDepositToken(loanToken.address);
-      await loanManager.enableLoanAndCollateralTokenPair(
+      await loanManager.setLoanAndCollateralTokenPair(
         loanToken.address,
         collateralToken.address,
+        minCollateralCoverageRatio,
+        liquidationDiscount,
         { from: owner },
       );
-      await loanManager.enableLoanAndCollateralTokenPair(
+      await loanManager.setLoanAndCollateralTokenPair(
         loanToken.address,
         ETHIdentificationAddress,
+        minCollateralCoverageRatio,
+        liquidationDiscount,
         { from: owner },
       );
       await loanManager.enableDepositTerm(depositTerm);
@@ -724,14 +706,18 @@ contract('LoanManager', function([
         priceOracle.address,
       );
       await loanManager.enableDepositToken(loanToken.address);
-      await loanManager.enableLoanAndCollateralTokenPair(
+      await loanManager.setLoanAndCollateralTokenPair(
         loanToken.address,
         collateralToken.address,
+        minCollateralCoverageRatio,
+        liquidationDiscount,
         { from: owner },
       );
-      await loanManager.enableLoanAndCollateralTokenPair(
+      await loanManager.setLoanAndCollateralTokenPair(
         loanToken.address,
         ETHIdentificationAddress,
+        minCollateralCoverageRatio,
+        liquidationDiscount,
         { from: owner },
       );
       await loanManager.enableDepositTerm(depositTerm);
@@ -843,258 +829,6 @@ contract('LoanManager', function([
     });
   });
 
-  describe('#setMinCollateralCoverageRatiosForToken', () => {
-    const initialSupply = toFixedBN(1000);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-    });
-
-    context("when arrays' lengths are different", () => {
-      let loanTokenAddress,
-        collateralTokenAddressList,
-        minCollateralCoverageRatioList;
-
-      beforeEach(async () => {
-        loanTokenAddress = loanToken.address;
-        collateralTokenAddressList = [collateralToken.address];
-        minCollateralCoverageRatioList = [toFixedBN(1.5), toFixedBN(1.1)];
-      });
-
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.setMinCollateralCoverageRatiosForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            minCollateralCoverageRatioList,
-          ),
-          "LoanManager: Arrays' length must be the same.",
-        );
-      });
-
-      it('reverts', async () => {
-        await collateralTokenAddressList.push(loanToken.address);
-        await minCollateralCoverageRatioList.pop();
-        await expectRevert(
-          loanManager.setMinCollateralCoverageRatiosForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            minCollateralCoverageRatioList,
-          ),
-          "LoanManager: Arrays' length must be the same.",
-        );
-      });
-    });
-
-    context('when some pairs are not enabled', () => {
-      let loanTokenAddress,
-        collateralTokenAddressList,
-        minCollateralCoverageRatioList;
-
-      beforeEach(async () => {
-        loanTokenAddress = loanToken.address;
-        collateralTokenAddressList = [loanToken.address];
-        minCollateralCoverageRatioList = [toFixedBN(1.5)];
-      });
-
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.setMinCollateralCoverageRatiosForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            minCollateralCoverageRatioList,
-          ),
-          'LoanManager: The token pair must be enabled.',
-        );
-      });
-    });
-
-    context(
-      'when the collateral coverage ratio is equal or small than lower bound',
-      () => {
-        let loanTokenAddress,
-          collateralTokenAddressList,
-          minCollateralCoverageRatioList;
-
-        beforeEach(async () => {
-          loanTokenAddress = loanToken.address;
-          collateralTokenAddressList = [collateralToken.address];
-          minCollateralCoverageRatioList = [toFixedBN(1)];
-          await loanManager.enableLoanAndCollateralTokenPair(
-            loanTokenAddress,
-            collateralTokenAddressList[0],
-          );
-        });
-
-        it('reverts', async () => {
-          await expectRevert(
-            loanManager.setMinCollateralCoverageRatiosForToken(
-              loanTokenAddress,
-              collateralTokenAddressList,
-              minCollateralCoverageRatioList,
-            ),
-            'LoanManager: Minimum CCR must be larger than lower bound.',
-          );
-        });
-      },
-    );
-
-    context('when minimum collateral coverage ratios are added', () => {
-      let loanTokenAddress,
-        collateralTokenAddressList,
-        minCollateralCoverageRatioList;
-
-      beforeEach(async () => {
-        loanTokenAddress = loanToken.address;
-        collateralTokenAddressList = [collateralToken.address];
-        minCollateralCoverageRatioList = [toFixedBN(1.5)];
-        await loanManager.enableLoanAndCollateralTokenPair(
-          loanTokenAddress,
-          collateralTokenAddressList[0],
-        );
-      });
-
-      it('succeeds', async () => {
-        await loanManager.setMinCollateralCoverageRatiosForToken(
-          loanTokenAddress,
-          collateralTokenAddressList,
-          minCollateralCoverageRatioList,
-        );
-        // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
-      });
-    });
-  });
-
-  describe('#setLiquidationDiscountsForToken', () => {
-    const initialSupply = toFixedBN(1000);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-    });
-
-    context("when arrays' lengths are different", () => {
-      let loanTokenAddress, collateralTokenAddressList, liquidationDiscountList;
-
-      beforeEach(async () => {
-        loanTokenAddress = loanToken.address;
-        collateralTokenAddressList = [collateralToken.address];
-        liquidationDiscountList = [toFixedBN(0.95), toFixedBN(0.9)];
-      });
-
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.setLiquidationDiscountsForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            liquidationDiscountList,
-          ),
-          "LoanManager: Arrays' length must be the same.",
-        );
-      });
-
-      it('reverts', async () => {
-        await collateralTokenAddressList.push(loanToken.address);
-        await liquidationDiscountList.pop();
-        await expectRevert(
-          loanManager.setLiquidationDiscountsForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            liquidationDiscountList,
-          ),
-          "LoanManager: Arrays' length must be the same.",
-        );
-      });
-    });
-
-    context('when some pairs are not enabled', () => {
-      let loanTokenAddress, collateralTokenAddressList, liquidationDiscountList;
-
-      beforeEach(async () => {
-        loanTokenAddress = loanToken.address;
-        collateralTokenAddressList = [loanToken.address];
-        liquidationDiscountList = [toFixedBN(0.9)];
-      });
-
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.setLiquidationDiscountsForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            liquidationDiscountList,
-          ),
-          'LoanManager: The token pair must be enabled.',
-        );
-      });
-    });
-
-    context('when the liquidation discount >= MAX_LIQUIDATION_DISCOUNT', () => {
-      let loanTokenAddress,
-        collateralTokenAddressList,
-        liquidationDiscountList0,
-        liquidationDiscountList1;
-
-      beforeEach(async () => {
-        loanTokenAddress = loanToken.address;
-        collateralTokenAddressList = [collateralToken.address];
-        liquidationDiscountList0 = [toFixedBN(0.2)];
-        liquidationDiscountList1 = [toFixedBN(0.5)];
-        await loanManager.enableLoanAndCollateralTokenPair(
-          loanTokenAddress,
-          collateralTokenAddressList[0],
-        );
-      });
-
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.setLiquidationDiscountsForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            liquidationDiscountList0,
-          ),
-          'LoanManager: discount must be smaller than MAX_LIQUIDATION_DISCOUNT.',
-        );
-      });
-
-      it('reverts', async () => {
-        await expectRevert(
-          loanManager.setLiquidationDiscountsForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            liquidationDiscountList1,
-          ),
-          'LoanManager: discount must be smaller than MAX_LIQUIDATION_DISCOUNT.',
-        );
-      });
-    });
-
-    context('when token pairs are enabled', () => {
-      let loanTokenAddress, collateralTokenAddressList, liquidationDiscountList;
-
-      beforeEach(async () => {
-        loanTokenAddress = loanToken.address;
-        collateralTokenAddressList = [collateralToken.address];
-        liquidationDiscountList = [toFixedBN(0.03)];
-        await loanManager.enableLoanAndCollateralTokenPair(
-          loanTokenAddress,
-          collateralTokenAddressList[0],
-        );
-      });
-
-      it('succeeds', async () => {
-        await loanManager.setLiquidationDiscountsForToken(
-          loanTokenAddress,
-          collateralTokenAddressList,
-          liquidationDiscountList,
-        );
-        // TODO(lambda): test it after finish getLoanAndCollateralTokenPairs method.
-      });
-    });
-  });
-
   describe('#getLoanAndCollateralTokenPairs', () => {
     const initialSupply = toFixedBN(1000);
     let loanToken, collateralToken, collateralToken1;
@@ -1121,30 +855,23 @@ contract('LoanManager', function([
           ],
           minCollateralCoverageRatioList = [toFixedBN(1.5), toFixedBN(1.1)],
           liquidationDiscountList = [toFixedBN(0.03), toFixedBN(0.01)];
-        await loanManager.enableLoanAndCollateralTokenPair(
+        await loanManager.setLoanAndCollateralTokenPair(
           loanTokenAddress,
           collateralToken.address,
+          minCollateralCoverageRatioList[0],
+          liquidationDiscountList[0],
         );
-        await loanManager.enableLoanAndCollateralTokenPair(
+        await loanManager.setLoanAndCollateralTokenPair(
           loanTokenAddress,
           collateralToken1.address,
-        );
-        await loanManager.setMinCollateralCoverageRatiosForToken(
-          loanTokenAddress,
-          collateralTokenAddressList,
-          minCollateralCoverageRatioList,
-        );
-        await loanManager.setLiquidationDiscountsForToken(
-          loanTokenAddress,
-          collateralTokenAddressList,
-          liquidationDiscountList,
+          minCollateralCoverageRatioList[1],
+          liquidationDiscountList[1],
         );
 
         let tokenPairs = await loanManager.getLoanAndCollateralTokenPairs();
 
         for (let i = 0; i < tokenPairs.length; i++) {
           const tokenPair = tokenPairs[i];
-          expect(tokenPair.isEnabled).to.be.true;
           expect(tokenPair.loanTokenAddress).to.equal(loanTokenAddress);
           expect(tokenPair.collateralTokenAddress).to.equal(
             collateralTokenAddressList[i],
@@ -1160,95 +887,6 @@ contract('LoanManager', function([
     });
   });
 
-  describe('#getTokenAddressList', () => {
-    const LOAN_TYPE = 0;
-    const COLLATERAL_TYPE = 1;
-    const initialSupply = toFixedBN(1000);
-    let loanToken, collateralToken, collateralToken1;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-      collateralToken1 = await createERC20Token(loaner, initialSupply);
-    });
-
-    context('when no token pair is enabled', () => {
-      it('succeeds', async () => {
-        let {
-          loanList,
-          isLoanTokensActive,
-        } = await loanManager.getTokenAddressList(LOAN_TYPE);
-        let {
-          collateralList,
-          isCollateralTokensActive,
-        } = await loanManager.getTokenAddressList(COLLATERAL_TYPE);
-        expect(loanList).to.be.undefined;
-        expect(isLoanTokensActive).to.be.undefined;
-        expect(collateralList).to.be.undefined;
-        expect(isCollateralTokensActive).to.be.undefined;
-      });
-    });
-
-    context('when loan and collateral tokens are enabled', () => {
-      it('succeeds', async () => {
-        await loanManager.enableLoanAndCollateralTokenPair(
-          loanToken.address,
-          collateralToken.address,
-        );
-        await loanManager.enableLoanAndCollateralTokenPair(
-          loanToken.address,
-          collateralToken1.address,
-        );
-        loanResult = await loanManager.getTokenAddressList(LOAN_TYPE);
-        collateralResult = await loanManager.getTokenAddressList(
-          COLLATERAL_TYPE,
-        );
-        expect(loanResult.tokenAddressList).to.have.members([
-          loanToken.address,
-        ]);
-        expect(loanResult.isActive).to.have.members([true]);
-        expect(collateralResult.tokenAddressList).to.have.members([
-          collateralToken.address,
-          collateralToken1.address,
-        ]);
-        expect(collateralResult.isActive).to.have.members([true, true]);
-      });
-    });
-
-    context(
-      'when loan and collateral tokens are disabled after being enabled',
-      () => {
-        it('succeeds', async () => {
-          await loanManager.enableLoanAndCollateralTokenPair(
-            loanToken.address,
-            collateralToken.address,
-          );
-          await loanManager.enableLoanAndCollateralTokenPair(
-            loanToken.address,
-            collateralToken1.address,
-          );
-          await loanManager.disableLoanAndCollateralTokenPair(
-            loanToken.address,
-            collateralToken1.address,
-          );
-          loanResult = await loanManager.getTokenAddressList(LOAN_TYPE);
-          collateralResult = await loanManager.getTokenAddressList(
-            COLLATERAL_TYPE,
-          );
-          expect(loanResult.tokenAddressList).to.have.members([
-            loanToken.address,
-          ]);
-          expect(loanResult.isActive).to.have.members([true]);
-          expect(collateralResult.tokenAddressList).to.have.members([
-            collateralToken.address,
-            collateralToken1.address,
-          ]);
-          expect(collateralResult.isActive).to.have.members([true, false]);
-        });
-      },
-    );
-  });
-
   describe('#getLoanInterestRate', () => {
     const initialSupply = toFixedBN(1000);
     const loanTerm = 30;
@@ -1258,9 +896,11 @@ contract('LoanManager', function([
       loanToken = await createERC20Token(depositor, initialSupply);
       collateralToken = await createERC20Token(loaner, initialSupply);
 
-      await loanManager.enableLoanAndCollateralTokenPair(
+      await loanManager.setLoanAndCollateralTokenPair(
         loanToken.address,
         collateralToken.address,
+        minCollateralCoverageRatio,
+        liquidationDiscount,
       );
     });
 

@@ -119,48 +119,27 @@ contract LoanManagerMock {
                 );
         }
     }
+    function setLoanAndCollateralTokenPair(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 minCollateralCoverageRatio,
+        uint256 liquidationDiscount
+    ) external {
+        _loanManager.setLoanAndCollateralTokenPair(
+            loanTokenAddress,
+            collateralTokenAddress,
+            minCollateralCoverageRatio,
+            liquidationDiscount
+        );
+    }
 
-    function enableLoanAndCollateralTokenPair(
+    function removeLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress
     ) external {
-        _loanManager.enableLoanAndCollateralTokenPair(
+        _loanManager.removeLoanAndCollateralTokenPair(
             loanTokenAddress,
             collateralTokenAddress
-        );
-    }
-
-    function disableLoanAndCollateralTokenPair(
-        address loanTokenAddress,
-        address collateralTokenAddress
-    ) external {
-        _loanManager.disableLoanAndCollateralTokenPair(
-            loanTokenAddress,
-            collateralTokenAddress
-        );
-    }
-
-    function setMinCollateralCoverageRatiosForToken(
-        address loanTokenAddress,
-        address[] calldata collateralTokenAddressList,
-        uint256[] calldata minCollateralCoverageRatioList
-    ) external {
-        _loanManager.setMinCollateralCoverageRatiosForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            minCollateralCoverageRatioList
-        );
-    }
-
-    function setLiquidationDiscountsForToken(
-        address loanTokenAddress,
-        address[] calldata collateralTokenAddressList,
-        uint256[] calldata liquidationDiscountList
-    ) external {
-        _loanManager.setLiquidationDiscountsForToken(
-            loanTokenAddress,
-            collateralTokenAddressList,
-            liquidationDiscountList
         );
     }
 
@@ -172,14 +151,6 @@ contract LoanManagerMock {
         )
     {
         return _loanManager.getLoanAndCollateralTokenPairs();
-    }
-
-    function getTokenAddressList(uint256 tokenType)
-        external
-        view
-        returns (address[] memory tokenAddressList, bool[] memory isActive)
-    {
-        return _loanManager.getTokenAddressList(tokenType);
     }
 
     /// --- Helpers ---

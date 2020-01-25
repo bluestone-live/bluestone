@@ -6,7 +6,7 @@ source $DIR/utils
 required_args=( network loan_token_symbol collateral_token_symbol )
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Disable an asset pair for loan. The target asset pair must not be already disabled."
+  description="Remove an asset pair for loan. The target asset pair must not be added already."
   example_args="development ETH DAI"
   show_help_message "$description" $required_args "$example_args"
   exit 1

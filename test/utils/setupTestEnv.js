@@ -32,8 +32,8 @@ const setupTestEnv = async (
   depositTokens,
   loanTokens,
   loanPairs,
-  minCollateralCoverageRatios,
-  liquidationDiscounts,
+  // minCollateralCoverageRatios,
+  // liquidationDiscounts,
   loanInterestRateLowerBounds,
   loanInterestRateUpperBounds,
   protocolReserveRatio,
@@ -53,23 +53,11 @@ const setupTestEnv = async (
   // Enable loan pair
   for (let i = 0; i < loanPairs.length; i++) {
     const loanPair = loanPairs[i];
-    await protocol.enableLoanAndCollateralTokenPair(
+    await protocol.setLoanAndCollateralTokenPair(
       loanPair.loanTokenAddress,
       loanPair.collateralTokenAddress,
-    );
-
-    // Set min collateral coverage ratio
-    await protocol.setMinCollateralCoverageRatiosForToken(
-      loanPair.loanTokenAddress,
-      [loanPair.collateralTokenAddress],
-      [toFixedBN(minCollateralCoverageRatios[i])],
-    );
-
-    // Set liquidation discount
-    await protocol.setLiquidationDiscountsForToken(
-      loanPair.loanTokenAddress,
-      [loanPair.collateralTokenAddress],
-      [toFixedBN(liquidationDiscounts[i])],
+      loanPair.minCollateralCoverageRatio,
+      loanPair.liquidationDiscount,
     );
   }
 

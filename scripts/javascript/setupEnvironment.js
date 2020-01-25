@@ -23,9 +23,7 @@ module.exports = makeTruffleScript(async network => {
   exec('enableDepositToken', network);
 
   debug('Setup Loan Environment');
-  exec('enableLoanAndCollateralTokenPair', network);
-  exec('setMinCollateralCoverageRatios', network);
-  exec('setLiquidationDiscountsForToken', network);
+  exec('setLoanAndCollateralTokenPairs', network);
 
   debug('Set Miscellaneous');
   exec('setInterestModel', network);
@@ -34,7 +32,4 @@ module.exports = makeTruffleScript(async network => {
   exec('setProtocolReserveRatio', network);
   exec('setMaxDistributorFeeRatios', network);
   exec('setLoanInterestRates', network);
-
-  debug('Post Token Prices');
-  exec('postDaiPrice', network);
 });

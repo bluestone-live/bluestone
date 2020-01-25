@@ -1,5 +1,4 @@
-const debug = require('debug')('script:disableLoanAndCollateralTokenPair');
-const ERC20Mock = artifacts.require('./ERC20Mock.sol');
+const debug = require('debug')('script:removeLoanAndCollateralTokenPair');
 const Protocol = artifacts.require('./Protocol.sol');
 const { loadNetwork, makeTruffleScript } = require('../utils.js');
 const config = require('config');
@@ -22,24 +21,19 @@ module.exports = makeTruffleScript(
         `Invalid arguments loan: ${loanTokenSymbol}, collateral: ${collateralTokenSymbol}`,
       );
     }
-    if (
-      !tokens[pair.loanTokenSymbol] ||
-      !tokens[pair.loanTokenSymbol].address
-    ) {
+    const loanToken = tokens[pair.loanTokenSymbol];
+    const collateralToken = tokens[pair.collateralTokenSymbol];
+
+    if (!loanToken || !loanToken.address) {
       return debug(`${pair.loanTokenSymbol} is not deployed yet.`);
     }
-    if (
-      !tokens[pair.collateralTokenSymbol] ||
-      !tokens[pair.collateralTokenSymbol].address
-    ) {
+
+    if (!collateralToken || !collateralToken.address) {
       return debug(`${pair.collateralTokenSymbol} is not deployed yet.`);
     }
-    const loanToken = await ERC20Mock.at(tokens[pair.loanTokenSymbol].address);
-    const collateralToken = await ERC20Mock.at(
-      tokens[pair.collateralTokenSymbol].address,
-    );
+
     const protocol = await Protocol.deployed();
-    await protocol.disableLoanAndCollateralTokenPair(
+    await protocol.removeLoanAndCollateralTokenPair(
       loanToken.address,
       collateralToken.address,
     );

@@ -71,7 +71,6 @@ interface IStruct {
     }
 
     struct LoanAndCollateralTokenPair {
-        bool isEnabled;
         address loanTokenAddress;
         address collateralTokenAddress;
         uint256 minCollateralCoverageRatio;

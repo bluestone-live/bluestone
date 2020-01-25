@@ -103,10 +103,10 @@ contract(
           {
             loanTokenAddress: loanToken.address,
             collateralTokenAddress: collateralToken.address,
+            minCollateralCoverageRatio: toFixedBN(minCollateralCoverageRatio),
+            liquidationDiscount: toFixedBN(liquidationDiscount),
           },
         ],
-        [minCollateralCoverageRatio],
-        [liquidationDiscount],
         [loanInterestRateLowerBound],
         [loanInterestRateUpperBound],
         protocolReserveRatio,

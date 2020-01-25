@@ -6,8 +6,9 @@ source $DIR/utils
 required_args=( network )
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Set liquidation discounts for each pair."
-  show_help_message "$description" $required_args
+  description="Add or update token pairs for loan."
+  example_args="development"
+  show_help_message "$description" $required_args "$example_args"
   exit 1
 fi
 
