@@ -25,8 +25,7 @@ contract('DepositManager', function([
   const depositTerm = 30;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
-  const ZEROAddress = '0x0000000000000000000000000000000000000000';
-  let token, depositManager, datetime, payableProxy;
+  let token, depositManager, payableProxy;
   let interestModel;
 
   beforeEach(async () => {
@@ -457,7 +456,7 @@ contract('DepositManager', function([
           depositManager.getDepositRecordById(
             web3.utils.hexToBytes('0x00000000'),
           ),
-          'DepositManager: Deposit ID is invalid',
+          'DepositManager: invalid deposit ID',
         );
       });
     });
@@ -518,7 +517,7 @@ contract('DepositManager', function([
           depositManager.getInterestDistributionByDepositId(
             web3.utils.hexToBytes('0x00000000'),
           ),
-          'DepositManager: Deposit ID is invalid',
+          'DepositManager: invalid deposit ID',
         );
       });
     });

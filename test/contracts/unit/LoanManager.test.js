@@ -136,7 +136,7 @@ contract('LoanManager', function([
       it('revert', async () => {
         await expectRevert(
           loanManager.getLoanRecordById(web3.utils.hexToBytes('0x00000000')),
-          'LoanManager: Loan ID is invalid',
+          'LoanManager: invalid loan ID',
         );
       });
     });
@@ -365,7 +365,7 @@ contract('LoanManager', function([
             liquidationDiscount,
             { from: owner },
           ),
-          'LoanManager: two tokens must be different.',
+          'LoanManager: invalid token pair',
         );
       });
     });
@@ -401,7 +401,7 @@ contract('LoanManager', function([
             collateralToken.address,
             { from: owner },
           ),
-          'LoanManager: token pair does not exist',
+          'LoanManager: invalid token pair',
         );
       });
     });

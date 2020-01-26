@@ -102,7 +102,7 @@ contract DepositManagerMock {
         view
         returns (uint256[] memory depositTermList)
     {
-        return _depositManager.enabledDepositTermList;
+        return _depositManager.depositTermList;
     }
 
     function getDepositTokens()
@@ -110,7 +110,7 @@ contract DepositManagerMock {
         view
         returns (address[] memory depositTokenAddressList)
     {
-        return _depositManager.enabledDepositTokenAddressList;
+        return _depositManager.depositTokenAddressList;
     }
 
     function getDepositRecordById(bytes32 depositId)

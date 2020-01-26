@@ -12,7 +12,7 @@ const { toFixedBN, createERC20Token } = require('../../utils/index');
 const { expect } = require('chai');
 
 contract('Configuration', function([owner]) {
-  let configuration, priceOracle, payableProxy, weth;
+  let configuration, payableProxy, weth;
 
   beforeEach(async () => {
     weth = await WETH9.new();
@@ -25,10 +25,20 @@ contract('Configuration', function([owner]) {
       it('succeeds', async () => {
         const token = await createERC20Token(owner);
         const priceOracle = await SingleFeedPriceOracle.new();
-        await configuration.setPriceOracle(token.address, priceOracle.address);
+        const { logs } = await configuration.setPriceOracle(
+          token.address,
+          priceOracle.address,
+        );
+
         expect(
           await configuration.getPriceOracleAddress(token.address),
         ).to.equal(priceOracle.address);
+
+        expectEvent.inLogs(logs, 'SetPriceOracleSucceed', {
+          adminAddress: owner,
+          tokenAddress: token.address,
+          priceOracleAddress: priceOracle.address,
+        });
       });
     });
   });
@@ -45,8 +55,14 @@ contract('Configuration', function([owner]) {
 
     context('when address is valid', () => {
       it('succeeds', async () => {
-        await configuration.setProtocolAddress(owner);
+        const { logs } = await configuration.setProtocolAddress(owner);
+
         expect(await configuration.getProtocolAddress()).to.equal(owner);
+
+        expectEvent.inLogs(logs, 'SetProtocolAddressSucceed', {
+          adminAddress: owner,
+          protocolAddress: owner,
+        });
       });
     });
   });
@@ -54,10 +70,18 @@ contract('Configuration', function([owner]) {
   describe('#setPayableProxy', () => {
     context('when address is valid', () => {
       it('succeeds', async () => {
-        await configuration.setPayableProxy(payableProxy.address);
+        const { logs } = await configuration.setPayableProxy(
+          payableProxy.address,
+        );
+
         expect(await configuration.getPayableProxy()).to.equal(
           payableProxy.address,
         );
+
+        expectEvent.inLogs(logs, 'SetPayableProxySucceed', {
+          adminAddress: owner,
+          payableProxyAddress: payableProxy.address,
+        });
       });
     });
   });
@@ -65,19 +89,19 @@ contract('Configuration', function([owner]) {
   describe('#setProtocolReserveRatio', () => {
     context('when ratio is set to 1', () => {
       it('succeeds', async () => {
-        await configuration.setProtocolReserveRatio(1);
-        expect(
-          await configuration.getProtocolReserveRatio(),
-        ).to.bignumber.equal(new BN(1));
-      });
-    });
+        const protocolReserveRatio = new BN(1);
+        const { logs } = await configuration.setProtocolReserveRatio(
+          protocolReserveRatio,
+        );
 
-    context('when ratio is set to 2', () => {
-      it('succeeds', async () => {
-        await configuration.setProtocolReserveRatio(2);
         expect(
           await configuration.getProtocolReserveRatio(),
-        ).to.bignumber.equal(new BN(2));
+        ).to.bignumber.equal(protocolReserveRatio);
+
+        expectEvent.inLogs(logs, 'SetProtocolReverveRatioSucceed', {
+          adminAddress: owner,
+          protocolReserveRatio: protocolReserveRatio,
+        });
       });
     });
   });

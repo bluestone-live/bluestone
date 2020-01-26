@@ -20,8 +20,8 @@ library DepositManager {
     using FixedMath for uint256;
 
     struct State {
-        uint256[] enabledDepositTermList;
-        address[] enabledDepositTokenAddressList;
+        uint256[] depositTermList;
+        address[] depositTokenAddressList;
         // Deposit term -> enabled?
         mapping(uint256 => bool) isDepositTermEnabled;
         // Deposit token -> enabled?
@@ -33,12 +33,27 @@ library DepositManager {
         mapping(address => bytes32[]) depositIdsByAccountAddress;
     }
 
+    event EnableDepositTermSucceed(address indexed adminAddress, uint256 term);
+    event DisableDepositTermSucceed(address indexed adminAddress, uint256 term);
+    event EnableDepositTokenSucceed(
+        address indexed adminAddress,
+        address tokenAddress
+    );
+    event DisableDepositTokenSucceed(
+        address indexed adminAddress,
+        address tokenAddress
+    );
     event DepositSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         uint256 amount
     );
     event WithdrawSucceed(
+        address indexed accountAddress,
+        bytes32 recordId,
+        uint256 amount
+    );
+    event EarlyWithdrawSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         uint256 amount
@@ -55,42 +70,42 @@ library DepositManager {
         );
 
         self.isDepositTermEnabled[term] = true;
-        self.enabledDepositTermList.push(term);
+        self.depositTermList.push(term);
 
         /// Update pool group size for each existing token the new term is
         /// greater than the previous pool group size
-        for (
-            uint256 i = 0;
-            i < self.enabledDepositTokenAddressList.length;
-            i++
-        ) {
-            address tokenAddress = self.enabledDepositTokenAddressList[i];
+        for (uint256 i = 0; i < self.depositTokenAddressList.length; i++) {
+            address tokenAddress = self.depositTokenAddressList[i];
             liquidityPools.setPoolGroupSizeIfNeeded(tokenAddress, term);
         }
+
+        emit EnableDepositTermSucceed(msg.sender, term);
     }
 
     function disableDepositTerm(State storage self, uint256 term) external {
         require(
             self.isDepositTermEnabled[term],
-            'DepositManager: term already disabled.'
+            'DepositManager: term already disabled'
         );
 
         self.isDepositTermEnabled[term] = false;
 
-        // Remove term from enabledDepositTermList
-        for (uint256 i = 0; i < self.enabledDepositTermList.length; i++) {
-            if (self.enabledDepositTermList[i] == term) {
-                uint256 numDepositTerms = self.enabledDepositTermList.length;
-                uint256 lastDepositTerm = self
-                    .enabledDepositTermList[numDepositTerms - 1];
+        // Remove term from depositTermList
+        for (uint256 i = 0; i < self.depositTermList.length; i++) {
+            if (self.depositTermList[i] == term) {
+                uint256 numDepositTerms = self.depositTermList.length;
+                uint256 lastDepositTerm = self.depositTermList[numDepositTerms -
+                    1];
 
                 // Overwrite current term with the last term
-                self.enabledDepositTermList[i] = lastDepositTerm;
+                self.depositTermList[i] = lastDepositTerm;
 
                 // Shrink array size
-                self.enabledDepositTermList.pop();
+                self.depositTermList.pop();
             }
         }
+
+        emit DisableDepositTermSucceed(msg.sender, term);
     }
 
     function enableDepositToken(
@@ -104,14 +119,14 @@ library DepositManager {
         );
 
         self.isDepositTokenEnabled[tokenAddress] = true;
-        self.enabledDepositTokenAddressList.push(tokenAddress);
+        self.depositTokenAddressList.push(tokenAddress);
 
         /// Find the maximum deposit term and update pool group size
         /// for this token if needed
         uint256 maxDepositTerm;
 
-        for (uint256 i = 0; i < self.enabledDepositTermList.length; i++) {
-            uint256 depositTerm = self.enabledDepositTermList[i];
+        for (uint256 i = 0; i < self.depositTermList.length; i++) {
+            uint256 depositTerm = self.depositTermList[i];
 
             if (depositTerm > maxDepositTerm) {
                 maxDepositTerm = depositTerm;
@@ -119,6 +134,8 @@ library DepositManager {
         }
 
         liquidityPools.setPoolGroupSizeIfNeeded(tokenAddress, maxDepositTerm);
+
+        emit EnableDepositTokenSucceed(msg.sender, tokenAddress);
     }
 
     function disableDepositToken(State storage self, address tokenAddress)
@@ -131,32 +148,27 @@ library DepositManager {
 
         self.isDepositTokenEnabled[tokenAddress] = false;
 
-        // Remove tokenAddress from enabledDepositTokenAddressList
-        for (
-            uint256 i = 0;
-            i < self.enabledDepositTokenAddressList.length;
-            i++
-        ) {
-            if (self.enabledDepositTokenAddressList[i] == tokenAddress) {
+        // Remove tokenAddress from depositTokenAddressList
+        for (uint256 i = 0; i < self.depositTokenAddressList.length; i++) {
+            if (self.depositTokenAddressList[i] == tokenAddress) {
                 // Swap the current token address and the last token address,
                 // then decrease the array size by one to effectively remove
                 // the disabled token address.
-                uint256 numDepositTokens = self
-                    .enabledDepositTokenAddressList
-                    .length;
+                uint256 numDepositTokens = self.depositTokenAddressList.length;
                 address lastDepositTokenAddress = self
-                    .enabledDepositTokenAddressList[numDepositTokens - 1];
+                    .depositTokenAddressList[numDepositTokens - 1];
 
                 // Overwrite current tokenAddress with the last tokenAddress
-                self
-                    .enabledDepositTokenAddressList[i] = lastDepositTokenAddress;
+                self.depositTokenAddressList[i] = lastDepositTokenAddress;
 
                 // Shrink array size
-                self.enabledDepositTokenAddressList.pop();
+                self.depositTokenAddressList.pop();
 
                 break;
             }
         }
+
+        emit DisableDepositTokenSucceed(msg.sender, tokenAddress);
     }
 
     function deposit(
@@ -233,6 +245,7 @@ library DepositManager {
         }
 
         self.depositIdsByAccountAddress[accountAddress].push(currDepositId);
+
         emit DepositSucceed(
             accountAddress,
             currDepositId,
@@ -353,7 +366,7 @@ library DepositManager {
 
         require(
             isDepositEarlyWithdrawable(self, liquidityPools, depositId),
-            'DepositManager: deposit is not early withdrawable'
+            'DepositManager: cannot early withdraw'
         );
 
         liquidityPools.subtractDepositFromPool(
@@ -377,7 +390,7 @@ library DepositManager {
             );
         }
 
-        emit WithdrawSucceed(
+        emit EarlyWithdrawSucceed(
             msg.sender,
             depositRecord.depositId,
             depositRecord.depositAmount
@@ -400,7 +413,7 @@ library DepositManager {
 
         require(
             depositRecord.tokenAddress != address(0),
-            'DepositManager: Deposit ID is invalid'
+            'DepositManager: invalid deposit ID'
         );
 
         (uint256 interestForDepositor, , , ) = _getInterestDistributionByDepositId(
@@ -444,7 +457,7 @@ library DepositManager {
 
         require(
             depositRecord.tokenAddress != address(0),
-            'DepositManager: Deposit ID is invalid'
+            'DepositManager: invalid deposit ID'
         );
 
         IStruct.Pool memory pool = liquidityPools.getPoolById(

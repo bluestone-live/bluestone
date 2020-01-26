@@ -24,36 +24,109 @@ contract Protocol is IProtocol, Ownable, Pausable {
     DepositManager.State _depositManager;
     LoanManager.State _loanManager;
 
+    event EnableDepositTermSucceed(address indexed adminAddress, uint256 term);
+
+    event DisableDepositTermSucceed(address indexed adminAddress, uint256 term);
+
+    event EnableDepositTokenSucceed(
+        address indexed adminAddress,
+        address tokenAddress
+    );
+
+    event DisableDepositTokenSucceed(
+        address indexed adminAddress,
+        address tokenAddress
+    );
+
     event DepositSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         uint256 amount
     );
+
     event WithdrawSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         uint256 amount
     );
+
+    event EarlyWithdrawSucceed(
+        address indexed accountAddress,
+        bytes32 recordId,
+        uint256 amount
+    );
+
+    event SetLoanAndCollateralTokenPairSucceed(
+        address indexed adminAddress,
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 minCollateralCoverageRatio,
+        uint256 liquidationDiscount
+    );
+
+    event RemoveLoanAndCollateralTokenPairSucceed(
+        address indexed adminAddress,
+        address loanTokenAddress,
+        address collateralTokenAddress
+    );
+
     event LoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         uint256 amount
     );
+
     event RepayLoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         uint256 amount
     );
+
     event LiquidateLoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         uint256 amount
     );
+
     event AddCollateralSucceed(
         address indexed accountAddress,
         bytes32 indexed recordId,
         uint256 collateralAmount
     );
+
+    event SetPriceOracleSucceed(
+        address indexed adminAddress,
+        address tokenAddress,
+        address priceOracleAddress
+    );
+
+    event SetPayableProxySucceed(
+        address indexed adminAddress,
+        address payableProxyAddress
+    );
+
+    event SetProtocolAddressSucceed(
+        address indexed adminAddress,
+        address protocolAddress
+    );
+
+    event SetInterestModelSucceed(
+        address indexed adminAddress,
+        address interestModelAddress
+    );
+
+    event SetProtocolReverveRatioSucceed(
+        address indexed adminAddress,
+        uint256 protocolReserveRatio
+    );
+
+    event SetMaxDistributionFeeRatiosSucceed(
+        address indexed adminAddress,
+        uint256 maxDepositDistributorFeeRatio,
+        uint256 maxLoanDistributorFeeRatio
+    );
+
+    event SetPoolGroupSizeSucceed(address tokenAddress, uint256 numPools);
 
     receive() external payable {
         revert();
@@ -146,7 +219,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         override
         returns (uint256[] memory depositTermList)
     {
-        return _depositManager.enabledDepositTermList;
+        return _depositManager.depositTermList;
     }
 
     function getDepositTokens()
@@ -156,7 +229,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         override
         returns (address[] memory depositTokenAddressList)
     {
-        return _depositManager.enabledDepositTokenAddressList;
+        return _depositManager.depositTokenAddressList;
     }
 
     /// --- Deposit

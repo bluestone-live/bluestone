@@ -25,6 +25,8 @@ library LiquidityPools {
         mapping(bytes32 => mapping(uint256 => uint256)) loanAmountByLoanIdAndPoolId;
     }
 
+    event SetPoolGroupSizeSucceed(address tokenAddress, uint256 numPools);
+
     function setPoolGroupSizeIfNeeded(
         State storage self,
         address tokenAddress,
@@ -35,6 +37,8 @@ library LiquidityPools {
         // We can only increase the number of pools
         if (numPools > poolGroup.numPools) {
             poolGroup.numPools = numPools;
+
+            emit SetPoolGroupSizeSucceed(tokenAddress, numPools);
         }
     }
 

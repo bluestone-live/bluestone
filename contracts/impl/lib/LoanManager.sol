@@ -49,6 +49,18 @@ library LoanManager {
         bool isOverDue;
     }
 
+    event SetLoanAndCollateralTokenPairSucceed(
+        address indexed adminAddress,
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 minCollateralCoverageRatio,
+        uint256 liquidationDiscount
+    );
+    event RemoveLoanAndCollateralTokenPairSucceed(
+        address indexed adminAddress,
+        address loanTokenAddress,
+        address collateralTokenAddress
+    );
     event LoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
@@ -83,7 +95,7 @@ library LoanManager {
 
         require(
             loanRecord.loanTokenAddress != address(0),
-            'LoanManager: Loan ID is invalid'
+            'LoanManager: invalid loan ID'
         );
 
         uint256 remainingDebt = _calculateRemainingDebt(loanRecord);
@@ -163,7 +175,7 @@ library LoanManager {
     ) external returns (uint256 totalCollateralAmount) {
         require(
             !self.loanRecordById[loanId].isClosed,
-            'LoanManager: loan is closed'
+            'LoanManager: loan already closed'
         );
 
         require(collateralAmount > 0, 'LoanManager: invalid collateralAmount');
@@ -204,7 +216,7 @@ library LoanManager {
 
         require(
             tokenPair.minCollateralCoverageRatio != 0,
-            'LoanManager: invalid loan and collateral token pair'
+            'LoanManager: invalid token pair'
         );
 
         require(
@@ -262,7 +274,7 @@ library LoanManager {
         require(
             localVars.currCollateralCoverageRatio >=
                 tokenPair.minCollateralCoverageRatio,
-            'LoanManager: collateral ratio is below requirement'
+            'LoanManager: invalid collateral coverage ratio'
         );
 
         self.numLoans++;
@@ -341,7 +353,7 @@ library LoanManager {
     ) external {
         require(
             loanTokenAddress != collateralTokenAddress,
-            'LoanManager: two tokens must be different'
+            'LoanManager: invalid token pair'
         );
 
         require(
@@ -373,6 +385,14 @@ library LoanManager {
 
         self
             .loanAndCollateralTokenPairs[loanTokenAddress][collateralTokenAddress] = tokenPair;
+
+        emit SetLoanAndCollateralTokenPairSucceed(
+            msg.sender,
+            loanTokenAddress,
+            collateralTokenAddress,
+            minCollateralCoverageRatio,
+            liquidationDiscount
+        );
     }
 
     function removeLoanAndCollateralTokenPair(
@@ -385,7 +405,7 @@ library LoanManager {
 
         require(
             targetTokenPair.minCollateralCoverageRatio != 0,
-            'LoanManager: token pair does not exist'
+            'LoanManager: invalid token pair'
         );
 
         uint256 numTokenPairs = self.loanAndCollateralTokenPairList.length;
@@ -409,6 +429,12 @@ library LoanManager {
                 break;
             }
         }
+
+        emit RemoveLoanAndCollateralTokenPairSucceed(
+            msg.sender,
+            loanTokenAddress,
+            collateralTokenAddress
+        );
     }
 
     function repayLoan(
@@ -425,7 +451,7 @@ library LoanManager {
 
         require(
             tokenPair.minCollateralCoverageRatio != 0,
-            'LoanManager: invalid loan and collateral token pair'
+            'LoanManager: invalid token pair'
         );
 
         require(
@@ -433,7 +459,7 @@ library LoanManager {
             'LoanManager: invalid owner'
         );
 
-        require(!loanRecord.isClosed, 'LoanManager: loan is closed');
+        require(!loanRecord.isClosed, 'LoanManager: loan already closed');
 
         uint256 currRemainingDebt = _calculateRemainingDebt(loanRecord);
 
@@ -515,7 +541,7 @@ library LoanManager {
 
         require(
             tokenPair.minCollateralCoverageRatio != 0,
-            'LoanManager: invalid loan and collateral token pair'
+            'LoanManager: invalid token pair'
         );
 
         require(
@@ -669,7 +695,7 @@ library LoanManager {
     ) external view returns (uint256 loanInterestRate) {
         require(
             loanTerm <= liquidityPools.poolGroups[tokenAddress].numPools,
-            'LoanManager: Invalid loan term.'
+            'LoanManager: invalid loan term'
         );
         return
             configuration.interestModel.getLoanInterestRate(
