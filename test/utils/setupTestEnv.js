@@ -14,8 +14,8 @@ const { toFixedBN } = require('../utils/index');
  * @param {number[]} loanInterestRateLowerBounds loan interest rate lower bound for each loan token
  * @param {number[]} loanInterestRateUpperBounds loan interest rate upper bound for each loan token
  * @param {number} protocolReserveRatio protocol reserve ratio
- * @param {number} maxDepositDistributorFeeRatio max deposit distributor fee ratio
- * @param {number} maxLoanDistributorFeeRatio max loan distributor fee ratio
+ * @param {number} depositDistributorFeeRatio max deposit distributor fee ratio
+ * @param {number} loanDistributorFeeRatio max loan distributor fee ratio
  */
 const setupTestEnv = async (
   [
@@ -37,8 +37,8 @@ const setupTestEnv = async (
   loanInterestRateLowerBounds,
   loanInterestRateUpperBounds,
   protocolReserveRatio,
-  maxDepositDistributorFeeRatio,
-  maxLoanDistributorFeeRatio,
+  depositDistributorFeeRatio,
+  loanDistributorFeeRatio,
 ) => {
   // Enable deposit terms
   for (term of depositTerms) {
@@ -82,8 +82,8 @@ const setupTestEnv = async (
 
   // Set max distributor fee ratios
   await protocol.setMaxDistributorFeeRatios(
-    toFixedBN(maxDepositDistributorFeeRatio),
-    toFixedBN(maxLoanDistributorFeeRatio),
+    toFixedBN(depositDistributorFeeRatio),
+    toFixedBN(loanDistributorFeeRatio),
   );
 };
 

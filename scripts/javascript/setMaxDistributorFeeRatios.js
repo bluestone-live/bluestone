@@ -4,16 +4,15 @@ const { makeTruffleScript, toFixedBN } = require('../utils.js');
 const config = require('config');
 
 module.exports = makeTruffleScript(async network => {
-  const {
-    maxDepositDistributorFeeRatio,
-    maxLoanDistributorFeeRatio,
-  } = config.get('contract');
+  const { depositDistributorFeeRatio, loanDistributorFeeRatio } = config.get(
+    'contract',
+  );
   const protocol = await Protocol.deployed();
   await protocol.setMaxDistributorFeeRatios(
-    toFixedBN(maxDepositDistributorFeeRatio),
-    toFixedBN(maxLoanDistributorFeeRatio),
+    toFixedBN(depositDistributorFeeRatio),
+    toFixedBN(loanDistributorFeeRatio),
   );
   debug(
-    `Max distributor fee ratios is set to ${maxDepositDistributorFeeRatio} ${maxLoanDistributorFeeRatio}`,
+    `Max distributor fee ratios is set to ${depositDistributorFeeRatio} ${loanDistributorFeeRatio}`,
   );
 });

@@ -282,22 +282,22 @@ interface IProtocol {
         returns (uint256 protocolReserveRatio);
 
     /// @notice Return the maximum fee ratio for distributors
-    /// @return maxDepositDistributorFeeRatio
-    /// @return maxLoanDistributorFeeRatio
+    /// @return depositDistributorFeeRatio
+    /// @return loanDistributorFeeRatio
     function getMaxDistributorFeeRatios()
         external
         view
         virtual
         returns (
-            uint256 maxDepositDistributorFeeRatio,
-            uint256 maxLoanDistributorFeeRatio
+            uint256 depositDistributorFeeRatio,
+            uint256 loanDistributorFeeRatio
         );
 
     /// @notice Set the maximum fee ratio for distributors
-    /// @param maxDepositDistributorFeeRatio deposit distributor fee ratio
-    /// @param maxLoanDistributorFeeRatio loan fee ratio
+    /// @param depositDistributorFeeRatio deposit distributor fee ratio
+    /// @param loanDistributorFeeRatio loan fee ratio
     function setMaxDistributorFeeRatios(
-        uint256 maxDepositDistributorFeeRatio,
-        uint256 maxLoanDistributorFeeRatio
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio
     ) external virtual;
 }

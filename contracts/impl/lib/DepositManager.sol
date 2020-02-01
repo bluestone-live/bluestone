@@ -204,8 +204,8 @@ library DepositManager {
             depositParameters.depositAmount,
             depositParameters.depositTerm,
             depositWeight,
-            configuration.maxDepositDistributorFeeRatio,
-            configuration.maxLoanDistributorFeeRatio,
+            configuration.depositDistributorFeeRatio,
+            configuration.loanDistributorFeeRatio,
             configuration.protocolReserveRatio
         );
 

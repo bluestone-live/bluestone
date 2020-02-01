@@ -56,7 +56,7 @@ export const useGlobalInit = (
           depositFee: Math.min(
             Number.parseFloat(
               convertWeiToDecimal(
-                distributorFeeRatios.maxDepositDistributorFeeRatio,
+                distributorFeeRatios.depositDistributorFeeRatio,
               ),
             ),
             distributorConfig.depositFee,

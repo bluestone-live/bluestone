@@ -110,11 +110,11 @@ contract('Configuration', function([owner]) {
     context("when the ratio limit didn't set", () => {
       it('get ZERO', async () => {
         const {
-          maxDepositDistributorFeeRatio,
-          maxLoanDistributorFeeRatio,
+          depositDistributorFeeRatio,
+          loanDistributorFeeRatio,
         } = await configuration.getMaxDistributorFeeRatios();
-        expect(maxDepositDistributorFeeRatio).to.bignumber.equal(toFixedBN(0));
-        expect(maxLoanDistributorFeeRatio).to.bignumber.equal(toFixedBN(0));
+        expect(depositDistributorFeeRatio).to.bignumber.equal(toFixedBN(0));
+        expect(loanDistributorFeeRatio).to.bignumber.equal(toFixedBN(0));
       });
     });
   });
@@ -128,13 +128,13 @@ contract('Configuration', function([owner]) {
         estimateMaxLoanDistributorFeeRatio,
       );
       const {
-        maxDepositDistributorFeeRatio,
-        maxLoanDistributorFeeRatio,
+        depositDistributorFeeRatio,
+        loanDistributorFeeRatio,
       } = await configuration.getMaxDistributorFeeRatios();
-      expect(maxDepositDistributorFeeRatio).to.bignumber.equal(
+      expect(depositDistributorFeeRatio).to.bignumber.equal(
         estimateMaxDepositDistributorFeeRatio,
       );
-      expect(maxLoanDistributorFeeRatio).to.bignumber.equal(
+      expect(loanDistributorFeeRatio).to.bignumber.equal(
         estimateMaxLoanDistributorFeeRatio,
       );
     });

@@ -28,8 +28,8 @@ contract(
     const minCollateralCoverageRatio = 1.5;
     const liquidationDiscount = 0.05;
     const protocolReserveRatio = 0.07;
-    const maxDepositDistributorFeeRatio = 0.01;
-    const maxLoanDistributorFeeRatio = 0.02;
+    const depositDistributorFeeRatio = 0.01;
+    const loanDistributorFeeRatio = 0.02;
 
     const loanInterestRateLowerBound = 0.1;
     const loanInterestRateUpperBound = 0.15;
@@ -110,8 +110,8 @@ contract(
         [loanInterestRateLowerBound],
         [loanInterestRateUpperBound],
         protocolReserveRatio,
-        maxDepositDistributorFeeRatio,
-        maxLoanDistributorFeeRatio,
+        depositDistributorFeeRatio,
+        loanDistributorFeeRatio,
       );
 
       // Post prices
@@ -204,12 +204,12 @@ contract(
             )
             .sub(
               totalInterest
-                .mul(toFixedBN(maxDepositDistributorFeeRatio))
+                .mul(toFixedBN(depositDistributorFeeRatio))
                 .div(toFixedBN(1)),
             )
             .sub(
               totalInterest
-                .mul(toFixedBN(maxLoanDistributorFeeRatio))
+                .mul(toFixedBN(loanDistributorFeeRatio))
                 .div(toFixedBN(1)),
             ),
         );
@@ -232,7 +232,7 @@ contract(
           loanDistributorBalance.sub(prevLoanDistributorBalance),
         ).to.bignumber.equal(
           totalInterest
-            .mul(toFixedBN(maxLoanDistributorFeeRatio))
+            .mul(toFixedBN(loanDistributorFeeRatio))
             .div(toFixedBN(1)),
         );
       });
@@ -316,7 +316,7 @@ contract(
           depositDistributorBalance.sub(prevDepositDistributorBalance),
         ).to.bignumber.equal(
           totalInterest
-            .mul(toFixedBN(maxDepositDistributorFeeRatio))
+            .mul(toFixedBN(depositDistributorFeeRatio))
             .div(toFixedBN(1)),
         );
         expect(

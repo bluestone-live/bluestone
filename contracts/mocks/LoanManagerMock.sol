@@ -21,12 +21,12 @@ contract LoanManagerMock {
     LoanManager.State _loanManager;
 
     function setMaxDistributorFeeRatios(
-        uint256 maxDepositDistributorFeeRatio,
-        uint256 maxLoanDistributorFeeRatio
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio
     ) external {
         _configuration.setMaxDistributorFeeRatios(
-            maxDepositDistributorFeeRatio,
-            maxLoanDistributorFeeRatio
+            depositDistributorFeeRatio,
+            loanDistributorFeeRatio
         );
     }
 

@@ -50,8 +50,8 @@ module.exports = {
       },
     ],
     protocolReserveRatio: 0.1,
-    maxDepositDistributorFeeRatio: 0.01,
-    maxLoanDistributorFeeRatio: 0.02,
+    depositDistributorFeeRatio: 0.01,
+    loanDistributorFeeRatio: 0.02,
     interestReserveAddress: '<ADD-ADDRESS>',
   },
 };

@@ -182,19 +182,19 @@ module.exports = makeTruffleScript(async network => {
   }
 
   const {
-    maxDepositDistributorFeeRatio,
-    maxLoanDistributorFeeRatio,
+    depositDistributorFeeRatio,
+    loanDistributorFeeRatio,
   } = await protocol.getMaxDistributorFeeRatios();
 
-  if (configs.maxDepositDistributorFeeRatio !== maxDepositDistributorFeeRatio) {
+  if (configs.depositDistributorFeeRatio !== depositDistributorFeeRatio) {
     return debug(
-      `MaxDepositDistributorFeeRatio expect ${configs.maxDepositDistributorFeeRatio}, got ${maxDepositDistributorFeeRatio}`,
+      `MaxDepositDistributorFeeRatio expect ${configs.depositDistributorFeeRatio}, got ${depositDistributorFeeRatio}`,
     );
   }
 
-  if (configs.maxLoanDistributorFeeRatio !== maxLoanDistributorFeeRatio) {
+  if (configs.loanDistributorFeeRatio !== loanDistributorFeeRatio) {
     return debug(
-      `MaxLoanDistributorFeeRatio expect ${configs.maxLoanDistributorFeeRatio}, got ${maxLoanDistributorFeeRatio}`,
+      `MaxLoanDistributorFeeRatio expect ${configs.loanDistributorFeeRatio}, got ${loanDistributorFeeRatio}`,
     );
   }
 });

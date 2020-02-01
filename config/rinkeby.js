@@ -47,8 +47,8 @@ module.exports = {
       },
     ],
     protocolReserveRatio: 0.07,
-    maxDepositDistributorFeeRatio: 0.01,
-    maxLoanDistributorFeeRatio: 0.02,
+    depositDistributorFeeRatio: 0.01,
+    loanDistributorFeeRatio: 0.02,
     interestReserveAddress: '0x25A02a9cc5Fe6d44f6ff2ACCb2854BA634806F8e',
   },
 };

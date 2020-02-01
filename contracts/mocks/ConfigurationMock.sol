@@ -58,13 +58,13 @@ contract ConfigurationMock {
     }
 
     function setMaxDistributorFeeRatios(
-        uint256 maxDepositDistributorFeeRatio,
-        uint256 maxLoanDistributorFeeRatio
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio
     ) external {
         return
             _configuration.setMaxDistributorFeeRatios(
-                maxDepositDistributorFeeRatio,
-                maxLoanDistributorFeeRatio
+                depositDistributorFeeRatio,
+                loanDistributorFeeRatio
             );
     }
 
@@ -72,13 +72,13 @@ contract ConfigurationMock {
         external
         view
         returns (
-            uint256 maxDepositDistributorFeeRatio,
-            uint256 maxLoanDistributorFeeRatio
+            uint256 depositDistributorFeeRatio,
+            uint256 loanDistributorFeeRatio
         )
     {
         return (
-            _configuration.maxDepositDistributorFeeRatio,
-            _configuration.maxLoanDistributorFeeRatio
+            _configuration.depositDistributorFeeRatio,
+            _configuration.loanDistributorFeeRatio
         );
     }
 

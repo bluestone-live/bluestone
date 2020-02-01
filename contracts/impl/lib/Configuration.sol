@@ -6,8 +6,8 @@ import '../../interface/IPayableProxy.sol';
 
 library Configuration {
     struct State {
-        uint256 maxDepositDistributorFeeRatio;
-        uint256 maxLoanDistributorFeeRatio;
+        uint256 depositDistributorFeeRatio;
+        uint256 loanDistributorFeeRatio;
         // The percentage protocol takes from deposit interest as reserve.
         uint256 protocolReserveRatio;
         address payable interestReserveAddress;
@@ -45,8 +45,8 @@ library Configuration {
 
     event SetMaxDistributionFeeRatiosSucceed(
         address indexed adminAddress,
-        uint256 maxDepositDistributorFeeRatio,
-        uint256 maxLoanDistributorFeeRatio
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio
     );
 
     function setPriceOracle(
@@ -104,16 +104,16 @@ library Configuration {
 
     function setMaxDistributorFeeRatios(
         State storage self,
-        uint256 maxDepositDistributorFeeRatio,
-        uint256 maxLoanDistributorFeeRatio
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio
     ) external {
-        self.maxDepositDistributorFeeRatio = maxDepositDistributorFeeRatio;
-        self.maxLoanDistributorFeeRatio = maxLoanDistributorFeeRatio;
+        self.depositDistributorFeeRatio = depositDistributorFeeRatio;
+        self.loanDistributorFeeRatio = loanDistributorFeeRatio;
 
         emit SetMaxDistributionFeeRatiosSucceed(
             msg.sender,
-            maxLoanDistributorFeeRatio,
-            maxLoanDistributorFeeRatio
+            loanDistributorFeeRatio,
+            loanDistributorFeeRatio
         );
     }
 }

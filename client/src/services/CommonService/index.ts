@@ -138,8 +138,8 @@ export class CommonService {
    * Get deposit and loan distributor fee ratio
    */
   async getMaxDistributorFeeRatios(): Promise<{
-    maxDepositDistributorFeeRatio: string;
-    maxLoanDistributorFeeRatio: string;
+    depositDistributorFeeRatio: string;
+    loanDistributorFeeRatio: string;
   }> {
     return this.provider.protocol.methods.getMaxDistributorFeeRatios().call();
   }

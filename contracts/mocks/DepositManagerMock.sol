@@ -36,12 +36,12 @@ contract DepositManagerMock {
     }
 
     function setMaxDistributorFeeRatios(
-        uint256 maxDepositDistributorFeeRatio,
-        uint256 maxLoanDistributorFeeRatio
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio
     ) external {
         _configuration.setMaxDistributorFeeRatios(
-            maxDepositDistributorFeeRatio,
-            maxLoanDistributorFeeRatio
+            depositDistributorFeeRatio,
+            loanDistributorFeeRatio
         );
     }
 

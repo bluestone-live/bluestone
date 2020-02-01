@@ -490,12 +490,12 @@ contract Protocol is IProtocol, Ownable, Pausable {
     }
 
     function setMaxDistributorFeeRatios(
-        uint256 maxDepositDistributorFeeRatio,
-        uint256 maxLoanDistributorFeeRatio
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio
     ) external onlyOwner override {
         _configuration.setMaxDistributorFeeRatios(
-            maxDepositDistributorFeeRatio,
-            maxLoanDistributorFeeRatio
+            depositDistributorFeeRatio,
+            loanDistributorFeeRatio
         );
     }
 
@@ -535,13 +535,13 @@ contract Protocol is IProtocol, Ownable, Pausable {
         whenNotPaused
         override
         returns (
-            uint256 maxDepositDistributorFeeRatio,
-            uint256 maxLoanDistributorFeeRatio
+            uint256 depositDistributorFeeRatio,
+            uint256 loanDistributorFeeRatio
         )
     {
         return (
-            _configuration.maxDepositDistributorFeeRatio,
-            _configuration.maxLoanDistributorFeeRatio
+            _configuration.depositDistributorFeeRatio,
+            _configuration.loanDistributorFeeRatio
         );
     }
 
