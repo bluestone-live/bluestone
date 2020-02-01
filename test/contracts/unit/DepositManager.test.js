@@ -20,7 +20,7 @@ contract('DepositManager', function([
   owner,
   depositor,
   distributorAddress,
-  protocolAddress,
+  interestReserveAddress,
 ]) {
   const depositTerm = 30;
   const depositDistributorFeeRatio = toFixedBN(0.01);
@@ -39,7 +39,7 @@ contract('DepositManager', function([
       depositDistributorFeeRatio,
       loanDistributorFeeRatio,
     );
-    await depositManager.setProtocolAddress(protocolAddress);
+    await depositManager.setInterestReserveAddress(interestReserveAddress);
     payableProxy = await PayableProxy.new(depositManager.address, weth.address);
 
     await depositManager.setPayableProxy(payableProxy.address);

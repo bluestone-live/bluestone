@@ -44,7 +44,7 @@ export const useGlobalInit = (
     dispatch(CommonActions.setProtocolContractAddress(protocolContractAddress));
 
     // Get distributor configs
-    const protocolAddress = await commonService.getProtocolAddress();
+    const interestReserveAddress = await commonService.getInterestReserveAddress();
 
     const distributorFeeRatios = await commonService.getMaxDistributorFeeRatios();
     const distributorConfig = decodeDistributorConfig(dconfig || btoa('{}'));
@@ -52,7 +52,7 @@ export const useGlobalInit = (
     if (distributorFeeRatios) {
       dispatch(
         CommonActions.setDistributorConfig({
-          address: distributorConfig.address || protocolAddress,
+          address: distributorConfig.address || interestReserveAddress,
           depositFee: Math.min(
             Number.parseFloat(
               convertWeiToDecimal(

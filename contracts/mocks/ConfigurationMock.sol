@@ -23,20 +23,22 @@ contract ConfigurationMock {
         _configuration.setPriceOracle(tokenAddress, priceOracle);
     }
 
-    function setProtocolAddress(address payable protocolAddress) external {
-        _configuration.setProtocolAddress(protocolAddress);
+    function setInterestReserveAddress(address payable interestReserveAddress)
+        external
+    {
+        _configuration.setInterestReserveAddress(interestReserveAddress);
     }
 
     function setProtocolReserveRatio(uint256 protocolReserveRatio) external {
         _configuration.setProtocolReserveRatio(protocolReserveRatio);
     }
 
-    function getProtocolAddress()
+    function getInterestReserveAddress()
         external
         view
-        returns (address protocolAddress)
+        returns (address interestReserveAddress)
     {
-        return _configuration.protocolAddress;
+        return _configuration.interestReserveAddress;
     }
 
     function getProtocolReserveRatio()

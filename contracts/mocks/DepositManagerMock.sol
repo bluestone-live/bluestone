@@ -184,8 +184,10 @@ contract DepositManagerMock {
         _configuration.setInterestModel(interestModel);
     }
 
-    function setProtocolAddress(address payable protocolAddress) external {
-        _configuration.setProtocolAddress(protocolAddress);
+    function setInterestReserveAddress(address payable interestReserveAddress)
+        external
+    {
+        _configuration.setInterestReserveAddress(interestReserveAddress);
     }
     function setPayableProxy(IPayableProxy payableProxy) external {
         _configuration.setPayableProxy(payableProxy);

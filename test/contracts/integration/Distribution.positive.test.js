@@ -15,7 +15,7 @@ contract(
     loaner,
     depositDistributor,
     loanDistributor,
-    protocolAddress,
+    interestReserveAddress,
   ]) => {
     let protocol, interestModel, loanToken, collateralToken, datetime;
 
@@ -92,7 +92,7 @@ contract(
           loaner,
           depositDistributor,
           loanDistributor,
-          protocolAddress,
+          interestReserveAddress,
         ],
         protocol,
         interestModel,
@@ -294,7 +294,7 @@ contract(
           depositDistributor,
         );
         const prevProtocolReserveBalance = await loanToken.balanceOf(
-          protocolAddress,
+          interestReserveAddress,
         );
 
         await protocol.withdraw(depositId, {
@@ -306,7 +306,7 @@ contract(
           depositDistributor,
         );
         const protocolReserveBalance = await loanToken.balanceOf(
-          protocolAddress,
+          interestReserveAddress,
         );
 
         expect(depositorBalance.sub(prevDepositorBalance)).to.bignumber.equal(
@@ -401,7 +401,7 @@ contract(
           depositDistributor,
         );
         const prevProtocolReserveBalance = await loanToken.balanceOf(
-          protocolAddress,
+          interestReserveAddress,
         );
 
         await protocol.earlyWithdraw(depositId, {
@@ -413,7 +413,7 @@ contract(
           depositDistributor,
         );
         const protocolReserveBalance = await loanToken.balanceOf(
-          protocolAddress,
+          interestReserveAddress,
         );
 
         expect(depositorBalance.sub(prevDepositorBalance)).to.bignumber.equal(

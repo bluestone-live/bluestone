@@ -24,7 +24,7 @@ const setupTestEnv = async (
     loaner,
     depositDistributor,
     loanDistributor,
-    protocolAddress,
+    interestReserveAddress,
   ],
   protocol,
   interestModel,
@@ -74,8 +74,8 @@ const setupTestEnv = async (
   // Set InterestModel address
   await protocol.setInterestModel(interestModel.address);
 
-  // Set protocol address
-  await protocol.setProtocolAddress(protocolAddress);
+  // Set interest reserve address
+  await protocol.setInterestReserveAddress(interestReserveAddress);
 
   // Set protocol reserve ratio
   await protocol.setProtocolReserveRatio(toFixedBN(protocolReserveRatio));

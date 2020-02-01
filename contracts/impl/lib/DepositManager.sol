@@ -270,8 +270,8 @@ library DepositManager {
         );
 
         require(
-            configuration.protocolAddress != address(0),
-            'DepositManager: protocolAddress is not set'
+            configuration.interestReserveAddress != address(0),
+            'DepositManager: interestReserveAddress is not set'
         );
 
         address tokenAddress = depositRecord.tokenAddress;
@@ -310,9 +310,9 @@ library DepositManager {
                     interestForDepositDistributor
                 );
             }
-            // Transfer protocol reserve to protocol address
+            // Transfer protocol reserve to interest reserve address
             configuration.payableProxy.sendETH(
-                configuration.protocolAddress,
+                configuration.interestReserveAddress,
                 interestForProtocolReserve
             );
             // Transfer deposit plus interest to depositor
@@ -329,9 +329,9 @@ library DepositManager {
                 );
             }
 
-            // Transfer protocol reserve to protocol address
+            // Transfer protocol reserve to interest reserve address
             ERC20(tokenAddress).safeTransfer(
-                configuration.protocolAddress,
+                configuration.interestReserveAddress,
                 interestForProtocolReserve
             );
 

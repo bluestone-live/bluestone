@@ -6,7 +6,7 @@ source $DIR/utils
 required_args=( network )
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Set protocol address."
+  description="Set interest reserve address."
   example_args="development"
   show_help_message "$description" $required_args "$example_args"
   exit 1

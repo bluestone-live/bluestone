@@ -28,7 +28,7 @@ module.exports = makeTruffleScript(async network => {
   debug('Set Miscellaneous');
   exec('setInterestModel', network);
   exec('setPayableProxy', network);
-  exec('setProtocolAddress', network);
+  exec('setInterestReserveAddress', network);
   exec('setProtocolReserveRatio', network);
   exec('setMaxDistributorFeeRatios', network);
   exec('setLoanInterestRates', network);

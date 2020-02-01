@@ -10,7 +10,7 @@ library Configuration {
         uint256 maxLoanDistributorFeeRatio;
         // The percentage protocol takes from deposit interest as reserve.
         uint256 protocolReserveRatio;
-        address payable protocolAddress;
+        address payable interestReserveAddress;
         IInterestModel interestModel;
         // Token address -> price oracle
         mapping(address => IPriceOracle) priceOracleByToken;
@@ -30,7 +30,7 @@ library Configuration {
 
     event SetProtocolAddressSucceed(
         address indexed adminAddress,
-        address protocolAddress
+        address interestReserveAddress
     );
 
     event SetInterestModelSucceed(
@@ -71,18 +71,18 @@ library Configuration {
         emit SetPayableProxySucceed(msg.sender, address(payableProxy));
     }
 
-    function setProtocolAddress(
+    function setInterestReserveAddress(
         State storage self,
-        address payable protocolAddress
+        address payable interestReserveAddress
     ) external {
         require(
-            protocolAddress != address(0),
+            interestReserveAddress != address(0),
             'Configuration: invalid protocol address'
         );
 
-        self.protocolAddress = protocolAddress;
+        self.interestReserveAddress = interestReserveAddress;
 
-        emit SetProtocolAddressSucceed(msg.sender, protocolAddress);
+        emit SetProtocolAddressSucceed(msg.sender, interestReserveAddress);
     }
 
     function setInterestModel(State storage self, IInterestModel interestModel)

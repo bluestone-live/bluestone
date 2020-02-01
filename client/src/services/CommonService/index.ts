@@ -128,10 +128,10 @@ export class CommonService {
   }
 
   /**
-   * Get protocol address
+   * Get interest reserve address
    */
-  async getProtocolAddress(): Promise<string> {
-    return this.provider.protocol.methods.getProtocolAddress().call();
+  async getInterestReserveAddress(): Promise<string> {
+    return this.provider.protocol.methods.getInterestReserveAddress().call();
   }
 
   /**

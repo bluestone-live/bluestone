@@ -235,9 +235,9 @@ interface IProtocol {
     /// @param payableProxy Payable proxy
     function setPayableProxy(IPayableProxy payableProxy) external virtual;
 
-    /// @notice Set protocol address, which receives protocol reserve.
-    /// @param protocolAddress Protocol address
-    function setProtocolAddress(address payable protocolAddress)
+    /// @notice Set interest reserve address, which receives protocol reserve.
+    /// @param interestReserveAddress Protocol address
+    function setInterestReserveAddress(address payable interestReserveAddress)
         external
         virtual;
 
@@ -257,13 +257,13 @@ interface IProtocol {
         virtual
         returns (uint256 tokenPrice);
 
-    /// @notice Return protocol address
-    /// @return protocolAddress Protocol address
-    function getProtocolAddress()
+    /// @notice Return interest reserve address
+    /// @return interestReserveAddress interest reserve address
+    function getInterestReserveAddress()
         external
         view
         virtual
-        returns (address protocolAddress);
+        returns (address interestReserveAddress);
 
     /// @notice Return interest model address
     /// @return interestModelAddress Interest model address

@@ -173,11 +173,11 @@ module.exports = makeTruffleScript(async network => {
     );
   }
 
-  const protocolAddress = await protocol.getProtocolAddress();
+  const interestReserveAddress = await protocol.getInterestReserveAddress();
 
-  if (configs.protocolAddress !== protocolAddress) {
+  if (configs.interestReserveAddress !== interestReserveAddress) {
     return debug(
-      `Protocol address expect ${configs.protocolAddress}, got ${protocolAddress}`,
+      `Protocol address expect ${configs.interestReserveAddress}, got ${interestReserveAddress}`,
     );
   }
 

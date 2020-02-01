@@ -59,6 +59,6 @@ module.exports = {
     protocolReserveRatio: 0.1,
     maxDepositDistributorFeeRatio: 0.01,
     maxLoanDistributorFeeRatio: 0.02,
-    protocolAddress: '<ADD-ADDRESS>',
+    interestReserveAddress: '<ADD-ADDRESS>',
   },
 };

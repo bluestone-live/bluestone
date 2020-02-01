@@ -43,11 +43,11 @@ contract('Configuration', function([owner]) {
     });
   });
 
-  describe('#setProtocolAddress', () => {
+  describe('#setInterestReserveAddress', () => {
     context('when address is invalid', () => {
       it('reverts', async () => {
         await expectRevert(
-          configuration.setProtocolAddress(constants.ZERO_ADDRESS),
+          configuration.setInterestReserveAddress(constants.ZERO_ADDRESS),
           'Configuration: invalid protocol address',
         );
       });
@@ -55,13 +55,13 @@ contract('Configuration', function([owner]) {
 
     context('when address is valid', () => {
       it('succeeds', async () => {
-        const { logs } = await configuration.setProtocolAddress(owner);
+        const { logs } = await configuration.setInterestReserveAddress(owner);
 
-        expect(await configuration.getProtocolAddress()).to.equal(owner);
+        expect(await configuration.getInterestReserveAddress()).to.equal(owner);
 
         expectEvent.inLogs(logs, 'SetProtocolAddressSucceed', {
           adminAddress: owner,
-          protocolAddress: owner,
+          interestReserveAddress: owner,
         });
       });
     });

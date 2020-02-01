@@ -473,12 +473,12 @@ contract Protocol is IProtocol, Ownable, Pausable {
         );
     }
 
-    function setProtocolAddress(address payable protocolAddress)
+    function setInterestReserveAddress(address payable interestReserveAddress)
         external
         onlyOwner
         override
     {
-        _configuration.setProtocolAddress(protocolAddress);
+        _configuration.setInterestReserveAddress(interestReserveAddress);
     }
 
     function setProtocolReserveRatio(uint256 protocolReserveRatio)
@@ -499,14 +499,14 @@ contract Protocol is IProtocol, Ownable, Pausable {
         );
     }
 
-    function getProtocolAddress()
+    function getInterestReserveAddress()
         external
         view
         whenNotPaused
         override
-        returns (address protocolAddress)
+        returns (address interestReserveAddress)
     {
-        return _configuration.protocolAddress;
+        return _configuration.interestReserveAddress;
     }
 
     function getInterestModelAddress()
