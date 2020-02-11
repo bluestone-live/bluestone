@@ -1,7 +1,7 @@
 pragma solidity ^0.6.0;
 
 import './Context.sol';
-import '../lib/Roles.sol';
+import './lib/Roles.sol';
 
 contract PauserRole is Context {
     using Roles for Roles.Role;

@@ -1,12 +1,12 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import '../impl/lib/Configuration.sol';
-import '../impl/lib/LiquidityPools.sol';
-import '../impl/lib/DepositManager.sol';
-import '../impl/lib/LoanManager.sol';
-import '../interface/IInterestModel.sol';
 import '../interface/IStruct.sol';
+import '../interface/IInterestModel.sol';
+import '../lib/Configuration.sol';
+import '../lib/LiquidityPools.sol';
+import '../lib/DepositManager.sol';
+import '../lib/LoanManager.sol';
 
 contract DepositManagerMock {
     using Configuration for Configuration.State;

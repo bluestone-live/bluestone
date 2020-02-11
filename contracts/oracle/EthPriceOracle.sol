@@ -1,7 +1,7 @@
 pragma solidity ^0.6.0;
 
-import '../interface/IPriceOracle.sol';
-import '../interface/IMedianizer.sol';
+import '../common/interface/IMedianizer.sol';
+import './interface/IPriceOracle.sol';
 
 /// @title Price oracle that fetches ETH price in USD.
 contract EthPriceOracle is IPriceOracle {

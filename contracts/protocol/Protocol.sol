@@ -1,12 +1,12 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import './Ownable.sol';
-import './Pausable.sol';
-import '../interface/IProtocol.sol';
-import '../interface/IPriceOracle.sol';
-import '../interface/IInterestModel.sol';
-import '../interface/IPayableProxy.sol';
+import '../oracle/interface/IPriceOracle.sol';
+import '../common/Ownable.sol';
+import '../common/Pausable.sol';
+import './interface/IProtocol.sol';
+import './interface/IInterestModel.sol';
+import './interface/IPayableProxy.sol';
 import './lib/Configuration.sol';
 import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';

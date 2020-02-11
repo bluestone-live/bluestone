@@ -1,11 +1,11 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import '../../lib/Math.sol';
-import '../../lib/SafeMath.sol';
-import '../../lib/FixedMath.sol';
-import '../../lib/DateTime.sol';
-import '../../interface/IStruct.sol';
+import '../../common/lib/Math.sol';
+import '../../common/lib/SafeMath.sol';
+import '../../common/lib/FixedMath.sol';
+import '../../common/lib/DateTime.sol';
+import '../interface/IStruct.sol';
 import './LoanManager.sol';
 
 library LiquidityPools {

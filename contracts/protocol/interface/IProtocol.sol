@@ -1,10 +1,10 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
+import '../../oracle/interface/IPriceOracle.sol';
 import './IInterestModel.sol';
-import './IPriceOracle.sol';
-import './IStruct.sol';
 import './IPayableProxy.sol';
+import './IStruct.sol';
 
 /// @title Interface for main protocol
 interface IProtocol {

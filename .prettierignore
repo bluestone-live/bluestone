@@ -1,5 +1,5 @@
-contracts/impl/Protocol.sol
-contracts/impl/PayableProxy.sol
-contracts/impl/WETH9.sol
-contracts/interface/IPayableProxy.sol
-contracts/mocks/PayableProxyMock.sol
+contracts/common/WETH9.sol
+contracts/protocol/Protocol.sol
+contracts/protocol/PayableProxy.sol
+contracts/protocol/interface/IPayableProxy.sol
+contracts/protocol/mock/PayableProxyMock.sol

@@ -1,6 +1,6 @@
 pragma solidity ^0.6.0;
 
-abstract contract IPayableProxy {
+interface IPayableProxy {
     /// @notice Receive ETH from user address
     function receiveETH() external payable virtual;
 
@@ -11,5 +11,9 @@ abstract contract IPayableProxy {
 
     /// @notice Get mapping token address
     /// @return wethAddress WETH address
-    function getWETHAddress() external view virtual returns (address wethAddress);
+    function getWETHAddress()
+        external
+        view
+        virtual
+        returns (address wethAddress);
 }

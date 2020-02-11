@@ -1,15 +1,15 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import '../ERC20.sol';
+import '../../common/ERC20.sol';
+import '../../common/lib/DateTime.sol';
+import '../../common/lib/SafeMath.sol';
+import '../../common/lib/FixedMath.sol';
+import '../../common/lib/SafeERC20.sol';
+import '../interface/IStruct.sol';
+import './LoanManager.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
-import './LoanManager.sol';
-import '../../lib/DateTime.sol';
-import '../../lib/SafeMath.sol';
-import '../../lib/FixedMath.sol';
-import '../../lib/SafeERC20.sol';
-import '../../interface/IStruct.sol';
 
 library DepositManager {
     using Configuration for Configuration.State;

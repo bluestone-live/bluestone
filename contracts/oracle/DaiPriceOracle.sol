@@ -1,14 +1,14 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import './Ownable.sol';
-import '../interface/IPriceOracle.sol';
-import '../interface/IERC20.sol';
-import '../interface/IMedianizer.sol';
-import '../interface/IOasisDex.sol';
-import '../lib/DateTime.sol';
-import '../lib/SafeMath.sol';
-import '../lib/Math.sol';
+import '../common/interface/IERC20.sol';
+import '../common/interface/IMedianizer.sol';
+import '../common/interface/IOasisDex.sol';
+import '../common/lib/DateTime.sol';
+import '../common/lib/SafeMath.sol';
+import '../common/lib/Math.sol';
+import '../common/Ownable.sol';
+import './interface/IPriceOracle.sol';
 
 contract DaiPriceOracle is IPriceOracle, Ownable {
     using SafeMath for uint256;

@@ -1,8 +1,8 @@
 pragma solidity ^0.6.0;
 
-import '../../interface/IInterestModel.sol';
-import '../../interface/IPriceOracle.sol';
-import '../../interface/IPayableProxy.sol';
+import '../../oracle/interface/IPriceOracle.sol';
+import '../interface/IInterestModel.sol';
+import '../interface/IPayableProxy.sol';
 
 library Configuration {
     struct State {

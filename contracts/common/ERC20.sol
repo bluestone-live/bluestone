@@ -1,8 +1,8 @@
 pragma solidity ^0.6.0;
 
 import './Context.sol';
-import '../interface/IERC20.sol';
-import '../lib/SafeMath.sol';
+import './lib/SafeMath.sol';
+import './interface/IERC20.sol';
 
 /**
  * @dev Implementation of the {IERC20} interface.

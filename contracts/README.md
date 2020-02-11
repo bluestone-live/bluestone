@@ -8,15 +8,11 @@ Core functionalities have been implemented and unit tested, but further work is 
 
 ### Overview
 
-We have one main deployed contract which user can interact with: `Protocol`. It provides interfaces for the public to interact with our contracts. Actual business logic is delegated to these individual libraries:
+We have one main deployed contract which user can interact with: `protocol/Protocol.sol`. It provides interfaces for the public to interact with our contracts. Actual business logic is delegated to these individual libraries:
 
 - `Configuration`: sets and retrives business configurations.
 - `LiquidityPools`: stores pool instances and contains fund-matching logic.
 - `DepositManager`: manages everything related to deposit.
 - `LoanManager`: manages everything related to loan.
 
-To further understand the codebase, please start from `Protocol` and explore interested contracts for more details.
-
-### Mocks
-
-There are some contracts in `mocks/` directory, which is solely used for testing.
+To further understand the codebase, please start from `protocol/Protocol.sol` and explore interested contracts for more details.

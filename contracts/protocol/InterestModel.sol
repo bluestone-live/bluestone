@@ -1,9 +1,9 @@
 pragma solidity ^0.6.0;
 
-import './Ownable.sol';
-import '../interface/IInterestModel.sol';
-import '../lib/SafeMath.sol';
-import '../lib/FixedMath.sol';
+import '../common/lib/SafeMath.sol';
+import '../common/lib/FixedMath.sol';
+import '../common/Ownable.sol';
+import './interface/IInterestModel.sol';
 
 contract InterestModel is IInterestModel, Ownable {
     using SafeMath for uint256;

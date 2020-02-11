@@ -1,9 +1,9 @@
 pragma solidity ^0.6.0;
 
-import './WETH9.sol';
-import '../lib/SafeERC20.sol';
-import './ERC20.sol';
-import '../interface/IPayableProxy.sol';
+import '../common/lib/SafeERC20.sol';
+import '../common/ERC20.sol';
+import '../common/WETH9.sol';
+import './interface/IPayableProxy.sol';
 
 contract PayableProxy is IPayableProxy {
     WETH9 WETH;

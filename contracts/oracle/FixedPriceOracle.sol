@@ -1,6 +1,6 @@
 pragma solidity ^0.6.0;
 
-import '../interface/IPriceOracle.sol';
+import './interface/IPriceOracle.sol';
 
 /// @title Price oracle that returns a fixed price in USD.
 contract FixedPriceOracle is IPriceOracle {

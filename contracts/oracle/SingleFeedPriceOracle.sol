@@ -1,7 +1,7 @@
 pragma solidity ^0.6.0;
 
-import './Ownable.sol';
-import '../interface/IPriceOracle.sol';
+import '../common/Ownable.sol';
+import './interface/IPriceOracle.sol';
 
 /// A simple price oracle that receives price update from owner only.
 contract SingleFeedPriceOracle is IPriceOracle, Ownable {
