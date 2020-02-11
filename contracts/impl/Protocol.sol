@@ -237,7 +237,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function getDepositRecordById(bytes32 depositId)
         external
         view
-        whenNotPaused
         override
         returns (IStruct.GetDepositRecordResponse memory depositRecord)
     {
@@ -247,7 +246,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function getDepositRecordsByAccount(address accountAddress)
         external
         view
-        whenNotPaused
         override
         returns (IStruct.GetDepositRecordResponse[] memory depositRecordList)
     {
@@ -361,7 +359,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function getLoanRecordById(bytes32 loanId)
         external
         view
-        whenNotPaused
         override
         returns (IStruct.GetLoanRecordResponse memory loanRecord)
     {
@@ -371,7 +368,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function getLoanRecordsByAccount(address accountAddress)
         external
         view
-        whenNotPaused
         override
         returns (IStruct.GetLoanRecordResponse[] memory loanRecordList)
     {

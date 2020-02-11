@@ -51,8 +51,8 @@ contract(
 
     before(async () => {
       // Get protocol instance
-      protocol = await Protocol.deployed();
-      interestModel = await InterestModel.deployed();
+      protocol = await Protocol.new();
+      interestModel = await InterestModel.new();
       loanTokenPriceOracle = await SingleFeedPriceOracle.new();
       collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
       datetime = await DateTime.new();
@@ -103,8 +103,8 @@ contract(
           {
             loanTokenAddress: loanToken.address,
             collateralTokenAddress: collateralToken.address,
-            minCollateralCoverageRatio: toFixedBN(minCollateralCoverageRatio),
-            liquidationDiscount: toFixedBN(liquidationDiscount),
+            minCollateralCoverageRatio,
+            liquidationDiscount,
           },
         ],
         [loanInterestRateLowerBound],

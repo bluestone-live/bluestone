@@ -8,9 +8,7 @@ const { toFixedBN } = require('../utils/index');
  * @param {number[]} depositTerms deposit terms
  * @param {string[]} depositTokens deposit token addresses
  * @param {string[]} loanTokens loan token address
- * @param {Array<{loanTokenAddress: string, collateralTokenAddress: string}>} loanPairs loan pairs
- * @param {number[]} minCollateralCoverageRatios min collateral coverage ratio for each loan pair
- * @param {number[]} liquidationDiscounts liquidation discount for each loan token
+ * @param {Array<{loanTokenAddress: string, collateralTokenAddress: string, minCollateralCoverageRatio: number, liquidationDiscount: number}>} loanPairs loan pairs
  * @param {number[]} loanInterestRateLowerBounds loan interest rate lower bound for each loan token
  * @param {number[]} loanInterestRateUpperBounds loan interest rate upper bound for each loan token
  * @param {number} protocolReserveRatio protocol reserve ratio
@@ -32,8 +30,6 @@ const setupTestEnv = async (
   depositTokens,
   loanTokens,
   loanPairs,
-  // minCollateralCoverageRatios,
-  // liquidationDiscounts,
   loanInterestRateLowerBounds,
   loanInterestRateUpperBounds,
   protocolReserveRatio,
@@ -56,8 +52,8 @@ const setupTestEnv = async (
     await protocol.setLoanAndCollateralTokenPair(
       loanPair.loanTokenAddress,
       loanPair.collateralTokenAddress,
-      loanPair.minCollateralCoverageRatio,
-      loanPair.liquidationDiscount,
+      toFixedBN(loanPair.minCollateralCoverageRatio),
+      toFixedBN(loanPair.liquidationDiscount),
     );
   }
 
