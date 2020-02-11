@@ -77,10 +77,12 @@ const setupTestEnv = async (
   await protocol.setProtocolReserveRatio(toFixedBN(protocolReserveRatio));
 
   // Set max distributor fee ratios
-  await protocol.setMaxDistributorFeeRatios(
-    toFixedBN(depositDistributorFeeRatio),
-    toFixedBN(loanDistributorFeeRatio),
-  );
+  if (depositDistributorFeeRatio && loanDistributorFeeRatio) {
+    await protocol.setMaxDistributorFeeRatios(
+      toFixedBN(depositDistributorFeeRatio),
+      toFixedBN(loanDistributorFeeRatio),
+    );
+  }
 };
 
 module.exports = {
