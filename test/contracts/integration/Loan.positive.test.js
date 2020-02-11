@@ -98,6 +98,9 @@ contract(
       await loanToken.approve(protocol.address, initialSupply, {
         from: loaner,
       });
+      await loanToken.approve(protocol.address, initialSupply, {
+        from: liquidator,
+      });
 
       // Setup price oracles
       await protocol.setPriceOracle(
@@ -528,108 +531,6 @@ contract(
                 .div(toFixedBN(1)),
             ),
           );
-        });
-        it('increase the available amount of specific pools');
-      });
-
-      context('Below collateral coverage ratio', () => {
-        before(async () => {
-          // deposit in different terms
-          await protocol.deposit(
-            loanToken.address,
-            toFixedBN(depositAmount).mul(new BN(2)),
-            depositTerm,
-            depositDistributor,
-            {
-              from: depositor,
-            },
-          );
-        });
-
-        context('Fully liquidate', () => {
-          let loanId;
-          let prevCollateralTokenBalanceOfLiquidator;
-
-          before(async () => {
-            const { logs: loanLogs } = await protocol.loan(
-              loanToken.address,
-              collateralToken.address,
-              toFixedBN(loanAmount),
-              toFixedBN(collateralAmount),
-              loanTerm,
-              loanDistributor,
-              {
-                from: loaner,
-              },
-            );
-            loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
-              .recordId;
-
-            prevCollateralTokenBalanceOfLiquidator = await collateralToken.balanceOf(
-              liquidator,
-            );
-          });
-
-          it('can be liquidated after the token price changed', async () => {
-            const newCollateralTokenPrice = 10;
-            await collateralTokenPriceOracle.setPrice(
-              toFixedBN(newCollateralTokenPrice),
-            );
-
-            const record = await protocol.getLoanRecordById(loanId);
-
-            expect(new BN(record.currentCollateralRatio)).to.bignumber.lt(
-              new BN(record.minCollateralCoverageRatio),
-            );
-          });
-          // Blocked by the liquidation formula confirm
-
-          // it('fully liquidated succeed', async () => {
-          //   const record = await protocol.getLoanRecordById(loanId);
-
-          //   const remainingDebt = record.remainingDebt;
-
-          //   const { logs: liquidateLogs } = await protocol.liquidateLoan(
-          //     loanId,
-          //     remainingDebt,
-          //     { from: liquidator },
-          //   );
-
-          //   expectEvent.inLogs('LiquidateLoanSucceed', {
-          //     accountAddress: liquidator,
-          //     recordId: loanId,
-          //     amount: new BN(remainingDebt),
-          //   });
-          // });
-          // it('closed the record', async () => {
-          //   const record = await protocol.getLoanRecordById(loanId);
-
-          //   expect(record.isClosed).to.be.true;
-          // });
-        });
-
-        context('Partial liquidate', () => {
-          it('partially liquidated succeed');
-          it('get correct collateral coverage ratio after liquidation');
-          it('repaid succeed');
-          it('closed the record');
-          it('get correct data of record');
-        });
-      });
-
-      context('Overdue', () => {
-        context('Fully liquidate', () => {
-          it('can be liquidated after the token price changed');
-          it('fully liquidated succeed');
-          it('closed the record');
-        });
-
-        context('Partial liquidate', () => {
-          it('partially liquidated succeed');
-          it('get correct collateral coverage ratio after liquidation');
-          it('repaid succeed');
-          it('closed the record');
-          it('get correct data of record');
         });
       });
     });
