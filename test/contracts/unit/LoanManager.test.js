@@ -24,10 +24,15 @@ contract('LoanManager', function([
   liquidator,
   distributorAddress,
 ]) {
-  let loanManager, priceOracle, interestModel, payableProxy, datetime;
+  let loanManager,
+    priceOracle,
+    collateralPriceOracle,
+    interestModel,
+    payableProxy,
+    datetime;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
-  const minCollateralCoverageRatio = toFixedBN(1.2);
+  const minCollateralCoverageRatio = toFixedBN(1.5);
   const liquidationDiscount = toFixedBN(0.05);
 
   let weth;
@@ -35,6 +40,7 @@ contract('LoanManager', function([
   beforeEach(async () => {
     loanManager = await LoanManager.new();
     priceOracle = await SingleFeedPriceOracle.new();
+    collateralPriceOracle = await SingleFeedPriceOracle.new();
     interestModel = await InterestModel.new();
     datetime = await DateTime.new();
 
@@ -942,23 +948,25 @@ contract('LoanManager', function([
     const depositAmount = toFixedBN(10);
     const depositTerm = 30;
     const loanAmount = toFixedBN(10);
-    const collateralAmount = toFixedBN(30);
+    const collateralAmount = toFixedBN(0.1);
     const loanTerm = 30;
+    const liquidationDiscount = toFixedBN(0.05);
     let loanToken, collateralToken, recordId, ETHRecordId;
 
     beforeEach(async () => {
       loanToken = await createERC20Token(depositor, initialSupply);
       collateralToken = await createERC20Token(loaner, initialSupply);
       await loanToken.mint(liquidator, initialSupply);
-      await priceOracle.setPrice(toFixedBN(10));
+      await priceOracle.setPrice(toFixedBN(1));
+      await collateralPriceOracle.setPrice(toFixedBN(200));
       await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
       await loanManager.setPriceOracle(
         collateralToken.address,
-        priceOracle.address,
+        collateralPriceOracle.address,
       );
       await loanManager.setPriceOracle(
         ETHIdentificationAddress,
-        priceOracle.address,
+        collateralPriceOracle.address,
       );
       await loanManager.enableDepositToken(loanToken.address);
       await loanManager.setLoanAndCollateralTokenPair(
@@ -1026,6 +1034,127 @@ contract('LoanManager', function([
       ETHRecordId = logs2.filter(log => log.event === 'LoanSucceed')[0].args
         .recordId;
     });
+
+    context(
+      'when loan collateral ratio below min collateral coverage ratio',
+      () => {
+        const liquidateAmount = loanAmount.div(new BN(2));
+        const collateralTokenPrice = toFixedBN(149);
+
+        beforeEach(async () => {
+          await collateralPriceOracle.setPrice(collateralTokenPrice);
+        });
+
+        it('liquidates partially succeed', async () => {
+          const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
+          const prevETHLoanRecord = await loanManager.getLoanRecordById(
+            ETHRecordId,
+          );
+
+          await loanToken.approve(
+            loanManager.address,
+            new BN(prevLoanRecord.remainingDebt).add(
+              new BN(prevETHLoanRecord.remainingDebt),
+            ),
+            {
+              from: liquidator,
+            },
+          );
+
+          const { logs } = await loanManager.liquidateLoan(
+            recordId,
+            liquidateAmount,
+            { from: liquidator },
+          );
+
+          expectEvent.inLogs(logs, 'LiquidateLoanSucceed', {
+            accountAddress: liquidator,
+            recordId: recordId,
+            amount: liquidateAmount,
+          });
+
+          const { logs: logs2 } = await loanManager.liquidateLoan(
+            ETHRecordId,
+            liquidateAmount,
+            { from: liquidator },
+          );
+
+          expectEvent.inLogs(logs2, 'LiquidateLoanSucceed', {
+            accountAddress: liquidator,
+            recordId: ETHRecordId,
+            amount: liquidateAmount,
+          });
+
+          const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+          expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+            new BN(prevLoanRecord.remainingDebt).sub(liquidateAmount),
+          );
+          expect(currLoanRecord.isClosed).to.be.false;
+          expect(
+            new BN(currLoanRecord.soldCollateralAmount),
+          ).to.bignumber.equal(
+            liquidateAmount
+              .mul(toFixedBN(1)) // loan token price
+              .div(collateralTokenPrice)
+              .mul(toFixedBN(1))
+              .div(toFixedBN(1).sub(liquidationDiscount)),
+          );
+        });
+        it('liquidates fully succeed', async () => {
+          const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
+          const prevETHLoanRecord = await loanManager.getLoanRecordById(
+            ETHRecordId,
+          );
+
+          await loanToken.approve(
+            loanManager.address,
+            new BN(prevLoanRecord.remainingDebt).add(
+              new BN(prevETHLoanRecord.remainingDebt),
+            ),
+            {
+              from: liquidator,
+            },
+          );
+
+          const { logs } = await loanManager.liquidateLoan(
+            recordId,
+            prevLoanRecord.remainingDebt,
+            { from: liquidator },
+          );
+
+          expectEvent.inLogs(logs, 'LiquidateLoanSucceed', {
+            accountAddress: liquidator,
+            recordId: recordId,
+          });
+
+          const { logs: logs2 } = await loanManager.liquidateLoan(
+            ETHRecordId,
+            prevETHLoanRecord.remainingDebt,
+            { from: liquidator },
+          );
+
+          expectEvent.inLogs(logs2, 'LiquidateLoanSucceed', {
+            accountAddress: liquidator,
+            recordId: ETHRecordId,
+          });
+
+          const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+          expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+            new BN(0),
+          );
+          expect(currLoanRecord.isClosed).to.be.true;
+          expect(
+            new BN(currLoanRecord.soldCollateralAmount),
+          ).to.bignumber.equal(
+            new BN(prevLoanRecord.remainingDebt)
+              .mul(toFixedBN(1)) // loan token price
+              .div(collateralTokenPrice)
+              .mul(toFixedBN(1))
+              .div(toFixedBN(1).sub(liquidationDiscount)),
+          );
+        });
+      },
+    );
 
     context('when loan is defaulted', () => {
       beforeEach(async () => {

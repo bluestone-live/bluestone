@@ -626,11 +626,26 @@ library LoanManager {
             liquidateAmount,
             localVars.remainingDebt
         );
-        localVars.soldCollateralAmount = localVars
-            .liquidatedAmount
-            .mulFixed(localVars.loanTokenPrice)
-            .divFixed(localVars.collateralTokenPrice)
-            .divFixed(ONE.sub(loanRecord.liquidationDiscount));
+
+        localVars.remainingCollateralAmount = loanRecord.collateralAmount.sub(
+            loanRecord.soldCollateralAmount
+        );
+
+        localVars.soldCollateralAmount = Math.min(
+            localVars
+                .liquidatedAmount
+                .mulFixed(localVars.loanTokenPrice)
+                .divFixed(localVars.collateralTokenPrice)
+                .divFixed(ONE.sub(loanRecord.liquidationDiscount)),
+            localVars.remainingCollateralAmount
+        );
+
+        // Transfer loan tokens from liquidator to protocol
+        ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            localVars.liquidatedAmount
+        );
 
         loanRecord.soldCollateralAmount = loanRecord.soldCollateralAmount.add(
             localVars.soldCollateralAmount
@@ -640,13 +655,16 @@ library LoanManager {
         );
         loanRecord.lastLiquidatedAt = now;
 
-        if (_calculateRemainingDebt(loanRecord) == 0) {
-            // Close the loan if debt is clear
-            loanRecord.isClosed = true;
+        localVars.remainingCollateralAmount = loanRecord.collateralAmount.sub(
+            loanRecord.soldCollateralAmount
+        );
 
-            localVars.remainingCollateralAmount = loanRecord
-                .collateralAmount
-                .sub(loanRecord.soldCollateralAmount);
+        if (
+            localVars.remainingCollateralAmount == 0 ||
+            _calculateRemainingDebt(loanRecord) == 0
+        ) {
+            // Close the loan if collateral or debt is clear
+            loanRecord.isClosed = true;
 
             if (localVars.remainingCollateralAmount > 0) {
                 // Transfer remaining collateral from protocol to loaner
@@ -681,12 +699,18 @@ library LoanManager {
 
         liquidityPools.repayLoanToPools(loanRecord, localVars.liquidatedAmount);
 
-        // Transfer loan tokens from liquidator to protocol
-        ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
-            msg.sender,
-            address(this),
-            localVars.liquidatedAmount
-        );
+        // Transfer collateral amount to liquidator
+        if (loanRecord.collateralTokenAddress == address(1)) {
+            configuration.payableProxy.sendETH(
+                msg.sender,
+                localVars.soldCollateralAmount
+            );
+        } else {
+            ERC20(loanRecord.collateralTokenAddress).safeTransfer(
+                msg.sender,
+                localVars.soldCollateralAmount
+            );
+        }
 
         emit LiquidateLoanSucceed(
             msg.sender,
