@@ -1,6 +1,7 @@
 const LoanManager = artifacts.require('LoanManagerMock');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
+const DateTime = artifacts.require('DateTime');
 const WETH9 = artifacts.require('WETH9');
 const {
   toFixedBN,
@@ -23,7 +24,7 @@ contract('LoanManager', function([
   liquidator,
   distributorAddress,
 ]) {
-  let loanManager, priceOracle, interestModel, payableProxy;
+  let loanManager, priceOracle, interestModel, payableProxy, datetime;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
   const minCollateralCoverageRatio = toFixedBN(1.2);
@@ -35,6 +36,7 @@ contract('LoanManager', function([
     loanManager = await LoanManager.new();
     priceOracle = await SingleFeedPriceOracle.new();
     interestModel = await InterestModel.new();
+    datetime = await DateTime.new();
 
     weth = await WETH9.new();
     await loanManager.setInterestModel(interestModel.address);
@@ -540,11 +542,12 @@ contract('LoanManager', function([
     const loanAmount = toFixedBN(10);
     const collateralAmount = toFixedBN(30);
     const loanTerm = 30;
-    let loanToken, collateralToken, recordId, ETHRecordId;
+    let loanToken, collateralToken, recordId, ETHRecordId, pool;
 
     beforeEach(async () => {
       loanToken = await createERC20Token(depositor, initialSupply);
       collateralToken = await createERC20Token(loaner, initialSupply);
+      await loanToken.mint(loaner, initialSupply);
       await priceOracle.setPrice(toFixedBN(10));
       await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
       await loanManager.setPriceOracle(
@@ -569,6 +572,11 @@ contract('LoanManager', function([
         minCollateralCoverageRatio,
         liquidationDiscount,
         { from: owner },
+      );
+      await interestModel.setLoanParameters(
+        loanToken.address,
+        toFixedBN(0.1),
+        toFixedBN(0.15),
       );
       await loanManager.enableDepositTerm(depositTerm);
 
@@ -619,66 +627,313 @@ contract('LoanManager', function([
 
       ETHRecordId = logs2.filter(log => log.event === 'LoanSucceed')[0].args
         .recordId;
+
+      await loanToken.approve(loanManager.address, initialSupply, {
+        from: loaner,
+      });
     });
 
-    // How about if a loan pair disabled?
-    context('when loan and collateral token pair is enabled', () => {
-      it('repays fully', async () => {
-        const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
-        const prevETHLoanRecord = await loanManager.getLoanRecordById(
-          ETHRecordId,
-        );
-        const prevDistributorBalance = await loanToken.balanceOf(
-          distributorAddress,
-        );
+    it('repays principle succeed', async () => {
+      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
 
-        await loanToken.approve(
-          loanManager.address,
-          new BN(prevLoanRecord.remainingDebt).add(
-            new BN(prevETHLoanRecord.remainingDebt),
-          ),
-          {
-            from: loaner,
-          },
-        );
+      const prevETHLoanRecord = await loanManager.getLoanRecordById(
+        ETHRecordId,
+      );
+      const prevDistributorBalance = await loanToken.balanceOf(
+        distributorAddress,
+      );
+      const { logs: logs1 } = await loanManager.repayLoan(
+        recordId,
+        loanAmount,
+        { from: loaner },
+      );
 
-        const { logs: logs1 } = await loanManager.repayLoan(
-          recordId,
-          prevLoanRecord.remainingDebt,
-          { from: loaner },
-        );
-
-        expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
-          accountAddress: loaner,
-          recordId: recordId,
-        });
-
-        const { logs: logs2 } = await loanManager.repayLoan(
-          ETHRecordId,
-          prevETHLoanRecord.remainingDebt,
-          { from: loaner },
-        );
-
-        expectEvent.inLogs(logs2, 'RepayLoanSucceed', {
-          accountAddress: loaner,
-          recordId: ETHRecordId,
-        });
-
-        const currLoanRecord = await loanManager.getLoanRecordById(recordId);
-        expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
-          new BN(0),
-        );
-        expect(currLoanRecord.isClosed).to.be.true;
-        expect(
-          await loanToken.balanceOf(distributorAddress),
-        ).to.bignumber.equal(
-          new BN(prevDistributorBalance).add(
-            new BN(prevLoanRecord.remainingDebt)
-              .sub(new BN(loanAmount))
-              .mul(loanDistributorFeeRatio),
-          ),
-        );
+      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
+        accountAddress: loaner,
+        recordId: recordId,
+        amount: loanAmount,
       });
+
+      const { logs: logs2 } = await loanManager.repayLoan(
+        ETHRecordId,
+        loanAmount,
+        { from: loaner },
+      );
+
+      expectEvent.inLogs(logs2, 'RepayLoanSucceed', {
+        accountAddress: loaner,
+        recordId: ETHRecordId,
+        amount: loanAmount,
+      });
+
+      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+      const pools = await loanManager.getPoolsByToken(loanToken.address);
+      const currentPoolId = Number.parseInt(
+        (await datetime.toDays()).toString(),
+        10,
+      );
+
+      pool = pools.find(
+        p => p.poolId.toString() === String(currentPoolId + depositTerm),
+      );
+
+      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+        new BN(currLoanRecord.interest),
+      );
+      expect(currLoanRecord.isClosed).to.be.false;
+      expect(await loanToken.balanceOf(distributorAddress)).to.bignumber.equal(
+        toFixedBN(0),
+      );
+      expect(new BN(pool.availableAmount)).to.bignumber.equal(
+        new BN(pool.depositAmount),
+      );
+    });
+    it('repays part principle part interest succeed', async () => {
+      await loanManager.repayLoan(recordId, loanAmount.div(new BN(2)), {
+        from: loaner,
+      });
+
+      const prevDistributorBalance = await loanToken.balanceOf(
+        distributorAddress,
+      );
+
+      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+      const repayAmount = new BN(prevLoanRecord.remainingDebt).sub(
+        toFixedBN(0.01),
+      );
+
+      const { logs: logs1 } = await loanManager.repayLoan(
+        recordId,
+        repayAmount,
+        { from: loaner },
+      );
+
+      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
+        accountAddress: loaner,
+        recordId: recordId,
+        amount: repayAmount,
+      });
+
+      const currentPoolId = Number.parseInt(
+        (await datetime.toDays()).toString(),
+        10,
+      );
+      const pools = await loanManager.getPoolsByToken(loanToken.address);
+      pool = pools.find(
+        p => p.poolId.toString() === String(currentPoolId + depositTerm),
+      );
+
+      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+        toFixedBN(0.01),
+      );
+      expect(currLoanRecord.isClosed).to.be.false;
+      expect(
+        (await loanToken.balanceOf(distributorAddress)).sub(
+          prevDistributorBalance,
+        ),
+      ).to.bignumber.equal(new BN(0));
+
+      expect(new BN(pool.availableAmount)).to.bignumber.equal(
+        new BN(prevLoanRecord.alreadyPaidAmount).add(
+          new BN(prevLoanRecord.alreadyPaidAmount).add(
+            repayAmount
+              .sub(
+                new BN(prevLoanRecord.loanAmount).sub(
+                  new BN(prevLoanRecord.alreadyPaidAmount),
+                ),
+              )
+              .mul(toFixedBN(1).sub(loanDistributorFeeRatio))
+              .div(toFixedBN(1)),
+          ),
+        ),
+      );
+    });
+    it('only repays interest succeed', async () => {
+      await loanManager.repayLoan(recordId, loanAmount, {
+        from: loaner,
+      });
+
+      const prevDistributorBalance = await loanToken.balanceOf(
+        distributorAddress,
+      );
+
+      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+      const repayAmount = new BN(prevLoanRecord.remainingDebt).sub(
+        toFixedBN(0.01),
+      );
+
+      const { logs: logs1 } = await loanManager.repayLoan(
+        recordId,
+        repayAmount,
+        { from: loaner },
+      );
+
+      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
+        accountAddress: loaner,
+        recordId: recordId,
+        amount: repayAmount,
+      });
+      const currentPoolId = Number.parseInt(
+        (await datetime.toDays()).toString(),
+        10,
+      );
+
+      const pools = await loanManager.getPoolsByToken(loanToken.address);
+      pool = pools.find(
+        p => p.poolId.toString() === String(currentPoolId + depositTerm),
+      );
+
+      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+        toFixedBN(0.01),
+      );
+      expect(currLoanRecord.isClosed).to.be.false;
+      expect(
+        (await loanToken.balanceOf(distributorAddress)).sub(
+          prevDistributorBalance,
+        ),
+      ).to.bignumber.equal(new BN(0));
+
+      expect(new BN(pool.availableAmount)).to.bignumber.equal(
+        new BN(prevLoanRecord.alreadyPaidAmount).add(
+          repayAmount
+            .mul(toFixedBN(1).sub(loanDistributorFeeRatio))
+            .div(toFixedBN(1)),
+        ),
+      );
+    });
+    it('repays amount less than distributor fee succeed', async () => {
+      await loanManager.repayLoan(recordId, loanAmount, {
+        from: loaner,
+      });
+
+      const prevDistributorBalance = await loanToken.balanceOf(
+        distributorAddress,
+      );
+
+      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+      const repayAmount = new BN(prevLoanRecord.interest)
+        .mul(loanDistributorFeeRatio)
+        .div(toFixedBN(1))
+        .div(new BN(2));
+
+      const { logs: logs1 } = await loanManager.repayLoan(
+        recordId,
+        repayAmount,
+        { from: loaner },
+      );
+
+      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
+        accountAddress: loaner,
+        recordId: recordId,
+        amount: repayAmount,
+      });
+      const currentPoolId = Number.parseInt(
+        (await datetime.toDays()).toString(),
+        10,
+      );
+
+      const pools = await loanManager.getPoolsByToken(loanToken.address);
+      pool = pools.find(
+        p => p.poolId.toString() === String(currentPoolId + depositTerm),
+      );
+
+      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+        new BN(prevLoanRecord.interest).sub(repayAmount),
+      );
+      expect(currLoanRecord.isClosed).to.be.false;
+      expect(
+        (await loanToken.balanceOf(distributorAddress)).sub(
+          prevDistributorBalance,
+        ),
+      ).to.bignumber.equal(new BN(0));
+
+      expect(new BN(pool.availableAmount)).to.bignumber.equal(
+        new BN(prevLoanRecord.alreadyPaidAmount).add(
+          repayAmount
+            .mul(toFixedBN(1).sub(loanDistributorFeeRatio))
+            .div(toFixedBN(1)),
+        ),
+      );
+    });
+    it('repays fully succeed', async () => {
+      const prevDistributorBalance = await loanToken.balanceOf(
+        distributorAddress,
+      );
+      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+      const prevETHLoanRecord = await loanManager.getLoanRecordById(
+        ETHRecordId,
+      );
+
+      const { logs: logs1 } = await loanManager.repayLoan(
+        recordId,
+        prevLoanRecord.remainingDebt,
+        { from: loaner },
+      );
+
+      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
+        accountAddress: loaner,
+        recordId: recordId,
+        amount: prevLoanRecord.remainingDebt,
+      });
+
+      const pools = await loanManager.getPoolsByToken(loanToken.address);
+      const currentPoolId = Number.parseInt(
+        (await datetime.toDays()).toString(),
+        10,
+      );
+
+      pool = pools.find(
+        p => p.poolId.toString() === String(currentPoolId + depositTerm),
+      );
+
+      const { logs: logs2 } = await loanManager.repayLoan(
+        ETHRecordId,
+        prevETHLoanRecord.remainingDebt,
+        { from: loaner },
+      );
+
+      expectEvent.inLogs(logs2, 'RepayLoanSucceed', {
+        accountAddress: loaner,
+        recordId: ETHRecordId,
+        amount: prevETHLoanRecord.remainingDebt,
+      });
+
+      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+        new BN(0),
+      );
+      expect(currLoanRecord.isClosed).to.be.true;
+      expect(
+        (await loanToken.balanceOf(distributorAddress)).sub(
+          prevDistributorBalance,
+        ),
+      ).to.bignumber.equal(
+        new BN(currLoanRecord.interest)
+          .mul(loanDistributorFeeRatio)
+          .div(toFixedBN(1))
+          .mul(new BN(2)),
+      );
+      expect(new BN(pool.availableAmount)).to.bignumber.equal(
+        new BN(currLoanRecord.loanAmount)
+          .add(new BN(currLoanRecord.interest))
+          .sub(
+            new BN(currLoanRecord.interest)
+              .mul(loanDistributorFeeRatio)
+              .div(toFixedBN(1)),
+          ),
+      );
     });
   });
 

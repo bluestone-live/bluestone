@@ -246,25 +246,28 @@ contract(
             const pool = poolList[i];
 
             if (i === depositTerm - j - 1) {
+              const interest = toFixedBN(loanAmount)
+                .mul(currentLoanInterestRate)
+                .div(toFixedBN(1))
+                .mul(new BN(loanTerm))
+                .div(new BN(365));
+
               expect(new BN(pool.depositAmount)).to.bignumber.equal(
                 toFixedBN(depositAmount),
               );
               expect(new BN(pool.availableAmount)).to.bignumber.equal(
-                toFixedBN(depositAmount).add(
-                  toFixedBN(loanAmount)
-                    .mul(currentLoanInterestRate)
-                    .div(toFixedBN(1))
-                    .mul(new BN(loanTerm))
-                    .div(new BN(365)),
-                ),
+                toFixedBN(depositAmount)
+                  .add(
+                    interest.sub(
+                      interest
+                        .mul(toFixedBN(loanDistributorFeeRatio))
+                        .div(toFixedBN(1)),
+                    ),
+                  )
+                  // to solve the calculation difference between JS and solidity
+                  .add(new BN(1)),
               );
-              expect(new BN(pool.loanInterest)).to.bignumber.equal(
-                toFixedBN(loanAmount)
-                  .mul(currentLoanInterestRate)
-                  .div(toFixedBN(1))
-                  .mul(new BN(loanTerm))
-                  .div(new BN(365)),
-              );
+              expect(new BN(pool.loanInterest)).to.bignumber.equal(interest);
             } else {
               expect(new BN(pool.depositAmount)).to.bignumber.equal(ZERO);
               expect(new BN(pool.availableAmount)).to.bignumber.equal(ZERO);

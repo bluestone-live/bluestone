@@ -47,7 +47,7 @@ contract(
     const liquidationDiscount = 0.05;
     const protocolReserveRatio = 0.07;
     const maxDepositDistributorFeeRatio = 0.01;
-    const maxLoanDistributorFeeRatio = 0.02;
+    const loanDistributorFeeRatio = 0.02;
 
     const loanInterestRateLowerBound = 0.1;
     const loanInterestRateUpperBound = 0.15;
@@ -261,7 +261,7 @@ contract(
         before(async () => {
           await protocol.setMaxDistributorFeeRatios(
             toFixedBN(maxDepositDistributorFeeRatio),
-            toFixedBN(maxLoanDistributorFeeRatio),
+            toFixedBN(loanDistributorFeeRatio),
           );
 
           const { logs: depositLogs1 } = await protocol.deposit(
@@ -292,7 +292,7 @@ contract(
 
           await protocol.setMaxDistributorFeeRatios(
             toFixedBN(maxDepositDistributorFeeRatio).mul(new BN(2)),
-            toFixedBN(maxLoanDistributorFeeRatio).mul(new BN(2)),
+            toFixedBN(loanDistributorFeeRatio).mul(new BN(2)),
           );
         });
 

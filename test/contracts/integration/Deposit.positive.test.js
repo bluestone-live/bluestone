@@ -46,7 +46,7 @@ contract(
     const liquidationDiscount = 0.05;
     const protocolReserveRatio = 0.07;
     const maxDepositDistributorFeeRatio = 0.01;
-    const maxLoanDistributorFeeRatio = 0.02;
+    const loanDistributorFeeRatio = 0.02;
 
     const loanInterestRateLowerBound = 0.1;
     const loanInterestRateUpperBound = 0.15;
@@ -140,7 +140,7 @@ contract(
         [loanInterestRateUpperBound, loanInterestRateUpperBound],
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
-        maxLoanDistributorFeeRatio,
+        loanDistributorFeeRatio,
       );
 
       // Post prices
@@ -321,7 +321,7 @@ contract(
               )
               .sub(
                 totalInterest
-                  .mul(toFixedBN(maxLoanDistributorFeeRatio))
+                  .mul(toFixedBN(loanDistributorFeeRatio))
                   .div(toFixedBN(1)),
               ),
           );

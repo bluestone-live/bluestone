@@ -470,11 +470,6 @@ library LoanManager {
             'LoanManager: invalid repay amount'
         );
 
-        loanRecord.alreadyPaidAmount = loanRecord.alreadyPaidAmount.add(
-            repayAmount
-        );
-        loanRecord.lastRepaidAt = now;
-
         if (loanRecord.loanTokenAddress == address(1)) {
             configuration.payableProxy.receiveETH.value(repayAmount)();
         } else {
@@ -484,6 +479,48 @@ library LoanManager {
                 repayAmount
             );
         }
+
+        uint256 repayAmountToPools;
+        uint256 loanDistributorFeeRatio;
+
+        if (loanRecord.interest > 0) {
+            loanDistributorFeeRatio = loanRecord.distributorInterest.divFixed(
+                loanRecord.interest
+            );
+        }
+
+        /// In repay process. we need to ensure that the loan distribution fee can't be lent
+        /// So we should determine if user repays interest each time
+        if (loanRecord.alreadyPaidAmount >= loanRecord.loanAmount) {
+            // Only repays interest
+            repayAmountToPools = repayAmount.mulFixed(
+                ONE.sub(loanDistributorFeeRatio)
+            );
+        } else if (
+            loanRecord.alreadyPaidAmount.add(repayAmount) >
+            loanRecord.loanAmount
+        ) {
+            // Repays interest and principle
+            uint256 remainingPrinciplePart = loanRecord.loanAmount.sub(
+                loanRecord.alreadyPaidAmount
+            );
+            repayAmountToPools = remainingPrinciplePart.add(
+                repayAmount.sub(remainingPrinciplePart).mulFixed(
+                    ONE.sub(loanDistributorFeeRatio)
+                )
+            );
+        } else {
+            // Only repays principle
+            repayAmountToPools = repayAmount;
+        }
+
+        liquidityPools.repayLoanToPools(loanRecord, repayAmountToPools);
+
+        loanRecord.alreadyPaidAmount = loanRecord.alreadyPaidAmount.add(
+            repayAmount
+        );
+        loanRecord.lastRepaidAt = now;
+
         // Transfer loan tokens from user to protocol, It's better to get repay before send distribution
         if (_calculateRemainingDebt(loanRecord) == 0) {
             loanRecord.isClosed = true;
@@ -521,8 +558,6 @@ library LoanManager {
                 }
             }
         }
-
-        liquidityPools.repayLoanToPools(loanRecord, repayAmount);
 
         emit RepayLoanSucceed(msg.sender, loanId, repayAmount);
 

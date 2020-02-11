@@ -205,6 +205,14 @@ contract LoanManagerMock {
             );
     }
 
+    function getPoolsByToken(address tokenAddress)
+        external
+        view
+        returns (IStruct.getPoolsByTokenResponse[] memory poolList)
+    {
+        return _liquidityPools.getPoolsByToken(tokenAddress);
+    }
+
     function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
         external
     {
@@ -232,4 +240,5 @@ contract LoanManagerMock {
     function getWETHAddress() public view returns (address wethAddress) {
         return _configuration.payableProxy.getWETHAddress();
     }
+
 }
