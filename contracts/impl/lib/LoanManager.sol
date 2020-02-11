@@ -180,8 +180,18 @@ library LoanManager {
 
         require(collateralAmount > 0, 'LoanManager: invalid collateralAmount');
 
-        address collateralTokenAddress = self.loanRecordById[loanId]
-            .collateralTokenAddress;
+        IStruct.LoanRecord storage record = self.loanRecordById[loanId];
+
+        IStruct.LoanAndCollateralTokenPair storage tokenPair = self
+            .loanAndCollateralTokenPairs[record.loanTokenAddress][record
+            .collateralTokenAddress];
+
+        require(
+            tokenPair.minCollateralCoverageRatio != 0,
+            'LoanManager: invalid token pair'
+        );
+
+        address collateralTokenAddress = record.collateralTokenAddress;
 
         if (collateralTokenAddress == address(1)) {
             configuration.payableProxy.receiveETH.value(collateralAmount);
@@ -194,14 +204,11 @@ library LoanManager {
             );
         }
 
-        self.loanRecordById[loanId].collateralAmount = self
-            .loanRecordById[loanId]
-            .collateralAmount
-            .add(collateralAmount);
+        record.collateralAmount = record.collateralAmount.add(collateralAmount);
 
         emit AddCollateralSucceed(msg.sender, loanId, collateralAmount);
 
-        return self.loanRecordById[loanId].collateralAmount;
+        return record.collateralAmount;
     }
 
     function loan(
@@ -448,11 +455,6 @@ library LoanManager {
         IStruct.LoanAndCollateralTokenPair storage tokenPair = self
             .loanAndCollateralTokenPairs[loanRecord.loanTokenAddress][loanRecord
             .collateralTokenAddress];
-
-        require(
-            tokenPair.minCollateralCoverageRatio != 0,
-            'LoanManager: invalid token pair'
-        );
 
         require(
             msg.sender == loanRecord.ownerAddress,

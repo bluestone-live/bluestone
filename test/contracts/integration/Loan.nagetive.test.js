@@ -1,31 +1,375 @@
-contract('Protocol', () => {
-  describe('Loan token by collateral token flow', () => {
-    context("When loan pair didn't enabled", () => {
-      it('revert');
-    });
-    context('When loan pair disabled after loan', () => {
-      it('revert add collateral');
-      it('repay succeed');
-      it('revert loan');
-    });
-    context('When max loan term changed', () => {
-      it('add collateral succeed');
-      it('repay succeed');
-    });
-  });
+const Protocol = artifacts.require('Protocol');
+const PayableProxy = artifacts.require('PayableProxy');
+const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
+const WETH = artifacts.require('WETH9');
+const InterestModel = artifacts.require('InterestModel');
+const DateTime = artifacts.require('DateTime');
+const {
+  expectRevert,
+  expectEvent,
+  BN,
+  time,
+} = require('openzeppelin-test-helpers');
+const {
+  toFixedBN,
+  createERC20Token,
+  ETHIdentificationAddress,
+} = require('../../utils/index');
+const { setupTestEnv } = require('../../utils/setupTestEnv');
+const { expect } = require('chai');
 
-  describe('Loan token by collateral ETH flow', () => {
-    context("When loan pair didn't enabled", () => {
-      it('revert');
+contract(
+  'Protocol',
+  ([
+    owner,
+    depositor,
+    loaner,
+    depositDistributor,
+    loanDistributor,
+    protocolReserveAddress,
+  ]) => {
+    let protocol,
+      interestModel,
+      payableProxy,
+      loanToken,
+      collateralToken,
+      weth,
+      datetime;
+
+    const initialSupply = toFixedBN(10000);
+    const ZERO = toFixedBN(0);
+
+    // configurations
+    const depositTerms = [1, 5, 7];
+    const maxLoanTerm = 7;
+    const minCollateralCoverageRatio = 1.5;
+    const liquidationDiscount = 0.05;
+    const protocolReserveRatio = 0.07;
+    const maxDepositDistributorFeeRatio = 0.01;
+    const maxLoanDistributorFeeRatio = 0.02;
+
+    const loanInterestRateLowerBound = 0.1;
+    const loanInterestRateUpperBound = 0.15;
+
+    let currentLoanInterestRate;
+
+    // Token prices
+    const loanTokenPrice = 1;
+    const collateralTokenPrice = 100;
+    const ETHPrice = 2000;
+
+    // deposit parameters
+    const depositAmount = 100;
+    const depositTerm = 7;
+
+    // loan parameters
+    const loanAmount = 100;
+    const collateralAmount = 20;
+    const loanTerm = 7;
+
+    before(async () => {
+      // Get protocol instance
+      protocol = await Protocol.new();
+      interestModel = await InterestModel.new();
+      loanTokenPriceOracle = await SingleFeedPriceOracle.new();
+      collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
+      ETHPriceOracle = await SingleFeedPriceOracle.new();
+      datetime = await DateTime.new();
+
+      // Create token
+      loanToken = await createERC20Token(depositor, initialSupply);
+      collateralToken = await createERC20Token(loaner, initialSupply);
+      weth = await WETH.new();
+
+      payableProxy = await PayableProxy.new(protocol.address, weth.address);
+
+      // Mint some token to loaner
+      await loanToken.mint(loaner, initialSupply);
+
+      // Approve
+      await loanToken.approve(protocol.address, initialSupply, {
+        from: depositor,
+      });
+      await collateralToken.approve(protocol.address, initialSupply, {
+        from: loaner,
+      });
+      await loanToken.approve(protocol.address, initialSupply, {
+        from: loaner,
+      });
+
+      // Setup price oracles
+      await protocol.setPriceOracle(
+        loanToken.address,
+        loanTokenPriceOracle.address,
+      );
+      await protocol.setPriceOracle(
+        collateralToken.address,
+        collateralTokenPriceOracle.address,
+      );
+      await protocol.setPriceOracle(
+        ETHIdentificationAddress,
+        ETHPriceOracle.address,
+      );
+
+      // Set payable proxy
+      await protocol.setPayableProxy(payableProxy.address);
+
+      await setupTestEnv(
+        [
+          owner,
+          depositor,
+          loaner,
+          depositDistributor,
+          loanDistributor,
+          protocolReserveAddress,
+        ],
+        protocol,
+        interestModel,
+        depositTerms,
+        [loanToken, { address: ETHIdentificationAddress }],
+        [loanToken],
+        [
+          {
+            loanTokenAddress: loanToken.address,
+            collateralTokenAddress: collateralToken.address,
+            minCollateralCoverageRatio,
+            liquidationDiscount,
+          },
+          {
+            loanTokenAddress: loanToken.address,
+            collateralTokenAddress: ETHIdentificationAddress,
+            minCollateralCoverageRatio,
+            liquidationDiscount,
+          },
+        ],
+        [loanInterestRateLowerBound, loanInterestRateLowerBound],
+        [loanInterestRateUpperBound, loanInterestRateUpperBound],
+        protocolReserveRatio,
+        maxDepositDistributorFeeRatio,
+        maxLoanDistributorFeeRatio,
+      );
+
+      // Post prices
+      await loanTokenPriceOracle.setPrice(toFixedBN(loanTokenPrice));
+      await collateralTokenPriceOracle.setPrice(
+        toFixedBN(collateralTokenPrice),
+      );
+      await ETHPriceOracle.setPrice(toFixedBN(ETHPrice));
     });
-    context('When loan pair disabled after loan', () => {
-      it('revert add collateral');
-      it('repay succeed');
-      it('revert loan');
+
+    describe('Loan token by collateral token flow', () => {
+      context("When loan pair didn't enabled", () => {
+        before(async () => {
+          await protocol.removeLoanAndCollateralTokenPair(
+            loanToken.address,
+            collateralToken.address,
+          );
+        });
+        it('revert', async () => {
+          await expectRevert(
+            protocol.loan(
+              loanToken.address,
+              collateralToken.address,
+              toFixedBN(loanAmount),
+              toFixedBN(collateralAmount),
+              loanTerm,
+              loanDistributor,
+              {
+                from: loaner,
+              },
+            ),
+            'LoanManager: invalid token pair',
+          );
+        });
+      });
+      context('When loan pair disabled after loan', () => {
+        let loanId;
+
+        before(async () => {
+          await protocol.deposit(
+            loanToken.address,
+            toFixedBN(depositAmount),
+            depositTerm,
+            depositDistributor,
+            {
+              from: depositor,
+            },
+          );
+          // reset
+          await protocol.setLoanAndCollateralTokenPair(
+            loanToken.address,
+            collateralToken.address,
+            toFixedBN(minCollateralCoverageRatio),
+            toFixedBN(liquidationDiscount),
+          );
+
+          const { logs: loanLogs } = await protocol.loan(
+            loanToken.address,
+            collateralToken.address,
+            toFixedBN(loanAmount),
+            toFixedBN(collateralAmount),
+            loanTerm,
+            loanDistributor,
+            {
+              from: loaner,
+            },
+          );
+          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+            .recordId;
+
+          await protocol.removeLoanAndCollateralTokenPair(
+            loanToken.address,
+            collateralToken.address,
+          );
+        });
+
+        it('revert add collateral', async () => {
+          await expectRevert(
+            protocol.addCollateral(loanId, collateralAmount, {
+              from: loaner,
+            }),
+            'LoanManager: invalid token pair',
+          );
+        });
+        it('repay succeed', async () => {
+          const { remainingDebt } = await protocol.getLoanRecordById(loanId);
+
+          await protocol.repayLoan(loanId, remainingDebt, { from: loaner });
+
+          const {
+            remainingDebt: remainingDebtAfterRepaid,
+          } = await protocol.getLoanRecordById(loanId);
+
+          expect(remainingDebtAfterRepaid).to.equal('0');
+        });
+        it('revert loan', async () => {
+          await expectRevert(
+            protocol.loan(
+              loanToken.address,
+              collateralToken.address,
+              toFixedBN(loanAmount),
+              toFixedBN(collateralAmount),
+              loanTerm,
+              loanDistributor,
+              {
+                from: loaner,
+              },
+            ),
+            'LoanManager: invalid token pair',
+          );
+        });
+      });
     });
-    context('When max loan term changed', () => {
-      it('add collateral succeed');
-      it('repay succeed');
+
+    describe('Loan token by collateral ETH flow', () => {
+      context("When loan pair didn't enabled", () => {
+        before(async () => {
+          await protocol.removeLoanAndCollateralTokenPair(
+            loanToken.address,
+            ETHIdentificationAddress,
+          );
+        });
+        it('revert', async () => {
+          await expectRevert(
+            protocol.loan(
+              loanToken.address,
+              ETHIdentificationAddress,
+              toFixedBN(loanAmount),
+              '0',
+              loanTerm,
+              loanDistributor,
+              {
+                from: loaner,
+                value: toFixedBN(collateralAmount),
+              },
+            ),
+            'LoanManager: invalid token pair',
+          );
+        });
+      });
+      context('When loan pair disabled after loan', () => {
+        let loanId;
+
+        before(async () => {
+          await protocol.deposit(
+            loanToken.address,
+            '0',
+            depositTerm,
+            depositDistributor,
+            {
+              from: depositor,
+              value: toFixedBN(depositAmount),
+            },
+          );
+          // reset
+          await protocol.setLoanAndCollateralTokenPair(
+            loanToken.address,
+            ETHIdentificationAddress,
+            toFixedBN(minCollateralCoverageRatio),
+            toFixedBN(liquidationDiscount),
+          );
+
+          const pairs = await protocol.getLoanAndCollateralTokenPairs();
+
+          const { logs: loanLogs } = await protocol.loan(
+            loanToken.address,
+            ETHIdentificationAddress,
+            toFixedBN(loanAmount),
+            '0',
+            loanTerm,
+            loanDistributor,
+            {
+              from: loaner,
+              value: toFixedBN(collateralAmount),
+            },
+          );
+
+          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+            .recordId;
+
+          await protocol.removeLoanAndCollateralTokenPair(
+            loanToken.address,
+            ETHIdentificationAddress,
+          );
+        });
+
+        it('revert add collateral', async () => {
+          await expectRevert(
+            protocol.addCollateral(loanId, '0', {
+              from: loaner,
+              value: collateralAmount,
+            }),
+            'LoanManager: invalid token pair',
+          );
+        });
+        it('repay succeed', async () => {
+          const { remainingDebt } = await protocol.getLoanRecordById(loanId);
+
+          await protocol.repayLoan(loanId, remainingDebt, { from: loaner });
+
+          const {
+            remainingDebt: remainingDebtAfterRepaid,
+          } = await protocol.getLoanRecordById(loanId);
+
+          expect(remainingDebtAfterRepaid).to.equal('0');
+        });
+        it('revert loan', async () => {
+          await expectRevert(
+            protocol.loan(
+              loanToken.address,
+              ETHIdentificationAddress,
+              toFixedBN(loanAmount),
+              toFixedBN(collateralAmount),
+              loanTerm,
+              loanDistributor,
+              {
+                from: loaner,
+              },
+            ),
+            'LoanManager: invalid token pair',
+          );
+        });
+      });
     });
-  });
-});
+  },
+);

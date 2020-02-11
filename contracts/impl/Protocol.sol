@@ -293,6 +293,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
             loanTerm: loanTerm,
             distributorAddress: distributorAddress
         });
+
         if (collateralTokenAddress == address(1)) {
             loanParameters.collateralAmount = msg.value;
         } else {
