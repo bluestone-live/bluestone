@@ -1,4 +1,4 @@
-import React, { useState, useCallback, ChangeEvent } from 'react';
+import React, { useState, useCallback } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { ILoanRecord, ILoanPair } from '../stores';
 import CollateralCoverageRatio from '../components/CollateralCoverageRatio';
@@ -34,15 +34,13 @@ const AddCollateralForm = (props: IProps) => {
   const [collateralAmount, setCollateralAmount] = useState<number>(0);
 
   const onCollateralRatioChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setCollateralRatio(
-        Number.parseFloat(e.target.value === '' ? '0' : e.target.value),
-      );
+    (value: string) => {
+      setCollateralRatio(Number.parseFloat(value));
       if (selectedLoanPair.collateralToken && selectedLoanPair.loanToken) {
         setCollateralAmount(
           Number.parseFloat(
             calcCollateralAmount(
-              e.target.value,
+              value,
               convertWeiToDecimal(record.remainingDebt) || '0',
               selectedLoanPair.collateralToken.price,
               selectedLoanPair.loanToken.price,
@@ -74,14 +72,14 @@ const AddCollateralForm = (props: IProps) => {
   );
 
   const onCollateralAmountChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setCollateralAmount(Number.parseFloat(e.target.value));
+    (value: string) => {
+      setCollateralAmount(Number.parseFloat(value));
       if (selectedLoanPair.collateralToken && selectedLoanPair.loanToken) {
         setCollateralRatio(
           Number.parseFloat(
             calcCollateralRatio(
               (
-                Number.parseFloat(e.target.value) +
+                Number.parseFloat(value) +
                 Number.parseFloat(convertWeiToDecimal(record.collateralAmount))
               ).toString(),
               record.remainingDebt || '0',

@@ -27,7 +27,7 @@ interface IProps {
   actionButtons?: React.ReactElement[];
   value: string | number;
   className?: string;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: string) => void;
 }
 
 const FormInput = (props: IProps) => {
@@ -76,6 +76,20 @@ const FormInput = (props: IProps) => {
     }
   }, [ref.current, actionButtons]);
 
+  const onInputChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      if (
+        type === 'number' &&
+        Number.isNaN(Number.parseFloat(e.target.value))
+      ) {
+        onChange('');
+      } else {
+        onChange(e.target.value);
+      }
+    },
+    [onChange],
+  );
+
   return (
     <div className={`form-input ${className || ''}`} ref={ref}>
       {ref.current ? (
@@ -86,7 +100,7 @@ const FormInput = (props: IProps) => {
             defaultValue={defaultValue}
             value={value}
             suffix={suffix}
-            onChange={onChange}
+            onChange={onInputChange}
             style={{ width: inputWidth }}
           />
           {actionButtons && (

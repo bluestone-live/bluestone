@@ -1,4 +1,4 @@
-import React, { useState, useCallback, ChangeEvent, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { withRouter, RouteComponentProps } from 'react-router';
 import {
@@ -51,7 +51,7 @@ const DepositForm = (props: IProps) => {
 
   // Callbacks
   const onDepositAmountChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => setDepositAmount(e.target.value),
+    (value: string) => setDepositAmount(value),
     [setDepositAmount],
   );
 

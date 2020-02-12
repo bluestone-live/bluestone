@@ -1,4 +1,4 @@
-import React, { useState, useCallback, ChangeEvent } from 'react';
+import React, { useState, useCallback } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { ILoanRecord, ILoanPair } from '../stores';
 import TextBox from '../components/TextBox';
@@ -21,8 +21,8 @@ const RepayForm = (props: IProps) => {
   const [repayAmount, setRepayAmount] = useState(0);
 
   const onRepayAmountChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setRepayAmount(Number.parseFloat(e.target.value));
+    (value: string) => {
+      setRepayAmount(Number.parseFloat(value));
     },
     [setRepayAmount],
   );

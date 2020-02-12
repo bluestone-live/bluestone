@@ -77,12 +77,24 @@
 .layout.overview {
   .tip {
     padding: 10px 20px;
+    height: 44px;
+    width: 100%;
     background-color: #52cc65;
     color: #fff;
+    position: fixed;
+    z-index: 100;
 
     .ant-btn {
       margin-left: 2em;
       width: 65px;
+    }
+
+    & + .brand {
+      top: 44px;
+    }
+
+    & + .brand + .container {
+      padding-top: 44px;
     }
   }
 

@@ -22,6 +22,7 @@ export enum EventName {
   AddCollateralSucceed = 'AddCollateralSucceed',
   DepositSucceed = 'DepositSucceed',
   WithdrawSucceed = 'WithdrawSucceed',
+  EarlyWithdrawSucceed = 'EarlyWithdrawSucceed',
   Approval = 'Approval',
 }
 

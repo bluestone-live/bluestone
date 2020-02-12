@@ -1,4 +1,4 @@
-import React, { useState, useCallback, ChangeEvent, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import {
   IBalance,
@@ -117,8 +117,7 @@ const BorrowForm = (props: IProps) => {
 
   // Callbacks
   const onBorrowAmountChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) =>
-      setBorrowAmount(Number.parseFloat(e.target.value)),
+    (value: string) => setBorrowAmount(Number.parseFloat(value)),
     [setBorrowAmount],
   );
 
@@ -233,12 +232,12 @@ const BorrowForm = (props: IProps) => {
   }, [selectedLoanPair, borrowAmount, selectedPool]);
 
   const onCollateralAmountChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setCollateralAmount(Number.parseFloat(e.target.value));
+    (value: string) => {
+      setCollateralAmount(Number.parseFloat(value));
       if (collateralToken && loanToken) {
         setCollateralRatio(
           calcCollateralRatio(
-            e.target.value,
+            value,
             totalDebt || '0',
             collateralToken.price,
             loanToken.price,
@@ -250,14 +249,12 @@ const BorrowForm = (props: IProps) => {
   );
 
   const onCollateralRatioChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setCollateralRatio(
-        Number.parseFloat(e.target.value === '' ? '0' : e.target.value),
-      );
+    (value: string) => {
+      setCollateralRatio(Number.parseFloat(value === '' ? '0' : value));
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
-            e.target.value,
+            value,
             totalDebt || '0',
             collateralToken.price,
             loanToken.price,
@@ -379,7 +376,7 @@ const BorrowForm = (props: IProps) => {
       {collateralToken && (
         <FormInput
           label={t('borrow_form_input_label_collateral_amount')}
-          type="text"
+          type="number"
           className="collateral-amount-input"
           value={collateralAmount}
           onChange={onCollateralAmountChange}

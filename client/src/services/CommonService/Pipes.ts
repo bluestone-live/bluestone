@@ -33,7 +33,6 @@ export const depositTokenPipe = async (
 interface IGetLoanAndCollateralTokenPairsResult {
   loanTokenAddress: string;
   collateralTokenAddress: string;
-  isEnabled: boolean;
   minCollateralCoverageRatio: string;
   liquidationDiscount: string;
 }
@@ -44,7 +43,9 @@ export const loanPairPipe = async (
 ): Promise<ILoanPair[]> => {
   return Promise.all(
     resultSet
-      .filter(loanPair => loanPair.isEnabled)
+      .filter(
+        loanPair => Number.parseFloat(loanPair.minCollateralCoverageRatio) > 0,
+      )
       .map(
         ({
           loanTokenAddress,

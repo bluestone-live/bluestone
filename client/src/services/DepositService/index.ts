@@ -1,6 +1,7 @@
 import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
 import { IDepositRecord, ETHIdentificationAddress } from '../../stores';
 import { depositRecordsPipe, depositRecordPipe } from './Pipes';
+import { EventData } from 'web3-eth-contract';
 
 export class DepositService {
   constructor(private readonly provider: MetaMaskProvider) {}
@@ -73,6 +74,7 @@ export class DepositService {
           )
           .send({ from: accountAddress, value: depositAmount });
       }
+
       return protocol.methods
         .deposit(
           tokenAddress,
@@ -95,10 +97,20 @@ export class DepositService {
   async withdrawDeposit(
     accountAddress: string,
     depositId: string,
-  ): Promise<string> {
-    return this.provider.protocol.methods
-      .withdraw(depositId)
-      .send({ from: accountAddress });
+  ): Promise<EventData> {
+    const flow = await this.provider.getContractEventFlow(
+      EventName.WithdrawSucceed,
+      {
+        filter: {
+          accountAddress,
+        },
+      },
+    );
+    return flow(async protocol => {
+      return protocol.methods
+        .withdraw(depositId)
+        .send({ from: accountAddress });
+    });
   }
 
   /**
@@ -107,8 +119,18 @@ export class DepositService {
    * @param depositId deposit id
    */
   async earlyWithdrawDeposit(accountAddress: string, depositId: string) {
-    return this.provider.protocol.methods
-      .earlyWithdraw(depositId)
-      .send({ from: accountAddress });
+    const flow = await this.provider.getContractEventFlow(
+      EventName.EarlyWithdrawSucceed,
+      {
+        filter: {
+          accountAddress,
+        },
+      },
+    );
+    return flow(async protocol => {
+      return protocol.methods
+        .earlyWithdraw(depositId)
+        .send({ from: accountAddress });
+    });
   }
 }
