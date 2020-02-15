@@ -15,6 +15,10 @@ const ERC20Mock = artifacts.require('ERC20Mock');
 const Protocol = artifacts.require('Protocol');
 
 module.exports = makeTruffleScript(async network => {
+  if (network === 'main') {
+    throw new Error('Please deploy manually for mainnet.');
+  }
+
   const { tokens } = loadNetwork(network);
 
   const { ETH, DAI, USDT } = tokens;
@@ -23,12 +27,15 @@ module.exports = makeTruffleScript(async network => {
     throw new Error('Please ensure tokens are deployed.');
   }
 
-  // TODO(desmond): use exisiting medianizer for main net
   const medianizer = await MedianizerMock.deployed();
   const oasisDex = await OasisDexMock.deployed();
 
   const ethPriceOracle = await EthPriceOracle.new(medianizer.address);
   const ethPrice = await ethPriceOracle.getPrice();
+
+  // Setup Oasis
+  await oasisDex.setBuyAmount(ethPrice.mul(new BN(10)));
+  await oasisDex.setPayAmount(ethPrice.mul(new BN(10)));
 
   // Setup uniswap
   const uniswap = await web3.eth.accounts.create();
