@@ -2,13 +2,20 @@ const DaiPriceOracle = artifacts.require('DaiPriceOracle');
 const Medianizer = artifacts.require('MedianizerMock');
 const OasisDex = artifacts.require('OasisDexMock');
 const { toFixedBN, createERC20Token } = require('../../utils/index');
-const { BN, time, expectEvent } = require('openzeppelin-test-helpers');
+const {
+  BN,
+  time,
+  expectEvent,
+  expectRevert,
+} = require('openzeppelin-test-helpers');
 const { expect } = require('chai');
 
 contract('DaiPriceOracle', function([owner]) {
-  let priceOracle, weth, dai, medianizer, oasisDex, uniswap, ethPrice;
+  let priceOracle, weth, dai, medianizer, oasisDex, uniswap;
   const priceUpperBound = 1.1;
   const priceLowerBound = 0.9;
+  const ethPrice = toFixedBN(200);
+  const oasisEthAmount = toFixedBN(10);
 
   beforeEach(async () => {
     weth = await createERC20Token(owner);
@@ -16,8 +23,6 @@ contract('DaiPriceOracle', function([owner]) {
     medianizer = await Medianizer.new();
     oasisDex = await OasisDex.new();
     uniswap = await web3.eth.accounts.create();
-    const oasisEthAmount = toFixedBN(10);
-    ethPrice = toFixedBN(200);
     await medianizer.setPrice(ethPrice);
     await oasisDex.setEthPrice(ethPrice);
 
@@ -160,22 +165,131 @@ contract('DaiPriceOracle', function([owner]) {
     });
   });
 
+  describe('#getOasisPrice', () => {
+    context('when buy amount and pay amount are valid', () => {
+      it('returns oasis price', async () => {
+        const buyAmount = ethPrice.mul(new BN(10));
+        const payAmount = ethPrice.mul(new BN(11));
+
+        await oasisDex.setBuyAmount(buyAmount);
+        await oasisDex.setPayAmount(payAmount);
+
+        const num = oasisEthAmount
+          .mul(payAmount)
+          .add(oasisEthAmount.mul(buyAmount));
+        const den = buyAmount.mul(payAmount).mul(new BN(2));
+        const expectedPrice = ethPrice.mul(num).div(den);
+
+        expect(await priceOracle.getOasisPrice(ethPrice)).to.be.bignumber.equal(
+          expectedPrice,
+        );
+      });
+    });
+
+    context('when buy amount is 0', () => {
+      it('returns old price', async () => {
+        const payAmount = ethPrice.mul(new BN(11));
+
+        await oasisDex.setPayAmount(payAmount);
+
+        expect(await priceOracle.getOasisPrice(ethPrice)).to.be.bignumber.equal(
+          toFixedBN(1),
+        );
+      });
+    });
+
+    context('when pay amount is 0', () => {
+      it('returns old price', async () => {
+        const buyAmount = ethPrice.mul(new BN(10));
+
+        await oasisDex.setBuyAmount(buyAmount);
+
+        expect(await priceOracle.getOasisPrice(ethPrice)).to.be.bignumber.equal(
+          toFixedBN(1),
+        );
+      });
+    });
+  });
+
+  describe('#getUniswapPrice', () => {
+    context('when DAI balance is valid', () => {
+      it('returns uniswap price', async () => {
+        const uniswapPrice = toFixedBN(1.01);
+        const uniswapEthAmount = new BN(1000);
+        const uniswapDaiAmount = ethPrice
+          .mul(uniswapEthAmount)
+          .div(uniswapPrice);
+
+        await web3.eth.sendTransaction({
+          from: owner,
+          to: uniswap.address,
+          value: uniswapEthAmount,
+        });
+
+        await dai.mint(uniswap.address, uniswapDaiAmount);
+        expect(
+          await priceOracle.getUniswapPrice(ethPrice),
+        ).to.be.bignumber.closeTo(uniswapPrice, toFixedBN(0.001));
+      });
+    });
+
+    context('when DAI balance is 0', () => {
+      it('returns old price', async () => {
+        expect(
+          await priceOracle.getUniswapPrice(ethPrice),
+        ).to.be.bignumber.equal(toFixedBN(1));
+      });
+    });
+  });
+
   describe('#setPriceBoundary', () => {
-    it('succeeds', async () => {
-      const newPriceUpperBound = toFixedBN(1.2);
-      const newPriceLowerBound = toFixedBN(0.8);
+    context('when both upper bound and lower bound are valid', () => {
+      it('succeeds', async () => {
+        const newPriceUpperBound = toFixedBN(1.2);
+        const newPriceLowerBound = toFixedBN(0.8);
 
-      await priceOracle.setPriceBoundary(
-        newPriceUpperBound,
-        newPriceLowerBound,
-      );
+        const { logs } = await priceOracle.setPriceBoundary(
+          newPriceUpperBound,
+          newPriceLowerBound,
+        );
 
-      expect(await priceOracle.priceUpperBound()).to.bignumber.equal(
-        newPriceUpperBound,
-      );
-      expect(await priceOracle.priceLowerBound()).to.bignumber.equal(
-        newPriceLowerBound,
-      );
+        expectEvent.inLogs(logs, 'SetPriceBoundarySucceed', {
+          adminAddress: owner,
+          priceUpperBound: newPriceUpperBound,
+          priceLowerBound: newPriceLowerBound,
+        });
+
+        expect(await priceOracle.priceUpperBound()).to.bignumber.equal(
+          newPriceUpperBound,
+        );
+        expect(await priceOracle.priceLowerBound()).to.bignumber.equal(
+          newPriceLowerBound,
+        );
+      });
+    });
+
+    context('when upper bound is invalid', () => {
+      it('reverts', async () => {
+        const newPriceUpperBound = toFixedBN(0);
+        const newPriceLowerBound = toFixedBN(0.8);
+
+        await expectRevert(
+          priceOracle.setPriceBoundary(newPriceUpperBound, newPriceLowerBound),
+          'DaiPriceOracle: invalid upper bound price',
+        );
+      });
+    });
+
+    context('when lower bound is invalid', () => {
+      it('reverts', async () => {
+        const newPriceUpperBound = toFixedBN(1.2);
+        const newPriceLowerBound = toFixedBN(100);
+
+        await expectRevert(
+          priceOracle.setPriceBoundary(newPriceUpperBound, newPriceLowerBound),
+          'DaiPriceOracle: invalid lower bound price',
+        );
+      });
     });
   });
 });

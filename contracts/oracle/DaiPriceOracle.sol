@@ -22,6 +22,11 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
     uint256 constant MIN_PRICE_DIFF = 10**16; // 0.01 (1%)
 
     event PriceUpdated(uint256 price);
+    event SetPriceBoundarySucceed(
+        address indexed adminAddress,
+        uint256 priceUpperBound,
+        uint256 priceLowerBound
+    );
 
     IERC20 public weth;
     IERC20 public dai;
@@ -62,8 +67,23 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         uint256 _priceUpperBound,
         uint256 _priceLowerBound
     ) external onlyOwner {
+        require(
+            _priceUpperBound > EXPECTED_PRICE,
+            'DaiPriceOracle: invalid upper bound price'
+        );
+        require(
+            _priceLowerBound < EXPECTED_PRICE,
+            'DaiPriceOracle: invalid lower bound price'
+        );
+
         priceUpperBound = _priceUpperBound;
         priceLowerBound = _priceLowerBound;
+
+        emit SetPriceBoundarySucceed(
+            msg.sender,
+            _priceUpperBound,
+            _priceLowerBound
+        );
     }
 
     function updatePriceIfNeeded() external override {
@@ -108,8 +128,7 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
     }
 
     function getOasisPrice(uint256 ethUsd) public view returns (uint256) {
-        /// If exchange is not operational, return old value.
-        /// This allows the price to move only towards 1 USD
+        // If Oasis is not operational, return old price
         if (
             oasis.isClosed() || !oasis.buyEnabled() || !oasis.matchingEnabled()
         ) {
@@ -118,21 +137,30 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
 
         /// Assumes at least `oasisEthAmount` of depth on both sides of the book
         /// if the exchange is active. Will revert if not enough depth.
-        uint256 daiAmt1 = oasis.getBuyAmount(
-            address(dai),
-            address(weth),
-            oasisEthAmount
-        );
-        uint256 daiAmt2 = oasis.getPayAmount(
+        uint256 buyAmount = oasis.getBuyAmount(
             address(dai),
             address(weth),
             oasisEthAmount
         );
 
-        uint256 num = oasisEthAmount.mul(daiAmt2).add(
-            oasisEthAmount.mul(daiAmt1)
+        if (buyAmount == 0) {
+            return price;
+        }
+
+        uint256 payAmount = oasis.getPayAmount(
+            address(dai),
+            address(weth),
+            oasisEthAmount
         );
-        uint256 den = daiAmt1.mul(daiAmt2).mul(2);
+
+        if (payAmount == 0) {
+            return price;
+        }
+
+        uint256 num = oasisEthAmount.mul(payAmount).add(
+            oasisEthAmount.mul(buyAmount)
+        );
+        uint256 den = buyAmount.mul(payAmount).mul(2);
 
         return ethUsd.mul(num).div(den);
     }
@@ -140,7 +168,12 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
     function getUniswapPrice(uint256 ethUsd) public view returns (uint256) {
         uint256 ethAmt = uniswap.balance;
         uint256 daiAmt = dai.balanceOf(uniswap);
-        return ethUsd.mul(ethAmt).div(daiAmt);
+
+        if (daiAmt == 0) {
+            return price;
+        } else {
+            return ethUsd.mul(ethAmt).div(daiAmt);
+        }
     }
 
     function _getMidValue(uint256 a, uint256 b, uint256 c)
