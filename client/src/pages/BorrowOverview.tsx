@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import {
-  useDepositTokens,
   usePools,
   PoolActions,
   IToken,
@@ -10,6 +9,7 @@ import {
   useLoanInterestRates,
   CommonActions,
   useInterestModelParameters,
+  useLoanPairs,
 } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
@@ -20,6 +20,7 @@ import { withRouter, RouteComponentProps } from 'react-router';
 import BorrowPoolCard from '../containers/BorrowPoolCard';
 import { composePools } from '../utils/composePools';
 import { getLoanInterestRates } from '../utils/interestModel';
+import { uniqueBy } from '../utils/uniqueBy';
 
 interface IProps extends WithTranslation, RouteComponentProps {}
 
@@ -29,7 +30,11 @@ const BorrowOverview = (props: IProps) => {
   const dispatch = useDispatch();
 
   // Selectors
-  const tokens = useDepositTokens();
+  const loanPairs = useLoanPairs();
+  const tokens = useMemo(
+    () => uniqueBy(loanPairs.map(pair => pair.loanToken), 'tokenAddress'),
+    [loanPairs],
+  );
   const allPools = usePools();
   const interestRates = useLoanInterestRates();
   const interestModelParameters = useInterestModelParameters();
