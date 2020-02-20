@@ -99,23 +99,12 @@ const BorrowPoolChart = (props: IProps) => {
         >
           <Axis dataKey="availableAmount" show={false} />
           <Axis dataKey="term" />
-          <Guide
-            type="line"
-            top
-            start={[selectedTerm, -100]}
-            end={[selectedTerm, 'max']}
-            lineStyle={{
-              stroke: 'rgba(44, 60, 87, 0.1)',
-              lineDash: [0],
-              lineWidth: 4,
-            }}
-          />
           <SmoothArea position="term*availableAmount" color="#ff6dc4" />
           <Guide
             type="html"
             position={[selectedTerm, pointValue.availableAmount]}
             html={availableAmountCrossPoint}
-            offsetX={1}
+            offsetX={2}
           />
         </View>
       </Chart>
