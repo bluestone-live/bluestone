@@ -32,6 +32,11 @@ const DepositDetail = (props: IProps) => {
     t,
   } = props;
 
+  const depositToken = useMemo(
+    () => tokens.find(token => token.tokenAddress === record.tokenAddress),
+    [tokens, record],
+  );
+
   const earlyWithdraw = useCallback(async () => {
     const { depositService } = await getService();
     await depositService.earlyWithdrawDeposit(accountAddress, record.recordId);
@@ -72,7 +77,10 @@ const DepositDetail = (props: IProps) => {
       <Row>
         <Col span={12}>
           <TextBox label={t('deposit_detail_label_amount')}>
-            {convertWeiToDecimal(record.depositAmount)}
+            <span className="primary">
+              {convertWeiToDecimal(record.depositAmount)}{' '}
+            </span>
+            {depositToken && depositToken.tokenSymbol}
           </TextBox>
         </Col>
         <Col span={12}>
@@ -97,7 +105,8 @@ const DepositDetail = (props: IProps) => {
                 : t('deposit_detail_label_estimated_interest')
             }
           >
-            {convertWeiToDecimal(record.interest)}
+            {convertWeiToDecimal(record.interest)}{' '}
+            {depositToken && depositToken.tokenSymbol}
           </TextBox>
         </Col>
       </Row>

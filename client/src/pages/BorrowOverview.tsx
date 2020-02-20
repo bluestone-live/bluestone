@@ -67,13 +67,6 @@ const BorrowOverview = (props: IProps) => {
   const onTermChange = useCallback((term: number) => setSelectedTerm(term), [
     setSelectedTerm,
   ]);
-  const onNextButtonClick = useCallback(() => {
-    if (selectedToken && selectedPool) {
-      history.push(
-        `/borrow/${selectedPool.poolId}?tokenAddress=${selectedToken.tokenAddress}`,
-      );
-    }
-  }, [selectedToken, selectedTerm]);
 
   // Computed
   const selectedPools = useMemo(() => {
@@ -116,6 +109,14 @@ const BorrowOverview = (props: IProps) => {
     () => computedPools.find(pool => pool.term === selectedTerm),
     [selectedTerm, computedPools],
   );
+
+  const onNextButtonClick = useCallback(() => {
+    if (selectedToken && selectedPool) {
+      history.push(
+        `/borrow/${selectedPool.poolId}?tokenAddress=${selectedToken.tokenAddress}`,
+      );
+    }
+  }, [selectedToken, selectedPool]);
 
   return (
     <div className="borrow-overview">

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { ILoanRecord, ILoanPair } from '../stores';
+import { ILoanRecord, ILoanPair, ViewActions } from '../stores';
 import CollateralCoverageRatio from '../components/CollateralCoverageRatio';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
 import TextBox from '../components/TextBox';
@@ -13,6 +13,7 @@ import {
 import Button from 'antd/lib/button';
 import { getService } from '../services';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { useDispatch } from 'react-redux';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -22,6 +23,7 @@ interface IProps extends WithTranslation, RouteComponentProps {
 
 const AddCollateralForm = (props: IProps) => {
   const { accountAddress, record, selectedLoanPair, history, t } = props;
+  const dispatch = useDispatch();
 
   const [collateralRatio, setCollateralRatio] = useState<number>(
     Math.max(
@@ -94,16 +96,22 @@ const AddCollateralForm = (props: IProps) => {
   );
 
   const submit = useCallback(async () => {
-    const { loanService } = await getService();
+    dispatch(ViewActions.setLoading(true));
+    try {
+      const { loanService } = await getService();
 
-    await loanService.addCollateral(
-      accountAddress,
-      record.recordId,
-      record.collateralTokenAddress,
-      convertDecimalToWei(collateralAmount),
-    );
+      await loanService.addCollateral(
+        accountAddress,
+        record.recordId,
+        record.collateralTokenAddress,
+        convertDecimalToWei(collateralAmount),
+      );
 
-    history.push(`/account/borrow/${record.recordId}`);
+      history.push(`/account/borrow/${record.recordId}`);
+      // Ignore the error
+      // tslint:disable-next-line:no-empty
+    } catch (e) {}
+    dispatch(ViewActions.setLoading(false));
   }, [accountAddress, record, collateralAmount]);
 
   return (

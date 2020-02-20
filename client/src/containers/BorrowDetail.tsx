@@ -68,7 +68,8 @@ const BorrowDetail = (props: IProps) => {
       <Row>
         <Col span={12}>
           <TextBox label={t('borrow_detail_label_amount')}>
-            {convertWeiToDecimal(record.loanAmount)}
+            {convertWeiToDecimal(record.loanAmount)}{' '}
+            {selectedLoanPair.loanToken.tokenSymbol}
           </TextBox>
         </Col>
         <Col span={12}>
@@ -80,7 +81,8 @@ const BorrowDetail = (props: IProps) => {
       <Row>
         <Col span={12}>
           <TextBox label={t('borrow_detail_label_total_collateral')}>
-            {convertWeiToDecimal(record.collateralAmount)}
+            {convertWeiToDecimal(record.collateralAmount)}{' '}
+            {selectedLoanPair.collateralToken.tokenSymbol}
           </TextBox>
         </Col>
         {!record.isClosed && (
@@ -103,7 +105,8 @@ const BorrowDetail = (props: IProps) => {
         {!record.isClosed && (
           <Col span={12}>
             <TextBox label={t('borrow_detail_label_remaining_debt')}>
-              {convertWeiToDecimal(record.remainingDebt)}
+              {convertWeiToDecimal(record.remainingDebt)}{' '}
+              {selectedLoanPair.loanToken.tokenSymbol}
             </TextBox>
           </Col>
         )}
@@ -114,7 +117,8 @@ const BorrowDetail = (props: IProps) => {
                 Number.parseFloat(record.loanAmount) +
                 Number.parseFloat(record.interest)
               ).toString(),
-            )}
+            )}{' '}
+            {selectedLoanPair.loanToken.tokenSymbol}
           </TextBox>
         </Col>
       </Row>

@@ -95,7 +95,7 @@ const RecordCard = (props: IProps) => {
 
       return (
         <Row>
-          <Col span={12}>
+          <Col span={8}>
             <TextBox label={t('record_card_label_current_apr')}>
               {pool
                 ? Number.parseFloat(convertWeiToDecimal(pool.APR)) * 100
@@ -103,7 +103,12 @@ const RecordCard = (props: IProps) => {
               %
             </TextBox>
           </Col>
-          <Col span={12}>
+          <Col span={8}>
+            <TextBox label={t('record_card_label_deposit_amount')}>
+              {convertWeiToDecimal(depositRecord.depositAmount)}
+            </TextBox>
+          </Col>
+          <Col span={8}>
             <TextBox label={t('record_card_label_estimated_earned')}>
               {convertWeiToDecimal(depositRecord.interest)}
             </TextBox>

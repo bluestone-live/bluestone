@@ -6,6 +6,7 @@ import Card from 'antd/lib/card';
 import { Row, Col } from 'antd/lib/grid';
 import { convertWeiToDecimal } from '../utils/BigNumber';
 import TextBox from '../components/TextBox';
+import { getCurrentPoolId } from '../utils/poolIdCalculator';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   pool: IPool;
@@ -15,11 +16,16 @@ interface IProps extends WithTranslation, RouteComponentProps {
 const MonitorPoolCard = (props: IProps) => {
   const { pool, onClick, t } = props;
 
+  const currentPoolId = getCurrentPoolId();
+
   const title = useMemo(
     () => (
       <div className="monitor-pool-card__title">
         <div className="term">
-          {t('monitor_pool_card_title', { poolId: pool.poolId })}
+          {t('monitor_pool_card_title', {
+            poolId: pool.poolId,
+            term: Number.parseInt(pool.poolId, 10) - currentPoolId,
+          })}
         </div>
       </div>
     ),

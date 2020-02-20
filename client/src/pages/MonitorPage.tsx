@@ -47,7 +47,10 @@ const MonitorPage = (props: RouteComponentProps) => {
 
   const selectedPools = useMemo(() => {
     if (selectedToken) {
-      return pools[selectedToken.tokenAddress];
+      return (pools[selectedToken.tokenAddress] || []).sort(
+        (pool1, pool2) =>
+          Number.parseInt(pool2.poolId, 10) - Number.parseInt(pool1.poolId, 10),
+      );
     }
   }, [pools, selectedToken]);
 

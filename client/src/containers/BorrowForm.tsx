@@ -8,6 +8,7 @@ import {
   AccountActions,
   CommonActions,
   ETHIdentificationAddress,
+  ViewActions,
 } from '../stores';
 import Form from 'antd/lib/form';
 import FormInput from '../components/FormInput';
@@ -133,40 +134,46 @@ const BorrowForm = (props: IProps) => {
     if (!loanToken || !collateralToken || !selectedPool) {
       return;
     }
-    const { loanService, commonService } = await getService();
-    if (
-      collateralToken.allowance &&
-      collateralToken.allowance.toString() === '0'
-    ) {
-      await commonService.approveFullAllowance(
-        accountAddress,
-        collateralToken,
-        protocolContractAddress,
-      );
+    dispatch(ViewActions.setLoading(true));
+    try {
+      const { loanService, commonService } = await getService();
+      if (
+        collateralToken.allowance &&
+        collateralToken.allowance.toString() === '0'
+      ) {
+        await commonService.approveFullAllowance(
+          accountAddress,
+          collateralToken,
+          protocolContractAddress,
+        );
 
-      dispatch(
-        CommonActions.setAllowance(
-          collateralToken.tokenAddress,
-          await commonService.getTokenAllowance(
-            collateralToken,
-            accountAddress,
-            protocolContractAddress,
+        dispatch(
+          CommonActions.setAllowance(
+            collateralToken.tokenAddress,
+            await commonService.getTokenAllowance(
+              collateralToken,
+              accountAddress,
+              protocolContractAddress,
+            ),
           ),
-        ),
-      );
-    } else {
-      const recordId = await loanService.loan(
-        accountAddress,
-        loanToken.tokenAddress,
-        collateralToken.tokenAddress,
-        convertDecimalToWei(borrowAmount),
-        convertDecimalToWei(collateralAmount),
-        selectedPool.term,
-        distributorAddress,
-      );
+        );
+      } else {
+        const recordId = await loanService.loan(
+          accountAddress,
+          loanToken.tokenAddress,
+          collateralToken.tokenAddress,
+          convertDecimalToWei(borrowAmount),
+          convertDecimalToWei(collateralAmount),
+          selectedPool.term,
+          distributorAddress,
+        );
 
-      history.push(`/account/borrow/${recordId}`);
-    }
+        history.push(`/account/borrow/${recordId}`);
+      }
+      // Ignore the error
+      // tslint:disable-next-line:no-empty
+    } catch (e) {}
+    dispatch(ViewActions.setLoading(false));
   }, [
     loanToken,
     collateralToken,

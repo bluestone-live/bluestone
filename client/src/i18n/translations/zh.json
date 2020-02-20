@@ -1,5 +1,6 @@
 {
   "translations": {
+    "account_overview_tab_active": "当前",
     "account_overview_tab_borrow": "贷款",
     "account_overview_tab_closed": "已关闭",
     "account_overview_tab_deposit": "存款",
@@ -66,7 +67,6 @@
     "deposit_pool_card_text_apr": " 年化利率",
     "deposit_pool_card_text_total_deposit": "总存款额",
     "deposit_pool_card_text_utilization": " 使用率",
-    "Key": "Chinese",
     "language": "中文",
     "layout_default_account": "账户",
     "layout_default_borrow": "借钱",
@@ -84,7 +84,7 @@
     "monitor_pool_card_label_loan_interest": "总利息",
     "monitor_pool_card_label_total_deposit": "总存款",
     "monitor_pool_card_label_total_deposit_weight": "总权重",
-    "monitor_pool_card_title": "PoolID: {{poolId}}",
+    "monitor_pool_card_title": "PoolID: {{poolId}} (Term: {{term}})",
     "record_card_due_date_closed": " 已关闭",
     "record_card_due_date_due_in": " 将在{{day}}天后过期",
     "record_card_due_date_mature_in": "将在{{day}}天到期",
@@ -92,6 +92,7 @@
     "record_card_due_date_overdue": " 已过期",
     "record_card_label_collateral_ratio": "当前抵押率",
     "record_card_label_current_apr": "当前年化",
+    "record_card_label_deposit_amount": "金额",
     "record_card_label_estimated_earned": "预计收益",
     "record_card_label_remaining_debt": "剩余应还",
     "record_card_title_borrow": "贷",

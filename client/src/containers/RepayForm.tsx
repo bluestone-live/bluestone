@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { ILoanRecord, ILoanPair } from '../stores';
+import { ILoanRecord, ILoanPair, ViewActions } from '../stores';
 import TextBox from '../components/TextBox';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
 import FormInput from '../components/FormInput';
@@ -8,6 +8,7 @@ import Form from 'antd/lib/form';
 import Button from 'antd/lib/button';
 import { getService } from '../services';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { useDispatch } from 'react-redux';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -17,6 +18,7 @@ interface IProps extends WithTranslation, RouteComponentProps {
 
 const RepayForm = (props: IProps) => {
   const { accountAddress, record, selectedLoanPair, history, t } = props;
+  const dispatch = useDispatch();
 
   const [repayAmount, setRepayAmount] = useState(0);
 
@@ -28,15 +30,21 @@ const RepayForm = (props: IProps) => {
   );
 
   const submit = useCallback(async () => {
-    const { loanService } = await getService();
+    dispatch(ViewActions.setLoading(true));
+    try {
+      const { loanService } = await getService();
 
-    await loanService.repayLoan(
-      accountAddress,
-      record.recordId,
-      convertDecimalToWei(repayAmount),
-    );
+      await loanService.repayLoan(
+        accountAddress,
+        record.recordId,
+        convertDecimalToWei(repayAmount),
+      );
 
-    history.push(`/account/borrow/${record.recordId}`);
+      history.push(`/account/borrow/${record.recordId}`);
+      // Ignore the error
+      // tslint:disable-next-line:no-empty
+    } catch (e) {}
+    dispatch(ViewActions.setLoading(false));
   }, [record, repayAmount]);
 
   return (

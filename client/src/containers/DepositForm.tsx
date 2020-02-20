@@ -62,43 +62,47 @@ const DepositForm = (props: IProps) => {
       commonService,
     } = await getService();
     dispatch(ViewActions.setLoading(true));
-    if (token.allowance && token.allowance.toString() === '0') {
-      await commonService.approveFullAllowance(
-        accountAddress,
-        token,
-        protocolContractAddress,
-      );
+    try {
+      if (token.allowance && token.allowance.toString() === '0') {
+        await commonService.approveFullAllowance(
+          accountAddress,
+          token,
+          protocolContractAddress,
+        );
 
-      dispatch(
-        CommonActions.setAllowance(
-          token.tokenAddress,
-          await commonService.getTokenAllowance(
-            token,
-            accountAddress,
-            protocolContractAddress,
+        dispatch(
+          CommonActions.setAllowance(
+            token.tokenAddress,
+            await commonService.getTokenAllowance(
+              token,
+              accountAddress,
+              protocolContractAddress,
+            ),
           ),
-        ),
-      );
-    } else {
-      const recordId = await depositService.deposit(
-        accountAddress,
-        token.tokenAddress,
-        convertDecimalToWei(depositAmount),
-        pool.term.toString(),
-        distributorAddress,
-      );
-
-      dispatch(
-        AccountActions.setTokenBalance(
+        );
+      } else {
+        const recordId = await depositService.deposit(
+          accountAddress,
           token.tokenAddress,
-          token.tokenAddress === ETHIdentificationAddress
-            ? await accountService.getETHBalance(accountAddress)
-            : await accountService.getTokenBalance(accountAddress, token),
-        ),
-      );
+          convertDecimalToWei(depositAmount),
+          pool.term.toString(),
+          distributorAddress,
+        );
 
-      history.push(`/account/deposit/${recordId}`);
-    }
+        dispatch(
+          AccountActions.setTokenBalance(
+            token.tokenAddress,
+            token.tokenAddress === ETHIdentificationAddress
+              ? await accountService.getETHBalance(accountAddress)
+              : await accountService.getTokenBalance(accountAddress, token),
+          ),
+        );
+
+        history.push(`/account/deposit/${recordId}`);
+      }
+      // Ignore the error
+      // tslint:disable-next-line:no-empty
+    } catch (e) {}
     dispatch(ViewActions.setLoading(false));
   }, [token, depositAmount, pool]);
 

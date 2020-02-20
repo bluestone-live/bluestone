@@ -31,10 +31,13 @@
 
 #app {
   height: 100vh;
+  margin: 0 auto;
+  position: relative;
 }
 
 .layout {
   height: 100%;
+  width: 100%;
 }
 
 .full-width {
@@ -120,4 +123,17 @@
 }
 .grey {
   color: #bfbfbf;
+}
+.primary {
+  color: @primary-color;
+}
+
+// TODO: Should be remove after web client complete
+@media (min-width: 500px) {
+  #app,
+  .brand,
+  .tab-bar,
+  .layout.overview .tip {
+    max-width: 500px;
+  }
 }

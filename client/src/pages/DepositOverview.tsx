@@ -31,7 +31,7 @@ const DepositOverview = (props: WithTranslation) => {
   const depositTerms = useDepositTerms();
 
   const sortingParams = useMemo(
-    () => ['term', 'APR', 'utilization', 'totalDeposit'],
+    () => ['term', 'APR', 'utilization'],
     [],
   ) as Array<keyof IPool>;
 
