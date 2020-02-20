@@ -14,7 +14,6 @@ import Banner from '../components/Banner';
 import { useGlobalInit } from './useGlobalInit';
 import Brand from '../components/Brand';
 import Button from 'antd/lib/button';
-import Icon from 'antd/lib/icon';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;

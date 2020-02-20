@@ -8,6 +8,7 @@ import {
   CommonActions,
   IToken,
   ETHIdentificationAddress,
+  ViewActions,
 } from '../stores';
 import { decodeDistributorConfig } from '../utils/decodeDistributorConfig';
 import { convertWeiToDecimal } from '../utils/BigNumber';
@@ -34,6 +35,9 @@ export const useGlobalInit = (
     };
 
     const accounts = await getAccounts();
+
+    // Set network
+    dispatch(ViewActions.setNetwork(await commonService.getCurrentNetwork()));
 
     // Bind account and network change event
     commonService.bindEthereumStateChangeEvent(getAccounts, () => {

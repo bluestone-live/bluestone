@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, Fragment } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import {
   IDepositRecord,
@@ -94,26 +94,39 @@ const RecordCard = (props: IProps) => {
       );
 
       return (
-        <Row>
-          <Col span={8}>
-            <TextBox label={t('record_card_label_current_apr')}>
-              {pool
-                ? Number.parseFloat(convertWeiToDecimal(pool.APR)) * 100
-                : '0.00'}
-              %
-            </TextBox>
-          </Col>
-          <Col span={8}>
-            <TextBox label={t('record_card_label_deposit_amount')}>
-              {convertWeiToDecimal(depositRecord.depositAmount)}
-            </TextBox>
-          </Col>
-          <Col span={8}>
-            <TextBox label={t('record_card_label_estimated_earned')}>
-              {convertWeiToDecimal(depositRecord.interest)}
-            </TextBox>
-          </Col>
-        </Row>
+        <Fragment>
+          <Row style={{ marginBottom: 0 }}>
+            <Col span={8} className="ant-form-item-label">
+              <label>{t('record_card_label_deposit_amount')}</label>
+            </Col>
+            <Col span={8} className="ant-form-item-label">
+              <label>{t('record_card_label_current_apr')}</label>
+            </Col>
+            <Col span={8} className="ant-form-item-label">
+              <label>{t('record_card_label_estimated_earned')}</label>
+            </Col>
+          </Row>
+          <Row>
+            <Col span={8}>
+              <span className="ant-form-text">
+                {convertWeiToDecimal(depositRecord.depositAmount)}
+              </span>
+            </Col>
+            <Col span={8}>
+              <span className="ant-form-text">
+                {pool
+                  ? Number.parseFloat(convertWeiToDecimal(pool.APR)) * 100
+                  : '0.00'}
+                %
+              </span>
+            </Col>
+            <Col span={8}>
+              <span className="ant-form-text">
+                {convertWeiToDecimal(depositRecord.interest)}
+              </span>
+            </Col>
+          </Row>
+        </Fragment>
       );
     } else {
       const borrowRecord = record as ILoanRecord;

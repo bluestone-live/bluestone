@@ -20,14 +20,18 @@ const RepayForm = (props: IProps) => {
   const { accountAddress, record, selectedLoanPair, history, t } = props;
   const dispatch = useDispatch();
 
-  const [repayAmount, setRepayAmount] = useState(0);
+  const [repayAmount, setRepayAmount] = useState('0');
 
   const onRepayAmountChange = useCallback(
     (value: string) => {
-      setRepayAmount(Number.parseFloat(value));
+      setRepayAmount(value);
     },
     [setRepayAmount],
   );
+
+  const onRepayAmountMaxButtonClick = useCallback(() => {
+    setRepayAmount(convertWeiToDecimal(record.remainingDebt, 18));
+  }, [record]);
 
   const submit = useCallback(async () => {
     dispatch(ViewActions.setLoading(true));
@@ -58,11 +62,16 @@ const RepayForm = (props: IProps) => {
       </TextBox>
       <Form>
         <FormInput
-          type="text"
+          type="number"
           label={t('repay_form_input_label_repay')}
           value={repayAmount}
           onChange={onRepayAmountChange}
           suffix={selectedLoanPair.loanToken.tokenSymbol}
+          actionButtons={[
+            <Button key="max_btn" onClick={onRepayAmountMaxButtonClick}>
+              {t('repay_form_input_button_max')}
+            </Button>,
+          ]}
         />
 
         <Button type="primary" block size="large" onClick={submit}>

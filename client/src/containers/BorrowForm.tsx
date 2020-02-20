@@ -123,12 +123,12 @@ const BorrowForm = (props: IProps) => {
   );
 
   const onBorrowAmountMaxButtonClick = useCallback(() => {
-    if (selectedBalance) {
+    if (selectedPool) {
       setBorrowAmount(
-        Number.parseFloat(convertWeiToDecimal(selectedBalance.balance)),
+        Number.parseFloat(selectedPool.availableAmount.toString()),
       );
     }
-  }, [selectedBalance]);
+  }, [selectedPool]);
 
   const submit = useCallback(async () => {
     if (!loanToken || !collateralToken || !selectedPool) {
@@ -380,7 +380,7 @@ const BorrowForm = (props: IProps) => {
           }}
         />
       )}
-      {collateralToken && (
+      {collateralToken && selectedBalance && (
         <FormInput
           label={t('borrow_form_input_label_collateral_amount')}
           type="number"
@@ -388,6 +388,7 @@ const BorrowForm = (props: IProps) => {
           value={collateralAmount}
           onChange={onCollateralAmountChange}
           suffix={collateralToken.tokenSymbol}
+          placeholder={convertWeiToDecimal(selectedBalance.balance)}
           extra={
             <span className="bold">
               {t('borrow_form_input_extra_price', {

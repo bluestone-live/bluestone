@@ -70,7 +70,28 @@ export class MetaMaskProvider {
       );
     }
 
-    this.networkType = await this.web3Instance.eth.net.getNetworkType();
+    const networkId = await this.web3Instance.eth.net.getId();
+
+    switch (networkId) {
+      case 1:
+        this.networkType = 'main';
+        break;
+      case 3:
+        this.networkType = 'ropsten';
+        break;
+      case 42:
+        this.networkType = 'kovan';
+        break;
+      case 4:
+        this.networkType = 'rinkeby';
+        break;
+      case 5:
+        this.networkType = 'goerli';
+        break;
+      default:
+        this.networkType = 'primary';
+    }
+
     const networkFile = await this.getNetworkFile(this.networkType);
 
     this.protocolAddress =

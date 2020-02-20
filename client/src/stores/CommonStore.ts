@@ -5,7 +5,6 @@ import { replaceBy } from '../utils/replaceBy';
 import { IDistributorConfig } from '../utils/decodeDistributorConfig';
 
 const enum CommonActionType {
-  SetCurrentNetwork = 'SET_CURRENT_NETWORK',
   SetDepositTokens = 'SET_DEPOSIT_TOKENS',
   SetLoanPairs = 'SET_LOAN_PAIRS',
   SetAllowance = 'SET_ALLOWANCE',
@@ -45,7 +44,6 @@ export interface IInterestModelParameters {
 }
 
 interface ICommonState {
-  currentNetwork?: number;
   depositTerms: string[];
   depositTokens: IToken[];
   loanPairs: ILoanPair[];
@@ -55,7 +53,6 @@ interface ICommonState {
 }
 
 const initState: ICommonState = {
-  currentNetwork: undefined,
   depositTerms: [],
   depositTokens: [],
   loanPairs: [],
@@ -72,8 +69,6 @@ export const CommonReducer = (
   action: IAction<CommonActionType>,
 ) => {
   switch (action.type) {
-    case CommonActionType.SetCurrentNetwork:
-      return { ...state, currentNetwork: action.payload.currentNetwork };
     case CommonActionType.SetDepositTokens:
       return {
         ...state,
@@ -188,15 +183,6 @@ export const CommonReducer = (
 };
 
 export class CommonActions {
-  static setCurrentNetwork(network: number) {
-    return {
-      type: CommonActionType.SetCurrentNetwork,
-      payload: {
-        currentNetwork: network,
-      },
-    };
-  }
-
   static setDepositTokens(depositTokens: IToken[]) {
     return {
       type: CommonActionType.SetDepositTokens,

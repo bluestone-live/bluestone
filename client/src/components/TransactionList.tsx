@@ -7,11 +7,16 @@ import {
   IDepositRecord,
   IToken,
   ILoanRecord,
+  useNetwork,
 } from '../stores';
 import { Row, Col } from 'antd/lib/grid';
 import dayjs from 'dayjs';
 import { EventName } from '../utils/MetaMaskProvider';
-import { convertWeiToDecimal } from '../utils/BigNumber';
+import {
+  convertWeiToDecimal,
+  convertDecimalToWei,
+  BigNumber,
+} from '../utils/BigNumber';
 import Icon from 'antd/lib/icon';
 
 interface IProps extends WithTranslation {
@@ -25,9 +30,26 @@ const TransactionList = (props: IProps) => {
 
   const [showList, setShowList] = useState(true);
 
+  const network = useNetwork();
+
   const toggleShowList = useCallback(() => {
     setShowList(!showList);
   }, [showList]);
+
+  const openNewTab = useCallback(
+    (transaction: ITransaction) => () => {
+      let txLink;
+      switch (network) {
+        case 'rinkeby':
+          txLink = `https://rinkeby.etherscan.io/tx/${transaction.transactionHash}`;
+          break;
+        default:
+          txLink = `https://etherscan.io/tx/${transaction.transactionHash}`;
+      }
+      window.open(txLink, 'lendhoo_tx');
+    },
+    [transactions, network],
+  );
 
   const txDescription = useCallback(
     (tx: ITransaction) => {
@@ -37,7 +59,11 @@ const TransactionList = (props: IProps) => {
             token.tokenAddress === (record as IDepositRecord).tokenAddress,
         );
         return t(`transaction_list_event_${tx.event}`, {
-          amount: convertWeiToDecimal(tx.amount, 2),
+          amount: new BigNumber(tx.amount).lt(
+            new BigNumber(convertDecimalToWei(0.0001)),
+          )
+            ? '≈0.0001'
+            : convertWeiToDecimal(tx.amount, 4),
           unit: depositToken ? depositToken.tokenSymbol : '',
         });
       } else {
@@ -53,12 +79,20 @@ const TransactionList = (props: IProps) => {
 
         if (tx.event === EventName.AddCollateralSucceed) {
           return t(`transaction_list_event_${tx.event}`, {
-            amount: convertWeiToDecimal(tx.amount, 2),
+            amount: new BigNumber(tx.amount).lt(
+              new BigNumber(convertDecimalToWei(0.0001)),
+            )
+              ? '≈0.0001'
+              : convertWeiToDecimal(tx.amount, 4),
             unit: collateralToken ? collateralToken.tokenSymbol : '',
           });
         }
         return t(`transaction_list_event_${tx.event}`, {
-          amount: convertWeiToDecimal(tx.amount, 2),
+          amount: new BigNumber(tx.amount).lt(
+            new BigNumber(convertDecimalToWei(0.0001)),
+          )
+            ? '≈0.0001'
+            : convertWeiToDecimal(tx.amount, 4),
           unit: loanToken ? loanToken.tokenSymbol : '',
         });
       }
@@ -75,16 +109,26 @@ const TransactionList = (props: IProps) => {
         })}
       </div>
       {showList &&
-        transactions.map(tx => (
-          <Row key={tx.transactionHash} className="transaction-item">
-            <Col span={12}>
-              {dayjs(Number.parseInt(tx.time.toString(), 10) * 1000).format(
-                'YYYY-MM-DD HH:mm',
-              )}
-            </Col>
-            <Col span={12}>{txDescription(tx)}</Col>
-          </Row>
-        ))}
+        transactions
+          .sort(
+            (tx1, tx2) =>
+              Number.parseInt(tx2.time.toString(), 10) -
+              Number.parseInt(tx1.time.toString(), 10),
+          )
+          .map(tx => (
+            <Row
+              key={tx.transactionHash}
+              className="transaction-item"
+              onClick={openNewTab(tx)}
+            >
+              <Col span={12}>
+                {dayjs(Number.parseInt(tx.time.toString(), 10) * 1000).format(
+                  'YYYY-MM-DD HH:mm',
+                )}
+              </Col>
+              <Col span={12}>{txDescription(tx)}</Col>
+            </Row>
+          ))}
     </div>
   );
 };

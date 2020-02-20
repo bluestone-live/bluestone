@@ -27,6 +27,7 @@ interface IProps {
   actionButtons?: React.ReactElement[];
   value: string | number;
   className?: string;
+  placeholder?: string;
   onChange: (value: string) => void;
 }
 
@@ -41,6 +42,7 @@ const FormInput = (props: IProps) => {
     actionButtons,
     value,
     className,
+    placeholder,
     onChange,
   } = props;
 
@@ -102,6 +104,7 @@ const FormInput = (props: IProps) => {
             suffix={suffix}
             onChange={onInputChange}
             style={{ width: inputWidth }}
+            placeholder={placeholder}
           />
           {actionButtons && (
             <div className="action-buttons">{...actionButtons}</div>

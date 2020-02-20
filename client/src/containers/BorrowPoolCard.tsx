@@ -27,7 +27,8 @@ const BorrowPoolCard = (props: IProps) => {
   return (
     <Card className="borrow-pool-card" title={title} bordered={false}>
       <p>
-        {t('borrow_pool_card_text_apr')}: {pool.loanInterestRate}% <br />
+        {t('borrow_pool_card_text_apr')}:{' '}
+        {(pool.loanInterestRate * 100).toFixed(2)}% <br />
         {t('borrow_pool_card_text_available_amount')}: {pool.availableAmount}
       </p>
     </Card>

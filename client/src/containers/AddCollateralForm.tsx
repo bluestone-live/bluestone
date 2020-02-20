@@ -178,7 +178,7 @@ const AddCollateralForm = (props: IProps) => {
         />
         <FormInput
           label={t('add_collateral_form_label_targeting_collateral_amount')}
-          type="text"
+          type="number"
           value={collateralAmount}
           onChange={onCollateralAmountChange}
           suffix={selectedLoanPair.collateralToken.tokenSymbol}

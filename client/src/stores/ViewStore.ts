@@ -37,6 +37,11 @@ export const ViewReducer = (
         ...state,
         ...action.payload,
       };
+    case ViewActionType.SetNetwork:
+      return {
+        ...state,
+        ...action.payload,
+      };
     default:
       return state;
   }

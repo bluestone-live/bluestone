@@ -53,7 +53,6 @@
     font-size: 26px;
     font-weight: bold;
     position: fixed;
-    width: 100%;
     background-color: #fff;
     color: #000;
     padding: 0 20px;
@@ -130,10 +129,13 @@
 
 // TODO: Should be remove after web client complete
 @media (min-width: 500px) {
-  #app,
+  #app {
+    border: 1px solid #eee;
+    max-width: 500px;
+  }
   .brand,
   .tab-bar,
   .layout.overview .tip {
-    max-width: 500px;
+    max-width: 498px;
   }
 }
