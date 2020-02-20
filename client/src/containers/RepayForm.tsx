@@ -1,6 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { ILoanRecord, ILoanPair, ViewActions } from '../stores';
+import {
+  ILoanRecord,
+  ILoanPair,
+  ViewActions,
+  useLoading,
+  CommonActions,
+} from '../stores';
 import TextBox from '../components/TextBox';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
 import FormInput from '../components/FormInput';
@@ -12,14 +18,23 @@ import { useDispatch } from 'react-redux';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
+  protocolContractAddress: string;
   record: ILoanRecord;
   selectedLoanPair: ILoanPair;
 }
 
 const RepayForm = (props: IProps) => {
-  const { accountAddress, record, selectedLoanPair, history, t } = props;
+  const {
+    accountAddress,
+    protocolContractAddress,
+    record,
+    selectedLoanPair,
+    history,
+    t,
+  } = props;
   const dispatch = useDispatch();
 
+  const loading = useLoading();
   const [repayAmount, setRepayAmount] = useState('0');
 
   const onRepayAmountChange = useCallback(
@@ -36,20 +51,56 @@ const RepayForm = (props: IProps) => {
   const submit = useCallback(async () => {
     dispatch(ViewActions.setLoading(true));
     try {
-      const { loanService } = await getService();
+      if (
+        selectedLoanPair.loanToken.allowance &&
+        selectedLoanPair.loanToken.allowance.toString() === '0'
+      ) {
+        const { commonService } = await getService();
+        await commonService.approveFullAllowance(
+          accountAddress,
+          selectedLoanPair.loanToken,
+          protocolContractAddress,
+        );
 
-      await loanService.repayLoan(
-        accountAddress,
-        record.recordId,
-        convertDecimalToWei(repayAmount),
-      );
+        dispatch(
+          CommonActions.setAllowance(
+            selectedLoanPair.loanToken.tokenAddress,
+            await commonService.getTokenAllowance(
+              selectedLoanPair.loanToken,
+              accountAddress,
+              protocolContractAddress,
+            ),
+          ),
+        );
+      } else {
+        const { loanService } = await getService();
 
-      history.push(`/account/borrow/${record.recordId}`);
+        await loanService.repayLoan(
+          accountAddress,
+          record.recordId,
+          convertDecimalToWei(repayAmount),
+        );
+
+        history.push(`/account/borrow/${record.recordId}`);
+      }
       // Ignore the error
       // tslint:disable-next-line:no-empty
     } catch (e) {}
     dispatch(ViewActions.setLoading(false));
-  }, [record, repayAmount]);
+  }, [record, repayAmount, selectedLoanPair]);
+
+  const buttonText = useMemo(() => {
+    if (loading) {
+      return t('common_loading');
+    }
+    if (
+      selectedLoanPair.loanToken.allowance &&
+      selectedLoanPair.loanToken.allowance.toString() === '0'
+    ) {
+      return t('borrow_form_button_approve');
+    }
+    return t('repay_form_button_repay');
+  }, [loading, selectedLoanPair]);
 
   return (
     <div className="repay-form">
@@ -74,8 +125,14 @@ const RepayForm = (props: IProps) => {
           ]}
         />
 
-        <Button type="primary" block size="large" onClick={submit}>
-          {t('repay_form_button_repay')}
+        <Button
+          type="primary"
+          block
+          size="large"
+          onClick={submit}
+          disabled={loading}
+        >
+          {buttonText}
         </Button>
       </Form>
     </div>

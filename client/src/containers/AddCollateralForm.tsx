@@ -1,6 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { ILoanRecord, ILoanPair, ViewActions, useLoading } from '../stores';
+import {
+  ILoanRecord,
+  ILoanPair,
+  ViewActions,
+  useLoading,
+  CommonActions,
+} from '../stores';
 import CollateralCoverageRatio from '../components/CollateralCoverageRatio';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
 import TextBox from '../components/TextBox';
@@ -18,12 +24,20 @@ import { useDepsUpdated } from '../utils/useEffectAsync';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
+  protocolContractAddress: string;
   record: ILoanRecord;
   selectedLoanPair: ILoanPair;
 }
 
 const AddCollateralForm = (props: IProps) => {
-  const { accountAddress, record, selectedLoanPair, history, t } = props;
+  const {
+    accountAddress,
+    protocolContractAddress,
+    record,
+    selectedLoanPair,
+    history,
+    t,
+  } = props;
   const dispatch = useDispatch();
 
   const loading = useLoading();
@@ -116,21 +130,57 @@ const AddCollateralForm = (props: IProps) => {
   const submit = useCallback(async () => {
     dispatch(ViewActions.setLoading(true));
     try {
-      const { loanService } = await getService();
+      if (
+        selectedLoanPair.loanToken.allowance &&
+        selectedLoanPair.loanToken.allowance.toString() === '0'
+      ) {
+        const { commonService } = await getService();
+        await commonService.approveFullAllowance(
+          accountAddress,
+          selectedLoanPair.loanToken,
+          protocolContractAddress,
+        );
 
-      await loanService.addCollateral(
-        accountAddress,
-        record.recordId,
-        record.collateralTokenAddress,
-        convertDecimalToWei(additionalCollateralAmount),
-      );
+        dispatch(
+          CommonActions.setAllowance(
+            selectedLoanPair.loanToken.tokenAddress,
+            await commonService.getTokenAllowance(
+              selectedLoanPair.loanToken,
+              accountAddress,
+              protocolContractAddress,
+            ),
+          ),
+        );
+      } else {
+        const { loanService } = await getService();
 
-      history.push(`/account/borrow/${record.recordId}`);
+        await loanService.addCollateral(
+          accountAddress,
+          record.recordId,
+          record.collateralTokenAddress,
+          convertDecimalToWei(additionalCollateralAmount),
+        );
+
+        history.push(`/account/borrow/${record.recordId}`);
+      }
       // Ignore the error
       // tslint:disable-next-line:no-empty
     } catch (e) {}
     dispatch(ViewActions.setLoading(false));
   }, [accountAddress, record, additionalCollateralAmount]);
+
+  const buttonText = useMemo(() => {
+    if (loading) {
+      return t('common_loading');
+    }
+    if (
+      selectedLoanPair.collateralToken.allowance &&
+      selectedLoanPair.collateralToken.allowance.toString() === '0'
+    ) {
+      return t('borrow_form_button_approve');
+    }
+    return t('add_collateral_form_button_add_collateral');
+  }, [loading, selectedLoanPair]);
 
   return (
     <div className="add-collateral-form">
@@ -218,7 +268,7 @@ const AddCollateralForm = (props: IProps) => {
           disabled={loading || additionalCollateralAmount <= 0}
           onClick={submit}
         >
-          {t('add_collateral_form_button_add_collateral')}
+          {buttonText}
         </Button>
       </Form>
     </div>

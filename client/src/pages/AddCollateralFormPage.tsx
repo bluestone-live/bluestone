@@ -1,7 +1,13 @@
 import React, { useMemo } from 'react';
 import AddCollateralForm from '../containers/AddCollateralForm';
-import { useDefaultAccount, useLoanPairs, useLoanRecords } from '../stores';
+import {
+  useDefaultAccount,
+  useLoanPairs,
+  useLoanRecords,
+  IState,
+} from '../stores';
 import { RouteComponentProps } from 'react-router';
+import { useSelector } from 'react-redux';
 
 const AddCollateralFormPage = (
   props: RouteComponentProps<{ recordId: string }>,
@@ -13,6 +19,10 @@ const AddCollateralFormPage = (
   } = props;
 
   const accountAddress = useDefaultAccount();
+
+  const protocolContractAddress = useSelector<IState, string>(
+    state => state.common.protocolContractAddress,
+  );
 
   const loanPairs = useLoanPairs();
 
@@ -37,6 +47,7 @@ const AddCollateralFormPage = (
       {record && selectedLoanPair && (
         <AddCollateralForm
           accountAddress={accountAddress}
+          protocolContractAddress={protocolContractAddress}
           selectedLoanPair={selectedLoanPair}
           record={record}
         />

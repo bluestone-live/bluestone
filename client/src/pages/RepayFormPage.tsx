@@ -1,7 +1,13 @@
 import React, { useMemo } from 'react';
 import RepayForm from '../containers/RepayForm';
-import { useDefaultAccount, useLoanRecords, useLoanPairs } from '../stores';
+import {
+  useDefaultAccount,
+  useLoanRecords,
+  useLoanPairs,
+  IState,
+} from '../stores';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { useSelector } from 'react-redux';
 
 const RepayFormPage = (props: RouteComponentProps<{ recordId: string }>) => {
   const {
@@ -15,6 +21,10 @@ const RepayFormPage = (props: RouteComponentProps<{ recordId: string }>) => {
   const records = useLoanRecords();
 
   const loanPairs = useLoanPairs();
+
+  const protocolContractAddress = useSelector<IState, string>(
+    state => state.common.protocolContractAddress,
+  );
 
   const record = useMemo(() => records.find(r => r.recordId === recordId), [
     records,
@@ -36,6 +46,7 @@ const RepayFormPage = (props: RouteComponentProps<{ recordId: string }>) => {
       {record && selectedLoanPair && (
         <RepayForm
           accountAddress={accountAddress}
+          protocolContractAddress={protocolContractAddress}
           record={record}
           selectedLoanPair={selectedLoanPair}
         />
