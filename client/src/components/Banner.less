@@ -1,10 +1,11 @@
 .banner {
   height: 42px;
   color: #fff;
-  display: fixed;
+  position: fixed;
   width: 100%;
   line-height: 42px;
   text-align: center;
+  z-index: 99;
 
   &.success {
     background-color: #52cc65;
@@ -17,10 +18,16 @@
     margin-right: 10px;
   }
 
-  .ant-btn {
-    border: 0;
-    margin-left: 40px;
-    font-weight: bold;
-    padding: 0 10px;
+  .banner-content {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+
+    .ant-btn {
+      border: 0;
+      margin-left: 40px;
+      font-weight: bold;
+      padding: 0 10px;
+    }
   }
 }

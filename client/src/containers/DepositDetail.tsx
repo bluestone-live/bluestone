@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { IDepositRecord, ITransaction, IToken } from '../stores';
+import { IDepositRecord, ITransaction, IToken, ViewActions } from '../stores';
 import RecordStatus from '../components/RecordStatus';
 import { Row, Col } from 'antd/lib/grid';
 import TextBox from '../components/TextBox';
@@ -12,6 +12,9 @@ import { getService } from '../services';
 import TransactionList from '../components/TransactionList';
 import { getTimestampByPoolId } from '../utils/poolIdCalculator';
 import dayjs from 'dayjs';
+import Modal from 'antd/lib/modal';
+import { useDispatch } from 'react-redux';
+import { BannerType } from '../components/Banner';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -32,6 +35,26 @@ const DepositDetail = (props: IProps) => {
     t,
   } = props;
 
+  const dispatch = useDispatch();
+
+  const [poolIdModalVisible, setPoolIdModalVisible] = useState(false);
+
+  const showPoolIdModal = useCallback(() => setPoolIdModalVisible(true), []);
+  const hidePoolIdModal = useCallback(() => setPoolIdModalVisible(false), []);
+
+  const [earlyWithdrawModalVisible, setEarlyWithdrawModalVisible] = useState(
+    false,
+  );
+
+  const showEarlyWithdrawModal = useCallback(
+    () => setEarlyWithdrawModalVisible(true),
+    [],
+  );
+  const hideEarlyWithdrawModal = useCallback(
+    () => setEarlyWithdrawModalVisible(false),
+    [],
+  );
+
   const depositToken = useMemo(
     () => tokens.find(token => token.tokenAddress === record.tokenAddress),
     [tokens, record],
@@ -47,15 +70,49 @@ const DepositDetail = (props: IProps) => {
   );
 
   const earlyWithdraw = useCallback(async () => {
-    const { depositService } = await getService();
-    await depositService.earlyWithdrawDeposit(accountAddress, record.recordId);
-    await reloadRecord();
+    try {
+      dispatch(ViewActions.setLoading(true));
+      const { depositService } = await getService();
+      await depositService.earlyWithdrawDeposit(
+        accountAddress,
+        record.recordId,
+      );
+      dispatch(ViewActions.setBanner(t('common_withdraw_deposit_succeed')));
+      await reloadRecord();
+    } catch (e) {
+      dispatch(
+        ViewActions.setBanner(
+          t('common_withdraw_deposit_fail_title'),
+          BannerType.Warning,
+          t('common_withdraw_deposit_fail_content'),
+        ),
+      );
+    }
+    dispatch(ViewActions.setLoading(false));
   }, [record, accountAddress]);
 
   const withdraw = useCallback(async () => {
-    const { depositService } = await getService();
-    await depositService.withdrawDeposit(accountAddress, record.recordId);
-    await reloadRecord();
+    try {
+      dispatch(ViewActions.setLoading(true));
+      const { depositService } = await getService();
+      await depositService.withdrawDeposit(accountAddress, record.recordId);
+      await depositService.earlyWithdrawDeposit(
+        accountAddress,
+        record.recordId,
+      );
+      dispatch(
+        ViewActions.setBanner(t('common_early_withdraw_deposit_succeed')),
+      );
+      await reloadRecord();
+    } catch (e) {
+      dispatch(
+        ViewActions.setBanner(
+          t('common_early_withdraw_deposit_fail_title'),
+          BannerType.Warning,
+          t('common_early_withdraw_deposit_fail_content'),
+        ),
+      );
+    }
   }, [record, accountAddress]);
 
   const APR =
@@ -129,22 +186,27 @@ const DepositDetail = (props: IProps) => {
         </Col>
       </Row>
       <Row>
-        <Col span={24} className="pool-link" onClick={goTo}>
-          {t('deposit_detail_text_pool', { poolId: record.poolId })}
-          <Icon type="question-circle" theme="filled" />
+        <Col span={24} className="pool-link">
+          <span onClick={goTo} style={{ cursor: 'pointer' }}>
+            {t('deposit_detail_text_pool', { poolId: record.poolId })}
+          </span>
+          <Icon
+            type="question-circle"
+            theme="filled"
+            onClick={showPoolIdModal}
+          />
         </Col>
       </Row>
       {!record.isWithdrawn && (
         <Row style={{ marginTop: '40px' }}>
           <Col span={24}>
-            {record.isEarlyWithdrawable && (
-              <Button block size="large" onClick={earlyWithdraw}>
-                {t('deposit_detail_button_early_withdraw')}
-              </Button>
-            )}
-            {record.isMatured && (
+            {record.isMatured ? (
               <Button block size="large" onClick={withdraw}>
                 {t('deposit_detail_button_withdraw')}
+              </Button>
+            ) : (
+              <Button block size="large" onClick={showEarlyWithdrawModal}>
+                {t('deposit_detail_button_early_withdraw')}
               </Button>
             )}
           </Col>
@@ -155,6 +217,69 @@ const DepositDetail = (props: IProps) => {
         record={record}
         transactions={transactionsOfRecord}
       />
+      <Modal
+        title={t('deposit_detail_modal_early_withdraw')}
+        visible={earlyWithdrawModalVisible}
+        closable={false}
+        footer={
+          !record.isEarlyWithdrawable ? (
+            <Row className="btn-group" gutter={10}>
+              <Col span="12">
+                <Button
+                  size="large"
+                  block
+                  key="early-withdraw-btn-cancel"
+                  onClick={hideEarlyWithdrawModal}
+                >
+                  {t('deposit_detail_modal_close')}
+                </Button>
+              </Col>
+              <Col span="12">
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  key="early-withdraw-btn-confirm"
+                  onClick={earlyWithdraw}
+                >
+                  {t('deposit_detail_modal_early_withdraw')}
+                </Button>
+              </Col>
+            </Row>
+          ) : (
+            <Button
+              size="large"
+              block
+              type="primary"
+              key="early-withdraw-btn-cancel"
+              onClick={hideEarlyWithdrawModal}
+            >
+              {t('deposit_detail_modal_close')}
+            </Button>
+          )
+        }
+      >
+        <p>
+          {!record.isEarlyWithdrawable
+            ? t('deposit_detail_modal_early_withdraw_confirm_content', {
+                amount: convertWeiToDecimal(record.depositAmount),
+                unit: depositToken && depositToken.tokenSymbol,
+              })
+            : t('deposit_detail_modal_early_withdraw_reject_content')}
+        </p>
+      </Modal>
+      <Modal
+        title={t('deposit_detail_modal_pool_id')}
+        visible={poolIdModalVisible}
+        closable={false}
+        footer={
+          <Button type="primary" size="large" block onClick={hidePoolIdModal}>
+            {t('deposit_detail_modal_close')}
+          </Button>
+        }
+      >
+        <p>{t('deposit_detail_modal_content')}</p>
+      </Modal>
     </div>
   );
 };

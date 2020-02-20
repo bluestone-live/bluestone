@@ -45,8 +45,22 @@
 }
 
 .layout.default {
+  .banner {
+    & + .brand {
+      top: 44px;
+    }
+
+    & + .brand + .container {
+      top: 64px;
+
+      .default__title {
+        top: 108px;
+      }
+    }
+  }
   .container {
     background-color: #fff;
+    position: relative;
   }
   .default__title {
     top: 64px;
@@ -56,6 +70,7 @@
     background-color: #fff;
     color: #000;
     padding: 0 20px;
+    width: 100%;
     z-index: 10;
 
     .custom-icon {
@@ -128,6 +143,9 @@
 .primary {
   color: @primary-color;
 }
+.bold {
+  font-weight: bold;
+}
 
 // TODO: Should be remove after web client complete
 @media (min-width: 500px) {
@@ -137,7 +155,9 @@
   }
   .brand,
   .tab-bar,
-  .layout.overview .tip {
+  .default__title,
+  .layout.overview .tip,
+  .banner {
     max-width: 498px;
   }
 

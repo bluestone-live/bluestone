@@ -3,14 +3,15 @@ import Form from 'antd/lib/form';
 import Modal from 'antd/lib/modal';
 import Icon from 'antd/lib/icon';
 import Button from 'antd/lib/button';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
-interface IProps {
+interface IProps extends WithTranslation {
   currentCollateralRatio?: string;
   minCollateralRatio?: string;
 }
 
 const CollateralCoverageRatio = (props: IProps) => {
-  const { currentCollateralRatio, minCollateralRatio } = props;
+  const { currentCollateralRatio, minCollateralRatio, t } = props;
 
   const ratioStatus = useMemo(() => {
     if (currentCollateralRatio && minCollateralRatio) {
@@ -23,13 +24,11 @@ const CollateralCoverageRatio = (props: IProps) => {
 
   const tip = useMemo(
     () => ({
-      title: 'Notice',
+      title: t('collateral_coverage_ratio_modal_title'),
       content: (
-        <div>
-          {minCollateralRatio} is safe line for the collateral. If below{' '}
-          {minCollateralRatio}%, this borrow will be balallala automatically.
-          THIS REMINDER NEED TO UPDATE.
-        </div>
+        <p>
+          {t('collateral_coverage_ratio_modal_content', { minCollateralRatio })}
+        </p>
       ),
     }),
     [],
@@ -77,4 +76,4 @@ const CollateralCoverageRatio = (props: IProps) => {
   );
 };
 
-export default CollateralCoverageRatio;
+export default withTranslation()(CollateralCoverageRatio);

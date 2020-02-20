@@ -1,9 +1,16 @@
 .ant-modal-content {
   padding-top: 70px;
+  background-image: url('../styles/images/logo_modal.svg');
+  background-repeat: no-repeat;
+  background-position: center 20px;
 
   .ant-modal-header {
     border-bottom: 0;
     padding: 10px 24px;
+
+    .ant-modal-title {
+      font-weight: bold;
+    }
   }
   .ant-modal-body {
     min-height: 230px;
@@ -11,5 +18,9 @@
   }
   .ant-modal-footer {
     border-top: 0;
+
+    .btn-group {
+      display: flex;
+    }
   }
 }

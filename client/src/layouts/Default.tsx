@@ -26,7 +26,7 @@ const OverviewLayout = (props: IProps) => {
   const dispatch = useDispatch();
   // Selector
   const accountAddress = useDefaultAccount();
-  const { banner, bannerType } = useBanner();
+  const { banner, bannerType, bannerModalContent } = useBanner();
 
   // Initialize
   const { tabOptions, selectedTab } = useGlobalInit(
@@ -54,6 +54,7 @@ const OverviewLayout = (props: IProps) => {
         <Banner
           onCloseButtonClick={onBannerCloseButtonClick}
           bannerType={bannerType}
+          bannerModalContent={bannerModalContent}
         >
           {banner}
         </Banner>

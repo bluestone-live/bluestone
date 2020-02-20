@@ -12,12 +12,12 @@ interface IViewStore {
   loading: boolean;
   banner?: string;
   bannerType: BannerType;
+  bannerModalContent?: string;
   network: string;
 }
 
 const initState: IViewStore = {
   loading: false,
-  banner: undefined,
   bannerType: BannerType.Success,
   network: 'primary',
 };
@@ -49,14 +49,16 @@ export const ViewReducer = (
 
 export class ViewActions {
   static setBanner(
-    banner?: string,
+    banner: string,
     bannerType: BannerType = BannerType.Success,
+    bannerModalContent?: string,
   ) {
     return {
       type: ViewActionType.SetBanner,
       payload: {
         banner,
         bannerType,
+        bannerModalContent,
       },
     };
   }
@@ -90,8 +92,15 @@ export class ViewActions {
 }
 
 export const useBanner = () =>
-  useSelector<IState, { banner: string; bannerType: BannerType }>(state => {
-    return { banner: state.view.banner, bannerType: state.view.bannerType };
+  useSelector<
+    IState,
+    { banner: string; bannerType: BannerType; bannerModalContent: string }
+  >(state => {
+    return {
+      banner: state.view.banner,
+      bannerType: state.view.bannerType,
+      bannerModalContent: state.view.bannerModalContent,
+    };
   });
 
 export const useLoading = () =>

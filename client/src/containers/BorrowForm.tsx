@@ -26,6 +26,7 @@ import {
   calcCollateralAmount,
 } from '../utils/calcCollateralRatio';
 import { RouteComponentProps, withRouter } from 'react-router';
+import { BannerType } from '../components/Banner';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   protocolContractAddress: string;
@@ -168,11 +169,21 @@ const BorrowForm = (props: IProps) => {
           distributorAddress,
         );
 
+        dispatch(ViewActions.setBanner(t('common_borrow_succeed')));
+
         history.push(`/account/borrow/${recordId}`);
       }
-      // Ignore the error
-      // tslint:disable-next-line:no-empty
-    } catch (e) {}
+    } catch (e) {
+      dispatch(
+        ViewActions.setBanner(
+          t(
+            'common_borrow_fail_title',
+            BannerType.Warning,
+            t('common_borrow_fail_succeed'),
+          ),
+        ),
+      );
+    }
     dispatch(ViewActions.setLoading(false));
   }, [
     loanToken,

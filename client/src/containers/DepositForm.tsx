@@ -19,6 +19,7 @@ import Button from 'antd/lib/button';
 import { getService } from '../services';
 import { convertDecimalToWei, convertWeiToDecimal } from '../utils/BigNumber';
 import { useDispatch } from 'react-redux';
+import { BannerType } from '../components/Banner';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -98,11 +99,21 @@ const DepositForm = (props: IProps) => {
           ),
         );
 
+        dispatch(ViewActions.setBanner(t('common_deposit_succeed')));
+
         history.push(`/account/deposit/${recordId}`);
       }
       // Ignore the error
       // tslint:disable-next-line:no-empty
-    } catch (e) {}
+    } catch (e) {
+      dispatch(
+        ViewActions.setBanner(
+          t('common_deposit_fail_title'),
+          BannerType.Warning,
+          t('common_deposit_fail_content'),
+        ),
+      );
+    }
     dispatch(ViewActions.setLoading(false));
   }, [token, depositAmount, pool]);
 

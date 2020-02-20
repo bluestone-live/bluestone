@@ -21,6 +21,7 @@ import { getService } from '../services';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch } from 'react-redux';
 import { useDepsUpdated } from '../utils/useEffectAsync';
+import { BannerType } from '../components/Banner';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -161,11 +162,21 @@ const AddCollateralForm = (props: IProps) => {
           convertDecimalToWei(additionalCollateralAmount),
         );
 
+        dispatch(ViewActions.setBanner(t('common_add_collateral_succeed')));
+
         history.push(`/account/borrow/${record.recordId}`);
       }
       // Ignore the error
       // tslint:disable-next-line:no-empty
-    } catch (e) {}
+    } catch (e) {
+      dispatch(
+        ViewActions.setBanner(
+          t('common_add_collateral_fail_title'),
+          BannerType.Warning,
+          t('common_add_collateral_fail_content'),
+        ),
+      );
+    }
     dispatch(ViewActions.setLoading(false));
   }, [accountAddress, record, additionalCollateralAmount]);
 
@@ -228,21 +239,6 @@ const AddCollateralForm = (props: IProps) => {
               +10%
             </Button>,
           ]}
-          tip={{
-            title: t('add_collateral_form_tip_title'),
-            content: (
-              <div>
-                {t('add_collateral_form_tip_content', {
-                  minCollateralCoverageRatio:
-                    Number.parseFloat(
-                      convertWeiToDecimal(
-                        selectedLoanPair.minCollateralCoverageRatio,
-                      ),
-                    ) * 100,
-                })}
-              </div>
-            ),
-          }}
         />
         <FormInput
           label={t('add_collateral_form_label_additional_collateral_amount')}
@@ -253,6 +249,7 @@ const AddCollateralForm = (props: IProps) => {
           extra={
             <span className="bold">
               {t('add_collateral_form_input_extra_price', {
+                symbol: selectedLoanPair.collateralToken.tokenSymbol,
                 price: convertWeiToDecimal(
                   selectedLoanPair.collateralToken.price,
                   2,

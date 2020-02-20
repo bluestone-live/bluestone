@@ -15,6 +15,7 @@ import Button from 'antd/lib/button';
 import { getService } from '../services';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch } from 'react-redux';
+import { BannerType } from '../components/Banner';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -81,11 +82,23 @@ const RepayForm = (props: IProps) => {
           convertDecimalToWei(repayAmount),
         );
 
+        dispatch(ViewActions.setBanner(t('common_repay_succeed')));
+
         history.push(`/account/borrow/${record.recordId}`);
       }
       // Ignore the error
       // tslint:disable-next-line:no-empty
-    } catch (e) {}
+    } catch (e) {
+      dispatch(
+        ViewActions.setBanner(
+          t(
+            'common_repay_fail_title',
+            BannerType.Warning,
+            t('common_repay_fail_content'),
+          ),
+        ),
+      );
+    }
     dispatch(ViewActions.setLoading(false));
   }, [record, repayAmount, selectedLoanPair]);
 
