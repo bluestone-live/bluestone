@@ -5,6 +5,12 @@ const DepositManager = artifacts.require('DepositManager');
 const LoanManager = artifacts.require('LoanManager');
 const DateTime = artifacts.require('DateTime');
 const PayableProxy = artifacts.require('PayableProxy');
+const InterestModel = artifacts.require('InterestModel');
+const DaiPriceOracle = artifacts.require('DaiPriceOracle');
+
+const MedianizerMock = artifacts.require('MedianizerMock');
+const OasisDexMock = artifacts.require('OasisDexMock');
+
 const WETH9 = artifacts.require('WETH9');
 const { deploy, toFixedBN } = require('../scripts/utils');
 
@@ -23,7 +29,7 @@ module.exports = async function(deployer, network) {
     Protocol,
     DepositManager,
     LoanManager,
-    LiquidityPools,
+    DaiPriceOracle,
   ]);
 
   await deployer.deploy(LiquidityPools);
