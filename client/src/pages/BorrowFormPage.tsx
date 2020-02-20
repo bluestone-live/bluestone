@@ -150,7 +150,10 @@ const BorrowFormPage = (props: IProps) => {
         </Col>
         <Col span={12}>
           <TextBox label={t('borrow_form_text_apr')}>
-            {selectedPool ? selectedPool.loanInterestRate : '0.00'}%
+            {selectedPool
+              ? (selectedPool.loanInterestRate * 100).toFixed(2)
+              : '0.00'}
+            %
           </TextBox>
         </Col>
       </Row>

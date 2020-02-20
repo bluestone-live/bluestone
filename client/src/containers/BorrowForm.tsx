@@ -229,9 +229,7 @@ const BorrowForm = (props: IProps) => {
       const remainingDebt = calcEstimateRepayAmount(
         borrowAmount,
         selectedPool.term,
-        Number.parseFloat(
-          convertWeiToDecimal(selectedLoanPair.annualPercentageRate) || '0',
-        ),
+        selectedPool.loanInterestRate || 0,
       );
 
       return Number.isNaN(remainingDebt) ? '0.0000' : remainingDebt.toFixed(4);

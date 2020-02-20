@@ -105,7 +105,9 @@ const DepositOverview = (props: WithTranslation) => {
     () => (
       <Menu onClick={onDropDownChange}>
         {sortingParams.map(menu => (
-          <Menu.Item key={menu}>{menu}</Menu.Item>
+          <Menu.Item key={menu}>
+            {t(`deposit_overview_sorting_${menu}`)}
+          </Menu.Item>
         ))}
       </Menu>
     ),
@@ -127,7 +129,9 @@ const DepositOverview = (props: WithTranslation) => {
           placement="bottomCenter"
         >
           <Button className="sort-by">
-            {t('deposit_overview_button_sort_by', { key: sortBy })}
+            {t('deposit_overview_button_sort_by', {
+              key: t(`deposit_overview_sorting_${sortBy}`),
+            })}
             <Icon type="caret-down" />
           </Button>
         </Dropdown>

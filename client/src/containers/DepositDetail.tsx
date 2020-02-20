@@ -37,6 +37,15 @@ const DepositDetail = (props: IProps) => {
     [tokens, record],
   );
 
+  const isEarlyWithdrew = useMemo(
+    () =>
+      record.createdAt
+        .add(record.depositTerm.value, 'day')
+        .endOf('day')
+        .isBefore(record.withdrewAt),
+    [record],
+  );
+
   const earlyWithdraw = useCallback(async () => {
     const { depositService } = await getService();
     await depositService.earlyWithdrawDeposit(accountAddress, record.recordId);
@@ -105,7 +114,7 @@ const DepositDetail = (props: IProps) => {
                 : t('deposit_detail_label_estimated_interest')
             }
           >
-            {convertWeiToDecimal(record.interest)}{' '}
+            {isEarlyWithdrew ? '0.0000' : convertWeiToDecimal(record.interest)}{' '}
             {depositToken && depositToken.tokenSymbol}
           </TextBox>
         </Col>
