@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { ILoanRecord, ILoanPair, ViewActions } from '../stores';
+import { ILoanRecord, ILoanPair, ViewActions, useLoading } from '../stores';
 import CollateralCoverageRatio from '../components/CollateralCoverageRatio';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
 import TextBox from '../components/TextBox';
@@ -14,6 +14,7 @@ import Button from 'antd/lib/button';
 import { getService } from '../services';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch } from 'react-redux';
+import { useDepsUpdated } from '../utils/useEffectAsync';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -25,21 +26,37 @@ const AddCollateralForm = (props: IProps) => {
   const { accountAddress, record, selectedLoanPair, history, t } = props;
   const dispatch = useDispatch();
 
+  const loading = useLoading();
+
   const [collateralRatio, setCollateralRatio] = useState<number>(
-    Math.max(
-      Number.parseFloat(convertWeiToDecimal(record.currentCollateralRatio)),
-      Number.parseFloat(
-        convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
-      ) * 100,
-    ),
+    Number.parseFloat(
+      convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
+    ) * 100,
   );
-  const [collateralAmount, setCollateralAmount] = useState<number>(0);
+  const [additionalCollateralAmount, setAdditionalCollateralAmount] = useState<
+    number
+  >(0);
+
+  useDepsUpdated(async () => {
+    if (record) {
+      setCollateralRatio(
+        Math.max(
+          Number.parseFloat(
+            convertWeiToDecimal(record.currentCollateralRatio),
+          ) * 100,
+          Number.parseFloat(
+            convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
+          ) * 100,
+        ),
+      );
+    }
+  }, [record]);
 
   const onCollateralRatioChange = useCallback(
     (value: string) => {
       setCollateralRatio(Number.parseFloat(value));
       if (selectedLoanPair.collateralToken && selectedLoanPair.loanToken) {
-        setCollateralAmount(
+        setAdditionalCollateralAmount(
           Number.parseFloat(
             calcCollateralAmount(
               value,
@@ -58,7 +75,7 @@ const AddCollateralForm = (props: IProps) => {
     (num: number) => () => {
       setCollateralRatio(collateralRatio + num);
       if (selectedLoanPair.collateralToken && selectedLoanPair.loanToken) {
-        setCollateralAmount(
+        setAdditionalCollateralAmount(
           Number.parseFloat(
             calcCollateralAmount(
               (collateralRatio + num).toString(),
@@ -66,16 +83,17 @@ const AddCollateralForm = (props: IProps) => {
               selectedLoanPair.collateralToken.price,
               selectedLoanPair.loanToken.price,
             ),
-          ) - Number.parseFloat(convertWeiToDecimal(record.collateralAmount)),
+          ) -
+            Number.parseFloat(convertWeiToDecimal(record.collateralAmount, 18)),
         );
       }
     },
     [collateralRatio, selectedLoanPair, record],
   );
 
-  const onCollateralAmountChange = useCallback(
+  const onAdditionalCollateralAmountChange = useCallback(
     (value: string) => {
-      setCollateralAmount(Number.parseFloat(value));
+      setAdditionalCollateralAmount(Number.parseFloat(value));
       if (selectedLoanPair.collateralToken && selectedLoanPair.loanToken) {
         setCollateralRatio(
           Number.parseFloat(
@@ -84,7 +102,7 @@ const AddCollateralForm = (props: IProps) => {
                 Number.parseFloat(value) +
                 Number.parseFloat(convertWeiToDecimal(record.collateralAmount))
               ).toString(),
-              record.remainingDebt || '0',
+              convertWeiToDecimal(record.remainingDebt || '0'),
               selectedLoanPair.collateralToken.price,
               selectedLoanPair.loanToken.price,
             ),
@@ -104,7 +122,7 @@ const AddCollateralForm = (props: IProps) => {
         accountAddress,
         record.recordId,
         record.collateralTokenAddress,
-        convertDecimalToWei(collateralAmount),
+        convertDecimalToWei(additionalCollateralAmount),
       );
 
       history.push(`/account/borrow/${record.recordId}`);
@@ -112,7 +130,7 @@ const AddCollateralForm = (props: IProps) => {
       // tslint:disable-next-line:no-empty
     } catch (e) {}
     dispatch(ViewActions.setLoading(false));
-  }, [accountAddress, record, collateralAmount]);
+  }, [accountAddress, record, additionalCollateralAmount]);
 
   return (
     <div className="add-collateral-form">
@@ -142,7 +160,7 @@ const AddCollateralForm = (props: IProps) => {
         </TextBox>
         <FormInput
           label={t('add_collateral_form_label_update_collateral_ratio')}
-          type="text"
+          type="number"
           value={collateralRatio}
           suffix="%"
           onChange={onCollateralRatioChange}
@@ -177,10 +195,10 @@ const AddCollateralForm = (props: IProps) => {
           }}
         />
         <FormInput
-          label={t('add_collateral_form_label_targeting_collateral_amount')}
+          label={t('add_collateral_form_label_additional_collateral_amount')}
           type="number"
-          value={collateralAmount}
-          onChange={onCollateralAmountChange}
+          value={additionalCollateralAmount}
+          onChange={onAdditionalCollateralAmountChange}
           suffix={selectedLoanPair.collateralToken.tokenSymbol}
           extra={
             <span className="bold">
@@ -193,7 +211,13 @@ const AddCollateralForm = (props: IProps) => {
             </span>
           }
         />
-        <Button type="primary" block size="large" onClick={submit}>
+        <Button
+          type="primary"
+          block
+          size="large"
+          disabled={loading || additionalCollateralAmount <= 0}
+          onClick={submit}
+        >
           {t('add_collateral_form_button_add_collateral')}
         </Button>
       </Form>

@@ -255,7 +255,7 @@ const BorrowForm = (props: IProps) => {
 
   const onCollateralRatioChange = useCallback(
     (value: string) => {
-      setCollateralRatio(Number.parseFloat(value === '' ? '0' : value));
+      setCollateralRatio(Number.parseFloat(value));
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -343,7 +343,7 @@ const BorrowForm = (props: IProps) => {
       {selectedLoanPair && (
         <FormInput
           label={t('borrow_form_input_label_collateral_ratio')}
-          type="text"
+          type="number"
           value={collateralRatio}
           suffix="%"
           onChange={onCollateralRatioChange}

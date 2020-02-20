@@ -13,6 +13,7 @@ import {
   RecordType,
   IDepositRecord,
   ILoanRecord,
+  useDepositTokens,
 } from '../stores';
 import RecordCard from '../containers/RecordCard';
 import { useComponentMounted } from '../utils/useEffectAsync';
@@ -34,6 +35,8 @@ const AccountOverview = (props: IProps) => {
   const borrowRecords = useLoanRecords();
 
   const pools = useAllPools();
+
+  const tokens = useDepositTokens();
 
   const tabKeys = ['active', 'closed', 'deposit', 'borrow'];
 
@@ -131,6 +134,7 @@ const AccountOverview = (props: IProps) => {
       <div className="record-cards">
         {filteredRecords.map(record => (
           <RecordCard
+            tokens={tokens}
             key={record.recordId}
             record={record}
             pools={pools}

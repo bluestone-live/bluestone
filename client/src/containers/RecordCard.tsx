@@ -6,22 +6,23 @@ import {
   RecordType,
   IPool,
   IRecord,
+  IToken,
 } from '../stores';
 import Card from 'antd/lib/card';
 import { Row, Col } from 'antd/lib/grid';
-import TextBox from '../components/TextBox';
 import { convertWeiToDecimal } from '../utils/BigNumber';
 import Icon from 'antd/lib/icon';
 import { getCurrentPoolId } from '../utils/poolIdCalculator';
 
 interface IProps extends WithTranslation {
+  tokens: IToken[];
   record: IDepositRecord | ILoanRecord;
   pools: IPool[];
   onClick: (record: IRecord) => void;
 }
 
 const RecordCard = (props: IProps) => {
-  const { record, pools, onClick, t } = props;
+  const { tokens, record, pools, onClick, t } = props;
 
   const dueDate = useMemo(() => {
     if (record.recordType === RecordType.Deposit) {
@@ -87,6 +88,10 @@ const RecordCard = (props: IProps) => {
     if (record.recordType === RecordType.Deposit) {
       const depositRecord = record as IDepositRecord;
 
+      const depositToken = tokens.find(
+        token => token.tokenAddress === depositRecord.tokenAddress,
+      );
+
       const pool = pools.find(
         p =>
           p.poolId === depositRecord.poolId &&
@@ -109,20 +114,24 @@ const RecordCard = (props: IProps) => {
           <Row>
             <Col span={8}>
               <span className="ant-form-text">
-                {convertWeiToDecimal(depositRecord.depositAmount)}
+                {convertWeiToDecimal(depositRecord.depositAmount)}{' '}
+                {depositToken && depositToken.tokenSymbol}
               </span>
             </Col>
             <Col span={8}>
               <span className="ant-form-text">
                 {pool
-                  ? Number.parseFloat(convertWeiToDecimal(pool.APR)) * 100
+                  ? (
+                      Number.parseFloat(convertWeiToDecimal(pool.APR)) * 100
+                    ).toFixed(2)
                   : '0.00'}
                 %
               </span>
             </Col>
             <Col span={8}>
               <span className="ant-form-text">
-                {convertWeiToDecimal(depositRecord.interest)}
+                {convertWeiToDecimal(depositRecord.interest)}{' '}
+                {depositToken && depositToken.tokenSymbol}
               </span>
             </Col>
           </Row>
@@ -131,22 +140,40 @@ const RecordCard = (props: IProps) => {
     } else {
       const borrowRecord = record as ILoanRecord;
 
+      const loanToken = tokens.find(
+        token => token.tokenAddress === borrowRecord.loanTokenAddress,
+      );
+
       return (
         <Row>
+          <Row style={{ marginBottom: 0 }}>
+            <Col span={12} className="ant-form-item-label">
+              <label>{t('record_card_label_remaining_debt')}</label>
+            </Col>
+            <Col span={12} className="ant-form-item-label">
+              <label>{t('record_card_label_collateral_ratio')}</label>
+            </Col>
+          </Row>
           <Col span={12}>
-            <TextBox label={t('record_card_label_remaining_debt')}>
-              {convertWeiToDecimal(borrowRecord.remainingDebt)}
-            </TextBox>
+            <span className="ant-form-text">
+              {convertWeiToDecimal(borrowRecord.remainingDebt)}{' '}
+              {loanToken && loanToken.tokenSymbol}
+            </span>
           </Col>
           <Col span={12}>
-            <TextBox label={t('record_card_label_collateral_ratio')}>
-              {convertWeiToDecimal(borrowRecord.currentCollateralRatio)}
-            </TextBox>
+            <span className="ant-form-text">
+              {(
+                Number.parseFloat(
+                  convertWeiToDecimal(borrowRecord.currentCollateralRatio),
+                ) * 100
+              ).toFixed(2)}
+              %
+            </span>
           </Col>
         </Row>
       );
     }
-  }, [record, pools]);
+  }, [record, pools, tokens]);
 
   const onCardClick = useCallback(() => onClick(record), [record, onClick]);
 
