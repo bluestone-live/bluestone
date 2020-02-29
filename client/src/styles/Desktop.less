@@ -1,0 +1,154 @@
+.deposit-desktop-page {
+  display: grid;
+  grid-template-columns: 450px auto 1fr;
+  position: relative;
+  height: 100%;
+
+  .overview {
+    overflow: scroll;
+    background-color: #f5f5f5;
+
+    .deposit-overview {
+      padding: 12px 16px;
+
+      .pools {
+        padding: 0;
+        margin: 0;
+      }
+    }
+
+    .borrow-overview {
+      padding: 10px 16px;
+      padding-bottom: 0px;
+
+      .chart-block {
+        height: 100%;
+        padding-bottom: 0px;
+        margin-bottom: 0;
+        overflow: hidden;
+      }
+    }
+
+    .account-overview {
+      padding: 10px 16px;
+    }
+  }
+
+  .separator {
+    padding: 0 16px;
+
+    .line {
+      width: 1px;
+      height: 100%;
+      background-color: #f5f5f5;
+    }
+  }
+
+  .details {
+    position: relative;
+
+    .deposit-form-page,
+    .borrow-form-page,
+    .detail-page,
+    .repay-form-page,
+    .add-collateral-form-page {
+      background-color: white;
+      padding: 0;
+      z-index: 1;
+    }
+
+    .desktop-placeholder {
+      position: absolute;
+      left: 0px;
+      right: 0;
+      z-index: -1;
+    }
+  }
+}
+
+.stats-desktop-page {
+  .mint-token-page {
+    padding: 0;
+  }
+
+  .monitor-detail-page {
+    padding: 0;
+  }
+}
+
+.layout.desktop {
+  padding: 12px 7%;
+  margin: 0;
+  position: relative;
+  height: 100%;
+
+  .banner {
+    margin: -12px -7%;
+  }
+
+  header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    .logo {
+      max-width: 300px;
+      display: flex;
+      margin-top: 10px;
+    }
+
+    .tab-menus {
+      display: flex;
+      justify-content: flex-end;
+      grid-column: 2;
+      height: 64px;
+      overflow: hidden;
+
+      .tab-bar {
+        margin-right: -18px;
+      }
+    }
+  }
+
+  .container {
+    min-height: 79.5%;
+    display: grid;
+    grid-template-rows: auto 1fr;
+
+    .default__title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      color: black;
+    }
+  }
+
+  footer {
+    margin-top: 24px;
+    margin-left: calc(-7% - 12px);
+    margin-right: calc(-7% - 12px);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 48px 8% 12px 8%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 12px;
+
+    .copyrights {
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .logo {
+      display: flex;
+      justify-content: flex-end;
+      padding-right: 20px;
+      img {
+        width: 150px;
+        margin-bottom: 2px;
+      }
+    }
+  }
+}

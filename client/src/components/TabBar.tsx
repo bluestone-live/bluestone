@@ -19,6 +19,7 @@ interface IProps extends WithTranslation, RouteComponentProps {
   selectedTab?: TabType;
   tabOptions: ITabOption[];
   onItemClick: (e: ClickParam) => void;
+  desktop?: boolean;
 }
 
 const StyledTabBar = (props: IProps) => {
@@ -30,14 +31,14 @@ const StyledTabBar = (props: IProps) => {
 
   return (
     <Menu
-      className="tab-bar"
+      className={`tab-bar ${props.desktop ? 'desktop' : ''}`}
       mode="horizontal"
       onClick={onItemClick}
       selectedKeys={[selectedTab || '']}
     >
       {tabOptions.map(option => (
         <Menu.Item key={option.type} style={{ width: tabWidth }}>
-          <div className="tab-item">
+          <div className={`tab-item ${props.desktop ? 'desktop' : ''}`}>
             <div className="icon">{option.icon}</div>
             {option.title}
           </div>

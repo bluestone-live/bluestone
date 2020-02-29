@@ -9,6 +9,7 @@ import i18n from './i18n';
 import flatten from './utils/flatten';
 import routes from './routes/index';
 import { Default } from './layouts';
+import Media from 'react-media';
 import 'normalize.css';
 import 'antd/dist/antd.less';
 import './styles/main.less';
@@ -19,27 +20,36 @@ const App = () => (
     <ReduxProvider store={store}>
       <BrowserRouter>
         <Switch>
-          {flatten(routes, 'subRoutes')
-            .filter(route => route.path)
-            .map(({ component: Component, layout: Layout, ...rest }) => {
-              const renderHandler = (props: any) => {
-                if (Layout) {
+          <Media queries={{ small: { maxWidth: 600 } }}>
+            {(matches: any) =>
+              flatten(routes(matches.small), 'subRoutes')
+                .filter(route => route.path)
+                .map(({ component: Component, layout: Layout, ...rest }) => {
+                  const renderHandler = (props: any) => {
+                    if (Layout) {
+                      return (
+                        <Layout {...props} title={rest.title}>
+                          <Component {...props} />
+                        </Layout>
+                      );
+                    }
+                    return (
+                      <Default {...props} title={rest.title}>
+                        <Component {...props} />
+                      </Default>
+                    );
+                  };
                   return (
-                    <Layout {...props} title={rest.title}>
-                      <Component {...props} />
-                    </Layout>
+                    <Route
+                      exact
+                      key={rest.path}
+                      {...rest}
+                      render={renderHandler}
+                    />
                   );
-                }
-                return (
-                  <Default {...props} title={rest.title}>
-                    <Component {...props} />
-                  </Default>
-                );
-              };
-              return (
-                <Route exact key={rest.path} {...rest} render={renderHandler} />
-              );
-            })}
+                })
+            }
+          </Media>
         </Switch>
       </BrowserRouter>
     </ReduxProvider>

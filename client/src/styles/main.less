@@ -9,6 +9,7 @@
 @import '../components/RecordStatus.less';
 @import '../components/CollateralRatio.less';
 @import '../components/TransactionList.less';
+@import '../components/Placeholder.less';
 
 // import container styles
 @import '../containers/DepositPoolCard.less';
@@ -28,6 +29,7 @@
 @import './MonitorPage.less';
 @import './MonitorDetailPage.less';
 @import './MintTokenPage.less';
+@import './Desktop.less';
 
 #app {
   height: 100vh;
@@ -148,7 +150,7 @@
 }
 
 // TODO: Should be remove after web client complete
-@media (min-width: 500px) {
+@media (max-width: 500px) {
   #app {
     border: 1px solid #eee;
     max-width: 500px;

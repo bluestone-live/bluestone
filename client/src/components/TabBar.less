@@ -29,4 +29,28 @@
       height: 45px;
     }
   }
+
+  .tab-item.desktop {
+    display: grid;
+    grid-template-columns: auto 1fr;
+
+    .icon {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0;
+      padding-right: 4px;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
+.tab-bar.desktop {
+  position: relative;
+  border: none;
+  width: 360px;
 }
