@@ -89,7 +89,7 @@ export class MetaMaskProvider {
         this.networkType = 'goerli';
         break;
       default:
-        this.networkType = 'primary';
+        this.networkType = 'private';
     }
 
     const networkFile = await this.getNetworkFile(this.networkType);
