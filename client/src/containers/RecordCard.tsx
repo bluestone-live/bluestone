@@ -4,7 +4,6 @@ import {
   IDepositRecord,
   ILoanRecord,
   RecordType,
-  IPool,
   IRecord,
   IToken,
 } from '../stores';
@@ -17,12 +16,11 @@ import { getCurrentPoolId } from '../utils/poolIdCalculator';
 interface IProps extends WithTranslation {
   tokens: IToken[];
   record: IDepositRecord | ILoanRecord;
-  pools: IPool[];
   onClick: (record: IRecord) => void;
 }
 
 const RecordCard = (props: IProps) => {
-  const { tokens, record, pools, onClick, t } = props;
+  const { tokens, record, onClick, t } = props;
 
   const dueDate = useMemo(() => {
     if (record.recordType === RecordType.Deposit) {
@@ -92,11 +90,12 @@ const RecordCard = (props: IProps) => {
         token => token.tokenAddress === depositRecord.tokenAddress,
       );
 
-      const pool = pools.find(
-        p =>
-          p.poolId === depositRecord.poolId &&
-          p.tokenAddress === depositRecord.tokenAddress,
-      );
+      const APR =
+        (Number.parseFloat(convertWeiToDecimal(depositRecord.interest)) /
+          Number.parseFloat(convertWeiToDecimal(depositRecord.depositAmount)) /
+          depositRecord.depositTerm.value) *
+        365 *
+        100;
 
       return (
         <Fragment>
@@ -119,14 +118,7 @@ const RecordCard = (props: IProps) => {
               </span>
             </Col>
             <Col span={8}>
-              <span className="ant-form-text">
-                {pool
-                  ? (
-                      Number.parseFloat(convertWeiToDecimal(pool.APR)) * 100
-                    ).toFixed(2)
-                  : '0.00'}
-                %
-              </span>
+              <span className="ant-form-text">{APR}%</span>
             </Col>
             <Col span={8}>
               <span className="ant-form-text">
@@ -173,7 +165,7 @@ const RecordCard = (props: IProps) => {
         </Row>
       );
     }
-  }, [record, pools, tokens]);
+  }, [record, tokens]);
 
   const onCardClick = useCallback(() => onClick(record), [record, onClick]);
 

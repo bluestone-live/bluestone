@@ -62,10 +62,11 @@ const DepositDetail = (props: IProps) => {
 
   const isEarlyWithdrew = useMemo(
     () =>
+      record.withdrewAt.valueOf() !== 0 &&
       record.createdAt
         .add(record.depositTerm.value, 'day')
         .endOf('day')
-        .isBefore(record.withdrewAt),
+        .isAfter(record.withdrewAt),
     [record],
   );
 
@@ -117,7 +118,9 @@ const DepositDetail = (props: IProps) => {
 
   const APR =
     (Number.parseFloat(convertWeiToDecimal(record.interest)) /
-      Number.parseFloat(convertWeiToDecimal(record.depositAmount))) *
+      Number.parseFloat(convertWeiToDecimal(record.depositAmount)) /
+      record.depositTerm.value) *
+    365 *
     100;
 
   const transactionsOfRecord = useMemo(
@@ -222,7 +225,7 @@ const DepositDetail = (props: IProps) => {
         visible={earlyWithdrawModalVisible}
         closable={false}
         footer={
-          !record.isEarlyWithdrawable ? (
+          record.isEarlyWithdrawable ? (
             <Row className="btn-group" gutter={10}>
               <Col span={12}>
                 <Button
@@ -231,7 +234,7 @@ const DepositDetail = (props: IProps) => {
                   key="early-withdraw-btn-cancel"
                   onClick={hideEarlyWithdrawModal}
                 >
-                  {t('deposit_detail_modal_close')}
+                  {t('deposit_detail_modal_cancel')}
                 </Button>
               </Col>
               <Col span={12}>
@@ -260,7 +263,7 @@ const DepositDetail = (props: IProps) => {
         }
       >
         <p>
-          {!record.isEarlyWithdrawable
+          {record.isEarlyWithdrawable
             ? t('deposit_detail_modal_early_withdraw_confirm_content', {
                 amount: convertWeiToDecimal(record.depositAmount),
                 unit: depositToken && depositToken.tokenSymbol,

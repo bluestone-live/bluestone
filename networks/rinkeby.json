@@ -26,6 +26,11 @@
       "name": "Native Ether",
       "address": "0x0000000000000000000000000000000000000001",
       "priceOracleAddress": "0x9F0C6DE1153D29Cd512A55C92B4fB7e4b5501B89"
+    },
+    "WETH": {
+      "name": "Wrapped ETH",
+      "address": "0xF13185e0Bf86e62518749deCe13e1809BE88C394",
+      "priceOracleAddress": "0x9F0C6DE1153D29Cd512A55C92B4fB7e4b5501B89"
     }
   }
 }

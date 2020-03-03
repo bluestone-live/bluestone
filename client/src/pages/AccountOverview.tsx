@@ -14,9 +14,10 @@ import {
   IDepositRecord,
   ILoanRecord,
   useDepositTokens,
+  PoolActions,
 } from '../stores';
 import RecordCard from '../containers/RecordCard';
-import { useComponentMounted } from '../utils/useEffectAsync';
+import { useComponentMounted, useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import Menu, { ClickParam } from 'antd/lib/menu';
 
@@ -33,8 +34,6 @@ const AccountOverview = (props: IProps) => {
   const depositRecords = useDepositRecords();
 
   const borrowRecords = useLoanRecords();
-
-  const pools = useAllPools();
 
   const tokens = useDepositTokens();
 
@@ -137,7 +136,6 @@ const AccountOverview = (props: IProps) => {
             tokens={tokens}
             key={record.recordId}
             record={record}
-            pools={pools}
             onClick={onClick}
           />
         ))}
