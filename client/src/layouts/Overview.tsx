@@ -52,7 +52,7 @@ const OverviewLayout = (props: IProps) => {
 
   const goToMintPage = useCallback(() => history.push('/mint'), []);
   const openMonitorPage = useCallback(
-    () => window.open('/monitor', 'lendhoo_monitor'),
+    () => window.open('/monitor', 'bluestone_monitor'),
     [],
   );
 

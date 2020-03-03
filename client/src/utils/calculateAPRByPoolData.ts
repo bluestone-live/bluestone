@@ -8,16 +8,22 @@ export const calculateAPRByPoolData = (
   protocolReserveRatio: string,
 ) => {
   return (
-    ((Number.parseFloat(convertWeiToDecimal(pool.loanInterest)) *
+    ((Number.parseFloat(convertWeiToDecimal(pool.loanInterest, 18)) *
       (1 -
         Number.parseFloat(
-          convertWeiToDecimal(distributionFeeRatios.depositDistributorFeeRatio),
+          convertWeiToDecimal(
+            distributionFeeRatios.depositDistributorFeeRatio,
+            18,
+          ),
         ) -
         Number.parseFloat(
-          convertWeiToDecimal(distributionFeeRatios.loanDistributorFeeRatio),
+          convertWeiToDecimal(
+            distributionFeeRatios.loanDistributorFeeRatio,
+            18,
+          ),
         ) -
-        Number.parseFloat(convertWeiToDecimal(protocolReserveRatio)))) /
-      Number.parseFloat(convertWeiToDecimal(pool.totalDepositWeight))) *
+        Number.parseFloat(convertWeiToDecimal(protocolReserveRatio, 18)))) /
+      Number.parseFloat(convertWeiToDecimal(pool.totalDepositWeight, 18))) *
     365 *
     100
   ).toFixed(2);
