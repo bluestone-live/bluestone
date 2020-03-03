@@ -224,7 +224,7 @@ const DepositDetail = (props: IProps) => {
         footer={
           !record.isEarlyWithdrawable ? (
             <Row className="btn-group" gutter={10}>
-              <Col span="12">
+              <Col span={12}>
                 <Button
                   size="large"
                   block
@@ -234,7 +234,7 @@ const DepositDetail = (props: IProps) => {
                   {t('deposit_detail_modal_close')}
                 </Button>
               </Col>
-              <Col span="12">
+              <Col span={12}>
                 <Button
                   type="primary"
                   size="large"

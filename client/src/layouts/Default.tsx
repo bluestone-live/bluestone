@@ -46,7 +46,16 @@ const OverviewLayout = (props: IProps) => {
     [],
   );
 
-  const onBackButtonClick = useCallback(() => history.goBack(), []);
+  const onBackButtonClick = useCallback(() => {
+    if (
+      /account\/borrow/.test(location.pathname) ||
+      /account\/deposit/.test(location.pathname)
+    ) {
+      history.push('/account');
+    } else {
+      history.goBack();
+    }
+  }, []);
 
   return (
     <div className="layout default">
