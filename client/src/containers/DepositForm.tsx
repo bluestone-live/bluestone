@@ -148,10 +148,12 @@ const DepositForm = (props: IProps) => {
           {pool.APR}%
         </TextBox>
         <TextBox label={t('deposit_form_text_maturity_date')}>
-          {dayjs()
+          {dayjs
+            .utc()
             .add(pool.term, 'day')
             .endOf('day')
-            .format('YYYY-MM-DD HH:mm ZZ')}
+            .local()
+            .format('YYYY-MM-DD HH:mm')}
         </TextBox>
         <Button type="primary" block onClick={submit} disabled={loading}>
           {buttonText}

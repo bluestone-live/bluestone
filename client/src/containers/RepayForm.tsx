@@ -122,7 +122,7 @@ const RepayForm = (props: IProps) => {
         {selectedLoanPair.loanToken.tokenSymbol}
       </TextBox>
       <TextBox label={t('repay_form_label_due_date')}>
-        {record.dueAt.format('YYYY.MM.DD HH:mm ZZ')}
+        {record.dueAt.local().format('YYYY.MM.DD HH:mm')}
       </TextBox>
       <Form>
         <FormInput

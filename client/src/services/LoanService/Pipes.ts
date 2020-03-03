@@ -41,9 +41,11 @@ export const loanRecordsPipe = (
     soldCollateralAmount: loanRecord.soldCollateralAmount,
     liquidatedAmount: loanRecord.liquidatedAmount,
     remainingDebt: loanRecord.remainingDebt,
-    createdAt: dayjs(formatSolidityTime(loanRecord.createdAt)),
-    dueAt: dayjs(formatSolidityTime(loanRecord.dueAt)),
-    isOverDue: dayjs(formatSolidityTime(loanRecord.dueAt)).isBefore(dayjs()),
+    createdAt: dayjs.utc(formatSolidityTime(loanRecord.createdAt)),
+    dueAt: dayjs.utc(formatSolidityTime(loanRecord.dueAt)),
+    isOverDue: dayjs
+      .utc(formatSolidityTime(loanRecord.dueAt))
+      .isBefore(dayjs.utc()),
     isClosed: loanRecord.isClosed,
     recordType: RecordType.Borrow,
   }));

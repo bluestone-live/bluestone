@@ -14,6 +14,10 @@ import 'normalize.css';
 import 'antd/dist/antd.less';
 import './styles/main.less';
 import './styles/iconfont/iconfont';
+import utc from 'dayjs/plugin/utc';
+import dayjs from 'dayjs';
+
+dayjs.extend(utc);
 
 const App = () => (
   <I18nextProvider i18n={i18n}>

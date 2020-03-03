@@ -182,9 +182,10 @@ const DepositDetail = (props: IProps) => {
       <Row>
         <Col span={24}>
           <TextBox label={t('deposit_detail_label_maturity_date')}>
-            {dayjs(getTimestampByPoolId(record.poolId)).format(
-              'YYYY.MM.DD HH:mm ZZ',
-            )}
+            {dayjs
+              .utc(getTimestampByPoolId(record.poolId))
+              .local()
+              .format('YYYY.MM.DD HH:mm')}
           </TextBox>
         </Col>
       </Row>

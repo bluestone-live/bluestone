@@ -125,7 +125,7 @@ const BorrowDetail = (props: IProps) => {
       <Row>
         <Col span={24}>
           <TextBox label={t('borrow_detail_label_due_date')}>
-            {record.dueAt.format('YYYY.MM.DD HH:mm ZZ')}
+            {record.dueAt.local().format('YYYY.MM.DD HH:mm')}
           </TextBox>
         </Col>
       </Row>

@@ -422,7 +422,8 @@ const BorrowForm = (props: IProps) => {
       )}
       {selectedPool && (
         <TextBox label={t('borrow_form_text_label_due_date')}>
-          {dayjs()
+          {dayjs
+            .utc()
             .add(selectedPool.term, 'day')
             .format('YYYY-MM-DD HH:mm')}
         </TextBox>
