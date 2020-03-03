@@ -8,6 +8,8 @@ export class PoolService {
     return PoolsPipe(
       tokenAddress,
       await this.provider.protocol.methods.getPoolsByToken(tokenAddress).call(),
+      await this.provider.protocol.methods.getMaxDistributorFeeRatios().call(),
+      await this.provider.protocol.methods.getProtocolReserveRatio().call(),
     );
   }
 }

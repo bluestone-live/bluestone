@@ -1,6 +1,5 @@
 export interface IDistributorConfig {
   address: string;
-  depositFee: number;
 }
 
 export const decodeDistributorConfig = (

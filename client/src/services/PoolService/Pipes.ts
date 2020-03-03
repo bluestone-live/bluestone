@@ -1,6 +1,9 @@
 import { IPool } from '../../stores/PoolStore';
+import { calculateAPRByPoolData } from '../../utils/calculateAPRByPoolData';
+import { IDistributionFeeRatios } from '../../stores';
+import { calculateUtilizationByPoolData } from '../../utils/calculateUtilizationByPoolData';
 
-interface IGetAllPoolResponse {
+export interface IGetAllPoolResponse {
   poolId: string;
   depositAmount: string;
   availableAmount: string;
@@ -11,28 +14,24 @@ interface IGetAllPoolResponse {
 export const PoolsPipe = (
   tokenAddress: string,
   pools: IGetAllPoolResponse[],
+  distributionFeeRatios: IDistributionFeeRatios,
+  protocolReserveRatio: string,
 ): IPool[] => {
   return pools
     .map((pool, index) => {
       const APR =
         pool.totalDepositWeight === '0'
           ? '0.00'
-          : (
-              (Number.parseFloat(pool.loanInterest) /
-                Number.parseFloat(pool.totalDepositWeight)) *
-              365 *
-              100
-            ).toFixed(2);
+          : calculateAPRByPoolData(
+              pool,
+              distributionFeeRatios,
+              protocolReserveRatio,
+            );
 
-      const utilization =
-        pool.depositAmount === '0'
-          ? '0.00'
-          : (
-              ((Number.parseFloat(pool.depositAmount) -
-                Number.parseFloat(pool.availableAmount)) /
-                Number.parseFloat(pool.depositAmount)) *
-              100
-            ).toFixed(2);
+      const utilization = calculateUtilizationByPoolData(
+        pool,
+        distributionFeeRatios,
+      );
 
       return {
         ...pool,

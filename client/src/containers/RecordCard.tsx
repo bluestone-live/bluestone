@@ -90,12 +90,13 @@ const RecordCard = (props: IProps) => {
         token => token.tokenAddress === depositRecord.tokenAddress,
       );
 
-      const APR =
+      const APR = (
         (Number.parseFloat(convertWeiToDecimal(depositRecord.interest)) /
           Number.parseFloat(convertWeiToDecimal(depositRecord.depositAmount)) /
           depositRecord.depositTerm.value) *
         365 *
-        100;
+        100
+      ).toFixed(2);
 
       return (
         <Fragment>

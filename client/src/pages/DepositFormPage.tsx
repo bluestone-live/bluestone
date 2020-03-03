@@ -7,7 +7,7 @@ import {
   usePools,
   useTokenBalance,
   useDefaultAccount,
-  useDistributorConfig,
+  useDistributorAddress,
   AccountActions,
   PoolActions,
   IState,
@@ -40,7 +40,7 @@ const DepositFormPage = (props: IProps) => {
   const depositTokens = useDepositTokens();
   const pools = usePools();
   const tokenBalance = useTokenBalance();
-  const { address: distributorAddress } = useDistributorConfig();
+  const distributorAddress = useDistributorAddress();
   const protocolAddress = useSelector<IState, string>(
     state => state.common.protocolContractAddress,
   );

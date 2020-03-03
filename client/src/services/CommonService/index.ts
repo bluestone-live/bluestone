@@ -135,15 +135,9 @@ export class CommonService {
   }
 
   /**
-   * Get deposit and loan distributor fee ratio
+   * Get interest model parameters
+   * @param tokenAddress token address
    */
-  async getMaxDistributorFeeRatios(): Promise<{
-    depositDistributorFeeRatio: string;
-    loanDistributorFeeRatio: string;
-  }> {
-    return this.provider.protocol.methods.getMaxDistributorFeeRatios().call();
-  }
-
   async getInterestModelParameters(
     tokenAddress: string,
   ): Promise<IInterestModelParameters> {

@@ -131,14 +131,16 @@ const AccountOverview = (props: IProps) => {
         ))}
       </Menu>
       <div className="record-cards">
-        {filteredRecords.map(record => (
-          <RecordCard
-            tokens={tokens}
-            key={record.recordId}
-            record={record}
-            onClick={onClick}
-          />
-        ))}
+        {filteredRecords
+          .sort((r1, r2) => r2.createdAt.valueOf() - r1.createdAt.valueOf())
+          .map(record => (
+            <RecordCard
+              tokens={tokens}
+              key={record.recordId}
+              record={record}
+              onClick={onClick}
+            />
+          ))}
       </div>
     </div>
   );

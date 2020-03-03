@@ -2,7 +2,6 @@ import { IAction, IState } from '.';
 import { Contract } from 'web3-eth-contract';
 import { useSelector } from 'react-redux';
 import { replaceBy } from '../utils/replaceBy';
-import { IDistributorConfig } from '../utils/decodeDistributorConfig';
 
 const enum CommonActionType {
   SetDepositTokens = 'SET_DEPOSIT_TOKENS',
@@ -13,7 +12,7 @@ const enum CommonActionType {
   SetLoanAPR = 'SET_LOAN_APR',
   SetProtocolContractAddress = 'SET_PROTOCOL_CONTRACT_ADDRESS',
   SetTokenPrice = 'SET_TOKEN_PRICE',
-  SetDistributorConfig = 'SET_DISTRIBUTOR_CONFIG',
+  SetDistributorAddress = 'SET_DISTRIBUTOR_ADDRESS',
   SetInterestModelParameters = 'SET_INTEREST_MODEL_PARAMETERS',
 }
 
@@ -43,12 +42,17 @@ export interface IInterestModelParameters {
   loanInterestRateLowerBound: string;
 }
 
+export interface IDistributionFeeRatios {
+  depositDistributorFeeRatio: string;
+  loanDistributorFeeRatio: string;
+}
+
 interface ICommonState {
   depositTerms: string[];
   depositTokens: IToken[];
   loanPairs: ILoanPair[];
   protocolContractAddress?: string;
-  distributorConfig?: IDistributorConfig;
+  distributorAddress?: string;
   interestModelParameters: IInterestModelParameters;
 }
 
@@ -57,7 +61,7 @@ const initState: ICommonState = {
   depositTokens: [],
   loanPairs: [],
   protocolContractAddress: undefined,
-  distributorConfig: undefined,
+  distributorAddress: undefined,
   interestModelParameters: {
     loanInterestRateUpperBound: '0',
     loanInterestRateLowerBound: '0',
@@ -167,10 +171,10 @@ export const CommonReducer = (
         ...state,
         protocolContractAddress: action.payload.protocolContractAddress,
       };
-    case CommonActionType.SetDistributorConfig:
+    case CommonActionType.SetDistributorAddress:
       return {
         ...state,
-        distributorConfig: action.payload.distributorConfig,
+        distributorAddress: action.payload.distributorAddress,
       };
     case CommonActionType.SetInterestModelParameters:
       return {
@@ -266,11 +270,11 @@ export class CommonActions {
     };
   }
 
-  static setDistributorConfig(distributorConfig: IDistributorConfig) {
+  static setDistributorAddress(distributorAddress: string) {
     return {
-      type: CommonActionType.SetDistributorConfig,
+      type: CommonActionType.SetDistributorAddress,
       payload: {
-        distributorConfig,
+        distributorAddress,
       },
     };
   }
@@ -305,10 +309,8 @@ export const useDepositTerms = () =>
 export const useLoanPairs = () =>
   useSelector<IState, ILoanPair[]>(state => state.common.loanPairs);
 
-export const useDistributorConfig = () =>
-  useSelector<IState, IDistributorConfig>(
-    state => state.common.distributorConfig || {},
-  );
+export const useDistributorAddress = () =>
+  useSelector<IState, string>(state => state.common.distributorAddress || {});
 
 export const useInterestModelParameters = () =>
   useSelector<IState, IInterestModelParameters>(

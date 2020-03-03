@@ -7,7 +7,7 @@ import {
   useTokenBalance,
   useLoanPairs,
   useDefaultAccount,
-  useDistributorConfig,
+  useDistributorAddress,
   IState,
   useLoading,
   useLoanInterestRates,
@@ -46,7 +46,7 @@ const BorrowFormPage = (props: IProps) => {
   // Selectors
   const accountAddress = useDefaultAccount();
 
-  const { address: distributorAddress } = useDistributorConfig();
+  const distributorAddress = useDistributorAddress();
 
   const loading = useLoading();
 

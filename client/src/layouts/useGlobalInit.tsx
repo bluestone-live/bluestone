@@ -11,7 +11,6 @@ import {
   ViewActions,
 } from '../stores';
 import { decodeDistributorConfig } from '../utils/decodeDistributorConfig';
-import { convertWeiToDecimal } from '../utils/BigNumber';
 import { TFunction } from 'i18next';
 import { TabType } from '../components/TabBar';
 import CustomIcon from '../components/CustomIcon';
@@ -50,24 +49,13 @@ export const useGlobalInit = (
     // Get distributor configs
     const interestReserveAddress = await commonService.getInterestReserveAddress();
 
-    const distributorFeeRatios = await commonService.getMaxDistributorFeeRatios();
     const distributorConfig = decodeDistributorConfig(dconfig || btoa('{}'));
 
-    if (distributorFeeRatios) {
-      dispatch(
-        CommonActions.setDistributorConfig({
-          address: distributorConfig.address || interestReserveAddress,
-          depositFee: Math.min(
-            Number.parseFloat(
-              convertWeiToDecimal(
-                distributorFeeRatios.depositDistributorFeeRatio,
-              ),
-            ),
-            distributorConfig.depositFee,
-          ),
-        }),
-      );
-    }
+    dispatch(
+      CommonActions.setDistributorAddress(
+        distributorConfig.address || interestReserveAddress,
+      ),
+    );
 
     // Get deposit terms
     dispatch(
