@@ -90,6 +90,7 @@ const DepositDetail = (props: IProps) => {
       );
     }
     dispatch(ViewActions.setLoading(false));
+    hideEarlyWithdrawModal();
   }, [record, accountAddress]);
 
   const withdraw = useCallback(async () => {
