@@ -7,6 +7,7 @@ import {
   useDepositTerms,
   ITerm,
   IPool,
+  useNetwork,
 } from '../stores';
 import TokenTab from '../components/TokenTab';
 import { useDepsUpdated } from '../utils/useEffectAsync';
@@ -19,6 +20,7 @@ import Dropdown from 'antd/lib/dropdown';
 import Menu, { ClickParam } from 'antd/lib/menu';
 import Button from 'antd/lib/button';
 import Icon from 'antd/lib/icon';
+import CustomPoolCard from '../containers/CustomPoolCard';
 
 const DepositOverview = (props: WithTranslation) => {
   const { t } = props;
@@ -36,6 +38,8 @@ const DepositOverview = (props: WithTranslation) => {
   ) as Array<keyof IPool>;
 
   const allPools = usePools();
+
+  const network = useNetwork();
 
   // States
   const [selectedToken, setSelectedToken] = useState<IToken>();
@@ -114,6 +118,31 @@ const DepositOverview = (props: WithTranslation) => {
     [onDropDownChange, sortingParams],
   );
 
+  // TODO: Only for testing
+  const [selectedTerm, setSelectedTerm] = useState<number>(90);
+
+  const onSelectedTermChange = useCallback(
+    (term: string) => setSelectedTerm(Number.parseInt(term, 10)),
+    [],
+  );
+
+  const selectedPool = useMemo(
+    () => selectedPools.find(pool => pool.term === selectedTerm),
+    [selectedTerm, selectedPools],
+  );
+  const minTerm = useMemo(() => {
+    if (selectedPools.length > 0) {
+      return selectedPools[0].term;
+    }
+    return 1;
+  }, [selectedTerm, selectedPools]);
+  const maxTerm = useMemo(() => {
+    if (selectedPools.length > 0) {
+      return selectedPools[selectedPools.length - 1].term;
+    }
+    return 1;
+  }, [selectedTerm, selectedPools]);
+
   return (
     <div className="deposit-overview">
       <TokenTab
@@ -154,6 +183,16 @@ const DepositOverview = (props: WithTranslation) => {
                 />
               </Link>
             ),
+        )}
+        {network !== 'main' && (
+          <CustomPoolCard
+            pool={selectedPool}
+            selectedTerm={selectedTerm}
+            selectedToken={selectedToken}
+            onSelectedTermChange={onSelectedTermChange}
+            minTerm={minTerm}
+            maxTerm={maxTerm}
+          />
         )}
       </div>
     </div>

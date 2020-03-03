@@ -28,6 +28,8 @@ interface IProps {
   value: string | number;
   className?: string;
   placeholder?: string;
+  min?: number;
+  max?: number;
   onChange: (value: string) => void;
 }
 
@@ -43,6 +45,8 @@ const FormInput = (props: IProps) => {
     value,
     className,
     placeholder,
+    min,
+    max,
     onChange,
   } = props;
 
@@ -102,6 +106,9 @@ const FormInput = (props: IProps) => {
             defaultValue={defaultValue}
             value={value}
             suffix={suffix}
+            min={min}
+            max={max}
+            step={1}
             onChange={onInputChange}
             style={{ width: inputWidth }}
             placeholder={placeholder}
