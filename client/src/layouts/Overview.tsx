@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch } from 'react-redux';
@@ -50,18 +50,39 @@ const OverviewLayout = (props: IProps) => {
     [],
   );
 
-  const onTipClick = useCallback(() => history.push('/mint'), []);
+  const goToMintPage = useCallback(() => history.push('/mint'), []);
+  const openMonitorPage = useCallback(
+    () => window.open('/monitor', 'lendhoo_monitor'),
+    [],
+  );
 
-  return (
-    <div className="layout overview">
-      {network !== 'main' && (
-        <div className="tip" onClick={onTipClick}>
+  const tip = useMemo(() => {
+    if (network === 'main') {
+      return null;
+    }
+    if (pathname === '/deposit') {
+      return (
+        <div className="tip" onClick={goToMintPage}>
           Mint some tokens for testing
           <Button type="default" size="small">
             Go
           </Button>
         </div>
-      )}
+      );
+    }
+    return (
+      <div className="tip" onClick={openMonitorPage}>
+        View the monitor page
+        <Button type="default" size="small">
+          Go
+        </Button>
+      </div>
+    );
+  }, [network]);
+
+  return (
+    <div className="layout overview">
+      {tip}
       {banner && (
         <Banner
           onCloseButtonClick={onBannerCloseButtonClick}

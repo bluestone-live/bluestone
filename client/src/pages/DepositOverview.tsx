@@ -5,6 +5,7 @@ import {
   usePools,
   PoolActions,
   useDepositTerms,
+  useTestingDepositTerms,
   ITerm,
   IPool,
   useNetwork,
@@ -30,7 +31,10 @@ const DepositOverview = (props: WithTranslation) => {
   // Selectors
   const tokens = useDepositTokens();
 
-  const depositTerms = useDepositTerms();
+  const network = useNetwork();
+
+  const depositTerms =
+    network === 'main' ? useDepositTerms() : useTestingDepositTerms();
 
   const sortingParams = useMemo(
     () => ['term', 'APR', 'utilization'],
@@ -38,8 +42,6 @@ const DepositOverview = (props: WithTranslation) => {
   ) as Array<keyof IPool>;
 
   const allPools = usePools();
-
-  const network = useNetwork();
 
   // States
   const [selectedToken, setSelectedToken] = useState<IToken>();

@@ -296,6 +296,17 @@ export class CommonActions {
 export const useDepositTokens = () =>
   useSelector<IState, IToken[]>(state => state.common.depositTokens);
 
+// TODO Only for test, hide other terms
+export const useTestingDepositTerms = () =>
+  useSelector<IState, ITerm[]>(() =>
+    ['30', '60', '90']
+      .map((bigNumber: string) => ({ value: bigNumber.toString() }))
+      .map(({ value }: { value: string }) => ({
+        text: `${value}-Day`,
+        value: Number.parseInt(value, 10),
+      })),
+  );
+
 export const useDepositTerms = () =>
   useSelector<IState, ITerm[]>(state =>
     state.common.depositTerms
