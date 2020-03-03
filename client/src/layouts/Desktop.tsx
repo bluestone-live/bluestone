@@ -7,7 +7,7 @@ import { ClickParam } from 'antd/lib/menu';
 import Banner from '../components/Banner';
 import { useGlobalInit } from './useGlobalInit';
 import TabBar from '../components/TabBar';
-import logo from '../styles/images/lendhoo.svg';
+import logo from '../styles/images/bluestone.svg';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;

@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../styles/images/lendhoo.svg';
+import logo from '../styles/images/bluestone.svg';
 
 const Placeholder = () => {
   return (
