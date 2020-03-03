@@ -22,10 +22,12 @@ const MonitorPoolCard = (props: IProps) => {
     () => (
       <div className="monitor-pool-card__title">
         <div className="term">
-          {t('monitor_pool_card_title', {
-            poolId: pool.poolId,
-            term: Number.parseInt(pool.poolId, 10) - currentPoolId,
-          })}
+          {Number.parseInt(pool.poolId, 10) - currentPoolId === 0
+            ? t('monitor_pool_card_title_today', { poolId: pool.poolId })
+            : t('monitor_pool_card_title', {
+                poolId: pool.poolId,
+                term: Number.parseInt(pool.poolId, 10) - currentPoolId,
+              })}
         </div>
       </div>
     ),

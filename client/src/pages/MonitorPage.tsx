@@ -2,9 +2,9 @@ import React, { useCallback, useMemo } from 'react';
 import {
   useDepositTokens,
   IToken,
-  usePools,
   PoolActions,
   IPool,
+  useMonitorPools,
 } from '../stores';
 import TokenTab from '../components/TokenTab';
 import { RouteComponentProps } from 'react-router';
@@ -24,7 +24,7 @@ const MonitorPage = (props: RouteComponentProps) => {
 
   const tokens = useDepositTokens();
   const queryParams = parseQuery(search);
-  const pools = usePools();
+  const pools = useMonitorPools();
 
   const selectedToken = useMemo(
     () => tokens.find(tk => tk.tokenAddress === queryParams.tokenAddress),
@@ -60,9 +60,9 @@ const MonitorPage = (props: RouteComponentProps) => {
       const { poolService } = await getService();
 
       dispatch(
-        PoolActions.replacePools(
+        PoolActions.replaceMonitorPools(
           selectedToken.tokenAddress,
-          await poolService.getPoolsByToken(selectedToken.tokenAddress),
+          await poolService.getMonitorPoolsByToken(selectedToken.tokenAddress),
         ),
       );
     }

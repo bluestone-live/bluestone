@@ -110,6 +110,7 @@
     "monitor_pool_card_label_total_deposit": "Total Deposit",
     "monitor_pool_card_label_total_deposit_weight": "Deposit Weight",
     "monitor_pool_card_title": "PoolID: {{poolId}} (Term: {{term}})",
+    "monitor_pool_card_title_today": "PoolID: {{poolId}} (Today)",
     "record_card_due_date_closed": "Closed",
     "record_card_due_date_due_in": "Due in {{day}} days",
     "record_card_due_date_mature_in": "Mature in {{day}} days",

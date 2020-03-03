@@ -110,6 +110,7 @@
     "monitor_pool_card_label_total_deposit": "总存款",
     "monitor_pool_card_label_total_deposit_weight": "总权重",
     "monitor_pool_card_title": "PoolID: {{poolId}} (Term: {{term}})",
+    "monitor_pool_card_title_today": "PoolID: {{poolId}} (Today)",
     "record_card_due_date_closed": " 已关闭",
     "record_card_due_date_due_in": " 将在{{day}}天后过期",
     "record_card_due_date_mature_in": "将在{{day}}天到期",
