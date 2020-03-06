@@ -65,6 +65,10 @@ const BorrowForm = (props: IProps) => {
   const [collateralRatio, setCollateralRatio] = useState();
   const [collateralAmount, setCollateralAmount] = useState();
 
+  const setCollateralRatioSafely = (value: number | string) => {
+    setCollateralRatio(Math.max(150, Number.parseInt(value as string, 10)));
+  };
+
   // Initialize
   useDepsUpdated(async () => {
     if (loanToken) {
@@ -208,7 +212,7 @@ const BorrowForm = (props: IProps) => {
 
   useDepsUpdated(async () => {
     if (selectedLoanPair) {
-      setCollateralRatio(
+      setCollateralRatioSafely(
         Number.parseFloat(
           convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
         ) * 100,
@@ -251,7 +255,7 @@ const BorrowForm = (props: IProps) => {
     (value: string) => {
       setCollateralAmount(Number.parseFloat(value));
       if (collateralToken && loanToken) {
-        setCollateralRatio(
+        setCollateralRatioSafely(
           calcCollateralRatio(
             value,
             totalDebt || '0',
@@ -266,7 +270,7 @@ const BorrowForm = (props: IProps) => {
 
   const onCollateralRatioChange = useCallback(
     (value: string) => {
-      setCollateralRatio(Number.parseFloat(value));
+      setCollateralRatioSafely(Number.parseFloat(value));
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -283,7 +287,7 @@ const BorrowForm = (props: IProps) => {
 
   const modifyCollateralRatio = useCallback(
     (num: number) => () => {
-      setCollateralRatio(Number.parseFloat(collateralRatio) + num);
+      setCollateralRatioSafely(Number.parseFloat(collateralRatio) + num);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(

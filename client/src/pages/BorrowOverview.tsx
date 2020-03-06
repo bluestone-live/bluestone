@@ -10,6 +10,7 @@ import {
   CommonActions,
   useInterestModelParameters,
   useLoanPairs,
+  useDepositTokens,
 } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
@@ -21,11 +22,14 @@ import BorrowPoolCard from '../containers/BorrowPoolCard';
 import { composePools } from '../utils/composePools';
 import { getLoanInterestRates } from '../utils/interestModel';
 import { uniqueBy } from '../utils/uniqueBy';
+import { parseQuery } from '../utils/parseQuery';
 
 interface IProps extends WithTranslation, RouteComponentProps {}
 
 const BorrowOverview = (props: IProps) => {
   const { t, history } = props;
+
+  const queryParams = parseQuery(location.search);
 
   const dispatch = useDispatch();
 
@@ -39,8 +43,14 @@ const BorrowOverview = (props: IProps) => {
   const interestRates = useLoanInterestRates();
   const interestModelParameters = useInterestModelParameters();
 
+  const depositTokens = useDepositTokens();
   // States
-  const [selectedToken, setSelectedToken] = useState<IToken>();
+  const [selectedToken, setSelectedToken] = useState<IToken | undefined>(
+    () =>
+      depositTokens.find(
+        token => token.tokenAddress === queryParams.tokenAddress,
+      ) || depositTokens[0],
+  );
   const [selectedTerm, setSelectedTerm] = useState<number>(1);
 
   // Init
@@ -83,7 +93,11 @@ const BorrowOverview = (props: IProps) => {
 
   useDepsUpdated(async () => {
     if (tokens.length > 0) {
-      setSelectedToken(tokens[0]);
+      setSelectedToken(
+        depositTokens.find(
+          token => token.tokenAddress === queryParams.tokenAddress,
+        ) || depositTokens[0],
+      );
     }
   }, [tokens]);
 

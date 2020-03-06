@@ -19,12 +19,19 @@ import {
 import RecordCard from '../containers/RecordCard';
 import { useComponentMounted, useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
+import { parseQuery } from '../utils/parseQuery';
 import Menu, { ClickParam } from 'antd/lib/menu';
 
 interface IProps extends RouteComponentProps, WithTranslation {}
 
 const AccountOverview = (props: IProps) => {
-  const { history, t } = props;
+  const {
+    history,
+    t,
+    location: { search },
+  } = props;
+
+  const { activeTab } = parseQuery(search);
 
   const dispatch = useDispatch();
 
@@ -40,7 +47,7 @@ const AccountOverview = (props: IProps) => {
   const tabKeys = ['active', 'closed', 'deposit', 'borrow'];
 
   // State
-  const [selectedTab, setSelectedTab] = useState<string>('active');
+  const [selectedTab, setSelectedTab] = useState<string>(activeTab || 'active');
 
   // Initialize
 
@@ -100,14 +107,16 @@ const AccountOverview = (props: IProps) => {
   }, [records, selectedTab]);
 
   // Callbacks
-  const onTabClick = useCallback(
-    (param: ClickParam) => setSelectedTab(param.key),
-    [],
-  );
+  const onTabClick = useCallback((param: ClickParam) => {
+    setSelectedTab(param.key);
+    history.push(window.location.pathname + `?activeTab=${param.key}`);
+  }, []);
 
   const onClick = useCallback(
     (record: IRecord) => {
-      history.push(`/account/${record.recordType}/${record.recordId}`);
+      history.push(
+        `/account/${record.recordType}/${record.recordId}?activeTab=${selectedTab}`,
+      );
     },
     [records],
   );
