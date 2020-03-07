@@ -113,7 +113,10 @@ contract LiquidityPoolsMock {
     function populatePoolGroup(
         address tokenAddress,
         uint256[] calldata depositAmountList,
-        uint256[] calldata availableAmountList
+        uint256[] calldata availableAmountList,
+        uint256[] calldata depositDistributorFeeRatioList,
+        uint256[] calldata loanDistributorFeeRatioList,
+        uint256[] calldata protocolReserveRatioList
     ) external {
         LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
             .poolGroups[tokenAddress];
@@ -133,6 +136,9 @@ contract LiquidityPoolsMock {
             IStruct.Pool storage pool = poolGroup.poolsById[poolId];
             pool.depositAmount = depositAmountList[i];
             pool.availableAmount = availableAmountList[i];
+            pool.depositDistributorFeeRatio = depositDistributorFeeRatioList[i];
+            pool.loanDistributorFeeRatio = loanDistributorFeeRatioList[i];
+            pool.protocolReserveRatio = protocolReserveRatioList[i];
             poolId = poolId.add(1);
         }
     }
@@ -140,7 +146,8 @@ contract LiquidityPoolsMock {
     function createLoanRecord(
         address loanTokenAddress,
         uint256 loanAmount,
-        uint256 loanTerm
+        uint256 loanTerm,
+        uint256 loanInterest
     ) external {
         bytes32 loanId = keccak256(
             abi.encode(msg.sender, _loanManager.numLoans)
@@ -153,6 +160,7 @@ contract LiquidityPoolsMock {
         loanRecord.loanTokenAddress = loanTokenAddress;
         loanRecord.loanAmount = loanAmount;
         loanRecord.loanTerm = loanTerm;
+        loanRecord.interest = loanInterest;
 
         loanIdList.push(loanId);
     }
@@ -172,5 +180,13 @@ contract LiquidityPoolsMock {
             poolGroup.loanAmountByLoanIdAndPoolId[loanId][DateTime.toDays().add(
                 poolIndex
             )];
+    }
+
+    function getLoanRecordById(bytes32 loanId)
+        external
+        view
+        returns (IStruct.LoanRecord memory loanRecord)
+    {
+        return _loanManager.loanRecordById[loanId];
     }
 }
