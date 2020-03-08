@@ -15,16 +15,21 @@ import { useDepsUpdated } from '../utils/useEffectAsync';
 import DepositPoolCard from '../containers/DepositPoolCard';
 import { getService } from '../services';
 import { useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, RouteComponentProps } from 'react-router-dom';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import Dropdown from 'antd/lib/dropdown';
 import Menu, { ClickParam } from 'antd/lib/menu';
 import Button from 'antd/lib/button';
 import Icon from 'antd/lib/icon';
 import CustomPoolCard from '../containers/CustomPoolCard';
+import { parseQuery } from '../utils/parseQuery';
 
-const DepositOverview = (props: WithTranslation) => {
-  const { t } = props;
+interface IProps extends WithTranslation, RouteComponentProps<{}> {}
+
+const DepositOverview = (props: IProps) => {
+  const { location, t } = props;
+
+  const queryParams = parseQuery(location.search);
 
   const dispatch = useDispatch();
 
@@ -44,7 +49,9 @@ const DepositOverview = (props: WithTranslation) => {
   const allPools = usePools();
 
   // States
-  const [selectedToken, setSelectedToken] = useState<IToken>();
+  const [selectedToken, setSelectedToken] = useState<IToken | undefined>(() =>
+    tokens.find(token => token.tokenAddress === queryParams.tokenAddress),
+  );
   const [sortBy, setSortBy] = useState<keyof IPool>(sortingParams[0]);
 
   // Init
