@@ -69,14 +69,6 @@ const MonitorPage = (props: RouteComponentProps) => {
   }, [selectedToken]);
 
   useDepsUpdated(async () => {
-    if (tokens.length > 0 && queryParams.tokenAddress) {
-      setSelectedToken(
-        tokens.find(token => token.tokenAddress === queryParams.tokenAddress),
-      );
-    }
-  }, [tokens, queryParams.tokenAddress]);
-
-  useDepsUpdated(async () => {
     if (tokens.length > 0 && !selectedToken) {
       setSelectedToken(tokens[0]);
     }

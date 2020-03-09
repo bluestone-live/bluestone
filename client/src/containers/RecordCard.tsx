@@ -26,13 +26,13 @@ const RecordCard = (props: IProps) => {
     if (record.recordType === RecordType.Deposit) {
       const depositRecord = record as IDepositRecord;
 
+      if (depositRecord.isWithdrawn) {
+        return <span className="grey">{t('record_card_due_date_closed')}</span>;
+      }
       if (depositRecord.isMatured) {
         return (
           <span className="green">{t('record_card_due_date_matured')}</span>
         );
-      }
-      if (depositRecord.isWithdrawn) {
-        return <span className="grey">{t('record_card_due_date_closed')}</span>;
       }
       return (
         <span>

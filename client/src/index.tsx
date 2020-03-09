@@ -19,6 +19,10 @@ import dayjs from 'dayjs';
 
 dayjs.extend(utc);
 
+export interface IWithMediaPage {
+  isMobile: boolean;
+}
+
 const App = () => (
   <I18nextProvider i18n={i18n}>
     <ReduxProvider store={store}>
@@ -33,13 +37,13 @@ const App = () => (
                     if (Layout) {
                       return (
                         <Layout {...props} title={rest.title}>
-                          <Component {...props} />
+                          <Component {...props} isMobile={matches.small} />
                         </Layout>
                       );
                     }
                     return (
                       <Default {...props} title={rest.title}>
-                        <Component {...props} />
+                        <Component {...props} isMobile={matches.small} />
                       </Default>
                     );
                   };

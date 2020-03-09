@@ -15,17 +15,16 @@ const RecordStatus = (props: IProps) => {
     if (record.recordType === RecordType.Deposit) {
       const depositRecord = record as IDepositRecord;
       const currentPoolID = getCurrentPoolId();
-
-      if (depositRecord.isMatured) {
-        return (
-          <span className="ant-form-text matured">
-            {t('record_status_text_matured')}
-          </span>
-        );
-      } else if (depositRecord.isWithdrawn) {
+      if (depositRecord.isWithdrawn) {
         return (
           <span className="ant-form-text closed">
             {t('record_status_text_closed')}
+          </span>
+        );
+      } else if (depositRecord.isMatured) {
+        return (
+          <span className="ant-form-text matured">
+            {t('record_status_text_matured')}
           </span>
         );
       }

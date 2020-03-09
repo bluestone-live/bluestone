@@ -22,13 +22,13 @@ import Menu, { ClickParam } from 'antd/lib/menu';
 import Button from 'antd/lib/button';
 import Icon from 'antd/lib/icon';
 import CustomPoolCard from '../containers/CustomPoolCard';
+import { IWithMediaPage } from '..';
 import { parseQuery } from '../utils/parseQuery';
 
-interface IProps extends WithTranslation, RouteComponentProps<{}> {}
+interface IProps extends IWithMediaPage, WithTranslation, RouteComponentProps {}
 
 const DepositOverview = (props: IProps) => {
-  const { location, t } = props;
-
+  const { isMobile, location, t } = props;
   const queryParams = parseQuery(location.search);
 
   const dispatch = useDispatch();
@@ -39,7 +39,9 @@ const DepositOverview = (props: IProps) => {
   const network = useNetwork();
 
   const depositTerms =
-    network === 'main' ? useDepositTerms() : useTestingDepositTerms();
+    network !== 'main' && isMobile
+      ? useTestingDepositTerms()
+      : useDepositTerms();
 
   const sortingParams = useMemo(
     () => ['term', 'APR', 'utilization'],

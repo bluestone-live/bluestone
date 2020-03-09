@@ -98,10 +98,6 @@ const DepositDetail = (props: IProps) => {
       dispatch(ViewActions.setLoading(true));
       const { depositService } = await getService();
       await depositService.withdrawDeposit(accountAddress, record.recordId);
-      await depositService.earlyWithdrawDeposit(
-        accountAddress,
-        record.recordId,
-      );
       dispatch(
         ViewActions.setBanner(t('common_early_withdraw_deposit_succeed')),
       );
