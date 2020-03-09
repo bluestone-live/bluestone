@@ -18,12 +18,8 @@ export class CommonService {
 
   async bindEthereumStateChangeEvent(
     onAccountChanged: (...args: any[]) => any,
-    onNetworkChanged: (...args: any[]) => any,
   ) {
-    return this.provider.bindEthereumStateChangeEvent(
-      onAccountChanged,
-      onNetworkChanged,
-    );
+    return this.provider.bindEthereumStateChangeEvent(onAccountChanged);
   }
 
   /**

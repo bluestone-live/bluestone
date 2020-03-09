@@ -39,9 +39,7 @@ export const useGlobalInit = (
     dispatch(ViewActions.setNetwork(await commonService.getCurrentNetwork()));
 
     // Bind account and network change event
-    commonService.bindEthereumStateChangeEvent(getAccounts, () => {
-      window.location.reload();
-    });
+    commonService.bindEthereumStateChangeEvent(getAccounts);
 
     const protocolContractAddress = await commonService.getProtocolContractAddress();
     dispatch(CommonActions.setProtocolContractAddress(protocolContractAddress));

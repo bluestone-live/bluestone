@@ -5,9 +5,13 @@ import { useEffect } from 'react';
  * @param initializeCallback callback
  */
 export const useComponentMounted = (initializeCallback: () => Promise<any>) =>
-  useEffect(() => {
-    initializeCallback();
-  }, []);
+  new Promise((resolve, reject) => {
+    useEffect(() => {
+      initializeCallback()
+        .then(resolve)
+        .catch(reject);
+    }, []);
+  });
 
 /**
  * Called when deps changed

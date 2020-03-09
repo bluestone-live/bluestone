@@ -19,6 +19,12 @@ import dayjs from 'dayjs';
 
 dayjs.extend(utc);
 
+if ((global as any).ethereum) {
+  (global as any).ethereum.on('networkChanged', () => {
+    window.location.reload();
+  });
+}
+
 export interface IWithMediaPage {
   isMobile: boolean;
 }

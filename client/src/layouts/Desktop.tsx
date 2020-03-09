@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter, Route } from 'react-router';
 import { useDispatch } from 'react-redux';
@@ -8,6 +8,9 @@ import Banner from '../components/Banner';
 import { useGlobalInit } from './useGlobalInit';
 import TabBar from '../components/TabBar';
 import logo from '../styles/images/bluestone.svg';
+import { useComponentMounted } from '../utils/useEffectAsync';
+import { getService } from '../services';
+import Modal from 'antd/lib/modal';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
@@ -26,6 +29,17 @@ const DesktopLayout = (props: IProps) => {
   // Selector
   const accountAddress = useDefaultAccount();
   const { banner, bannerType } = useBanner();
+
+  // State
+  const [showNetworkAlert, setShowNetworkAlert] = useState(false);
+
+  useComponentMounted(async () => {
+    try {
+      await getService();
+    } catch (e) {
+      setShowNetworkAlert(true);
+    }
+  });
 
   // Initialize
   const { tabOptions, selectedTab } = useGlobalInit(
@@ -83,6 +97,14 @@ const DesktopLayout = (props: IProps) => {
           <img src={logo} alt="Logo" />
         </div>
       </footer>
+      <Modal
+        title={t('layout_network_alert_title')}
+        visible={showNetworkAlert}
+        closable={false}
+        footer={[]}
+      >
+        <p>{t('layout_network_alert_content')}</p>
+      </Modal>
     </div>
   );
 };

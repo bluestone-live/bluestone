@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch } from 'react-redux';
@@ -14,6 +14,9 @@ import Banner from '../components/Banner';
 import { useGlobalInit } from './useGlobalInit';
 import Brand from '../components/Brand';
 import Button from 'antd/lib/button';
+import Modal from 'antd/lib/modal';
+import { useComponentMounted } from '../utils/useEffectAsync';
+import { getService } from '../services';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   children: React.ReactChild;
@@ -31,6 +34,17 @@ const OverviewLayout = (props: IProps) => {
   const accountAddress = useDefaultAccount();
   const { banner, bannerType } = useBanner();
   const network = useNetwork();
+
+  // State
+  const [showNetworkAlert, setShowNetworkAlert] = useState(false);
+
+  useComponentMounted(async () => {
+    try {
+      await getService();
+    } catch (e) {
+      setShowNetworkAlert(true);
+    }
+  });
 
   // Initialize
   const { tabOptions, selectedTab } = useGlobalInit(
@@ -98,6 +112,14 @@ const OverviewLayout = (props: IProps) => {
         selectedTab={selectedTab && selectedTab.type}
         onItemClick={onTabItemClick}
       />
+      <Modal
+        title={t('layout_network_alert_title')}
+        visible={showNetworkAlert}
+        closable={false}
+        footer={[]}
+      >
+        <p>{t('layout_network_alert_content')}</p>
+      </Modal>
     </div>
   );
 };

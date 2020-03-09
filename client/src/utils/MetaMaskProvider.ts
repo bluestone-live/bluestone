@@ -114,11 +114,9 @@ export class MetaMaskProvider {
 
   async bindEthereumStateChangeEvent(
     onAccountChanged: (...args: any[]) => any,
-    onNetworkChanged: (...args: any[]) => any,
   ) {
     if ((global as any).ethereum && !this.eventBound) {
       (global as any).ethereum.on('accountsChanged', onAccountChanged);
-      (global as any).ethereum.on('networkChanged', onNetworkChanged);
       this.eventBound = true;
     }
   }
