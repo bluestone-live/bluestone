@@ -26,6 +26,8 @@ import { parseQuery } from '../utils/parseQuery';
 
 interface IProps extends WithTranslation, RouteComponentProps {}
 
+const MIN_AVAIL_AMOUNT = 0.1;
+
 const BorrowOverview = (props: IProps) => {
   const { t, history } = props;
 
@@ -51,7 +53,7 @@ const BorrowOverview = (props: IProps) => {
         token => token.tokenAddress === queryParams.tokenAddress,
       ) || depositTokens[0],
   );
-  const [selectedTerm, setSelectedTerm] = useState<number>(1);
+  const [selectedTerm, setSelectedTerm] = useState<number>(7);
 
   // Init
   useDepsUpdated(async () => {
@@ -146,14 +148,23 @@ const BorrowOverview = (props: IProps) => {
       />
       <div className="title chart-block full-width">
         <div>{t('borrow_overview_title_select_term')}</div>
+        <p>{t('borrow_overview_drag_bar')}</p>
+        {selectedPool && <BorrowPoolCard pool={selectedPool} />}
         <BorrowPoolChart
           pools={computedPools}
           maxBorrowTerm={90}
           selectedTerm={selectedTerm}
           onTermChange={onTermChange}
         />
-        {selectedPool && <BorrowPoolCard pool={selectedPool} />}
-        <Button type="primary" block size="large" onClick={onNextButtonClick}>
+        <Button
+          type="primary"
+          block
+          size="large"
+          onClick={onNextButtonClick}
+          disabled={
+            selectedPool && selectedPool.availableAmount < MIN_AVAIL_AMOUNT
+          }
+        >
           {t('borrow_overview_button_next')}
         </Button>
       </div>
