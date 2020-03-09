@@ -220,6 +220,12 @@ interface IProtocol {
         virtual
         returns (IStruct.getPoolsByTokenResponse[] memory poolList);
 
+    function getPoolById(address tokenAddress, uint256 poolId)
+        external
+        view
+        virtual
+        returns (IStruct.Pool memory pool);
+
     /// @notice Set price oracle address
     /// @param tokenAddress Token address
     /// @param priceOracle Price oracle

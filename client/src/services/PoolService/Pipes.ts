@@ -11,6 +11,16 @@ export interface IGetAllPoolResponse {
   totalDepositWeight: string;
 }
 
+export interface IGetPoolByIdResponse {
+  depositAmount: string;
+  availableAmount: string;
+  loanInterest: string;
+  totalDepositWeight: string;
+  depositDistributorFeeRatio: string;
+  loanDistributorFeeRatio: string;
+  protocolReserveRatio: string;
+}
+
 export const PoolsPipe = (
   tokenAddress: string,
   pools: IGetAllPoolResponse[],
@@ -45,3 +55,39 @@ export const PoolsPipe = (
 
 export const hideFirstPoolPipe = (pools: IPool[]) =>
   pools.slice(1, pools.length);
+
+export const PoolPipe = (
+  tokenAddress: string,
+  poolId: string,
+  pool: IGetPoolByIdResponse,
+): IPool => {
+  const APR =
+    pool.totalDepositWeight === '0'
+      ? '0.00'
+      : calculateAPRByPoolData(
+          { ...pool, poolId },
+          {
+            depositDistributorFeeRatio: pool.depositDistributorFeeRatio,
+            loanDistributorFeeRatio: pool.loanDistributorFeeRatio,
+          },
+          pool.protocolReserveRatio,
+        );
+
+  const utilization = calculateUtilizationByPoolData(
+    { ...pool, poolId },
+    {
+      depositDistributorFeeRatio: pool.depositDistributorFeeRatio,
+      loanDistributorFeeRatio: pool.loanDistributorFeeRatio,
+    },
+  );
+
+  return {
+    poolId,
+    tokenAddress,
+    term: 0,
+    APR,
+    utilization,
+    totalDeposit: pool.depositAmount,
+    ...pool,
+  };
+};

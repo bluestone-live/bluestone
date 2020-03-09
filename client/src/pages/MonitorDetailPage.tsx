@@ -51,9 +51,13 @@ const MonitorDetailPage = (props: IProps) => {
       const { poolService } = await getService();
 
       dispatch(
-        PoolActions.replacePools(
+        PoolActions.replacePool(
           queryParams.tokenAddress,
-          await poolService.getPoolsByToken(queryParams.tokenAddress),
+          poolId,
+          await poolService.getPoolByTokenAndId(
+            queryParams.tokenAddress,
+            poolId,
+          ),
         ),
       );
     }

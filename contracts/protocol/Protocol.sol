@@ -440,6 +440,15 @@ contract Protocol is IProtocol, Ownable, Pausable {
         return _liquidityPools.getPoolsByToken(tokenAddress);
     }
 
+    function getPoolById(address tokenAddress, uint256 poolId)
+        external
+        view
+        override
+        returns (IStruct.Pool memory pool)
+    {
+        return _liquidityPools.getPoolById(tokenAddress, poolId);
+    }
+
     /// --- Configuration ---
     function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
         external

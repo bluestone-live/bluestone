@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 export enum PoolActionType {
   ReplacePools = 'REPLACE_POOLS',
+  ReplacePool = 'REPLACE_POOL',
   ReplaceMonitorPools = 'REPLACE_MONITOR_POOLS',
 }
 
@@ -60,7 +61,24 @@ export const PoolReducer = (
           [action.payload.tokenAddress]: action.payload.monitorPools,
         },
       };
-
+    case PoolActionType.ReplacePool:
+      return {
+        ...state,
+        monitorPoolMap: {
+          ...state.monitorPoolMap,
+          [action.payload.tokenAddress]: (
+            state.monitorPoolMap[action.payload.tokenAddress] || []
+          ).map(pool => {
+            if (
+              pool.tokenAddress === action.payload.tokenAddress &&
+              pool.poolId === action.payload.poolId
+            ) {
+              return action.payload.pool;
+            }
+            return pool;
+          }),
+        },
+      };
     default:
       return state;
   }
@@ -73,6 +91,16 @@ export class PoolActions {
       payload: {
         tokenAddress,
         pools,
+      },
+    };
+  }
+  static replacePool(tokenAddress: string, poolId: string, pool: IPool) {
+    return {
+      type: PoolActionType.ReplacePool,
+      payload: {
+        tokenAddress,
+        poolId,
+        pool,
       },
     };
   }

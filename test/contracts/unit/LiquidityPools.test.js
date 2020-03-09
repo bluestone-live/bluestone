@@ -130,6 +130,41 @@ contract('LiquidityPools', function([owner]) {
     });
   });
 
+  describe('#getPoolById', () => {
+    let currentPoolId;
+    beforeEach(async () => {
+      currentPoolId = await datetime.toDays();
+      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
+    });
+
+    it('succeeds', async () => {
+      const depositAmountArray = [0, 1, 2, 3, 4, 5].map(n => toFixedBN(n));
+      const availableAmountArray = [0, 1, 1, 1, 1, 1].map(n => toFixedBN(n));
+
+      await liquidityPools.populatePoolGroup(
+        token.address,
+        depositAmountArray,
+        availableAmountArray,
+      );
+
+      for (let i = 0; i < depositAmountArray.length; i++) {
+        const {
+          depositAmount,
+          availableAmount,
+        } = await liquidityPools.getPoolById(
+          token.address,
+          Number.parseInt(currentPoolId, 10) + i,
+        );
+        expect(new BN(depositAmount)).to.be.bignumber.equal(
+          depositAmountArray[i],
+        );
+        expect(new BN(availableAmount)).to.be.bignumber.equal(
+          availableAmountArray[i],
+        );
+      }
+    });
+  });
+
   describe('#loanFromPools', () => {
     beforeEach(async () => {
       const depositAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
