@@ -213,6 +213,14 @@ contract LoanManagerMock {
         return _liquidityPools.getPoolsByToken(tokenAddress);
     }
 
+    function getPoolById(address tokenAddress, uint256 poolId)
+        external
+        view
+        returns (IStruct.Pool memory pool)
+    {
+        return _liquidityPools.getPoolById(tokenAddress, poolId);
+    }
+
     function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
         external
     {

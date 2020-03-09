@@ -34,8 +34,18 @@ contract('LoanManager', function([
   const loanDistributorFeeRatio = toFixedBN(0.02);
   const minCollateralCoverageRatio = toFixedBN(1.5);
   const liquidationDiscount = toFixedBN(0.05);
+  const initialSupply = toFixedBN(1000);
 
-  let weth;
+  let weth, loanToken, collateralToken;
+
+  const setLoanAndCollateralTokenPair = async () => {
+    await loanManager.setLoanAndCollateralTokenPair(
+      loanToken.address,
+      collateralToken.address,
+      minCollateralCoverageRatio,
+      liquidationDiscount,
+    );
+  };
 
   beforeEach(async () => {
     loanManager = await LoanManager.new();
@@ -53,22 +63,22 @@ contract('LoanManager', function([
     payableProxy = await PayableProxy.new(loanManager.address, weth.address);
 
     await loanManager.setPayableProxy(payableProxy.address);
+
+    loanToken = await createERC20Token(depositor, initialSupply);
+    collateralToken = await createERC20Token(loaner, initialSupply);
   });
 
   describe('#getLoanRecordById', () => {
     context('when loan id is valid', () => {
-      const initialSupply = toFixedBN(1000);
       const depositAmount = toFixedBN(10);
       const depositTerm = 30;
       const loanAmount = toFixedBN(10);
       const collateralAmount = toFixedBN(30);
       const loanTerm = 30;
 
-      let loanToken, collateralToken, recordId;
+      let recordId;
 
       beforeEach(async () => {
-        loanToken = await createERC20Token(depositor, initialSupply);
-        collateralToken = await createERC20Token(loaner, initialSupply);
         await priceOracle.setPrice(toFixedBN(10));
         await loanManager.setPriceOracle(
           loanToken.address,
@@ -159,18 +169,13 @@ contract('LoanManager', function([
     });
 
     context('when user have loan records', () => {
-      const initialSupply = toFixedBN(1000);
       const depositAmount = toFixedBN(10);
       const depositTerm = 30;
       const loanAmount = toFixedBN(10);
       const collateralAmount = toFixedBN(30);
       const loanTerm = 30;
 
-      let loanToken, collateralToken;
-
       beforeEach(async () => {
-        loanToken = await createERC20Token(depositor, initialSupply);
-        collateralToken = await createERC20Token(loaner, initialSupply);
         await priceOracle.setPrice(toFixedBN(10));
         await loanManager.setPriceOracle(
           loanToken.address,
@@ -233,26 +238,19 @@ contract('LoanManager', function([
   });
 
   describe('#addCollateral', () => {
-    const initialSupply = toFixedBN(1000);
     const depositAmount = toFixedBN(10);
     const depositTerm = 30;
     const loanAmount = toFixedBN(10);
     const collateralAmount = toFixedBN(30);
     const loanTerm = 30;
 
-    let loanToken, collateralToken, recordId, ETHRecordId;
+    let recordId, prevLoanerCollateralBalance, prevProtocolCollateralBalance;
 
     beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
       await priceOracle.setPrice(toFixedBN(10));
       await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
       await loanManager.setPriceOracle(
         collateralToken.address,
-        priceOracle.address,
-      );
-      await loanManager.setPriceOracle(
-        ETHIdentificationAddress,
         priceOracle.address,
       );
       await loanManager.enableDepositToken(loanToken.address);
@@ -267,7 +265,7 @@ contract('LoanManager', function([
 
       await loanManager.deposit(
         loanToken.address,
-        depositAmount.mul(new BN(2)),
+        depositAmount,
         depositTerm,
         distributorAddress,
         {
@@ -275,19 +273,7 @@ contract('LoanManager', function([
         },
       );
 
-      await loanManager.setLoanAndCollateralTokenPair(
-        loanToken.address,
-        collateralToken.address,
-        minCollateralCoverageRatio,
-        liquidationDiscount,
-      );
-
-      await loanManager.setLoanAndCollateralTokenPair(
-        loanToken.address,
-        ETHIdentificationAddress,
-        minCollateralCoverageRatio,
-        liquidationDiscount,
-      );
+      await setLoanAndCollateralTokenPair();
 
       const { logs } = await loanManager.loan(
         loanToken.address,
@@ -304,65 +290,64 @@ contract('LoanManager', function([
       recordId = logs.filter(log => log.event === 'LoanSucceed')[0].args
         .recordId;
 
-      const { logs: logs2 } = await loanManager.loan(
-        loanToken.address,
-        ETHIdentificationAddress,
-        loanAmount,
-        toFixedBN(0),
-        loanTerm,
-        distributorAddress,
-        {
-          from: loaner,
-          value: collateralAmount,
-        },
+      prevLoanerCollateralBalance = await collateralToken.balanceOf(loaner);
+      prevProtocolCollateralBalance = await collateralToken.balanceOf(
+        loanManager.address,
       );
-
-      ETHRecordId = logs2.filter(log => log.event === 'LoanSucceed')[0].args
-        .recordId;
     });
 
-    it('succeeds', async () => {
+    context('when collateral amount is invalid', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          loanManager.addCollateral(recordId, new BN(0), {
+            from: loaner,
+          }),
+          'LoanManager: invalid collateralAmount',
+        );
+      });
+    });
+
+    context('when collateral amount is valid', () => {
       const collateralAmount = toFixedBN(10);
-      const { logs } = await loanManager.addCollateral(
-        recordId,
-        collateralAmount,
-        {
-          from: loaner,
-        },
-      );
+      let tx;
 
-      const { logs: logs2 } = await loanManager.addCollateral(
-        ETHRecordId,
-        toFixedBN(0),
-        {
+      beforeEach(async () => {
+        tx = await loanManager.addCollateral(recordId, collateralAmount, {
           from: loaner,
-          value: collateralAmount,
-        },
-      );
-
-      expectEvent.inLogs(logs, 'AddCollateralSucceed', {
-        accountAddress: loaner,
-        recordId,
-        collateralAmount,
+        });
       });
 
-      expectEvent.inLogs(logs2, 'AddCollateralSucceed', {
-        accountAddress: loaner,
-        recordId: ETHRecordId,
-        collateralAmount,
+      it('emits event', async () => {
+        expectEvent.inLogs(tx.logs, 'AddCollateralSucceed', {
+          accountAddress: loaner,
+          recordId,
+          collateralAmount,
+        });
+      });
+
+      it('reduces collateral tokens from loaner', async () => {
+        const currLoanerCollateralBalance = await collateralToken.balanceOf(
+          loaner,
+        );
+
+        expect(currLoanerCollateralBalance).to.bignumber.equal(
+          prevLoanerCollateralBalance.sub(collateralAmount),
+        );
+      });
+
+      it('adds collateral tokens to protocol', async () => {
+        const currProtocolCollateralBalance = await collateralToken.balanceOf(
+          loanManager.address,
+        );
+
+        expect(currProtocolCollateralBalance).to.bignumber.equal(
+          prevProtocolCollateralBalance.add(collateralAmount),
+        );
       });
     });
   });
 
   describe('#setLoanAndCollateralTokenPair', () => {
-    const initialSupply = toFixedBN(1000);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-    });
-
     context('when loan and collateral token are the same', () => {
       it('reverts', async () => {
         await expectRevert(
@@ -393,14 +378,6 @@ contract('LoanManager', function([
   });
 
   describe('#removeLoanAndCollateralTokenPair', () => {
-    const initialSupply = toFixedBN(1000);
-    let loanToken, collateralToken;
-
-    beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-    });
-
     context('when the pair does not exist', () => {
       it('reverts', async () => {
         await expectRevert(
@@ -434,14 +411,10 @@ contract('LoanManager', function([
   });
 
   describe('#loan', () => {
-    const initialSupply = toFixedBN(1000);
     const depositAmount = toFixedBN(10);
     const depositTerm = 30;
-    let loanToken, collateralToken;
 
     beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
       await priceOracle.setPrice(toFixedBN(10));
       await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
       await loanManager.setPriceOracle(
@@ -473,14 +446,140 @@ contract('LoanManager', function([
       );
     });
 
-    context('when loan and collateral token pair is enabled', () => {
-      beforeEach(async () => {
-        await loanManager.setLoanAndCollateralTokenPair(
-          loanToken.address,
-          collateralToken.address,
-          minCollateralCoverageRatio,
-          liquidationDiscount,
+    context('when loan and collateral token pair is not enabled', () => {
+      it('reverts', async () => {
+        const loanAmount = toFixedBN(10);
+        const collateralAmount = toFixedBN(30);
+        const loanTerm = 30;
+
+        await expectRevert(
+          loanManager.loan(
+            loanToken.address,
+            collateralToken.address,
+            loanAmount,
+            collateralAmount,
+            loanTerm,
+            distributorAddress,
+            {
+              from: loaner,
+            },
+          ),
+          'LoanManager: invalid token pair',
         );
+      });
+    });
+
+    context('when loan amount is invalid', () => {
+      beforeEach(async () => {
+        await setLoanAndCollateralTokenPair();
+      });
+
+      it('reverts', async () => {
+        const loanAmount = new BN(0);
+        const collateralAmount = toFixedBN(30);
+        const loanTerm = 30;
+
+        await expectRevert(
+          loanManager.loan(
+            loanToken.address,
+            collateralToken.address,
+            loanAmount,
+            collateralAmount,
+            loanTerm,
+            distributorAddress,
+            {
+              from: loaner,
+            },
+          ),
+          'LoanManager: invalid loan amount',
+        );
+      });
+    });
+
+    context('when collateral amount is invalid', () => {
+      beforeEach(async () => {
+        await setLoanAndCollateralTokenPair();
+      });
+
+      it('reverts', async () => {
+        const loanAmount = toFixedBN(10);
+        const collateralAmount = new BN(0);
+        const loanTerm = 30;
+
+        await expectRevert(
+          loanManager.loan(
+            loanToken.address,
+            collateralToken.address,
+            loanAmount,
+            collateralAmount,
+            loanTerm,
+            distributorAddress,
+            {
+              from: loaner,
+            },
+          ),
+          'LoanManager: invalid collateral amount',
+        );
+      });
+    });
+
+    context('when loan term is invalid', () => {
+      beforeEach(async () => {
+        await setLoanAndCollateralTokenPair();
+      });
+
+      it('reverts', async () => {
+        const loanAmount = toFixedBN(10);
+        const collateralAmount = toFixedBN(30);
+        const loanTerm = 31;
+
+        await expectRevert(
+          loanManager.loan(
+            loanToken.address,
+            collateralToken.address,
+            loanAmount,
+            collateralAmount,
+            loanTerm,
+            distributorAddress,
+            {
+              from: loaner,
+            },
+          ),
+          'LoanManager: invalid loan term',
+        );
+      });
+    });
+
+    context('when collateral coverage ratio is invalid', () => {
+      beforeEach(async () => {
+        await setLoanAndCollateralTokenPair();
+      });
+
+      it('reverts', async () => {
+        const loanAmount = toFixedBN(10);
+        const collateralAmount = toFixedBN(10);
+        const loanTerm = 30;
+
+        await expectRevert(
+          loanManager.loan(
+            loanToken.address,
+            collateralToken.address,
+            loanAmount,
+            collateralAmount,
+            loanTerm,
+            distributorAddress,
+            {
+              from: loaner,
+            },
+          ),
+          'LoanManager: invalid collateral coverage ratio',
+        );
+      });
+    });
+
+    context('when all input is valid', () => {
+      beforeEach(async () => {
+        await setLoanAndCollateralTokenPair();
       });
 
       it('succeeds', async () => {
@@ -542,17 +641,14 @@ contract('LoanManager', function([
   });
 
   describe('#repayLoan', () => {
-    const initialSupply = toFixedBN(1000);
     const depositAmount = toFixedBN(10);
     const depositTerm = 30;
     const loanAmount = toFixedBN(10);
     const collateralAmount = toFixedBN(30);
     const loanTerm = 30;
-    let loanToken, collateralToken, recordId, ETHRecordId, pool;
+    let recordId;
 
     beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
       await loanToken.mint(loaner, initialSupply);
       await priceOracle.setPrice(toFixedBN(10));
       await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
@@ -560,25 +656,8 @@ contract('LoanManager', function([
         collateralToken.address,
         priceOracle.address,
       );
-      await loanManager.setPriceOracle(
-        ETHIdentificationAddress,
-        priceOracle.address,
-      );
       await loanManager.enableDepositToken(loanToken.address);
-      await loanManager.setLoanAndCollateralTokenPair(
-        loanToken.address,
-        collateralToken.address,
-        minCollateralCoverageRatio,
-        liquidationDiscount,
-        { from: owner },
-      );
-      await loanManager.setLoanAndCollateralTokenPair(
-        loanToken.address,
-        ETHIdentificationAddress,
-        minCollateralCoverageRatio,
-        liquidationDiscount,
-        { from: owner },
-      );
+      await setLoanAndCollateralTokenPair();
       await interestModel.setLoanParameters(
         loanToken.address,
         toFixedBN(0.1),
@@ -595,7 +674,7 @@ contract('LoanManager', function([
 
       await loanManager.deposit(
         loanToken.address,
-        depositAmount.mul(new BN(2)),
+        depositAmount,
         depositTerm,
         distributorAddress,
         {
@@ -603,7 +682,7 @@ contract('LoanManager', function([
         },
       );
 
-      const { logs: logs1 } = await loanManager.loan(
+      const { logs } = await loanManager.loan(
         loanToken.address,
         collateralToken.address,
         loanAmount,
@@ -615,23 +694,7 @@ contract('LoanManager', function([
         },
       );
 
-      recordId = logs1.filter(log => log.event === 'LoanSucceed')[0].args
-        .recordId;
-
-      const { logs: logs2 } = await loanManager.loan(
-        loanToken.address,
-        ETHIdentificationAddress,
-        loanAmount,
-        toFixedBN(0),
-        loanTerm,
-        distributorAddress,
-        {
-          from: loaner,
-          value: collateralAmount,
-        },
-      );
-
-      ETHRecordId = logs2.filter(log => log.event === 'LoanSucceed')[0].args
+      recordId = logs.filter(log => log.event === 'LoanSucceed')[0].args
         .recordId;
 
       await loanToken.approve(loanManager.address, initialSupply, {
@@ -639,350 +702,285 @@ contract('LoanManager', function([
       });
     });
 
-    it('repays principle succeed', async () => {
-      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
-
-      const prevETHLoanRecord = await loanManager.getLoanRecordById(
-        ETHRecordId,
-      );
-      const prevDistributorBalance = await loanToken.balanceOf(
-        distributorAddress,
-      );
-      const { logs: logs1 } = await loanManager.repayLoan(
-        recordId,
-        loanAmount,
-        { from: loaner },
-      );
-
-      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
-        accountAddress: loaner,
-        recordId: recordId,
-        amount: loanAmount,
+    context('when owner is invalid', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          loanManager.repayLoan(recordId, loanAmount, { from: depositor }),
+          'LoanManager: invalid owner',
+        );
       });
-
-      const { logs: logs2 } = await loanManager.repayLoan(
-        ETHRecordId,
-        loanAmount,
-        { from: loaner },
-      );
-
-      expectEvent.inLogs(logs2, 'RepayLoanSucceed', {
-        accountAddress: loaner,
-        recordId: ETHRecordId,
-        amount: loanAmount,
-      });
-
-      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
-
-      const pools = await loanManager.getPoolsByToken(loanToken.address);
-      const currentPoolId = Number.parseInt(
-        (await datetime.toDays()).toString(),
-        10,
-      );
-
-      pool = pools.find(
-        p => p.poolId.toString() === String(currentPoolId + depositTerm),
-      );
-
-      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
-        new BN(currLoanRecord.interest),
-      );
-      expect(currLoanRecord.isClosed).to.be.false;
-      expect(await loanToken.balanceOf(distributorAddress)).to.bignumber.equal(
-        toFixedBN(0),
-      );
-      expect(new BN(pool.availableAmount)).to.bignumber.equal(
-        new BN(pool.depositAmount),
-      );
     });
-    it('repays part principle part interest succeed', async () => {
-      await loanManager.repayLoan(recordId, loanAmount.div(new BN(2)), {
-        from: loaner,
+
+    context('when loan record is closed', () => {
+      beforeEach(async () => {
+        const loanRecord = await loanManager.getLoanRecordById(recordId);
+        await loanManager.repayLoan(recordId, loanRecord.remainingDebt, {
+          from: loaner,
+        });
       });
 
-      const prevDistributorBalance = await loanToken.balanceOf(
-        distributorAddress,
-      );
-
-      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
-
-      const repayAmount = new BN(prevLoanRecord.remainingDebt).sub(
-        toFixedBN(0.01),
-      );
-
-      const { logs: logs1 } = await loanManager.repayLoan(
-        recordId,
-        repayAmount,
-        { from: loaner },
-      );
-
-      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
-        accountAddress: loaner,
-        recordId: recordId,
-        amount: repayAmount,
+      it('reverts', async () => {
+        await expectRevert(
+          loanManager.repayLoan(recordId, loanAmount, { from: loaner }),
+          'LoanManager: loan already closed',
+        );
       });
+    });
 
-      const currentPoolId = Number.parseInt(
-        (await datetime.toDays()).toString(),
-        10,
-      );
-      const pools = await loanManager.getPoolsByToken(loanToken.address);
-      pool = pools.find(
-        p => p.poolId.toString() === String(currentPoolId + depositTerm),
-      );
+    context('when repay amount is greater than remaining debt', () => {
+      it('reverts', async () => {
+        const loanRecord = await loanManager.getLoanRecordById(recordId);
 
-      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
-
-      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
-        toFixedBN(0.01),
-      );
-      expect(currLoanRecord.isClosed).to.be.false;
-      expect(
-        (await loanToken.balanceOf(distributorAddress)).sub(
-          prevDistributorBalance,
-        ),
-      ).to.bignumber.equal(new BN(0));
-
-      expect(new BN(pool.availableAmount)).to.bignumber.equal(
-        new BN(prevLoanRecord.alreadyPaidAmount).add(
-          new BN(prevLoanRecord.alreadyPaidAmount).add(
-            repayAmount
-              .sub(
-                new BN(prevLoanRecord.loanAmount).sub(
-                  new BN(prevLoanRecord.alreadyPaidAmount),
-                ),
-              )
-              .mul(toFixedBN(1).sub(loanDistributorFeeRatio))
-              .div(toFixedBN(1)),
+        await expectRevert(
+          loanManager.repayLoan(
+            recordId,
+            new BN(loanRecord.remainingDebt).add(new BN(1)),
+            {
+              from: loaner,
+            },
           ),
-        ),
-      );
+          'LoanManager: invalid repay amount',
+        );
+      });
     });
-    it('only repays interest succeed', async () => {
-      await loanManager.repayLoan(recordId, loanAmount, {
-        from: loaner,
+
+    context('when repays full pricipal', () => {
+      let tx;
+
+      beforeEach(async () => {
+        tx = await loanManager.repayLoan(recordId, loanAmount, {
+          from: loaner,
+        });
       });
 
-      const prevDistributorBalance = await loanToken.balanceOf(
-        distributorAddress,
-      );
-
-      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
-
-      const repayAmount = new BN(prevLoanRecord.remainingDebt).sub(
-        toFixedBN(0.01),
-      );
-
-      const { logs: logs1 } = await loanManager.repayLoan(
-        recordId,
-        repayAmount,
-        { from: loaner },
-      );
-
-      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
-        accountAddress: loaner,
-        recordId: recordId,
-        amount: repayAmount,
+      it('emits event', async () => {
+        expectEvent.inLogs(tx.logs, 'RepayLoanSucceed', {
+          accountAddress: loaner,
+          recordId: recordId,
+          amount: loanAmount,
+        });
       });
-      const currentPoolId = Number.parseInt(
-        (await datetime.toDays()).toString(),
-        10,
-      );
 
-      const pools = await loanManager.getPoolsByToken(loanToken.address);
-      pool = pools.find(
-        p => p.poolId.toString() === String(currentPoolId + depositTerm),
-      );
+      it('updates loan record', async () => {
+        const loanRecord = await loanManager.getLoanRecordById(recordId);
 
-      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+        expect(new BN(loanRecord.remainingDebt)).to.bignumber.equal(
+          new BN(loanRecord.interest),
+        );
 
-      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
-        toFixedBN(0.01),
-      );
-      expect(currLoanRecord.isClosed).to.be.false;
-      expect(
-        (await loanToken.balanceOf(distributorAddress)).sub(
-          prevDistributorBalance,
-        ),
-      ).to.bignumber.equal(new BN(0));
+        expect(loanRecord.isClosed).to.be.false;
+      });
 
-      expect(new BN(pool.availableAmount)).to.bignumber.equal(
-        new BN(prevLoanRecord.alreadyPaidAmount).add(
-          repayAmount
-            .mul(toFixedBN(1).sub(loanDistributorFeeRatio))
-            .div(toFixedBN(1)),
-        ),
-      );
+      it('repays principal back to pool', async () => {
+        const poolId = (await datetime.toDays()).add(new BN(depositTerm));
+        const pool = await loanManager.getPoolById(loanToken.address, poolId);
+
+        expect(new BN(pool.availableAmount)).to.bignumber.equal(
+          new BN(pool.depositAmount),
+        );
+      });
+
+      it('sends no token to distributor', async () => {
+        const distributorBalance = await loanToken.balanceOf(
+          distributorAddress,
+        );
+
+        expect(distributorBalance).to.bignumber.equal(toFixedBN(0));
+      });
     });
-    it('repays amount less than distributor fee succeed', async () => {
-      await loanManager.repayLoan(recordId, loanAmount, {
-        from: loaner,
+
+    context('when repays full principal and partial interest', () => {
+      let tx, repayAmount;
+      const targetRemainingDebt = new BN(1000);
+
+      beforeEach(async () => {
+        const loanRecord = await loanManager.getLoanRecordById(recordId);
+        repayAmount = new BN(loanRecord.remainingDebt).sub(targetRemainingDebt);
+
+        tx = await loanManager.repayLoan(recordId, repayAmount, {
+          from: loaner,
+        });
       });
 
-      const prevDistributorBalance = await loanToken.balanceOf(
-        distributorAddress,
-      );
-
-      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
-
-      const repayAmount = new BN(prevLoanRecord.interest)
-        .mul(loanDistributorFeeRatio)
-        .div(toFixedBN(1))
-        .div(new BN(2));
-
-      const { logs: logs1 } = await loanManager.repayLoan(
-        recordId,
-        repayAmount,
-        { from: loaner },
-      );
-
-      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
-        accountAddress: loaner,
-        recordId: recordId,
-        amount: repayAmount,
-      });
-      const currentPoolId = Number.parseInt(
-        (await datetime.toDays()).toString(),
-        10,
-      );
-
-      const pools = await loanManager.getPoolsByToken(loanToken.address);
-      pool = pools.find(
-        p => p.poolId.toString() === String(currentPoolId + depositTerm),
-      );
-
-      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
-
-      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
-        new BN(prevLoanRecord.interest).sub(repayAmount),
-      );
-      expect(currLoanRecord.isClosed).to.be.false;
-      expect(
-        (await loanToken.balanceOf(distributorAddress)).sub(
-          prevDistributorBalance,
-        ),
-      ).to.bignumber.equal(new BN(0));
-
-      expect(new BN(pool.availableAmount)).to.bignumber.equal(
-        new BN(prevLoanRecord.alreadyPaidAmount).add(
-          repayAmount
-            .mul(toFixedBN(1).sub(loanDistributorFeeRatio))
-            .div(toFixedBN(1)),
-        ),
-      );
-    });
-    it('repays fully succeed', async () => {
-      const prevDistributorBalance = await loanToken.balanceOf(
-        distributorAddress,
-      );
-      const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
-
-      const prevETHLoanRecord = await loanManager.getLoanRecordById(
-        ETHRecordId,
-      );
-
-      const { logs: logs1 } = await loanManager.repayLoan(
-        recordId,
-        prevLoanRecord.remainingDebt,
-        { from: loaner },
-      );
-
-      expectEvent.inLogs(logs1, 'RepayLoanSucceed', {
-        accountAddress: loaner,
-        recordId: recordId,
-        amount: prevLoanRecord.remainingDebt,
+      it('emits event', async () => {
+        expectEvent.inLogs(tx.logs, 'RepayLoanSucceed', {
+          accountAddress: loaner,
+          recordId: recordId,
+          amount: repayAmount,
+        });
       });
 
-      const pools = await loanManager.getPoolsByToken(loanToken.address);
-      const currentPoolId = Number.parseInt(
-        (await datetime.toDays()).toString(),
-        10,
-      );
+      it('updates loan record', async () => {
+        const loanRecord = await loanManager.getLoanRecordById(recordId);
 
-      pool = pools.find(
-        p => p.poolId.toString() === String(currentPoolId + depositTerm),
-      );
+        expect(new BN(loanRecord.remainingDebt)).to.bignumber.equal(
+          targetRemainingDebt,
+        );
 
-      const { logs: logs2 } = await loanManager.repayLoan(
-        ETHRecordId,
-        prevETHLoanRecord.remainingDebt,
-        { from: loaner },
-      );
-
-      expectEvent.inLogs(logs2, 'RepayLoanSucceed', {
-        accountAddress: loaner,
-        recordId: ETHRecordId,
-        amount: prevETHLoanRecord.remainingDebt,
+        expect(loanRecord.isClosed).to.be.false;
       });
 
-      const currLoanRecord = await loanManager.getLoanRecordById(recordId);
-
-      expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
-        new BN(0),
-      );
-      expect(currLoanRecord.isClosed).to.be.true;
-      expect(
-        (await loanToken.balanceOf(distributorAddress)).sub(
-          prevDistributorBalance,
-        ),
-      ).to.bignumber.equal(
-        new BN(currLoanRecord.interest)
+      it('repays full principal and partial interest back to pool', async () => {
+        const poolId = (await datetime.toDays()).add(new BN(depositTerm));
+        const pool = await loanManager.getPoolById(loanToken.address, poolId);
+        const loanDistributorFee = repayAmount
+          .sub(loanAmount)
           .mul(loanDistributorFeeRatio)
-          .div(toFixedBN(1))
-          .mul(new BN(2)),
-      );
-      expect(new BN(pool.availableAmount)).to.bignumber.equal(
-        new BN(currLoanRecord.loanAmount)
-          .add(new BN(currLoanRecord.interest))
-          .sub(
-            new BN(currLoanRecord.interest)
-              .mul(loanDistributorFeeRatio)
-              .div(toFixedBN(1)),
-          ),
-      );
+          .div(toFixedBN(1));
+
+        expect(new BN(pool.availableAmount)).to.bignumber.equal(
+          repayAmount.sub(loanDistributorFee),
+        );
+      });
+
+      it('sends no token to distributor', async () => {
+        const distributorBalance = await loanToken.balanceOf(
+          distributorAddress,
+        );
+
+        expect(distributorBalance).to.bignumber.equal(toFixedBN(0));
+      });
+    });
+
+    context('when repays partial interest only', () => {
+      let tx, prevRemainingDebt;
+      const repayAmount = toFixedBN(0.01);
+
+      beforeEach(async () => {
+        // Repay full principle first
+        await loanManager.repayLoan(recordId, loanAmount, {
+          from: loaner,
+        });
+
+        const loanRecord = await loanManager.getLoanRecordById(recordId);
+        prevRemainingDebt = new BN(loanRecord.remainingDebt);
+
+        // Repay interest
+        tx = await loanManager.repayLoan(recordId, repayAmount, {
+          from: loaner,
+        });
+      });
+
+      it('emits event', async () => {
+        expectEvent.inLogs(tx.logs, 'RepayLoanSucceed', {
+          accountAddress: loaner,
+          recordId: recordId,
+          amount: repayAmount,
+        });
+      });
+
+      it('updates loan record', async () => {
+        const loanRecord = await loanManager.getLoanRecordById(recordId);
+        const currRemainingDebt = new BN(loanRecord.remainingDebt);
+
+        expect(currRemainingDebt).to.bignumber.equal(
+          prevRemainingDebt.sub(repayAmount),
+        );
+
+        expect(loanRecord.isClosed).to.be.false;
+      });
+
+      it('repays partial interest back to pool', async () => {
+        const poolId = (await datetime.toDays()).add(new BN(depositTerm));
+        const pool = await loanManager.getPoolById(loanToken.address, poolId);
+        const loanDistributorFee = repayAmount
+          .mul(loanDistributorFeeRatio)
+          .div(toFixedBN(1));
+
+        expect(new BN(pool.availableAmount)).to.bignumber.equal(
+          loanAmount.add(repayAmount).sub(loanDistributorFee),
+        );
+      });
+
+      it('sends no token to distributor', async () => {
+        const distributorBalance = await loanToken.balanceOf(
+          distributorAddress,
+        );
+
+        expect(distributorBalance).to.bignumber.equal(toFixedBN(0));
+      });
+    });
+
+    context('when repays full pricipal and full interest', () => {
+      let tx, repayAmount;
+
+      beforeEach(async () => {
+        const loanRecord = await loanManager.getLoanRecordById(recordId);
+        repayAmount = new BN(loanRecord.remainingDebt);
+
+        tx = await loanManager.repayLoan(recordId, repayAmount, {
+          from: loaner,
+        });
+      });
+
+      it('emits event', async () => {
+        expectEvent.inLogs(tx.logs, 'RepayLoanSucceed', {
+          accountAddress: loaner,
+          recordId: recordId,
+          amount: repayAmount,
+        });
+      });
+
+      it('updates loan record', async () => {
+        const loanRecord = await loanManager.getLoanRecordById(recordId);
+
+        expect(new BN(loanRecord.remainingDebt)).to.bignumber.equal(new BN(0));
+
+        expect(loanRecord.isClosed).to.be.true;
+      });
+
+      let loanDistributorFee;
+
+      it('repays principal and interest back to pool', async () => {
+        const poolId = (await datetime.toDays()).add(new BN(depositTerm));
+        const pool = await loanManager.getPoolById(loanToken.address, poolId);
+        loanDistributorFee = repayAmount
+          .sub(loanAmount)
+          .mul(loanDistributorFeeRatio)
+          .div(toFixedBN(1));
+
+        expect(new BN(pool.availableAmount)).to.bignumber.equal(
+          repayAmount.sub(loanDistributorFee),
+        );
+      });
+
+      it('sends tokens to distributor', async () => {
+        const distributorBalance = await loanToken.balanceOf(
+          distributorAddress,
+        );
+
+        expect(distributorBalance).to.bignumber.equal(loanDistributorFee);
+      });
     });
   });
 
   describe('#liquidateLoan', () => {
-    const initialSupply = toFixedBN(1000);
     const depositAmount = toFixedBN(10);
     const depositTerm = 30;
     const loanAmount = toFixedBN(10);
-    const collateralAmount = toFixedBN(0.1);
+    const collateralAmount = toFixedBN(20);
     const loanTerm = 30;
     const liquidationDiscount = toFixedBN(0.05);
-    let loanToken, collateralToken, recordId, ETHRecordId;
+    const prevLoanTokenPrice = toFixedBN(10);
+    const prevCollateralTokenPrice = toFixedBN(10);
+    let recordId,
+      prevProtocolLoanBalance,
+      prevProtocolCollateralBalance,
+      prevLiquidatorLoanBalance,
+      prevLiquidatorCollateralBalance,
+      prevLoanerCollateralBalance;
 
     beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
       await loanToken.mint(liquidator, initialSupply);
-      await priceOracle.setPrice(toFixedBN(1));
-      await collateralPriceOracle.setPrice(toFixedBN(200));
+      await priceOracle.setPrice(prevLoanTokenPrice);
+      await collateralPriceOracle.setPrice(prevCollateralTokenPrice);
       await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
       await loanManager.setPriceOracle(
         collateralToken.address,
         collateralPriceOracle.address,
       );
-      await loanManager.setPriceOracle(
-        ETHIdentificationAddress,
-        collateralPriceOracle.address,
-      );
       await loanManager.enableDepositToken(loanToken.address);
-      await loanManager.setLoanAndCollateralTokenPair(
-        loanToken.address,
-        collateralToken.address,
-        minCollateralCoverageRatio,
-        liquidationDiscount,
-        { from: owner },
-      );
-      await loanManager.setLoanAndCollateralTokenPair(
-        loanToken.address,
-        ETHIdentificationAddress,
-        minCollateralCoverageRatio,
-        liquidationDiscount,
-        { from: owner },
-      );
+      await setLoanAndCollateralTokenPair();
       await loanManager.enableDepositTerm(depositTerm);
 
       await loanToken.approve(loanManager.address, initialSupply, {
@@ -995,7 +993,7 @@ contract('LoanManager', function([
 
       await loanManager.deposit(
         loanToken.address,
-        depositAmount.mul(new BN(2)),
+        depositAmount,
         depositTerm,
         distributorAddress,
         {
@@ -1003,7 +1001,7 @@ contract('LoanManager', function([
         },
       );
 
-      const { logs: logs1 } = await loanManager.loan(
+      const { logs } = await loanManager.loan(
         loanToken.address,
         collateralToken.address,
         loanAmount,
@@ -1015,211 +1013,439 @@ contract('LoanManager', function([
         },
       );
 
-      recordId = logs1.filter(log => log.event === 'LoanSucceed')[0].args
+      recordId = logs.filter(log => log.event === 'LoanSucceed')[0].args
         .recordId;
 
-      const { logs: logs2 } = await loanManager.loan(
-        loanToken.address,
-        ETHIdentificationAddress,
-        loanAmount,
-        toFixedBN(0),
-        loanTerm,
-        distributorAddress,
-        {
-          from: loaner,
-          value: collateralAmount,
-        },
+      prevProtocolLoanBalance = await loanToken.balanceOf(loanManager.address);
+      prevProtocolCollateralBalance = await collateralToken.balanceOf(
+        loanManager.address,
       );
+      prevLiquidatorLoanBalance = await loanToken.balanceOf(liquidator);
+      prevLiquidatorCollateralBalance = await collateralToken.balanceOf(
+        liquidator,
+      );
+      prevLoanerCollateralBalance = await collateralToken.balanceOf(loaner);
+    });
 
-      ETHRecordId = logs2.filter(log => log.event === 'LoanSucceed')[0].args
-        .recordId;
+    context('when liquidator is not owner', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          loanManager.liquidateLoan(recordId, new BN(1), { from: loaner }),
+          'LoanManager: invalid user',
+        );
+      });
+    });
+
+    context('when not liquidatable', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          loanManager.liquidateLoan(recordId, new BN(1), { from: liquidator }),
+          'LoanManager: not liquidatable',
+        );
+      });
     });
 
     context(
-      'when loan collateral ratio below min collateral coverage ratio',
+      'when collateral coverage ratio below min collateral coverage ratio',
       () => {
-        const liquidateAmount = loanAmount.div(new BN(2));
-        const collateralTokenPrice = toFixedBN(149);
+        const currCollateralTokenPrice = toFixedBN(7);
+        let prevLoanRecord;
 
         beforeEach(async () => {
-          await collateralPriceOracle.setPrice(collateralTokenPrice);
-        });
+          await collateralPriceOracle.setPrice(currCollateralTokenPrice);
 
-        it('liquidates partially succeed', async () => {
-          const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
-          const prevETHLoanRecord = await loanManager.getLoanRecordById(
-            ETHRecordId,
-          );
+          prevLoanRecord = await loanManager.getLoanRecordById(recordId);
 
           await loanToken.approve(
             loanManager.address,
-            new BN(prevLoanRecord.remainingDebt).add(
-              new BN(prevETHLoanRecord.remainingDebt),
-            ),
+            new BN(prevLoanRecord.remainingDebt),
             {
               from: liquidator,
             },
           );
-
-          const { logs } = await loanManager.liquidateLoan(
-            recordId,
-            liquidateAmount,
-            { from: liquidator },
-          );
-
-          expectEvent.inLogs(logs, 'LiquidateLoanSucceed', {
-            accountAddress: liquidator,
-            recordId: recordId,
-            amount: liquidateAmount,
-          });
-
-          const { logs: logs2 } = await loanManager.liquidateLoan(
-            ETHRecordId,
-            liquidateAmount,
-            { from: liquidator },
-          );
-
-          expectEvent.inLogs(logs2, 'LiquidateLoanSucceed', {
-            accountAddress: liquidator,
-            recordId: ETHRecordId,
-            amount: liquidateAmount,
-          });
-
-          const currLoanRecord = await loanManager.getLoanRecordById(recordId);
-          expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
-            new BN(prevLoanRecord.remainingDebt).sub(liquidateAmount),
-          );
-          expect(currLoanRecord.isClosed).to.be.false;
-          expect(
-            new BN(currLoanRecord.soldCollateralAmount),
-          ).to.bignumber.equal(
-            liquidateAmount
-              .mul(toFixedBN(1)) // loan token price
-              .div(collateralTokenPrice)
-              .mul(toFixedBN(1))
-              .div(toFixedBN(1).sub(liquidationDiscount)),
-          );
         });
-        it('liquidates fully succeed', async () => {
-          const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
-          const prevETHLoanRecord = await loanManager.getLoanRecordById(
-            ETHRecordId,
-          );
 
-          await loanToken.approve(
-            loanManager.address,
-            new BN(prevLoanRecord.remainingDebt).add(
-              new BN(prevETHLoanRecord.remainingDebt),
-            ),
-            {
+        context('when liquidates partially', () => {
+          const liquidateAmount = loanAmount.sub(toFixedBN(2));
+          let tx, soldCollateralAmount;
+
+          beforeEach(async () => {
+            tx = await loanManager.liquidateLoan(recordId, liquidateAmount, {
               from: liquidator,
-            },
-          );
-
-          const { logs } = await loanManager.liquidateLoan(
-            recordId,
-            prevLoanRecord.remainingDebt,
-            { from: liquidator },
-          );
-
-          expectEvent.inLogs(logs, 'LiquidateLoanSucceed', {
-            accountAddress: liquidator,
-            recordId: recordId,
+            });
           });
 
-          const { logs: logs2 } = await loanManager.liquidateLoan(
-            ETHRecordId,
-            prevETHLoanRecord.remainingDebt,
-            { from: liquidator },
-          );
-
-          expectEvent.inLogs(logs2, 'LiquidateLoanSucceed', {
-            accountAddress: liquidator,
-            recordId: ETHRecordId,
+          it('emits event', async () => {
+            expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
+              accountAddress: liquidator,
+              recordId: recordId,
+              amount: liquidateAmount,
+            });
           });
 
-          const currLoanRecord = await loanManager.getLoanRecordById(recordId);
-          expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
-            new BN(0),
-          );
-          expect(currLoanRecord.isClosed).to.be.true;
-          expect(
-            new BN(currLoanRecord.soldCollateralAmount),
-          ).to.bignumber.equal(
-            new BN(prevLoanRecord.remainingDebt)
-              .mul(toFixedBN(1)) // loan token price
-              .div(collateralTokenPrice)
-              .mul(toFixedBN(1))
-              .div(toFixedBN(1).sub(liquidationDiscount)),
-          );
+          it('updates loan record', async () => {
+            const currLoanRecord = await loanManager.getLoanRecordById(
+              recordId,
+            );
+
+            soldCollateralAmount = new BN(currLoanRecord.soldCollateralAmount);
+
+            expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+              new BN(prevLoanRecord.remainingDebt).sub(liquidateAmount),
+            );
+
+            expect(currLoanRecord.isClosed).to.be.false;
+
+            expect(soldCollateralAmount).to.bignumber.equal(
+              liquidateAmount
+                .mul(prevLoanTokenPrice)
+                .div(currCollateralTokenPrice)
+                .mul(toFixedBN(1))
+                .div(toFixedBN(1).sub(liquidationDiscount)),
+            );
+          });
+
+          it('reduces loan tokens from liquidator', async () => {
+            const currLiquidatorBalance = await loanToken.balanceOf(liquidator);
+
+            expect(currLiquidatorBalance).to.bignumber.equal(
+              prevLiquidatorLoanBalance.sub(liquidateAmount),
+            );
+          });
+
+          it('adds loan tokens to protocol', async () => {
+            const currProtocolBalance = await loanToken.balanceOf(
+              loanManager.address,
+            );
+
+            expect(currProtocolBalance).to.bignumber.equal(
+              prevProtocolLoanBalance.add(liquidateAmount),
+            );
+          });
+
+          it('adds sold collateral tokens to liquidator', async () => {
+            const currLiquidatorBalance = await collateralToken.balanceOf(
+              liquidator,
+            );
+
+            expect(currLiquidatorBalance).to.bignumber.equal(
+              prevLiquidatorCollateralBalance.add(soldCollateralAmount),
+            );
+          });
+
+          it('reduces sold collateral tokens from protocol', async () => {
+            const currProtocolBalance = await collateralToken.balanceOf(
+              loanManager.address,
+            );
+
+            expect(currProtocolBalance).to.bignumber.equal(
+              prevProtocolCollateralBalance.sub(soldCollateralAmount),
+            );
+          });
+
+          it('does not return collateral tokens to loaner', async () => {
+            const currLoanerBalance = await collateralToken.balanceOf(loaner);
+
+            expect(currLoanerBalance).to.bignumber.equal(
+              prevLoanerCollateralBalance,
+            );
+          });
+        });
+
+        context('when liquidates fully', () => {
+          let tx, liquidateAmount, soldCollateralAmount;
+
+          beforeEach(async () => {
+            const prevLoanRecord = await loanManager.getLoanRecordById(
+              recordId,
+            );
+
+            liquidateAmount = new BN(prevLoanRecord.remainingDebt);
+
+            tx = await loanManager.liquidateLoan(recordId, liquidateAmount, {
+              from: liquidator,
+            });
+          });
+
+          it('emits event', async () => {
+            expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
+              accountAddress: liquidator,
+              recordId: recordId,
+              amount: liquidateAmount,
+            });
+          });
+
+          it('updates loan record', async () => {
+            const currLoanRecord = await loanManager.getLoanRecordById(
+              recordId,
+            );
+            soldCollateralAmount = new BN(currLoanRecord.soldCollateralAmount);
+
+            expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+              new BN(prevLoanRecord.remainingDebt).sub(liquidateAmount),
+            );
+
+            expect(currLoanRecord.isClosed).to.be.true;
+
+            expect(soldCollateralAmount).to.bignumber.equal(
+              liquidateAmount
+                .mul(prevLoanTokenPrice)
+                .div(currCollateralTokenPrice)
+                .mul(toFixedBN(1))
+                .div(toFixedBN(1).sub(liquidationDiscount)),
+            );
+          });
+
+          it('reduces loan tokens from liquidator', async () => {
+            const currLiquidatorBalance = await loanToken.balanceOf(liquidator);
+
+            expect(currLiquidatorBalance).to.bignumber.equal(
+              prevLiquidatorLoanBalance.sub(liquidateAmount),
+            );
+          });
+
+          it('adds loan tokens to protocol', async () => {
+            const currProtocolBalance = await loanToken.balanceOf(
+              loanManager.address,
+            );
+
+            expect(currProtocolBalance).to.bignumber.equal(
+              prevProtocolLoanBalance.add(liquidateAmount),
+            );
+          });
+
+          it('adds sold collateral tokens to liquidator', async () => {
+            const currLiquidatorBalance = await collateralToken.balanceOf(
+              liquidator,
+            );
+
+            expect(currLiquidatorBalance).to.bignumber.equal(
+              prevLiquidatorCollateralBalance.add(soldCollateralAmount),
+            );
+          });
+
+          it('reduces all collateral tokens from protocol', async () => {
+            const currProtocolBalance = await collateralToken.balanceOf(
+              loanManager.address,
+            );
+
+            expect(currProtocolBalance).to.bignumber.equal(
+              prevProtocolCollateralBalance.sub(collateralAmount),
+            );
+          });
+
+          it('returns remaining collateral tokens to loaner', async () => {
+            const currLoanerBalance = await collateralToken.balanceOf(loaner);
+            const remainingCollateralAmount = collateralAmount.sub(
+              soldCollateralAmount,
+            );
+
+            expect(currLoanerBalance).to.bignumber.equal(
+              prevLoanerCollateralBalance.add(remainingCollateralAmount),
+            );
+          });
         });
       },
     );
 
     context('when loan is defaulted', () => {
+      let prevLoanRecord;
+
       beforeEach(async () => {
         await time.increase(time.duration.days(loanTerm + 1));
-      });
 
-      it('liquidates fully', async () => {
-        const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
-        const prevETHLoanRecord = await loanManager.getLoanRecordById(
-          ETHRecordId,
-        );
+        prevLoanRecord = await loanManager.getLoanRecordById(recordId);
 
         await loanToken.approve(
           loanManager.address,
-          new BN(prevLoanRecord.remainingDebt).add(
-            new BN(prevETHLoanRecord.remainingDebt),
-          ),
+          new BN(prevLoanRecord.remainingDebt),
           {
             from: liquidator,
           },
         );
+      });
 
-        const { logs } = await loanManager.liquidateLoan(
-          recordId,
-          prevLoanRecord.remainingDebt,
-          { from: liquidator },
-        );
+      context('when liquidates partially', () => {
+        const liquidateAmount = loanAmount.sub(toFixedBN(2));
+        let tx, soldCollateralAmount;
 
-        expectEvent.inLogs(logs, 'LiquidateLoanSucceed', {
-          accountAddress: liquidator,
-          recordId: recordId,
+        beforeEach(async () => {
+          tx = await loanManager.liquidateLoan(recordId, liquidateAmount, {
+            from: liquidator,
+          });
         });
 
-        const { logs: logs2 } = await loanManager.liquidateLoan(
-          ETHRecordId,
-          prevETHLoanRecord.remainingDebt,
-          { from: liquidator },
-        );
-
-        expectEvent.inLogs(logs, 'LiquidateLoanSucceed', {
-          accountAddress: liquidator,
-          recordId: recordId,
+        it('emits event', async () => {
+          expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
+            accountAddress: liquidator,
+            recordId: recordId,
+            amount: liquidateAmount,
+          });
         });
 
-        expectEvent.inLogs(logs2, 'LiquidateLoanSucceed', {
-          accountAddress: liquidator,
-          recordId: ETHRecordId,
+        it('updates loan record', async () => {
+          const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+          soldCollateralAmount = new BN(currLoanRecord.soldCollateralAmount);
+
+          expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+            new BN(prevLoanRecord.remainingDebt).sub(liquidateAmount),
+          );
+
+          expect(currLoanRecord.isClosed).to.be.false;
+
+          expect(soldCollateralAmount).to.bignumber.equal(
+            liquidateAmount
+              .mul(prevLoanTokenPrice)
+              .div(prevCollateralTokenPrice)
+              .mul(toFixedBN(1))
+              .div(toFixedBN(1).sub(liquidationDiscount)),
+          );
         });
 
-        const currLoanRecord = await loanManager.getLoanRecordById(recordId);
-        expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
-          new BN(0),
-        );
-        expect(currLoanRecord.isClosed).to.be.true;
+        it('reduces loan tokens from liquidator', async () => {
+          const currLiquidatorBalance = await loanToken.balanceOf(liquidator);
+
+          expect(currLiquidatorBalance).to.bignumber.equal(
+            prevLiquidatorLoanBalance.sub(liquidateAmount),
+          );
+        });
+
+        it('adds loan tokens to protocol', async () => {
+          const currProtocolBalance = await loanToken.balanceOf(
+            loanManager.address,
+          );
+
+          expect(currProtocolBalance).to.bignumber.equal(
+            prevProtocolLoanBalance.add(liquidateAmount),
+          );
+        });
+
+        it('adds sold collateral tokens to liquidator', async () => {
+          const currLiquidatorBalance = await collateralToken.balanceOf(
+            liquidator,
+          );
+
+          expect(currLiquidatorBalance).to.bignumber.equal(
+            prevLiquidatorCollateralBalance.add(soldCollateralAmount),
+          );
+        });
+
+        it('reduces sold collateral tokens from protocol', async () => {
+          const currProtocolBalance = await collateralToken.balanceOf(
+            loanManager.address,
+          );
+
+          expect(currProtocolBalance).to.bignumber.equal(
+            prevProtocolCollateralBalance.sub(soldCollateralAmount),
+          );
+        });
+
+        it('does not return collateral tokens to loaner', async () => {
+          const currLoanerBalance = await collateralToken.balanceOf(loaner);
+
+          expect(currLoanerBalance).to.bignumber.equal(
+            prevLoanerCollateralBalance,
+          );
+        });
+      });
+
+      context('when liquidates fully', () => {
+        let tx, liquidateAmount, soldCollateralAmount;
+
+        beforeEach(async () => {
+          const prevLoanRecord = await loanManager.getLoanRecordById(recordId);
+
+          liquidateAmount = new BN(prevLoanRecord.remainingDebt);
+
+          tx = await loanManager.liquidateLoan(recordId, liquidateAmount, {
+            from: liquidator,
+          });
+        });
+
+        it('emits event', async () => {
+          expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
+            accountAddress: liquidator,
+            recordId: recordId,
+            amount: liquidateAmount,
+          });
+        });
+
+        it('updates loan record', async () => {
+          const currLoanRecord = await loanManager.getLoanRecordById(recordId);
+          soldCollateralAmount = new BN(currLoanRecord.soldCollateralAmount);
+
+          expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+            new BN(prevLoanRecord.remainingDebt).sub(liquidateAmount),
+          );
+
+          expect(currLoanRecord.isClosed).to.be.true;
+
+          expect(soldCollateralAmount).to.bignumber.equal(
+            liquidateAmount
+              .mul(prevLoanTokenPrice)
+              .div(prevCollateralTokenPrice)
+              .mul(toFixedBN(1))
+              .div(toFixedBN(1).sub(liquidationDiscount)),
+          );
+        });
+
+        it('reduces loan tokens from liquidator', async () => {
+          const currLiquidatorBalance = await loanToken.balanceOf(liquidator);
+
+          expect(currLiquidatorBalance).to.bignumber.equal(
+            prevLiquidatorLoanBalance.sub(liquidateAmount),
+          );
+        });
+
+        it('adds loan tokens to protocol', async () => {
+          const currProtocolBalance = await loanToken.balanceOf(
+            loanManager.address,
+          );
+
+          expect(currProtocolBalance).to.bignumber.equal(
+            prevProtocolLoanBalance.add(liquidateAmount),
+          );
+        });
+
+        it('adds sold collateral tokens to liquidator', async () => {
+          const currLiquidatorBalance = await collateralToken.balanceOf(
+            liquidator,
+          );
+
+          expect(currLiquidatorBalance).to.bignumber.equal(
+            prevLiquidatorCollateralBalance.add(soldCollateralAmount),
+          );
+        });
+
+        it('reduces all collateral tokens from protocol', async () => {
+          const currProtocolBalance = await collateralToken.balanceOf(
+            loanManager.address,
+          );
+
+          expect(currProtocolBalance).to.bignumber.equal(
+            prevProtocolCollateralBalance.sub(collateralAmount),
+          );
+        });
+
+        it('returns remaining collateral tokens to loaner', async () => {
+          const currLoanerBalance = await collateralToken.balanceOf(loaner);
+          const remainingCollateralAmount = collateralAmount.sub(
+            soldCollateralAmount,
+          );
+
+          expect(currLoanerBalance).to.bignumber.equal(
+            prevLoanerCollateralBalance.add(remainingCollateralAmount),
+          );
+        });
       });
     });
   });
 
   describe('#getLoanAndCollateralTokenPairs', () => {
-    const initialSupply = toFixedBN(1000);
-    let loanToken, collateralToken, collateralToken1;
+    let collateralToken1;
 
     beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
       collateralToken1 = await createERC20Token(loaner, initialSupply);
     });
 
@@ -1272,14 +1498,9 @@ contract('LoanManager', function([
   });
 
   describe('#getLoanInterestRate', () => {
-    const initialSupply = toFixedBN(1000);
     const loanTerm = 30;
-    let loanToken, collateralToken;
 
     beforeEach(async () => {
-      loanToken = await createERC20Token(depositor, initialSupply);
-      collateralToken = await createERC20Token(loaner, initialSupply);
-
       await loanManager.setLoanAndCollateralTokenPair(
         loanToken.address,
         collateralToken.address,
