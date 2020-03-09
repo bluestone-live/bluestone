@@ -65,10 +65,6 @@ const BorrowForm = (props: IProps) => {
   const [collateralRatio, setCollateralRatio] = useState();
   const [collateralAmount, setCollateralAmount] = useState();
 
-  const setCollateralRatioSafely = (value: number | string) => {
-    setCollateralRatio(Math.max(150, Number.parseInt(value as string, 10)));
-  };
-
   // Initialize
   useDepsUpdated(async () => {
     if (loanToken) {
@@ -121,10 +117,45 @@ const BorrowForm = (props: IProps) => {
     }
   }, [collateralToken, accountAddress]);
 
+  // Computed
+  const selectedLoanPair = useMemo(() => {
+    if (loanPairs.length > 0 && loanToken && collateralToken) {
+      return loanPairs.find(
+        pair =>
+          pair.loanToken.tokenAddress === loanToken.tokenAddress &&
+          pair.collateralToken.tokenAddress === collateralToken.tokenAddress,
+      );
+    }
+  }, [loanPairs, loanToken, collateralToken]);
+
+  const totalDebt = useMemo(() => {
+    if (selectedLoanPair && selectedPool) {
+      const remainingDebt = calcEstimateRepayAmount(
+        borrowAmount,
+        selectedPool.term,
+        selectedPool.loanInterestRate || 0,
+      );
+
+      return Number.isNaN(remainingDebt) ? '0.0000' : remainingDebt.toFixed(4);
+    }
+  }, [selectedLoanPair, borrowAmount, selectedPool]);
+
   // Callbacks
   const onBorrowAmountChange = useCallback(
-    (value: string) => setBorrowAmount(Number.parseFloat(value)),
-    [setBorrowAmount],
+    (value: string) => {
+      setBorrowAmount(Number.parseFloat(value));
+      if (collateralToken && loanToken) {
+        setCollateralAmount(
+          calcCollateralAmount(
+            collateralRatio,
+            totalDebt || '0',
+            collateralToken.price,
+            loanToken.price,
+          ),
+        );
+      }
+    },
+    [setBorrowAmount, collateralToken, loanToken, totalDebt],
   );
 
   const onBorrowAmountMaxButtonClick = useCallback(() => {
@@ -199,23 +230,12 @@ const BorrowForm = (props: IProps) => {
     distributorAddress,
   ]);
 
-  // Computed
-  const selectedLoanPair = useMemo(() => {
-    if (loanPairs.length > 0 && loanToken && collateralToken) {
-      return loanPairs.find(
-        pair =>
-          pair.loanToken.tokenAddress === loanToken.tokenAddress &&
-          pair.collateralToken.tokenAddress === collateralToken.tokenAddress,
-      );
-    }
-  }, [loanPairs, loanToken, collateralToken]);
-
   useDepsUpdated(async () => {
     if (selectedLoanPair) {
-      setCollateralRatioSafely(
+      setCollateralRatio(
         Number.parseFloat(
           convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
-        ) * 100,
+        ) * 150,
       );
     }
   }, [selectedLoanPair]);
@@ -239,23 +259,11 @@ const BorrowForm = (props: IProps) => {
     [availableCollateralTokens],
   );
 
-  const totalDebt = useMemo(() => {
-    if (selectedLoanPair && selectedPool) {
-      const remainingDebt = calcEstimateRepayAmount(
-        borrowAmount,
-        selectedPool.term,
-        selectedPool.loanInterestRate || 0,
-      );
-
-      return Number.isNaN(remainingDebt) ? '0.0000' : remainingDebt.toFixed(4);
-    }
-  }, [selectedLoanPair, borrowAmount, selectedPool]);
-
   const onCollateralAmountChange = useCallback(
     (value: string) => {
       setCollateralAmount(Number.parseFloat(value));
       if (collateralToken && loanToken) {
-        setCollateralRatioSafely(
+        setCollateralRatio(
           calcCollateralRatio(
             value,
             totalDebt || '0',
@@ -270,7 +278,7 @@ const BorrowForm = (props: IProps) => {
 
   const onCollateralRatioChange = useCallback(
     (value: string) => {
-      setCollateralRatioSafely(Number.parseFloat(value));
+      setCollateralRatio(Number.parseFloat(value));
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -287,7 +295,7 @@ const BorrowForm = (props: IProps) => {
 
   const modifyCollateralRatio = useCallback(
     (num: number) => () => {
-      setCollateralRatioSafely(Number.parseFloat(collateralRatio) + num);
+      setCollateralRatio(Number.parseFloat(collateralRatio) + num);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -315,6 +323,18 @@ const BorrowForm = (props: IProps) => {
     }
     return t('borrow_form_button_borrow');
   }, [loading, collateralToken]);
+
+  const illegalRatio = useMemo(() => {
+    return (
+      collateralRatio <=
+      Number.parseFloat(
+        convertWeiToDecimal(
+          selectedLoanPair && selectedLoanPair.minCollateralCoverageRatio,
+        ),
+      ) *
+        100
+    );
+  }, [collateralRatio, selectedLoanPair]);
 
   return (
     <Form>
@@ -366,6 +386,7 @@ const BorrowForm = (props: IProps) => {
             <Button
               key="collateral_ratio_minus"
               onClick={modifyCollateralRatio(-10)}
+              disabled={illegalRatio}
             >
               -10%
             </Button>,
@@ -432,7 +453,12 @@ const BorrowForm = (props: IProps) => {
             .format('YYYY-MM-DD HH:mm')}
         </TextBox>
       )}
-      <Button type="primary" block onClick={submit} disabled={loading}>
+      <Button
+        type="primary"
+        block
+        onClick={submit}
+        disabled={loading || illegalRatio}
+      >
         {buttonText}
       </Button>
     </Form>

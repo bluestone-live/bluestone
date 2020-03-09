@@ -26,8 +26,6 @@ import { parseQuery } from '../utils/parseQuery';
 
 interface IProps extends WithTranslation, RouteComponentProps {}
 
-const MIN_AVAIL_AMOUNT = 0.1;
-
 const BorrowOverview = (props: IProps) => {
   const { t, history } = props;
 
@@ -161,9 +159,7 @@ const BorrowOverview = (props: IProps) => {
           block
           size="large"
           onClick={onNextButtonClick}
-          disabled={
-            selectedPool && selectedPool.availableAmount < MIN_AVAIL_AMOUNT
-          }
+          disabled={selectedPool && selectedPool.availableAmount <= 0}
         >
           {t('borrow_overview_button_next')}
         </Button>
