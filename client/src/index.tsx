@@ -36,7 +36,7 @@ const App = () => (
         <Switch>
           <Media queries={{ small: { maxWidth: 600 } }}>
             {(matches: any) =>
-              flatten(routes(matches.small), 'subRoutes')
+              flatten(routes(true), 'subRoutes')
                 .filter(route => route.path)
                 .map(({ component: Component, layout: Layout, ...rest }) => {
                   const renderHandler = (props: any) => {
