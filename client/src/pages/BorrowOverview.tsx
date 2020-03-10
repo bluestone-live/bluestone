@@ -147,7 +147,9 @@ const BorrowOverview = (props: IProps) => {
       <div className="title chart-block full-width">
         <div>{t('borrow_overview_title_select_term')}</div>
         <p>{t('borrow_overview_drag_bar')}</p>
-        {selectedPool && <BorrowPoolCard pool={selectedPool} />}
+        {selectedPool && (
+          <BorrowPoolCard pool={selectedPool} token={selectedToken} />
+        )}
         <BorrowPoolChart
           pools={computedPools}
           maxBorrowTerm={90}

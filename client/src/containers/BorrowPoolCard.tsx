@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import Card from 'antd/lib/card';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { IToken } from '../stores/CommonStore';
 
 interface IProps extends WithTranslation {
   pool: {
@@ -8,10 +9,11 @@ interface IProps extends WithTranslation {
     loanInterestRate: number;
     availableAmount: number;
   };
+  token?: IToken;
 }
 
 const BorrowPoolCard = (props: IProps) => {
-  const { pool, t } = props;
+  const { pool, t, token } = props;
 
   const title = useMemo(
     () => (
@@ -29,7 +31,8 @@ const BorrowPoolCard = (props: IProps) => {
       <p>
         {t('borrow_pool_card_text_apr')}:{' '}
         {(pool.loanInterestRate * 100).toFixed(2)}% <br />
-        {t('borrow_pool_card_text_available_amount')}: {pool.availableAmount}
+        {t('borrow_pool_card_text_available_amount')}:
+        {`${pool.availableAmount} ${token && token.tokenSymbol}`}
       </p>
     </Card>
   );

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import { useComponentMounted } from '../utils/useEffectAsync';
 import { parseQuery } from '../utils/parseQuery';
 import { getService } from '../services';
@@ -24,7 +24,12 @@ export const useGlobalInit = (
   useComponentMounted(async () => {
     const { dconfig } = parseQuery(search);
 
-    const { accountService, commonService } = await getService();
+    const {
+      accountService,
+      commonService,
+      depositService,
+      loanService,
+    } = await getService();
 
     await commonService.enableEthereumNetwork();
     const getAccounts = async () => {
@@ -34,6 +39,16 @@ export const useGlobalInit = (
     };
 
     const accounts = await getAccounts();
+
+    const defaultAccount = accounts[0];
+
+    if (defaultAccount) {
+      const records =
+        (await depositService.getDepositRecordsByAccount(accounts[0])).length +
+        (await loanService.getLoanRecordsByAccount(accounts[0])).length;
+      /// TODO:
+      // if 'records > 0', set selectedTab to '/account'
+    }
 
     // Set network
     dispatch(ViewActions.setNetwork(await commonService.getCurrentNetwork()));
