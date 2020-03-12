@@ -1,5 +1,6 @@
 {
   "translations": {
+    "account_overview_tab_active": "Active",
     "account_overview_tab_borrow": "Loan",
     "account_overview_tab_closed": "Closed",
     "account_overview_tab_deposit": "Deposit",
@@ -93,7 +94,6 @@
     "deposit_pool_card_text_total_deposit": "Total Deposit",
     "deposit_pool_card_text_utilization": "Utilization",
     "Key": "English",
-    "language": "English",
     "layout_default_account": "Records",
     "layout_default_borrow": "Borrow",
     "layout_default_deposit": "Deposit",
