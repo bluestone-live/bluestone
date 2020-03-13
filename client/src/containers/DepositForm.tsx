@@ -48,7 +48,7 @@ const DepositForm = (props: IProps) => {
   const loading = useLoading();
 
   // States
-  const [depositAmount, setDepositAmount] = useState();
+  const [depositAmount, setDepositAmount] = useState('0');
 
   // Callbacks
   const onDepositAmountChange = useCallback(
@@ -155,7 +155,12 @@ const DepositForm = (props: IProps) => {
             .local()
             .format('YYYY-MM-DD HH:mm')}
         </TextBox>
-        <Button type="primary" block onClick={submit} disabled={loading}>
+        <Button
+          type="primary"
+          block
+          onClick={submit}
+          disabled={loading || !depositAmount || depositAmount === '0'}
+        >
           {buttonText}
         </Button>
       </Form>
