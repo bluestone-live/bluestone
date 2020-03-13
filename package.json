@@ -19,7 +19,7 @@
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "seamless-immutable": "^7.1.4",
-    "truffle": "^5.1.5",
+    "truffle": "^5.1.18",
     "ts-jest": "^24.1.0",
     "tslint": "^5.20.0",
     "tslint-config-prettier": "^1.18.0",

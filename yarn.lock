@@ -6035,10 +6035,10 @@ truffle-interface-adapter@^0.2.5:
     lodash "^4.17.13"
     web3 "1.2.1"
 
-truffle@^5.1.5:
-  version "5.1.5"
-  resolved "https://registry.npm.taobao.org/truffle/download/truffle-5.1.5.tgz#87730b484103bb77e7371a14d69628e1ec20a094"
-  integrity sha1-h3MLSEEDu3fnNxoU1pYo4ewgoJQ=
+truffle@^5.1.18:
+  version "5.1.18"
+  resolved "https://registry.npm.taobao.org/truffle/download/truffle-5.1.18.tgz#2fefaed849698b7fb865b417a197d1b6d9229db3"
+  integrity sha1-L++u2Elpi3+4ZbQXoZfRttkinbM=
   dependencies:
     app-module-path "^2.2.0"
     mocha "5.2.0"

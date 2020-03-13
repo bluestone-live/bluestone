@@ -98,7 +98,7 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         /// 1. Price diff is too small, or
         /// 2. New price is smaller than lower bound or larger than upper bound
         if (
-            (newPrice > price && newPrice.sub(price) < MIN_PRICE_DIFF) ||
+            (newPrice >= price && newPrice.sub(price) < MIN_PRICE_DIFF) ||
             (newPrice < price && price.sub(newPrice) < MIN_PRICE_DIFF) ||
             (newPrice < priceLowerBound || newPrice > priceUpperBound)
         ) {

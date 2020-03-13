@@ -108,8 +108,7 @@ contract('DaiPriceOracle', function([owner]) {
         await oasisDex.setPayAmount(ethPrice.mul(new BN(11)));
 
         await time.increase(time.duration.hours(2));
-        const { logs } = await priceOracle.updatePriceIfNeeded();
-        expectEvent.inLogs(logs, 'PriceUpdated');
+        await priceOracle.updatePriceIfNeeded();
 
         const actualPrice = await priceOracle.getPrice();
         expect(actualPrice).to.be.bignumber.equal(toFixedBN(1));
