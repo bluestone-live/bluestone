@@ -68,7 +68,8 @@ contract('DaiPriceOracle', function([owner]) {
         await oasisDex.setBuyAmount(ethPrice.mul(new BN(10)));
         await oasisDex.setPayAmount(ethPrice.mul(new BN(11)));
 
-        const oasisPrice = await priceOracle.getOasisPrice(ethPrice);
+        const tx = await priceOracle.getOasisPrice(ethPrice);
+        const { oasisPrice } = tx.logs[0].args;
 
         await time.increase(time.duration.hours(2));
         const { logs } = await priceOracle.updatePriceIfNeeded();
@@ -179,9 +180,11 @@ contract('DaiPriceOracle', function([owner]) {
         const den = buyAmount.mul(payAmount).mul(new BN(2));
         const expectedPrice = ethPrice.mul(num).div(den);
 
-        expect(await priceOracle.getOasisPrice(ethPrice)).to.be.bignumber.equal(
-          expectedPrice,
-        );
+        const { logs } = await priceOracle.getOasisPrice(ethPrice);
+
+        expectEvent.inLogs(logs, 'GetOasisPriceSucceed', {
+          oasisPrice: expectedPrice,
+        });
       });
     });
 
@@ -190,10 +193,11 @@ contract('DaiPriceOracle', function([owner]) {
         const payAmount = ethPrice.mul(new BN(11));
 
         await oasisDex.setPayAmount(payAmount);
+        const { logs } = await priceOracle.getOasisPrice(ethPrice);
 
-        expect(await priceOracle.getOasisPrice(ethPrice)).to.be.bignumber.equal(
-          toFixedBN(1),
-        );
+        expectEvent.inLogs(logs, 'GetOasisPriceFailed', {
+          oldPrice: toFixedBN(1),
+        });
       });
     });
 
@@ -202,10 +206,11 @@ contract('DaiPriceOracle', function([owner]) {
         const buyAmount = ethPrice.mul(new BN(10));
 
         await oasisDex.setBuyAmount(buyAmount);
+        const { logs } = await priceOracle.getOasisPrice(ethPrice);
 
-        expect(await priceOracle.getOasisPrice(ethPrice)).to.be.bignumber.equal(
-          toFixedBN(1),
-        );
+        expectEvent.inLogs(logs, 'GetOasisPriceFailed', {
+          oldPrice: toFixedBN(1),
+        });
       });
     });
   });
@@ -237,6 +242,31 @@ contract('DaiPriceOracle', function([owner]) {
         expect(
           await priceOracle.getUniswapPrice(ethPrice),
         ).to.be.bignumber.equal(toFixedBN(1));
+      });
+    });
+  });
+
+  describe('#setOasisEthAmount', () => {
+    context('when oasisEthAmount is invalid', () => {
+      it('reverts', async () => {
+        const oasisEthAmount = new BN(0);
+
+        await expectRevert(
+          priceOracle.setOasisEthAmount(oasisEthAmount),
+          'DaiPriceOracle: invalid oasisEthAmount',
+        );
+      });
+    });
+
+    context('when oasisEthAmount is valid', () => {
+      it('succeeds', async () => {
+        const oasisEthAmount = toFixedBN(0.5);
+
+        await priceOracle.setOasisEthAmount(oasisEthAmount);
+
+        expect(await priceOracle.oasisEthAmount()).to.bignumber.equal(
+          oasisEthAmount,
+        );
       });
     });
   });

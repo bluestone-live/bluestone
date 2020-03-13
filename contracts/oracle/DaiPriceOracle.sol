@@ -10,6 +10,7 @@ import '../common/lib/Math.sol';
 import '../common/Ownable.sol';
 import './interface/IPriceOracle.sol';
 
+
 contract DaiPriceOracle is IPriceOracle, Ownable {
     using SafeMath for uint256;
 
@@ -22,11 +23,17 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
     uint256 constant MIN_PRICE_DIFF = 10**16; // 0.01 (1%)
 
     event PriceUpdated(uint256 price);
+    event SetOasisEthAmountSucceed(
+        address indexed adminAddress,
+        uint256 oasisEthAmount
+    );
     event SetPriceBoundarySucceed(
         address indexed adminAddress,
         uint256 priceUpperBound,
         uint256 priceLowerBound
     );
+    event GetOasisPriceSucceed(uint256 oasisEthAmount, uint256 oasisPrice);
+    event GetOasisPriceFailed(uint256 oasisEthAmount, uint256 oldPrice);
 
     IERC20 public weth;
     IERC20 public dai;
@@ -63,6 +70,14 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         lastUpdatedAt = now;
     }
 
+    function setOasisEthAmount(uint256 _oasisEthAmount) external onlyOwner {
+        require(_oasisEthAmount > 0, 'DaiPriceOracle: invalid oasisEthAmount');
+
+        oasisEthAmount = _oasisEthAmount;
+
+        emit SetOasisEthAmountSucceed(msg.sender, _oasisEthAmount);
+    }
+
     function setPriceBoundary(
         uint256 _priceUpperBound,
         uint256 _priceLowerBound
@@ -86,6 +101,7 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         );
     }
 
+    // prettier-ignore
     function updatePriceIfNeeded() external override {
         if (DateTime.getHour(now - lastFetchedAt) < MIN_HOURS_DIFF) {
             return;
@@ -111,14 +127,15 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         emit PriceUpdated(price);
     }
 
+    // prettier-ignore
     function getPrice() external view override returns (uint256) {
         return price;
     }
 
-    function fetchPrice() public view returns (uint256) {
-        uint256 ethUsd = getMedianizerPrice();
-        uint256 oasisPrice = getOasisPrice(ethUsd);
-        uint256 uniswapPrice = getUniswapPrice(ethUsd);
+    function fetchPrice() public returns (uint256) {
+        uint256 ethPrice = getMedianizerPrice();
+        uint256 oasisPrice = getOasisPrice(ethPrice);
+        uint256 uniswapPrice = getUniswapPrice(ethPrice);
 
         return _getMidValue(oasisPrice, uniswapPrice, EXPECTED_PRICE);
     }
@@ -127,7 +144,7 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         return uint256(medianizer.read());
     }
 
-    function getOasisPrice(uint256 ethUsd) public view returns (uint256) {
+    function getOasisPrice(uint256 ethUsd) public returns (uint256) {
         // If Oasis is not operational, return old price
         if (
             oasis.isClosed() || !oasis.buyEnabled() || !oasis.matchingEnabled()
@@ -135,34 +152,42 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
             return price;
         }
 
-        /// Assumes at least `oasisEthAmount` of depth on both sides of the book
-        /// if the exchange is active. Will revert if not enough depth.
-        uint256 buyAmount = oasis.getBuyAmount(
-            address(dai),
-            address(weth),
-            oasisEthAmount
-        );
+        try
+            oasis.getBuyAmount(address(dai), address(weth), oasisEthAmount)
+        returns (uint256 buyAmount) {
+            if (buyAmount == 0) {
+                emit GetOasisPriceFailed(oasisEthAmount, price);
+                return price;
+            }
 
-        if (buyAmount == 0) {
+            try
+                oasis.getPayAmount(address(dai), address(weth), oasisEthAmount)
+            returns (uint256 payAmount) {
+                if (payAmount == 0) {
+                    emit GetOasisPriceFailed(oasisEthAmount, price);
+                    return price;
+                }
+
+                uint256 num = oasisEthAmount.mul(payAmount).add(
+                    oasisEthAmount.mul(buyAmount)
+                );
+                uint256 den = buyAmount.mul(payAmount).mul(2);
+                uint256 oasisPrice = ethUsd.mul(num).div(den);
+
+                emit GetOasisPriceSucceed(oasisEthAmount, oasisPrice);
+                return oasisPrice;
+            } catch {
+                /// In case there is not enough depth and the Oasis call reverts,
+                /// emit an error event and return current price
+                emit GetOasisPriceFailed(oasisEthAmount, price);
+                return price;
+            }
+        } catch {
+            /// In case there is not enough depth and the Oasis call reverts,
+            /// emit an error event and return current price
+            emit GetOasisPriceFailed(oasisEthAmount, price);
             return price;
         }
-
-        uint256 payAmount = oasis.getPayAmount(
-            address(dai),
-            address(weth),
-            oasisEthAmount
-        );
-
-        if (payAmount == 0) {
-            return price;
-        }
-
-        uint256 num = oasisEthAmount.mul(payAmount).add(
-            oasisEthAmount.mul(buyAmount)
-        );
-        uint256 den = buyAmount.mul(payAmount).mul(2);
-
-        return ethUsd.mul(num).div(den);
     }
 
     function getUniswapPrice(uint256 ethUsd) public view returns (uint256) {
