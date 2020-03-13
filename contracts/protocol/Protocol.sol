@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import '../oracle/interface/IPriceOracle.sol';
 import '../common/Ownable.sol';
 import '../common/Pausable.sol';
+import '../common/ReentrancyGuard.sol';
 import './interface/IProtocol.sol';
 import './interface/IInterestModel.sol';
 import './interface/IPayableProxy.sol';
@@ -13,7 +14,7 @@ import './lib/DepositManager.sol';
 import './lib/LoanManager.sol';
 
 /// @title Main contract
-contract Protocol is IProtocol, Ownable, Pausable {
+contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
     using DepositManager for DepositManager.State;
@@ -161,7 +162,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 depositAmount,
         uint256 depositTerm,
         address payable distributorAddress
-    ) external payable whenNotPaused override returns (bytes32 depositId) {
+    ) external payable whenNotPaused nonReentrant override returns (bytes32 depositId) {
         IStruct.DepositParameters memory depositParameters = IStruct.DepositParameters({
             tokenAddress: tokenAddress,
             depositAmount: 0,
@@ -185,6 +186,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function withdraw(bytes32 depositId)
         external
         whenNotPaused
+        nonReentrant
         override
         returns (uint256 withdrewAmount)
     {
@@ -199,6 +201,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function earlyWithdraw(bytes32 depositId)
         external
         whenNotPaused
+        nonReentrant
         override
         returns (uint256 withdrewAmount)
     {
@@ -282,7 +285,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 collateralAmount,
         uint256 loanTerm,
         address payable distributorAddress
-    ) external payable whenNotPaused override returns (bytes32 loanId) {
+    ) external payable whenNotPaused nonReentrant override returns (bytes32 loanId) {
         IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
             loanTokenAddress: loanTokenAddress,
             collateralTokenAddress: collateralTokenAddress,
@@ -310,6 +313,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function repayLoan(bytes32 loanId, uint256 repayAmount)
         external
         whenNotPaused
+        nonReentrant
         override
         returns (uint256 remainingDebt)
     {
@@ -325,6 +329,7 @@ contract Protocol is IProtocol, Ownable, Pausable {
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
         external
         whenNotPaused
+        nonReentrant
         override
         returns (uint256 remainingCollateral, uint256 liquidatedAmount)
     {
