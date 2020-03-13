@@ -12,6 +12,7 @@ import './Configuration.sol';
 import './LiquidityPools.sol';
 import './DepositManager.sol';
 
+
 library LoanManager {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -236,9 +237,7 @@ library LoanManager {
         );
 
         LocalVars memory localVars;
-        localVars.maxLoanTerm = liquidityPools.poolGroups[loanParameters
-            .loanTokenAddress]
-            .numPools;
+        localVars.maxLoanTerm = liquidityPools.poolGroupSize;
 
         require(
             loanParameters.loanTerm <= localVars.maxLoanTerm,
@@ -384,8 +383,7 @@ library LoanManager {
         if (
             self
                 .loanAndCollateralTokenPairs[loanTokenAddress][collateralTokenAddress]
-                .minCollateralCoverageRatio ==
-            0
+                .minCollateralCoverageRatio == 0
         ) {
             self.loanAndCollateralTokenPairList.push(tokenPair);
         }
@@ -678,7 +676,6 @@ library LoanManager {
                         loanRecord.ownerAddress,
                         localVars.remainingCollateralAmount
                     );
-
                 }
             }
 
@@ -755,14 +752,14 @@ library LoanManager {
         uint256 loanTerm
     ) external view returns (uint256 loanInterestRate) {
         require(
-            loanTerm <= liquidityPools.poolGroups[tokenAddress].numPools,
+            loanTerm <= liquidityPools.poolGroupSize,
             'LoanManager: invalid loan term'
         );
         return
             configuration.interestModel.getLoanInterestRate(
                 tokenAddress,
                 loanTerm,
-                liquidityPools.poolGroups[tokenAddress].numPools
+                liquidityPools.poolGroupSize
             );
     }
 }

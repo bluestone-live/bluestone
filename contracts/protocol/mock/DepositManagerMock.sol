@@ -8,6 +8,7 @@ import '../lib/LiquidityPools.sol';
 import '../lib/DepositManager.sol';
 import '../lib/LoanManager.sol';
 
+
 contract DepositManagerMock {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -175,9 +176,9 @@ contract DepositManagerMock {
     function getPoolGroupSize(address tokenAddress)
         external
         view
-        returns (uint256 numPools)
+        returns (uint256 poolGroupSize)
     {
-        return _liquidityPools.poolGroups[tokenAddress].numPools;
+        return _liquidityPools.poolGroupSize;
     }
 
     function setInterestModel(IInterestModel interestModel) external {
@@ -189,6 +190,7 @@ contract DepositManagerMock {
     {
         _configuration.setInterestReserveAddress(interestReserveAddress);
     }
+
     function setPayableProxy(IPayableProxy payableProxy) external {
         _configuration.setPayableProxy(payableProxy);
         ERC20(payableProxy.getWETHAddress()).approve(

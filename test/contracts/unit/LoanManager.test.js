@@ -1510,7 +1510,7 @@ contract('LoanManager', function([
     });
 
     it('succeeds', async () => {
-      await loanManager.setPoolGroupSizeIfNeeded(loanToken.address, loanTerm);
+      await loanManager.setPoolGroupSize(loanTerm);
 
       // TODO(ZhangRGK): expect to the model result
       await loanManager.getLoanInterestRate(loanToken.address, loanTerm);

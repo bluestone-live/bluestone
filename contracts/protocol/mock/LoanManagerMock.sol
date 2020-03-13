@@ -9,6 +9,7 @@ import '../lib/LiquidityPools.sol';
 import '../lib/DepositManager.sol';
 import '../lib/LoanManager.sol';
 
+
 contract LoanManagerMock {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -119,6 +120,7 @@ contract LoanManagerMock {
                 );
         }
     }
+
     function setLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress,
@@ -227,10 +229,8 @@ contract LoanManagerMock {
         _configuration.setPriceOracle(tokenAddress, priceOracle);
     }
 
-    function setPoolGroupSizeIfNeeded(address tokenAddress, uint256 numPools)
-        external
-    {
-        _liquidityPools.setPoolGroupSizeIfNeeded(tokenAddress, numPools);
+    function setPoolGroupSize(uint256 poolGroupSize) external {
+        _liquidityPools.setPoolGroupSize(poolGroupSize);
     }
 
     function setInterestModel(IInterestModel interestModel) external {
@@ -248,5 +248,4 @@ contract LoanManagerMock {
     function getWETHAddress() public view returns (address wethAddress) {
         return _configuration.payableProxy.getWETHAddress();
     }
-
 }

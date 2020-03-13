@@ -1,6 +1,6 @@
 const LiquidityPools = artifacts.require('LiquidityPoolsMock');
 const DateTime = artifacts.require('DateTime');
-const { BN, expectEvent, expectRevert } = require('openzeppelin-test-helpers');
+const { BN, expectRevert } = require('openzeppelin-test-helpers');
 const { createERC20Token, toFixedBN } = require('../../utils/index');
 const { expect } = require('chai');
 
@@ -17,39 +17,12 @@ contract('LiquidityPools', function([owner]) {
     token = await createERC20Token(owner);
   });
 
-  describe('#setPoolGroupSizeIfNeeded', () => {
-    context('when number of pools is valid', () => {
-      it('succeed', async () => {
-        const poolGroupSize = 30;
-        const { logs } = await liquidityPools.setPoolGroupSizeIfNeeded(
-          token.address,
-          poolGroupSize,
-        );
-        const numPools = await liquidityPools.getPoolGroupSize(token.address);
-        expect(numPools).to.bignumber.equal(new BN(poolGroupSize));
-        expectEvent.inLogs(logs, 'SetPoolGroupSizeSucceed');
-      });
-    });
-
-    context('when number of pools is invalid', () => {
-      let prevPoolGroupSize = 30;
-
-      beforeEach(async () => {
-        await liquidityPools.setPoolGroupSizeIfNeeded(
-          token.address,
-          prevPoolGroupSize,
-        );
-      });
-
-      it('does not update pool group size', async () => {
-        const currPoolGroupSize = 20;
-        await liquidityPools.setPoolGroupSizeIfNeeded(
-          token.address,
-          currPoolGroupSize,
-        );
-        const numPools = await liquidityPools.getPoolGroupSize(token.address);
-        expect(numPools).to.bignumber.equal(new BN(prevPoolGroupSize));
-      });
+  describe('#setPoolGroupSize', () => {
+    it('succeed', async () => {
+      const depositTerm = 30;
+      await liquidityPools.setPoolGroupSize(depositTerm);
+      const numPools = await liquidityPools.getPoolGroupSize(token.address);
+      expect(numPools).to.bignumber.equal(new BN(depositTerm));
     });
   });
 
@@ -57,7 +30,7 @@ contract('LiquidityPools', function([owner]) {
     const depositAmount = toFixedBN(100);
 
     beforeEach(async () => {
-      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, 365);
+      await liquidityPools.setPoolGroupSize(365);
     });
 
     context('when ratios are not set', () => {
@@ -141,7 +114,7 @@ contract('LiquidityPools', function([owner]) {
     const depositAmount = toFixedBN(100);
 
     beforeEach(async () => {
-      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, 365);
+      await liquidityPools.setPoolGroupSize(365);
       await liquidityPools.addDepositToPool(
         token.address,
         depositAmount,
@@ -174,7 +147,7 @@ contract('LiquidityPools', function([owner]) {
 
   describe('#getPoolsByToken', () => {
     beforeEach(async () => {
-      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
+      await liquidityPools.setPoolGroupSize(depositTerm);
     });
 
     it('succeeds', async () => {
@@ -215,7 +188,7 @@ contract('LiquidityPools', function([owner]) {
     let currentPoolId;
     beforeEach(async () => {
       currentPoolId = await datetime.toDays();
-      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
+      await liquidityPools.setPoolGroupSize(depositTerm);
     });
 
     it('succeeds', async () => {
@@ -270,7 +243,7 @@ contract('LiquidityPools', function([owner]) {
       );
       const protocolReserveRatioList = Array(4).fill(protocolReserveRatio);
 
-      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
+      await liquidityPools.setPoolGroupSize(depositTerm);
       await liquidityPools.populatePoolGroup(
         token.address,
         depositAmountList,
@@ -390,7 +363,7 @@ contract('LiquidityPools', function([owner]) {
       );
       const protocolReserveRatioList = Array(4).fill(protocolReserveRatio);
 
-      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
+      await liquidityPools.setPoolGroupSize(depositTerm);
       await liquidityPools.populatePoolGroup(
         token.address,
         depositAmountList,
@@ -459,7 +432,7 @@ contract('LiquidityPools', function([owner]) {
     const protocolReserveRatioList = Array(6).fill(protocolReserveRatio);
 
     beforeEach(async () => {
-      await liquidityPools.setPoolGroupSizeIfNeeded(token.address, depositTerm);
+      await liquidityPools.setPoolGroupSize(depositTerm);
 
       await liquidityPools.populatePoolGroup(
         token.address,

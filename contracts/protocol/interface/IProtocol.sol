@@ -6,6 +6,7 @@ import './IInterestModel.sol';
 import './IPayableProxy.sol';
 import './IStruct.sol';
 
+
 /// @title Interface for main protocol
 interface IProtocol {
     /// --- Deposit ---
@@ -37,7 +38,7 @@ interface IProtocol {
         uint256 depositAmount,
         uint256 depositTerm,
         address payable distributorAddress
-    ) external payable virtual returns (bytes32 depositId);
+    ) external virtual payable returns (bytes32 depositId);
 
     /// @notice Withdraw a deposit
     /// @param depositId Id that identifies the deposit
@@ -59,16 +60,16 @@ interface IProtocol {
     /// @return depositTerms A list of enabled deposit terms
     function getDepositTerms()
         external
-        view
         virtual
+        view
         returns (uint256[] memory depositTerms);
 
     /// @notice Return details for each deposit token
     /// @return depositTokenAddressList A list of deposit tokens
     function getDepositTokens()
         external
-        view
         virtual
+        view
         returns (address[] memory depositTokenAddressList);
 
     /// @notice Return details about a deposit
@@ -76,16 +77,16 @@ interface IProtocol {
     /// @return depositRecord
     function getDepositRecordById(bytes32 depositId)
         external
-        view
         virtual
+        view
         returns (IStruct.GetDepositRecordResponse memory depositRecord);
 
     /// @notice Return details about all deposits
     /// @return depositRecordList
     function getDepositRecordsByAccount(address accountAddress)
         external
-        view
         virtual
+        view
         returns (IStruct.GetDepositRecordResponse[] memory depositRecordList);
 
     /// @notice Return whether a deposit can be early withdrew.
@@ -93,8 +94,8 @@ interface IProtocol {
     /// @return isEarlyWithdrawable
     function isDepositEarlyWithdrawable(bytes32 depositId)
         external
-        view
         virtual
+        view
         returns (bool isEarlyWithdrawable);
 
     /// --- Loan ---
@@ -120,13 +121,12 @@ interface IProtocol {
     ) external virtual;
 
     /// @dev Remove documentation of return parameters in order to compile
-    /// @notice Get maximum loan term of a token
-    /// @param tokenAddress Token address
+    /// @notice Get maximum loan term
     /// @return maxLoanTerm
-    function getMaxLoanTerm(address tokenAddress)
+    function getMaxLoanTerm()
         external
-        view
         virtual
+        view
         returns (uint256 maxLoanTerm);
 
     /// @notice Borrow token in a specific term
@@ -144,7 +144,7 @@ interface IProtocol {
         uint256 collateralAmount,
         uint256 loanTerm,
         address payable distributorAddress
-    ) external payable virtual returns (bytes32 loanId);
+    ) external virtual payable returns (bytes32 loanId);
 
     /// @notice Pay back a specific amount of loan
     /// @param loanId ID that identifies the loan
@@ -173,8 +173,8 @@ interface IProtocol {
     /// @return totalCollateralAmount The total collateral amount after adding collateral
     function addCollateral(bytes32 loanId, uint256 collateralAmount)
         external
-        payable
         virtual
+        payable
         returns (uint256 totalCollateralAmount);
 
     /// @notice Return basic info of a loan record
@@ -182,24 +182,24 @@ interface IProtocol {
     /// @return loanRecord
     function getLoanRecordById(bytes32 loanId)
         external
-        view
         virtual
+        view
         returns (IStruct.GetLoanRecordResponse memory loanRecord);
 
     /// @notice Return details of all loans owned by the caller
     /// @return loanRecordList
     function getLoanRecordsByAccount(address accountAddress)
         external
-        view
         virtual
+        view
         returns (IStruct.GetLoanRecordResponse[] memory loanRecordList);
 
     /// @notice Return details for each loan and collateral token pair
     /// @return loanAndCollateralTokenPairList A list of loan and collateral token pairs
     function getLoanAndCollateralTokenPairs()
         external
-        view
         virtual
+        view
         returns (
             IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
         );
@@ -208,22 +208,22 @@ interface IProtocol {
     /// @return loanInterestRate loan interest rate
     function getLoanInterestRate(address tokenAddress, uint256 term)
         external
-        view
         virtual
+        view
         returns (uint256 loanInterestRate);
 
     /// --- Configuration ---
 
     function getPoolsByToken(address tokenAddress)
         external
-        view
         virtual
+        view
         returns (IStruct.getPoolsByTokenResponse[] memory poolList);
 
     function getPoolById(address tokenAddress, uint256 poolId)
         external
-        view
         virtual
+        view
         returns (IStruct.Pool memory pool);
 
     /// @notice Set price oracle address
@@ -259,32 +259,32 @@ interface IProtocol {
     /// @return tokenPrice Token price in USD
     function getTokenPrice(address tokenAddress)
         external
-        view
         virtual
+        view
         returns (uint256 tokenPrice);
 
     /// @notice Return interest reserve address
     /// @return interestReserveAddress interest reserve address
     function getInterestReserveAddress()
         external
-        view
         virtual
+        view
         returns (address interestReserveAddress);
 
     /// @notice Return interest model address
     /// @return interestModelAddress Interest model address
     function getInterestModelAddress()
         external
-        view
         virtual
+        view
         returns (address interestModelAddress);
 
     /// @notice Return protocol reserve ratio
     /// @return protocolReserveRatio Protocol reserve ratio
     function getProtocolReserveRatio()
         external
-        view
         virtual
+        view
         returns (uint256 protocolReserveRatio);
 
     /// @notice Return the maximum fee ratio for distributors
@@ -292,8 +292,8 @@ interface IProtocol {
     /// @return loanDistributorFeeRatio
     function getMaxDistributorFeeRatios()
         external
-        view
         virtual
+        view
         returns (
             uint256 depositDistributorFeeRatio,
             uint256 loanDistributorFeeRatio

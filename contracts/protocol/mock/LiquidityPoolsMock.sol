@@ -7,6 +7,7 @@ import '../lib/LiquidityPools.sol';
 import '../lib/LoanManager.sol';
 import '../interface/IStruct.sol';
 
+
 contract LiquidityPoolsMock {
     using LiquidityPools for LiquidityPools.State;
     using LoanManager for LoanManager.State;
@@ -17,10 +18,8 @@ contract LiquidityPoolsMock {
 
     bytes32[] public loanIdList;
 
-    function setPoolGroupSizeIfNeeded(address tokenAddress, uint256 numPools)
-        external
-    {
-        _liquidityPools.setPoolGroupSizeIfNeeded(tokenAddress, numPools);
+    function setPoolGroupSize(uint256 poolGroupSize) external {
+        _liquidityPools.setPoolGroupSize(poolGroupSize);
     }
 
     function addDepositToPool(
@@ -105,9 +104,9 @@ contract LiquidityPoolsMock {
     function getPoolGroupSize(address tokenAddress)
         external
         view
-        returns (uint256 numPools)
+        returns (uint256 poolGroupSize)
     {
-        return _liquidityPools.poolGroups[tokenAddress].numPools;
+        return _liquidityPools.poolGroupSize;
     }
 
     function populatePoolGroup(
@@ -118,17 +117,17 @@ contract LiquidityPoolsMock {
         uint256[] calldata loanDistributorFeeRatioList,
         uint256[] calldata protocolReserveRatioList
     ) external {
-        LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
-            .poolGroups[tokenAddress];
-
         require(
-            depositAmountList.length <= poolGroup.numPools + 1,
+            depositAmountList.length <= _liquidityPools.poolGroupSize + 1,
             'LiquidityPoolsMock: invalid depositAmountList length'
         );
         require(
             depositAmountList.length == availableAmountList.length,
             'LiquidityPoolsMock: depositAmountList and availableAmountList must have the same length'
         );
+
+        LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
+            .poolGroups[tokenAddress];
 
         uint256 poolId = DateTime.toDays();
 

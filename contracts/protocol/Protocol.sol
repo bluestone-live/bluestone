@@ -126,8 +126,6 @@ contract Protocol is IProtocol, Ownable, Pausable {
         uint256 maxLoanDistributorFeeRatio
     );
 
-    event SetPoolGroupSizeSucceed(address tokenAddress, uint256 numPools);
-
     receive() external payable {
         revert();
     }
@@ -268,13 +266,13 @@ contract Protocol is IProtocol, Ownable, Pausable {
 
     /// --- Loan
 
-    function getMaxLoanTerm(address tokenAddress)
+    function getMaxLoanTerm()
         external
         view
         override
         returns (uint256 maxLoanTerm)
     {
-        return _liquidityPools.poolGroups[tokenAddress].numPools;
+        return _liquidityPools.poolGroupSize;
     }
 
     function loan(

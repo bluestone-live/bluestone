@@ -8,6 +8,7 @@ import '../../common/lib/DateTime.sol';
 import '../interface/IStruct.sol';
 import './LoanManager.sol';
 
+
 library LiquidityPools {
     using SafeMath for uint256;
     using FixedMath for uint256;
@@ -15,31 +16,21 @@ library LiquidityPools {
     struct State {
         // token -> PoolGroup
         mapping(address => PoolGroup) poolGroups;
+        // Number of pools in a PoolGroup
+        uint256 poolGroupSize;
     }
 
     struct PoolGroup {
-        uint256 numPools;
         // Pool ID (in day) -> Pool
         mapping(uint256 => IStruct.Pool) poolsById;
         // Loan ID -> Pool ID -> Borrow amount
         mapping(bytes32 => mapping(uint256 => uint256)) loanAmountByLoanIdAndPoolId;
     }
 
-    event SetPoolGroupSizeSucceed(address tokenAddress, uint256 numPools);
-
-    function setPoolGroupSizeIfNeeded(
-        State storage self,
-        address tokenAddress,
-        uint256 numPools
-    ) external {
-        PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
-
-        // We can only increase the number of pools
-        if (numPools > poolGroup.numPools) {
-            poolGroup.numPools = numPools;
-
-            emit SetPoolGroupSizeSucceed(tokenAddress, numPools);
-        }
+    function setPoolGroupSize(State storage self, uint256 poolGroupSize)
+        external
+    {
+        self.poolGroupSize = poolGroupSize;
     }
 
     function addDepositToPool(
@@ -98,7 +89,7 @@ library LiquidityPools {
         uint256 availableAmount;
 
         // Calculate available amount to borrow for the loan term
-        for (uint256 i = loanRecord.loanTerm; i <= poolGroup.numPools; i++) {
+        for (uint256 i = loanRecord.loanTerm; i <= self.poolGroupSize; i++) {
             poolId = firstPoolId.add(i);
             availableAmount = availableAmount.add(
                 poolGroup.poolsById[poolId].availableAmount
@@ -116,7 +107,7 @@ library LiquidityPools {
 
         for (
             uint256 poolId = firstPoolId.add(loanRecord.loanTerm);
-            poolId <= firstPoolId.add(poolGroup.numPools);
+            poolId <= firstPoolId.add(self.poolGroupSize);
             poolId = poolId.add(1)
         ) {
             if (remainingLoanAmount == 0) {
@@ -178,7 +169,7 @@ library LiquidityPools {
         uint256 repayAmountToThisPool;
         for (
             uint256 poolId = firstPoolId;
-            poolId <= firstPoolId.add(poolGroup.numPools);
+            poolId <= firstPoolId.add(self.poolGroupSize);
             poolId = poolId.add(1)
         ) {
             if (remainingRepayAmount == 0) {
@@ -218,11 +209,11 @@ library LiquidityPools {
     {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
         poolList = new IStruct.getPoolsByTokenResponse[](
-            poolGroup.numPools + 1
+            self.poolGroupSize + 1
         );
         uint256 firstPoolId = DateTime.toDays();
         IStruct.Pool memory pool;
-        for (uint256 i = 0; i <= poolGroup.numPools; i++) {
+        for (uint256 i = 0; i <= self.poolGroupSize; i++) {
             pool = poolGroup.poolsById[firstPoolId.add(i)];
             poolList[i] = IStruct.getPoolsByTokenResponse({
                 poolId: firstPoolId.add(i),
