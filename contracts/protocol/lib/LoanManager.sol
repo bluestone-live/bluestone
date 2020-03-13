@@ -498,17 +498,17 @@ library LoanManager {
             loanRecord.alreadyPaidAmount.add(repayAmount) >
             loanRecord.loanAmount
         ) {
-            // Repays interest and principle
-            uint256 remainingPrinciplePart = loanRecord.loanAmount.sub(
+            // Repays interest and principal
+            uint256 remainingPrincipal = loanRecord.loanAmount.sub(
                 loanRecord.alreadyPaidAmount
             );
-            repayAmountToPools = remainingPrinciplePart.add(
-                repayAmount.sub(remainingPrinciplePart).mulFixed(
+            repayAmountToPools = remainingPrincipal.add(
+                repayAmount.sub(remainingPrincipal).mulFixed(
                     ONE.sub(loanDistributorFeeRatio)
                 )
             );
         } else {
-            // Only repays principle
+            // Only repays principal
             repayAmountToPools = repayAmount;
         }
 

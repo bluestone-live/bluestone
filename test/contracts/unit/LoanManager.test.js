@@ -847,7 +847,7 @@ contract('LoanManager', function([
       const repayAmount = toFixedBN(0.01);
 
       beforeEach(async () => {
-        // Repay full principle first
+        // Repay full principal first
         await loanManager.repayLoan(recordId, loanAmount, {
           from: loaner,
         });
