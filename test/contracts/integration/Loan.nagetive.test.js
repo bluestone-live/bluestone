@@ -4,12 +4,7 @@ const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const WETH = artifacts.require('WETH9');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
-const {
-  expectRevert,
-  expectEvent,
-  BN,
-  time,
-} = require('openzeppelin-test-helpers');
+const { expectRevert } = require('openzeppelin-test-helpers');
 const {
   toFixedBN,
   createERC20Token,
@@ -28,20 +23,12 @@ contract(
     loanDistributor,
     protocolReserveAddress,
   ]) => {
-    let protocol,
-      interestModel,
-      payableProxy,
-      loanToken,
-      collateralToken,
-      weth,
-      datetime;
+    let protocol, interestModel, payableProxy, loanToken, collateralToken, weth;
 
     const initialSupply = toFixedBN(10000);
-    const ZERO = toFixedBN(0);
 
     // configurations
     const depositTerms = [1, 5, 7];
-    const maxLoanTerm = 7;
     const minCollateralCoverageRatio = 1.5;
     const liquidationDiscount = 0.05;
     const protocolReserveRatio = 0.07;
@@ -50,8 +37,6 @@ contract(
 
     const loanInterestRateLowerBound = 0.1;
     const loanInterestRateUpperBound = 0.15;
-
-    let currentLoanInterestRate;
 
     // Token prices
     const loanTokenPrice = 1;
@@ -293,12 +278,11 @@ contract(
         before(async () => {
           await protocol.deposit(
             loanToken.address,
-            '0',
+            toFixedBN(depositAmount),
             depositTerm,
             depositDistributor,
             {
               from: depositor,
-              value: toFixedBN(depositAmount),
             },
           );
           // reset
@@ -308,8 +292,6 @@ contract(
             toFixedBN(minCollateralCoverageRatio),
             toFixedBN(liquidationDiscount),
           );
-
-          const pairs = await protocol.getLoanAndCollateralTokenPairs();
 
           const { logs: loanLogs } = await protocol.loan(
             loanToken.address,

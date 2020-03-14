@@ -332,6 +332,9 @@ library LoanManager {
                 loanParameters.collateralAmount
             )();
         } else {
+            // If collateral token is not ETH, ensure msg.value is 0
+            require(msg.value == 0, 'LoanManager: msg.value is not accepted');
+
             // Transfer collateral tokens from loaner to protocol
             ERC20(loanParameters.collateralTokenAddress).safeTransferFrom(
                 msg.sender,
@@ -471,6 +474,8 @@ library LoanManager {
         if (loanRecord.loanTokenAddress == address(1)) {
             configuration.payableProxy.receiveETH.value(repayAmount)();
         } else {
+            require(msg.value == 0, 'LoanManager: msg.value is not accepted');
+
             ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
                 msg.sender,
                 address(this),
@@ -519,7 +524,6 @@ library LoanManager {
         );
         loanRecord.lastRepaidAt = now;
 
-        // Transfer loan tokens from user to protocol, It's better to get repay before send distribution
         if (_calculateRemainingDebt(loanRecord) == 0) {
             loanRecord.isClosed = true;
 
@@ -639,11 +643,19 @@ library LoanManager {
         );
 
         // Transfer loan tokens from liquidator to protocol
-        ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
-            msg.sender,
-            address(this),
-            localVars.liquidatedAmount
-        );
+        if (loanRecord.loanTokenAddress == address(1)) {
+            configuration.payableProxy.receiveETH.value(
+                localVars.liquidatedAmount
+            )();
+        } else {
+            require(msg.value == 0, 'LoanManager: msg.value is not accepted');
+
+            ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
+                msg.sender,
+                address(this),
+                localVars.liquidatedAmount
+            );
+        }
 
         loanRecord.soldCollateralAmount = loanRecord.soldCollateralAmount.add(
             localVars.soldCollateralAmount

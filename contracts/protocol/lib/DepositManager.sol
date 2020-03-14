@@ -223,6 +223,11 @@ library DepositManager {
                 depositParameters.depositAmount
             )();
         } else {
+            require(
+                msg.value == 0,
+                'DepositManager: msg.value is not accepted'
+            );
+
             ERC20(address(depositParameters.tokenAddress)).safeTransferFrom(
                 accountAddress,
                 address(this),
