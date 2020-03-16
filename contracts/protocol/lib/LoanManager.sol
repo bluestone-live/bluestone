@@ -12,6 +12,7 @@ import './Configuration.sol';
 import './LiquidityPools.sol';
 import './DepositManager.sol';
 
+
 library LoanManager {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -97,6 +98,12 @@ library LoanManager {
         bytes32 recordId,
         address indexed loanTokenAddress,
         uint256 interestForLoanDistributor
+    );
+    event PayLoanDistributorFailed(
+        address indexed distributorAddress,
+        address indexed loanTokenAddress,
+        bytes32 recordId,
+        uint256 amount
     );
 
     function getLoanRecordById(
@@ -402,8 +409,7 @@ library LoanManager {
         if (
             self
                 .loanAndCollateralTokenPairs[loanTokenAddress][collateralTokenAddress]
-                .minCollateralCoverageRatio ==
-            0
+                .minCollateralCoverageRatio == 0
         ) {
             self.loanAndCollateralTokenPairList.push(tokenPair);
         }
@@ -560,23 +566,7 @@ library LoanManager {
             }
 
             if (loanRecord.distributorAddress != address(this)) {
-                if (loanRecord.loanTokenAddress == address(1)) {
-                    loanRecord.distributorAddress.transfer(
-                        loanRecord.distributorInterest
-                    );
-                } else {
-                    ERC20(loanRecord.loanTokenAddress).safeTransfer(
-                        loanRecord.distributorAddress,
-                        loanRecord.distributorInterest
-                    );
-                }
-
-                emit LoanDistributorFeeTransfered(
-                    loanRecord.distributorAddress,
-                    loanId,
-                    loanRecord.loanTokenAddress,
-                    loanRecord.distributorInterest
-                );
+                _payDistributorInterest(loanRecord);
             }
         }
 
@@ -714,16 +704,7 @@ library LoanManager {
             }
 
             if (loanRecord.distributorAddress != address(this)) {
-                if (loanRecord.loanTokenAddress == address(1)) {
-                    loanRecord.distributorAddress.transfer(
-                        loanRecord.distributorInterest
-                    );
-                } else {
-                    ERC20(loanRecord.loanTokenAddress).safeTransfer(
-                        loanRecord.distributorAddress,
-                        loanRecord.distributorInterest
-                    );
-                }
+                _payDistributorInterest(loanRecord);
             }
         }
 
@@ -765,6 +746,41 @@ library LoanManager {
                 .add(loanRecord.interest)
                 .sub(loanRecord.alreadyPaidAmount)
                 .sub(loanRecord.liquidatedAmount);
+    }
+
+    function _payDistributorInterest(IStruct.LoanRecord memory loanRecord)
+        private
+    {
+        bool succeed = true;
+
+        if (loanRecord.loanTokenAddress == address(1)) {
+            /// By using .send() instead of .transfer(), we ensure this call does not revert
+            /// due to the passed in distributorAddress rejects receiving ether
+            succeed = loanRecord.distributorAddress.send(
+                loanRecord.distributorInterest
+            );
+        } else {
+            ERC20(loanRecord.loanTokenAddress).safeTransfer(
+                loanRecord.distributorAddress,
+                loanRecord.distributorInterest
+            );
+        }
+
+        if (succeed) {
+            emit LoanDistributorFeeTransfered(
+                loanRecord.distributorAddress,
+                loanRecord.loanId,
+                loanRecord.loanTokenAddress,
+                loanRecord.distributorInterest
+            );
+        } else {
+            emit PayLoanDistributorFailed(
+                loanRecord.distributorAddress,
+                loanRecord.loanTokenAddress,
+                loanRecord.loanId,
+                loanRecord.distributorInterest
+            );
+        }
     }
 
     function getLoanAndCollateralTokenPairs(State storage self)

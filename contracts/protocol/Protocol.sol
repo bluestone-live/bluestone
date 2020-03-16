@@ -72,6 +72,11 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         address indexed depositTokenAddress,
         uint256 interestForDistributor
     );
+    event PayDepositDistributorFailed(
+        address indexed distributorAddress,
+        bytes32 recordId,
+        uint256 amount
+    );
 
     event SetLoanAndCollateralTokenPairSucceed(
         address indexed adminAddress,
@@ -111,7 +116,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         bytes32 recordId,
         address indexed loanTokenAddress,
         uint256 liquidateAmount,
-        address indexed collateralTokenAddress, 
+        address indexed collateralTokenAddress,
         uint256 soldCollateralAmount
     );
 
@@ -127,6 +132,12 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         bytes32 recordId,
         address indexed collateralTokenAddress,
         uint256 collateralAmount
+    );
+
+    event PayLoanDistributorFailed(
+        address indexed distributorAddress,
+        bytes32 recordId,
+        uint256 amount
     );
 
     event SetPriceOracleSucceed(

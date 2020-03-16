@@ -11,6 +11,7 @@ import './LoanManager.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
 
+
 library DepositManager {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -72,6 +73,12 @@ library DepositManager {
         bytes32 recordId,
         address indexed depositTokenAddress,
         uint256 interestForDistributor
+    );
+    event PayDepositDistributorFailed(
+        address indexed distributorAddress,
+        address indexed depositTokenAddress,
+        bytes32 recordId,
+        uint256 amount
     );
 
     function enableDepositTerm(
@@ -306,7 +313,12 @@ library DepositManager {
             'DepositManager: deposit is not matured'
         );
 
-        (uint256 interestForDepositor, uint256 interestForDepositDistributor, , uint256 interestForProtocolReserve) = _getInterestDistributionByDepositId(
+        (
+            uint256 interestForDepositor,
+            uint256 interestForDepositDistributor,
+            ,
+            uint256 interestForProtocolReserve
+        ) = _getInterestDistributionByDepositId(
             self,
             liquidityPools,
             depositId
@@ -321,16 +333,27 @@ library DepositManager {
         if (tokenAddress == address(1)) {
             // Transfer deposit distributor fee to distributor if distributor set
             if (depositRecord.distributorAddress != address(this)) {
-                depositRecord.distributorAddress.transfer(
+                /// By using .send() instead of .transfer(), we ensure this call does not revert
+                /// due to the passed in distributorAddress rejects receiving ether
+                bool succeed = depositRecord.distributorAddress.send(
                     interestForDepositDistributor
                 );
 
-                emit DepositDistributorFeeTransfered(
-                    depositRecord.distributorAddress,
-                    depositId,
-                    tokenAddress,
-                    interestForDepositDistributor
-                );
+                if (succeed) {
+                    emit DepositDistributorFeeTransfered(
+                        depositRecord.distributorAddress,
+                        depositId,
+                        tokenAddress,
+                        interestForDepositDistributor
+                    );
+                } else {
+                    emit PayDepositDistributorFailed(
+                        depositRecord.distributorAddress,
+                        depositRecord.tokenAddress,
+                        depositId,
+                        interestForDepositDistributor
+                    );
+                }
             }
 
             // Transfer protocol reserve to interest reserve address
@@ -453,7 +476,12 @@ library DepositManager {
             'DepositManager: invalid deposit ID'
         );
 
-        (uint256 interestForDepositor, , , ) = _getInterestDistributionByDepositId(
+        (
+            uint256 interestForDepositor,
+            ,
+            ,
+
+        ) = _getInterestDistributionByDepositId(
             self,
             liquidityPools,
             depositId
