@@ -6,7 +6,6 @@ import {
   useDepositRecords,
   useLoanRecords,
   IRecord,
-  useAllPools,
   useDefaultAccount,
   DepositActions,
   LoanActions,
@@ -14,10 +13,9 @@ import {
   IDepositRecord,
   ILoanRecord,
   useDepositTokens,
-  PoolActions,
 } from '../stores';
 import RecordCard from '../containers/RecordCard';
-import { useComponentMounted, useDepsUpdated } from '../utils/useEffectAsync';
+import { useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import { parseQuery } from '../utils/parseQuery';
 import Menu, { ClickParam } from 'antd/lib/menu';
@@ -31,7 +29,7 @@ const AccountOverview = (props: IProps) => {
     location: { search },
   } = props;
 
-  const { activeTab } = parseQuery(search);
+  const { activeTab, fromUser } = parseQuery(search);
 
   const dispatch = useDispatch();
 
@@ -54,17 +52,26 @@ const AccountOverview = (props: IProps) => {
   useComponentMounted(async () => {
     const { depositService, loanService } = await getService();
 
-    dispatch(
-      DepositActions.replaceDepositRecords(
-        await depositService.getDepositRecordsByAccount(accountAddress),
-      ),
+    const userDepositRecords = await depositService.getDepositRecordsByAccount(
+      accountAddress,
     );
 
-    dispatch(
-      LoanActions.replaceLoanRecords(
-        await loanService.getLoanRecordsByAccount(accountAddress),
-      ),
+    const loanRecords = await loanService.getLoanRecordsByAccount(
+      accountAddress,
     );
+
+    dispatch(DepositActions.replaceDepositRecords(userDepositRecords));
+
+    dispatch(LoanActions.replaceLoanRecords(loanRecords));
+
+    if (
+      userDepositRecords.filter(r => !r.isWithdrawn).length +
+        loanRecords.filter(r => !r.isClosed).length ===
+        0 &&
+      fromUser !== '1'
+    ) {
+      history.push(`/deposit`);
+    }
   });
 
   // Computed

@@ -6,7 +6,7 @@ import Menu, { ClickParam } from 'antd/lib/menu';
 export enum TabType {
   Deposit = '/deposit',
   Borrow = '/borrow',
-  Account = '/account',
+  Account = '/account?fromUser=1',
 }
 
 export interface ITabOption {

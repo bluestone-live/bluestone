@@ -9,7 +9,7 @@ const routes = (isMobile = true) => {
     {
       name: 'root',
       path: '/',
-      component: () => <Redirect to="/deposit" />,
+      component: () => <Redirect to="/account" />,
     },
     {
       name: 'deposit-overview',
