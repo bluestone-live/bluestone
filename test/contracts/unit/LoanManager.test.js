@@ -290,6 +290,17 @@ contract('LoanManager', function([
       );
     });
 
+    context('when owner is invalid', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          loanManager.addCollateral(recordId, new BN(10), {
+            from: depositor,
+          }),
+          'LoanManager: invalid owner',
+        );
+      });
+    });
+
     context('when collateral amount is invalid', () => {
       it('reverts', async () => {
         await expectRevert(
@@ -336,6 +347,142 @@ contract('LoanManager', function([
 
         expect(currProtocolCollateralBalance).to.bignumber.equal(
           prevProtocolCollateralBalance.add(collateralAmount),
+        );
+      });
+    });
+  });
+
+  describe('#subtractCollateral', () => {
+    const depositAmount = toFixedBN(10);
+    const depositTerm = 30;
+    const loanAmount = toFixedBN(10);
+    const collateralAmount = toFixedBN(30);
+    const loanTerm = 30;
+
+    let recordId, prevLoanerCollateralBalance, prevProtocolCollateralBalance;
+
+    beforeEach(async () => {
+      await priceOracle.setPrice(toFixedBN(10));
+      await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
+      await loanManager.setPriceOracle(
+        collateralToken.address,
+        priceOracle.address,
+      );
+      await loanManager.enableDepositToken(loanToken.address);
+      await loanManager.enableDepositTerm(depositTerm);
+      await loanToken.approve(loanManager.address, initialSupply, {
+        from: depositor,
+      });
+
+      await collateralToken.approve(loanManager.address, initialSupply, {
+        from: loaner,
+      });
+
+      await loanManager.deposit(
+        loanToken.address,
+        depositAmount,
+        depositTerm,
+        distributorAddress,
+        {
+          from: depositor,
+        },
+      );
+
+      await setLoanAndCollateralTokenPair();
+
+      const { logs } = await loanManager.loan(
+        loanToken.address,
+        collateralToken.address,
+        loanAmount,
+        collateralAmount,
+        loanTerm,
+        distributorAddress,
+        {
+          from: loaner,
+        },
+      );
+
+      recordId = logs.filter(log => log.event === 'LoanSucceed')[0].args
+        .recordId;
+
+      prevLoanerCollateralBalance = await collateralToken.balanceOf(loaner);
+      prevProtocolCollateralBalance = await collateralToken.balanceOf(
+        loanManager.address,
+      );
+    });
+
+    context('when owner is invalid', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          loanManager.subtractCollateral(recordId, new BN(10), {
+            from: depositor,
+          }),
+          'LoanManager: invalid owner',
+        );
+      });
+    });
+
+    context('when collateral amount is zero', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          loanManager.subtractCollateral(recordId, new BN(0), {
+            from: loaner,
+          }),
+          'LoanManager: invalid collateralAmount',
+        );
+      });
+    });
+
+    context(
+      'when collateral amount drops collateral coverage ratio below minimum',
+      () => {
+        it('reverts', async () => {
+          await expectRevert(
+            loanManager.subtractCollateral(recordId, toFixedBN(16), {
+              from: loaner,
+            }),
+            'LoanManager: invalid collateral coverage ratio after subtraction',
+          );
+        });
+      },
+    );
+
+    context('when collateral amount is valid', () => {
+      const collateralAmount = toFixedBN(10);
+      let tx;
+
+      beforeEach(async () => {
+        tx = await loanManager.subtractCollateral(recordId, collateralAmount, {
+          from: loaner,
+        });
+      });
+
+      it('emits event', async () => {
+        expectEvent.inLogs(tx.logs, 'SubtractCollateralSucceed', {
+          accountAddress: loaner,
+          collateralTokenAddress: collateralToken.address,
+          recordId,
+          collateralAmount,
+        });
+      });
+
+      it('reduces collateral tokens from protocol', async () => {
+        const currProtocolCollateralBalance = await collateralToken.balanceOf(
+          loanManager.address,
+        );
+
+        expect(currProtocolCollateralBalance).to.bignumber.equal(
+          prevProtocolCollateralBalance.sub(collateralAmount),
+        );
+      });
+
+      it('adds collateral tokens to loaner', async () => {
+        const currLoanerCollateralBalance = await collateralToken.balanceOf(
+          loaner,
+        );
+
+        expect(currLoanerCollateralBalance).to.bignumber.equal(
+          prevLoanerCollateralBalance.add(collateralAmount),
         );
       });
     });

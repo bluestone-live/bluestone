@@ -176,6 +176,15 @@ interface IProtocol {
         payable
         returns (uint256 totalCollateralAmount);
 
+    /// @notice Subtract collateral from a loan
+    /// @param loanId ID that identifies the loan
+    /// @param collateralAmount The collateral amount to be subtracted from the loan
+    /// @return totalCollateralAmount The total collateral amount after subtracting collateral
+    function subtractCollateral(bytes32 loanId, uint256 collateralAmount)
+        external
+        virtual
+        returns (uint256 totalCollateralAmount);
+
     /// @notice Return basic info of a loan record
     /// @param loanId ID that identifies the loan record
     /// @return loanRecord

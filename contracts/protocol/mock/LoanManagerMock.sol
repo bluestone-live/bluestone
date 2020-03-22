@@ -121,6 +121,19 @@ contract LoanManagerMock {
         }
     }
 
+    function subtractCollateral(bytes32 loanId, uint256 collateralAmount)
+        external
+        payable
+        returns (uint256 totalCollateralAmount)
+    {
+        return
+            _loanManager.subtractCollateral(
+                _configuration,
+                loanId,
+                collateralAmount
+            );
+    }
+
     function setLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress,

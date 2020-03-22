@@ -134,6 +134,13 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         uint256 collateralAmount
     );
 
+    event SubtractCollateralSucceed(
+        address indexed accountAddress,
+        address indexed collateralTokenAddress,
+        bytes32 recordId,
+        uint256 collateralAmount
+    );
+
     event PayLoanDistributorFailed(
         address indexed distributorAddress,
         bytes32 recordId,
@@ -419,7 +426,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         return _loanManager.getLoanRecordsByAccount(_configuration, accountAddress);
     }
 
-    /// @dev Once the msg.value greater than 0, it will ignore collateralAmount parameter and use msg.value instead
     function addCollateral(
         bytes32 loanId,
         uint256 collateralAmount
@@ -435,6 +441,18 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         } else {
             return _loanManager.addCollateral(_configuration, loanId, collateralAmount);
         }
+    }
+
+    function subtractCollateral(
+        bytes32 loanId,
+        uint256 collateralAmount
+    )
+        external
+        whenNotPaused
+        override
+        returns (uint256 totalCollateralAmount)
+    {
+        return _loanManager.subtractCollateral(_configuration, loanId, collateralAmount);
     }
 
     function setLoanAndCollateralTokenPair(

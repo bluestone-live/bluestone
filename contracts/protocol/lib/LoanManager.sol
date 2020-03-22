@@ -105,6 +105,12 @@ library LoanManager {
         bytes32 recordId,
         uint256 amount
     );
+    event SubtractCollateralSucceed(
+        address indexed accountAddress,
+        address indexed collateralTokenAddress,
+        bytes32 recordId,
+        uint256 collateralAmount
+    );
 
     function getLoanRecordById(
         State storage self,
@@ -197,14 +203,19 @@ library LoanManager {
         bytes32 loanId,
         uint256 collateralAmount
     ) external returns (uint256 totalCollateralAmount) {
+        IStruct.LoanRecord storage record = self.loanRecordById[loanId];
+
+        require(
+            msg.sender == record.ownerAddress,
+            'LoanManager: invalid owner'
+        );
+
         require(
             !self.loanRecordById[loanId].isClosed,
             'LoanManager: loan already closed'
         );
 
         require(collateralAmount > 0, 'LoanManager: invalid collateralAmount');
-
-        IStruct.LoanRecord storage record = self.loanRecordById[loanId];
 
         IStruct.LoanAndCollateralTokenPair storage tokenPair = self
             .loanAndCollateralTokenPairs[record.loanTokenAddress][record
@@ -232,6 +243,76 @@ library LoanManager {
             msg.sender,
             loanId,
             record.collateralTokenAddress,
+            collateralAmount
+        );
+
+        return record.collateralAmount;
+    }
+
+    function subtractCollateral(
+        State storage self,
+        Configuration.State storage configuration,
+        bytes32 loanId,
+        uint256 collateralAmount
+    ) external returns (uint256 totalCollateralAmount) {
+        IStruct.LoanRecord storage record = self.loanRecordById[loanId];
+
+        require(
+            msg.sender == record.ownerAddress,
+            'LoanManager: invalid owner'
+        );
+
+        require(!record.isClosed, 'LoanManager: loan already closed');
+
+        require(collateralAmount > 0, 'LoanManager: invalid collateralAmount');
+
+        IStruct.LoanAndCollateralTokenPair storage tokenPair = self
+            .loanAndCollateralTokenPairs[record.loanTokenAddress][record
+            .collateralTokenAddress];
+
+        require(
+            tokenPair.minCollateralCoverageRatio != 0,
+            'LoanManager: invalid token pair'
+        );
+
+        IPriceOracle loanTokenPriceOracle = configuration
+            .priceOracleByToken[record.loanTokenAddress];
+        IPriceOracle collateralTokenPriceOracle = configuration
+            .priceOracleByToken[record.collateralTokenAddress];
+
+        loanTokenPriceOracle.updatePriceIfNeeded();
+        collateralTokenPriceOracle.updatePriceIfNeeded();
+
+        uint256 collateralCoverageRatioAfterSubtraction = record
+            .collateralAmount
+            .sub(record.soldCollateralAmount)
+            .sub(collateralAmount)
+            .mulFixed(collateralTokenPriceOracle.getPrice())
+            .divFixed(_calculateRemainingDebt(record))
+            .divFixed(loanTokenPriceOracle.getPrice());
+
+        require(
+            collateralCoverageRatioAfterSubtraction >=
+                tokenPair.minCollateralCoverageRatio,
+            'LoanManager: invalid collateral coverage ratio after subtraction'
+        );
+
+        // Transfer collateral from protocol to user
+        if (record.collateralTokenAddress == address(1)) {
+            msg.sender.transfer(collateralAmount);
+        } else {
+            ERC20(record.collateralTokenAddress).safeTransfer(
+                msg.sender,
+                collateralAmount
+            );
+        }
+
+        record.collateralAmount = record.collateralAmount.sub(collateralAmount);
+
+        emit SubtractCollateralSucceed(
+            msg.sender,
+            record.collateralTokenAddress,
+            loanId,
             collateralAmount
         );
 
