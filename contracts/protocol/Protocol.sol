@@ -7,7 +7,6 @@ import '../common/Pausable.sol';
 import '../common/ReentrancyGuard.sol';
 import './interface/IProtocol.sol';
 import './interface/IInterestModel.sol';
-import './interface/IPayableProxy.sol';
 import './lib/Configuration.sol';
 import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';
@@ -99,11 +98,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         address indexed adminAddress,
         address tokenAddress,
         address priceOracleAddress
-    );
-
-    event SetPayableProxySucceed(
-        address indexed adminAddress,
-        address payableProxyAddress
     );
 
     event SetProtocolAddressSucceed(
@@ -295,6 +289,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
             distributorAddress: distributorAddress
         });
 
+        // check if eth
         if (collateralTokenAddress == address(1)) {
             loanParameters.collateralAmount = msg.value;
         } else {
@@ -467,19 +462,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         override
     {
         _configuration.setInterestModel(interestModel);
-    }
-
-    function setPayableProxy(IPayableProxy payableProxy)
-        external
-        whenNotPaused
-        onlyOwner
-        override
-    {
-        _configuration.setPayableProxy(payableProxy);
-        ERC20(payableProxy.getWETHAddress()).approve(
-            address(payableProxy),
-            uint256(-1)
-        );
     }
 
     function setInterestReserveAddress(address payable interestReserveAddress)

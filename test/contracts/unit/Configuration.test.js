@@ -1,7 +1,5 @@
 const Configuration = artifacts.require('ConfigurationMock');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const PayableProxy = artifacts.require('PayableProxy');
-const WETH9 = artifacts.require('WETH9');
 const {
   expectRevert,
   expectEvent,
@@ -12,12 +10,10 @@ const { toFixedBN, createERC20Token } = require('../../utils/index');
 const { expect } = require('chai');
 
 contract('Configuration', function([owner]) {
-  let configuration, payableProxy, weth;
+  let configuration;
 
   beforeEach(async () => {
-    weth = await WETH9.new();
     configuration = await Configuration.new();
-    payableProxy = await PayableProxy.new(configuration.address, weth.address);
   });
 
   describe('#setPriceOracle', () => {
@@ -62,25 +58,6 @@ contract('Configuration', function([owner]) {
         expectEvent.inLogs(logs, 'SetProtocolAddressSucceed', {
           adminAddress: owner,
           interestReserveAddress: owner,
-        });
-      });
-    });
-  });
-
-  describe('#setPayableProxy', () => {
-    context('when address is valid', () => {
-      it('succeeds', async () => {
-        const { logs } = await configuration.setPayableProxy(
-          payableProxy.address,
-        );
-
-        expect(await configuration.getPayableProxy()).to.equal(
-          payableProxy.address,
-        );
-
-        expectEvent.inLogs(logs, 'SetPayableProxySucceed', {
-          adminAddress: owner,
-          payableProxyAddress: payableProxy.address,
         });
       });
     });

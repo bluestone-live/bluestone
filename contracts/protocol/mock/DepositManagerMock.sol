@@ -190,16 +190,4 @@ contract DepositManagerMock {
     {
         _configuration.setInterestReserveAddress(interestReserveAddress);
     }
-
-    function setPayableProxy(IPayableProxy payableProxy) external {
-        _configuration.setPayableProxy(payableProxy);
-        ERC20(payableProxy.getWETHAddress()).approve(
-            address(payableProxy),
-            uint256(-1)
-        );
-    }
-
-    function getWETHAddress() public view returns (address wethAddress) {
-        return _configuration.payableProxy.getWETHAddress();
-    }
 }

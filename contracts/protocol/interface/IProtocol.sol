@@ -3,7 +3,6 @@ pragma experimental ABIEncoderV2;
 
 import '../../oracle/interface/IPriceOracle.sol';
 import './IInterestModel.sol';
-import './IPayableProxy.sol';
 import './IStruct.sol';
 
 
@@ -236,10 +235,6 @@ interface IProtocol {
     /// @notice Set interest model
     /// @param interestModel Interest model
     function setInterestModel(IInterestModel interestModel) external virtual;
-
-    /// @notice Set payable proxy
-    /// @param payableProxy Payable proxy
-    function setPayableProxy(IPayableProxy payableProxy) external virtual;
 
     /// @notice Set interest reserve address, which receives protocol reserve.
     /// @param interestReserveAddress Protocol address

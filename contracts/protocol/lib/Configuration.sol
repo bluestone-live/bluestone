@@ -2,7 +2,7 @@ pragma solidity ^0.6.0;
 
 import '../../oracle/interface/IPriceOracle.sol';
 import '../interface/IInterestModel.sol';
-import '../interface/IPayableProxy.sol';
+
 
 library Configuration {
     struct State {
@@ -14,18 +14,12 @@ library Configuration {
         IInterestModel interestModel;
         // Token address -> price oracle
         mapping(address => IPriceOracle) priceOracleByToken;
-        IPayableProxy payableProxy;
     }
 
     event SetPriceOracleSucceed(
         address indexed adminAddress,
         address tokenAddress,
         address priceOracleAddress
-    );
-
-    event SetPayableProxySucceed(
-        address indexed adminAddress,
-        address payableProxyAddress
     );
 
     event SetProtocolAddressSucceed(
@@ -61,14 +55,6 @@ library Configuration {
             tokenAddress,
             address(priceOracle)
         );
-    }
-
-    function setPayableProxy(State storage self, IPayableProxy payableProxy)
-        external
-    {
-        self.payableProxy = payableProxy;
-
-        emit SetPayableProxySucceed(msg.sender, address(payableProxy));
     }
 
     function setInterestReserveAddress(

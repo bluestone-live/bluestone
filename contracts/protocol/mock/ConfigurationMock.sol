@@ -6,6 +6,7 @@ import '../lib/LiquidityPools.sol';
 import '../lib/DepositManager.sol';
 import '../lib/LoanManager.sol';
 
+
 contract ConfigurationMock {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -80,22 +81,6 @@ contract ConfigurationMock {
             _configuration.depositDistributorFeeRatio,
             _configuration.loanDistributorFeeRatio
         );
-    }
-
-    function setPayableProxy(IPayableProxy payableProxy) external {
-        _configuration.setPayableProxy(payableProxy);
-        ERC20(payableProxy.getWETHAddress()).approve(
-            address(payableProxy),
-            uint256(-1)
-        );
-    }
-
-    function getPayableProxy()
-        external
-        view
-        returns (address payableProxyAddress)
-    {
-        return address(_configuration.payableProxy);
     }
 
     // -- Helpers --

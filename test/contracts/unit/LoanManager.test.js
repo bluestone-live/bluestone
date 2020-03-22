@@ -2,13 +2,11 @@ const LoanManager = artifacts.require('LoanManagerMock');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
-const WETH9 = artifacts.require('WETH9');
 const {
   toFixedBN,
   createERC20Token,
   ETHIdentificationAddress,
 } = require('../../utils/index.js');
-const PayableProxy = artifacts.require('PayableProxy');
 const {
   BN,
   expectRevert,
@@ -24,19 +22,14 @@ contract('LoanManager', function([
   liquidator,
   distributorAddress,
 ]) {
-  let loanManager,
-    priceOracle,
-    collateralPriceOracle,
-    interestModel,
-    payableProxy,
-    datetime;
+  let loanManager, priceOracle, collateralPriceOracle, interestModel, datetime;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
   const minCollateralCoverageRatio = toFixedBN(1.5);
   const liquidationDiscount = toFixedBN(0.05);
   const initialSupply = toFixedBN(1000);
 
-  let weth, loanToken, collateralToken;
+  let loanToken, collateralToken;
 
   const setLoanAndCollateralTokenPair = async () => {
     await loanManager.setLoanAndCollateralTokenPair(
@@ -54,15 +47,11 @@ contract('LoanManager', function([
     interestModel = await InterestModel.new();
     datetime = await DateTime.new();
 
-    weth = await WETH9.new();
     await loanManager.setInterestModel(interestModel.address);
     await loanManager.setMaxDistributorFeeRatios(
       depositDistributorFeeRatio,
       loanDistributorFeeRatio,
     );
-    payableProxy = await PayableProxy.new(loanManager.address, weth.address);
-
-    await loanManager.setPayableProxy(payableProxy.address);
 
     loanToken = await createERC20Token(depositor, initialSupply);
     collateralToken = await createERC20Token(loaner, initialSupply);

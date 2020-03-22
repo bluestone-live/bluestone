@@ -236,16 +236,4 @@ contract LoanManagerMock {
     function setInterestModel(IInterestModel interestModel) external {
         _configuration.setInterestModel(interestModel);
     }
-
-    function setPayableProxy(IPayableProxy payableProxy) external {
-        _configuration.setPayableProxy(payableProxy);
-        ERC20(payableProxy.getWETHAddress()).approve(
-            address(payableProxy),
-            uint256(-1)
-        );
-    }
-
-    function getWETHAddress() public view returns (address wethAddress) {
-        return _configuration.payableProxy.getWETHAddress();
-    }
 }

@@ -194,9 +194,7 @@ library LoanManager {
 
         address collateralTokenAddress = record.collateralTokenAddress;
 
-        if (collateralTokenAddress == address(1)) {
-            configuration.payableProxy.receiveETH.value(collateralAmount);
-        } else {
+        if (collateralTokenAddress != address(1)) {
             // Transfer collateral from user account to protocol
             ERC20(collateralTokenAddress).safeTransferFrom(
                 msg.sender,
@@ -315,10 +313,7 @@ library LoanManager {
         liquidityPools.loanFromPools(self.loanRecordById[localVars.loanId]);
 
         if (loanParameters.loanTokenAddress == address(1)) {
-            configuration.payableProxy.sendETH(
-                msg.sender,
-                loanParameters.loanAmount
-            );
+            msg.sender.transfer(loanParameters.loanAmount);
         } else {
             // Transfer loan tokens from protocol to loaner
             ERC20(loanParameters.loanTokenAddress).safeTransfer(
@@ -327,11 +322,7 @@ library LoanManager {
             );
         }
 
-        if (loanParameters.collateralTokenAddress == address(1)) {
-            configuration.payableProxy.receiveETH.value(
-                loanParameters.collateralAmount
-            )();
-        } else {
+        if (loanParameters.collateralTokenAddress != address(1)) {
             // If collateral token is not ETH, ensure msg.value is 0
             require(msg.value == 0, 'LoanManager: msg.value is not accepted');
 
@@ -471,9 +462,7 @@ library LoanManager {
             'LoanManager: invalid repay amount'
         );
 
-        if (loanRecord.loanTokenAddress == address(1)) {
-            configuration.payableProxy.receiveETH.value(repayAmount)();
-        } else {
+        if (loanRecord.loanTokenAddress != address(1)) {
             require(msg.value == 0, 'LoanManager: msg.value is not accepted');
 
             ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
@@ -534,10 +523,7 @@ library LoanManager {
             if (remainingCollateralAmount > 0) {
                 // Transfer remaining collateral from protocol to loaner
                 if (loanRecord.collateralTokenAddress == address(1)) {
-                    configuration.payableProxy.sendETH(
-                        msg.sender,
-                        remainingCollateralAmount
-                    );
+                    msg.sender.transfer(remainingCollateralAmount);
                 } else {
                     ERC20(loanRecord.collateralTokenAddress).safeTransfer(
                         msg.sender,
@@ -548,8 +534,7 @@ library LoanManager {
 
             if (loanRecord.distributorAddress != address(this)) {
                 if (loanRecord.loanTokenAddress == address(1)) {
-                    configuration.payableProxy.sendETH(
-                        loanRecord.distributorAddress,
+                    loanRecord.distributorAddress.transfer(
                         loanRecord.distributorInterest
                     );
                 } else {
@@ -643,11 +628,7 @@ library LoanManager {
         );
 
         // Transfer loan tokens from liquidator to protocol
-        if (loanRecord.loanTokenAddress == address(1)) {
-            configuration.payableProxy.receiveETH.value(
-                localVars.liquidatedAmount
-            )();
-        } else {
+        if (loanRecord.loanTokenAddress != address(1)) {
             require(msg.value == 0, 'LoanManager: msg.value is not accepted');
 
             ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
@@ -679,8 +660,7 @@ library LoanManager {
             if (localVars.remainingCollateralAmount > 0) {
                 // Transfer remaining collateral from protocol to loaner
                 if (loanRecord.collateralTokenAddress == address(1)) {
-                    configuration.payableProxy.sendETH(
-                        loanRecord.ownerAddress,
+                    loanRecord.ownerAddress.transfer(
                         localVars.remainingCollateralAmount
                     );
                 } else {
@@ -693,8 +673,7 @@ library LoanManager {
 
             if (loanRecord.distributorAddress != address(this)) {
                 if (loanRecord.loanTokenAddress == address(1)) {
-                    configuration.payableProxy.sendETH(
-                        loanRecord.distributorAddress,
+                    loanRecord.distributorAddress.transfer(
                         loanRecord.distributorInterest
                     );
                 } else {
@@ -710,10 +689,7 @@ library LoanManager {
 
         // Transfer collateral amount to liquidator
         if (loanRecord.collateralTokenAddress == address(1)) {
-            configuration.payableProxy.sendETH(
-                msg.sender,
-                localVars.soldCollateralAmount
-            );
+            msg.sender.transfer(localVars.soldCollateralAmount);
         } else {
             ERC20(loanRecord.collateralTokenAddress).safeTransfer(
                 msg.sender,

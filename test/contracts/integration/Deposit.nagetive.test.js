@@ -1,7 +1,5 @@
 const Protocol = artifacts.require('Protocol');
-const PayableProxy = artifacts.require('PayableProxy');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const WETH = artifacts.require('WETH9');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
 const {
@@ -28,13 +26,7 @@ contract(
     loanDistributor,
     protocolReserveAddress,
   ]) => {
-    let protocol,
-      interestModel,
-      payableProxy,
-      loanToken,
-      collateralToken,
-      weth,
-      datetime;
+    let protocol, interestModel, loanToken, collateralToken, datetime;
 
     const initialSupply = toFixedBN(10000);
     const ZERO = toFixedBN(0);
@@ -77,9 +69,6 @@ contract(
       // Create token
       loanToken = await createERC20Token(depositor, initialSupply);
       collateralToken = await createERC20Token(loaner, initialSupply);
-      weth = await WETH.new();
-
-      payableProxy = await PayableProxy.new(protocol.address, weth.address);
 
       // Mint some token to loaner
       await loanToken.mint(loaner, initialSupply);
@@ -104,9 +93,6 @@ contract(
         collateralToken.address,
         collateralTokenPriceOracle.address,
       );
-
-      // Set payable proxy
-      await protocol.setPayableProxy(payableProxy.address);
 
       await setupTestEnv(
         [

@@ -1,8 +1,6 @@
 const DepositManager = artifacts.require('DepositManagerMock');
-const PayableProxy = artifacts.require('PayableProxy');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
-const WETH9 = artifacts.require('WETH9');
 const {
   expectRevert,
   expectEvent,
@@ -25,7 +23,7 @@ contract('DepositManager', function([
   const depositTerm = 30;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
-  let token, depositManager, payableProxy;
+  let token, depositManager;
   let interestModel;
 
   beforeEach(async () => {
@@ -33,16 +31,12 @@ contract('DepositManager', function([
     interestModel = await InterestModel.new();
     datetime = await DateTime.new();
     token = await createERC20Token(depositor);
-    weth = await WETH9.new();
     await depositManager.setInterestModel(interestModel.address);
     await depositManager.setMaxDistributorFeeRatios(
       depositDistributorFeeRatio,
       loanDistributorFeeRatio,
     );
     await depositManager.setInterestReserveAddress(interestReserveAddress);
-    payableProxy = await PayableProxy.new(depositManager.address, weth.address);
-
-    await depositManager.setPayableProxy(payableProxy.address);
   });
 
   describe('#enableDepositTerm', () => {
@@ -169,6 +163,7 @@ contract('DepositManager', function([
     context('when token is enabled', () => {
       beforeEach(async () => {
         await depositManager.enableDepositToken(token.address);
+        await depositManager.enableDepositToken(ETHIdentificationAddress);
       });
 
       context('when term is not enabled', () => {
@@ -212,61 +207,74 @@ contract('DepositManager', function([
         });
 
         context('when distributor address is valid', () => {
-          it('succeeds', async () => {
-            await token.approve(depositManager.address, depositAmount, {
-              from: depositor,
-            });
+          context('when deposit ERC20 tokens', () => {
+            let tx, tokenBalanceBefore, tokenBalanceAfter;
 
-            const { logs } = await depositManager.deposit(
-              token.address,
-              depositAmount,
-              depositTerm,
-              distributorAddress,
-              {
+            beforeEach(async () => {
+              await token.approve(depositManager.address, depositAmount, {
                 from: depositor,
-              },
-            );
+              });
+              tokenBalanceBefore = new BN(await token.balanceOf(depositor));
+              tx = await depositManager.deposit(
+                token.address,
+                depositAmount,
+                depositTerm,
+                distributorAddress,
+                {
+                  from: depositor,
+                },
+              );
+              tokenBalanceAfter = new BN(await token.balanceOf(depositor));
+            });
 
-            expectEvent.inLogs(logs, 'DepositSucceed', {
-              accountAddress: depositor,
+            it('emits DepositSucceed event', async () => {
+              expectEvent.inLogs(tx.logs, 'DepositSucceed', {
+                accountAddress: depositor,
+                amount: depositAmount,
+              });
+            });
+
+            it('costs depositor depositAmount of tokens', async () => {
+              expect(
+                tokenBalanceBefore.sub(tokenBalanceAfter),
+              ).to.bignumber.equal(depositAmount);
             });
           });
-        });
-      });
 
-      // TODO: revisit after removing PayableProxy
-      context('when deposit ETH', () => {
-        beforeEach(async () => {
-          await depositManager.enableDepositTerm(depositTerm);
-          await depositManager.enableDepositToken(ETHIdentificationAddress);
-        });
+          context('when deposit ETH', () => {
+            let tx, ethBalanceBefore, ethBalanceAfter;
 
-        it('succeeds', async () => {
-          const originalWETHBalanceOfProtocol = await weth.balanceOf(
-            depositManager.address,
-          );
+            beforeEach(async () => {
+              ethBalanceBefore = new BN(await web3.eth.getBalance(depositor));
+              tx = await depositManager.deposit(
+                ETHIdentificationAddress,
+                toFixedBN(0),
+                depositTerm,
+                distributorAddress,
+                {
+                  from: depositor,
+                  value: depositAmount,
+                },
+              );
+              ethBalanceAfter = new BN(await web3.eth.getBalance(depositor));
+            });
 
-          const { logs } = await depositManager.deposit(
-            ETHIdentificationAddress,
-            toFixedBN(0),
-            depositTerm,
-            distributorAddress,
-            {
-              from: depositor,
-              value: depositAmount,
-            },
-          );
+            it('emits DepositSucceed event', async () => {
+              expectEvent.inLogs(tx.logs, 'DepositSucceed', {
+                accountAddress: depositor,
+                amount: depositAmount,
+              });
+            });
 
-          const WETHBalanceOfProtocol = await weth.balanceOf(
-            depositManager.address,
-          );
-
-          expectEvent.inLogs(logs, 'DepositSucceed', {
-            accountAddress: depositor,
+            it('costs depositor depositAmount of eth', async () => {
+              const gasUsedInWei = new BN(tx.receipt.gasUsed).mul(
+                new BN(await web3.eth.getGasPrice()),
+              );
+              expect(ethBalanceBefore.sub(ethBalanceAfter)).to.bignumber.equal(
+                depositAmount.add(gasUsedInWei),
+              );
+            });
           });
-          expect(
-            WETHBalanceOfProtocol.sub(originalWETHBalanceOfProtocol),
-          ).to.bignumber.equal(depositAmount);
         });
       });
     });
@@ -292,15 +300,14 @@ contract('DepositManager', function([
       });
     });
 
-    context('when deposit record is valid', () => {
-      let recordId;
-      let ETHRecordId;
+    context('when ERC20 deposit record is valid', () => {
+      let recordId, tx;
 
       beforeEach(async () => {
         await token.approve(depositManager.address, depositAmount, {
           from: depositor,
         });
-        const { logs: logs1 } = await depositManager.deposit(
+        tx = await depositManager.deposit(
           token.address,
           depositAmount,
           depositTerm,
@@ -310,10 +317,70 @@ contract('DepositManager', function([
           },
         );
 
-        recordId = logs1.filter(log => log.event === 'DepositSucceed')[0].args
+        recordId = tx.logs.filter(log => log.event === 'DepositSucceed')[0].args
           .recordId;
+      });
 
-        const { logs: logs2 } = await depositManager.deposit(
+      context('when deposit is matured', () => {
+        let depositorTokenBalanceBeforeAction;
+        let depositorTokenBalanceAfterAction;
+        let distributorTokenBalanceBeforeAction;
+        let distributorTokenBalanceAfterAction;
+
+        beforeEach(async () => {
+          await time.increase(time.duration.days(depositTerm + 1));
+
+          depositorTokenBalanceBeforeAction = await token.balanceOf(depositor);
+          distributorTokenBalanceBeforeAction = await token.balanceOf(
+            distributorAddress,
+          );
+          tx = await depositManager.withdraw(recordId, {
+            from: depositor,
+          });
+          depositorTokenBalanceAfterAction = await token.balanceOf(depositor);
+          distributorTokenBalanceAfterAction = await token.balanceOf(
+            distributorAddress,
+          );
+        });
+
+        it('emits WithdrawSucceed event', async () => {
+          expectEvent.inLogs(tx.logs, 'WithdrawSucceed', {
+            accountAddress: depositor,
+            recordId,
+          });
+        });
+
+        it('sends principal and interest to depositor', async () => {
+          const interestForDepositor = (await depositManager.getInterestDistributionByDepositId(
+            recordId,
+          )).interestForDepositor;
+
+          expect(
+            depositorTokenBalanceAfterAction.sub(
+              depositorTokenBalanceBeforeAction,
+            ),
+          ).to.bignumber.equal(depositAmount.add(interestForDepositor));
+        });
+
+        it('sends deposit distributor fee to distributor account', async () => {
+          const interestForDepositDistributor = (await depositManager.getInterestDistributionByDepositId(
+            recordId,
+          )).interestForDepositDistributor;
+
+          expect(
+            distributorTokenBalanceAfterAction.sub(
+              distributorTokenBalanceBeforeAction,
+            ),
+          ).to.bignumber.equal(interestForDepositDistributor);
+        });
+      });
+    });
+
+    context('when ETH deposit record is valid', () => {
+      let recordId, tx;
+
+      beforeEach(async () => {
+        tx = await depositManager.deposit(
           ETHIdentificationAddress,
           toFixedBN(0),
           depositTerm,
@@ -324,47 +391,66 @@ contract('DepositManager', function([
           },
         );
 
-        ETHRecordId = logs2.filter(log => log.event === 'DepositSucceed')[0]
-          .args.recordId;
+        recordId = tx.logs.filter(log => log.event === 'DepositSucceed')[0].args
+          .recordId;
       });
 
       context('when deposit is matured', () => {
-        let originalBalanceInDistributorAccount;
-        let interestForDepositor;
+        let depositorEthBalanceBeforeAction, depositorEthBalanceAfterAction;
+        let distributorEthBalanceBeforeAction, distributorEthBalanceAfterAction;
 
         beforeEach(async () => {
           await time.increase(time.duration.days(depositTerm + 1));
-          originalBalanceInDistributorAccount = await token.balanceOf(
-            distributorAddress,
+
+          depositorEthBalanceBeforeAction = new BN(
+            await web3.eth.getBalance(depositor),
           );
-          interestForDepositor = (await depositManager.getInterestDistributionByDepositId(
-            recordId,
-          )).interestForDepositor;
+          distributorEthBalanceBeforeAction = new BN(
+            await web3.eth.getBalance(distributorAddress),
+          );
+          tx = await depositManager.withdraw(recordId, {
+            from: depositor,
+          });
+          depositorEthBalanceAfterAction = new BN(
+            await web3.eth.getBalance(depositor),
+          );
+          distributorEthBalanceAfterAction = new BN(
+            await web3.eth.getBalance(distributorAddress),
+          );
         });
 
-        it('succeeds', async () => {
-          const { logs: logs1 } = await depositManager.withdraw(recordId, {
-            from: depositor,
-          });
-          expectEvent.inLogs(logs1, 'WithdrawSucceed', {
+        it('emits WithdrawSucceed event', async () => {
+          expectEvent.inLogs(tx.logs, 'WithdrawSucceed', {
             accountAddress: depositor,
+            recordId,
           });
+        });
 
-          const { logs: logs2 } = await depositManager.withdraw(ETHRecordId, {
-            from: depositor,
-          });
-          expectEvent.inLogs(logs2, 'WithdrawSucceed', {
-            accountAddress: depositor,
-          });
+        it('sends principal and interest to depositor', async () => {
+          const interestForDepositor = (await depositManager.getInterestDistributionByDepositId(
+            recordId,
+          )).interestForDepositor;
+          const gasUsedInWei = new BN(tx.receipt.gasUsed).mul(
+            new BN(await web3.eth.getGasPrice()),
+          );
+
+          expect(
+            depositorEthBalanceAfterAction.sub(depositorEthBalanceBeforeAction),
+          ).to.bignumber.equal(
+            depositAmount.add(interestForDepositor).sub(gasUsedInWei),
+          );
         });
 
         it('sent deposit distributor fee to distributor account', async () => {
-          const estimateDistributorBalance = originalBalanceInDistributorAccount.add(
-            interestForDepositor.mul(toFixedBN(0.01)),
-          );
-          expect(await token.balanceOf(distributorAddress)).to.bignumber.equal(
-            estimateDistributorBalance,
-          );
+          const interestForDepositDistributor = (await depositManager.getInterestDistributionByDepositId(
+            recordId,
+          )).interestForDepositDistributor;
+
+          expect(
+            distributorEthBalanceAfterAction.sub(
+              distributorEthBalanceBeforeAction,
+            ),
+          ).to.bignumber.equal(interestForDepositDistributor);
         });
       });
     });
@@ -379,15 +465,14 @@ contract('DepositManager', function([
       await depositManager.enableDepositTerm(depositTerm);
     });
 
-    context('when deposit is valid', () => {
-      let recordId;
-      let ETHRecordId;
+    context('when ERC20 deposit record is valid', () => {
+      let tx, recordId;
 
       beforeEach(async () => {
         await token.approve(depositManager.address, depositAmount, {
           from: depositor,
         });
-        const { logs: logs1 } = await depositManager.deposit(
+        tx = await depositManager.deposit(
           token.address,
           depositAmount,
           depositTerm,
@@ -397,22 +482,8 @@ contract('DepositManager', function([
           },
         );
 
-        recordId = logs1.filter(log => log.event === 'DepositSucceed')[0].args
+        recordId = tx.logs.filter(log => log.event === 'DepositSucceed')[0].args
           .recordId;
-
-        const { logs: logs2 } = await depositManager.deposit(
-          ETHIdentificationAddress,
-          toFixedBN(0),
-          depositTerm,
-          distributorAddress,
-          {
-            from: depositor,
-            value: depositAmount,
-          },
-        );
-
-        ETHRecordId = logs2.filter(log => log.event === 'DepositSucceed')[0]
-          .args.recordId;
       });
 
       context('when sender is not record owner', () => {
@@ -424,26 +495,192 @@ contract('DepositManager', function([
         });
       });
 
-      context('when deposit is not matured', () => {
-        it('succeeds', async () => {
-          const { logs: logs1 } = await depositManager.earlyWithdraw(recordId, {
+      context('when deposit record is withdrawn', () => {
+        beforeEach(async () => {
+          await depositManager.earlyWithdraw(recordId, {
             from: depositor,
           });
+        });
 
-          expectEvent.inLogs(logs1, 'EarlyWithdrawSucceed', {
-            accountAddress: depositor,
-          });
-
-          const { logs: logs2 } = await depositManager.earlyWithdraw(
-            ETHRecordId,
-            {
+        it('reverts', async () => {
+          await expectRevert(
+            depositManager.earlyWithdraw(recordId, {
               from: depositor,
-            },
+            }),
+            'DepositManager: cannot early withdraw',
+          );
+        });
+      });
+
+      context('when deposit record is mature', () => {
+        beforeEach(async () => {
+          await time.increase(time.duration.days(depositTerm + 1));
+        });
+
+        it('reverts', async () => {
+          await expectRevert(
+            depositManager.earlyWithdraw(recordId, {
+              from: depositor,
+            }),
+            'DepositManager: cannot early withdraw',
+          );
+        });
+      });
+
+      context('when deposit record is early withdrawable', () => {
+        let depositorTokenBalanceBeforeAction;
+        let depositorTokenBalanceAfterAction;
+        let distributorTokenBalanceBeforeAction;
+        let distributorTokenBalanceAfterAction;
+
+        beforeEach(async () => {
+          depositorTokenBalanceBeforeAction = await token.balanceOf(depositor);
+          distributorTokenBalanceBeforeAction = await token.balanceOf(
+            distributorAddress,
+          );
+          tx = await depositManager.earlyWithdraw(recordId, {
+            from: depositor,
+          });
+          depositorTokenBalanceAfterAction = await token.balanceOf(depositor);
+          distributorTokenBalanceAfterAction = await token.balanceOf(
+            distributorAddress,
+          );
+        });
+
+        it('emits EarlyWithdrawSucceed event', async () => {
+          expectEvent.inLogs(tx.logs, 'EarlyWithdrawSucceed', {
+            accountAddress: depositor,
+            recordId,
+            amount: depositAmount,
+          });
+        });
+
+        it('sends only principal to depositor', async () => {
+          expect(
+            depositorTokenBalanceAfterAction.sub(
+              depositorTokenBalanceBeforeAction,
+            ),
+          ).to.bignumber.equal(depositAmount);
+        });
+
+        it('does not send deposit distributor fee to distributor account', async () => {
+          expect(
+            distributorTokenBalanceAfterAction.sub(
+              distributorTokenBalanceBeforeAction,
+            ),
+          ).to.bignumber.equal(new BN(0));
+        });
+      });
+    });
+
+    context('when ETH deposit record is valid', () => {
+      let tx, recordId;
+
+      beforeEach(async () => {
+        tx = await depositManager.deposit(
+          ETHIdentificationAddress,
+          toFixedBN(0),
+          depositTerm,
+          distributorAddress,
+          {
+            from: depositor,
+            value: depositAmount,
+          },
+        );
+
+        recordId = tx.logs.filter(log => log.event === 'DepositSucceed')[0].args
+          .recordId;
+      });
+
+      context('when sender is not record owner', () => {
+        it('reverts', async () => {
+          await expectRevert(
+            depositManager.earlyWithdraw(recordId),
+            'DepositManager: invalid owner',
+          );
+        });
+      });
+
+      context('when deposit record is withdrawn', () => {
+        beforeEach(async () => {
+          await depositManager.earlyWithdraw(recordId, {
+            from: depositor,
+          });
+        });
+
+        it('reverts', async () => {
+          await expectRevert(
+            depositManager.earlyWithdraw(recordId, {
+              from: depositor,
+            }),
+            'DepositManager: cannot early withdraw',
+          );
+        });
+      });
+
+      context('when deposit record is mature', () => {
+        beforeEach(async () => {
+          await time.increase(time.duration.days(depositTerm + 1));
+        });
+
+        it('reverts', async () => {
+          await expectRevert(
+            depositManager.earlyWithdraw(recordId, {
+              from: depositor,
+            }),
+            'DepositManager: cannot early withdraw',
+          );
+        });
+      });
+
+      context('when deposit record is early withdrawable', () => {
+        let depositorEthBalanceBeforeAction;
+        let depositorEthBalanceAfterAction;
+        let distributorEthBalanceBeforeAction;
+        let distributorEthBalanceAfterAction;
+
+        beforeEach(async () => {
+          depositorEthBalanceBeforeAction = new BN(
+            await web3.eth.getBalance(depositor),
+          );
+          distributorEthBalanceBeforeAction = new BN(
+            await web3.eth.getBalance(distributorAddress),
+          );
+          tx = await depositManager.earlyWithdraw(recordId, {
+            from: depositor,
+          });
+          depositorEthBalanceAfterAction = new BN(
+            await web3.eth.getBalance(depositor),
+          );
+          distributorEthBalanceAfterAction = new BN(
+            await web3.eth.getBalance(distributorAddress),
+          );
+        });
+
+        it('emits EarlyWithdrawSucceed event', async () => {
+          expectEvent.inLogs(tx.logs, 'EarlyWithdrawSucceed', {
+            accountAddress: depositor,
+            recordId,
+            amount: depositAmount,
+          });
+        });
+
+        it('sends only principal to depositor', async () => {
+          const gasUsedInWei = new BN(tx.receipt.gasUsed).mul(
+            new BN(await web3.eth.getGasPrice()),
           );
 
-          expectEvent.inLogs(logs2, 'EarlyWithdrawSucceed', {
-            accountAddress: depositor,
-          });
+          expect(
+            depositorEthBalanceAfterAction.sub(depositorEthBalanceBeforeAction),
+          ).to.bignumber.equal(depositAmount.sub(gasUsedInWei));
+        });
+
+        it('does not send deposit distributor fee to distributor account', async () => {
+          expect(
+            distributorEthBalanceAfterAction.sub(
+              distributorEthBalanceBeforeAction,
+            ),
+          ).to.bignumber.equal(new BN(0));
         });
       });
     });

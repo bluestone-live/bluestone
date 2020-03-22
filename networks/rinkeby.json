@@ -8,8 +8,7 @@
     "LoanManager": "0xac29521B19B98EA8413E806CA7f2562748F02289",
     "LiquidityPools": "0xE6CaB933A217Bc7083f0AAd2BEAc455Fb6f68E29",
     "Protocol": "0x10Fbc2d0448fEB7dFEd9D88d2d7186c8A55Beabe",
-    "InterestModel": "0x333aBd6055F05A15965af49b65F3E2b8258Ab377",
-    "PayableProxy": "0x34b40E15219Af55bFBaDb5D2aBE809D60dFa3170"
+    "InterestModel": "0x333aBd6055F05A15965af49b65F3E2b8258Ab377"
   },
   "tokens": {
     "DAI": {
@@ -25,11 +24,6 @@
     "ETH": {
       "name": "Native Ether",
       "address": "0x0000000000000000000000000000000000000001",
-      "priceOracleAddress": "0x9F0C6DE1153D29Cd512A55C92B4fB7e4b5501B89"
-    },
-    "WETH": {
-      "name": "Wrapped ETH",
-      "address": "0xF13185e0Bf86e62518749deCe13e1809BE88C394",
       "priceOracleAddress": "0x9F0C6DE1153D29Cd512A55C92B4fB7e4b5501B89"
     }
   }
