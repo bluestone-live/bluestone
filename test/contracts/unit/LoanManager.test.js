@@ -28,6 +28,7 @@ contract('LoanManager', function([
   const minCollateralCoverageRatio = toFixedBN(1.5);
   const liquidationDiscount = toFixedBN(0.05);
   const initialSupply = toFixedBN(1000);
+  const balanceCap = toFixedBN(100000);
 
   let loanToken, collateralToken;
 
@@ -55,6 +56,10 @@ contract('LoanManager', function([
 
     loanToken = await createERC20Token(depositor, initialSupply);
     collateralToken = await createERC20Token(loaner, initialSupply);
+
+    await loanManager.setBalanceCap(loanToken.address, balanceCap);
+    await loanManager.setBalanceCap(collateralToken.address, balanceCap);
+    await loanManager.setBalanceCap(ETHIdentificationAddress, balanceCap);
   });
 
   describe('#getLoanRecordById', () => {

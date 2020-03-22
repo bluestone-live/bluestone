@@ -178,6 +178,22 @@ library DepositManager {
             'DepositManager: invalid distributor address'
         );
 
+        uint256 currTokenBalance;
+
+        if (depositParameters.tokenAddress == address(1)) {
+            currTokenBalance = address(this).balance;
+        } else {
+            currTokenBalance = ERC20(depositParameters.tokenAddress).balanceOf(
+                address(this)
+            );
+        }
+
+        require(
+            currTokenBalance.add(depositParameters.depositAmount) <=
+                configuration.balanceCapByToken[depositParameters.tokenAddress],
+            'DepositManager: token balance cap exceeded'
+        );
+
         address payable accountAddress = msg.sender;
 
         uint256 depositWeight = configuration.interestModel.getDepositWeight(
@@ -202,8 +218,6 @@ library DepositManager {
             abi.encode(accountAddress, poolId, self.numDeposits)
         );
 
-        uint256 createdAt = now;
-
         self.depositRecordById[currDepositId] = IStruct.DepositRecord({
             depositId: currDepositId,
             ownerAddress: accountAddress,
@@ -211,7 +225,7 @@ library DepositManager {
             depositTerm: depositParameters.depositTerm,
             depositAmount: depositParameters.depositAmount,
             poolId: poolId,
-            createdAt: createdAt,
+            createdAt: now,
             withdrewAt: 0,
             weight: depositWeight,
             distributorAddress: depositParameters.distributorAddress

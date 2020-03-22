@@ -14,6 +14,8 @@ library Configuration {
         IInterestModel interestModel;
         // Token address -> price oracle
         mapping(address => IPriceOracle) priceOracleByToken;
+        // Token address -> maximum token balance allowed
+        mapping(address => uint256) balanceCapByToken;
     }
 
     event SetPriceOracleSucceed(
@@ -41,6 +43,12 @@ library Configuration {
         address indexed adminAddress,
         uint256 depositDistributorFeeRatio,
         uint256 loanDistributorFeeRatio
+    );
+
+    event SetBalanceCapSucceed(
+        address indexed adminAddress,
+        address tokenAddress,
+        uint256 balanceCap
     );
 
     function setPriceOracle(
@@ -101,5 +109,15 @@ library Configuration {
             loanDistributorFeeRatio,
             loanDistributorFeeRatio
         );
+    }
+
+    function setBalanceCap(
+        State storage self,
+        address tokenAddress,
+        uint256 balanceCap
+    ) external {
+        self.balanceCapByToken[tokenAddress] = balanceCap;
+
+        emit SetBalanceCapSucceed(msg.sender, tokenAddress, balanceCap);
     }
 }

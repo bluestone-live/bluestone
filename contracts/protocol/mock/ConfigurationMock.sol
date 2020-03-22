@@ -34,6 +34,10 @@ contract ConfigurationMock {
         _configuration.setProtocolReserveRatio(protocolReserveRatio);
     }
 
+    function setBalanceCap(address tokenAddress, uint256 balanceCap) external {
+        _configuration.setBalanceCap(tokenAddress, balanceCap);
+    }
+
     function getInterestReserveAddress()
         external
         view
@@ -81,6 +85,14 @@ contract ConfigurationMock {
             _configuration.depositDistributorFeeRatio,
             _configuration.loanDistributorFeeRatio
         );
+    }
+
+    function getBalanceCap(address tokenAddress)
+        external
+        view
+        returns (uint256 balanceCap)
+    {
+        return _configuration.balanceCapByToken[tokenAddress];
     }
 
     // -- Helpers --

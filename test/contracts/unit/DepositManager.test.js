@@ -23,6 +23,7 @@ contract('DepositManager', function([
   const depositTerm = 30;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
+  const balanceCap = toFixedBN(100000);
   let token, depositManager;
   let interestModel;
 
@@ -37,6 +38,8 @@ contract('DepositManager', function([
       loanDistributorFeeRatio,
     );
     await depositManager.setInterestReserveAddress(interestReserveAddress);
+    await depositManager.setBalanceCap(token.address, balanceCap);
+    await depositManager.setBalanceCap(ETHIdentificationAddress, balanceCap);
   });
 
   describe('#enableDepositTerm', () => {
@@ -186,6 +189,23 @@ contract('DepositManager', function([
       context('when term is enabled', () => {
         beforeEach(async () => {
           await depositManager.enableDepositTerm(depositTerm);
+        });
+
+        context('when balance cap is exceeded', () => {
+          it('reverts', async () => {
+            await expectRevert(
+              depositManager.deposit(
+                token.address,
+                depositAmount.add(toFixedBN(balanceCap)),
+                depositTerm,
+                distributorAddress,
+                {
+                  from: depositor,
+                },
+              ),
+              'DepositManager: token balance cap exceeded',
+            );
+          });
         });
 
         context('when distributor address is invalid', () => {

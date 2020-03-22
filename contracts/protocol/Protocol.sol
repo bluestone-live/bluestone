@@ -490,6 +490,16 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         );
     }
 
+    function setBalanceCap(
+        address tokenAddress,
+        uint256 balanceCap
+    ) external onlyOwner override {
+        _configuration.setBalanceCap(
+            tokenAddress,
+            balanceCap
+        );
+    }
+
     function getInterestReserveAddress()
         external
         view
@@ -544,5 +554,15 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         returns (uint256 protocolReserveRatio)
     {
         return _configuration.protocolReserveRatio;
+    }
+
+    function getBalanceCap(address tokenAddress)
+        external
+        view
+        whenNotPaused
+        override
+        returns (uint256 balanceCap)
+    {
+        return _configuration.balanceCapByToken[tokenAddress];
     }
 }

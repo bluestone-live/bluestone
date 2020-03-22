@@ -249,6 +249,21 @@ interface IProtocol {
         external
         virtual;
 
+    /// @notice Set the maximum fee ratio for distributors
+    /// @param depositDistributorFeeRatio deposit distributor fee ratio
+    /// @param loanDistributorFeeRatio loan fee ratio
+    function setMaxDistributorFeeRatios(
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio
+    ) external virtual;
+
+    /// @notice Set balance cap for a token
+    /// @param tokenAddress Token address
+    /// @param balanceCap Maximum balance allowed
+    function setBalanceCap(address tokenAddress, uint256 balanceCap)
+        external
+        virtual;
+
     /// @notice Return USD price of a token
     /// @param tokenAddress Token address
     /// @return tokenPrice Token price in USD
@@ -294,11 +309,12 @@ interface IProtocol {
             uint256 loanDistributorFeeRatio
         );
 
-    /// @notice Set the maximum fee ratio for distributors
-    /// @param depositDistributorFeeRatio deposit distributor fee ratio
-    /// @param loanDistributorFeeRatio loan fee ratio
-    function setMaxDistributorFeeRatios(
-        uint256 depositDistributorFeeRatio,
-        uint256 loanDistributorFeeRatio
-    ) external virtual;
+    /// @notice Return the balance cap for a token
+    /// @param tokenAddress Token address
+    /// @return balanceCap Maximum balance allowed
+    function getBalanceCap(address tokenAddress)
+        external
+        virtual
+        view
+        returns (uint256 balanceCap);
 }

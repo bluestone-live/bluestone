@@ -35,15 +35,16 @@ const setupTestEnv = async (
   protocolReserveRatio,
   depositDistributorFeeRatio,
   loanDistributorFeeRatio,
+  balanceCap = toFixedBN(100000),
 ) => {
   // Enable deposit terms
   for (term of depositTerms) {
     await protocol.enableDepositTerm(term);
   }
 
-  // Enable deposit tokens
   for (depositToken of depositTokens) {
     await protocol.enableDepositToken(depositToken.address);
+    await protocol.setBalanceCap(depositToken.address, balanceCap);
   }
 
   // Enable loan pair

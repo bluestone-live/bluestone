@@ -31,4 +31,5 @@ module.exports = makeTruffleScript(async network => {
   exec('setProtocolReserveRatio', network);
   exec('setMaxDistributorFeeRatios', network);
   exec('setLoanInterestRates', network);
+  exec('setBalanceCaps', network);
 });

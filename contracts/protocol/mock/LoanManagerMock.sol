@@ -236,4 +236,8 @@ contract LoanManagerMock {
     function setInterestModel(IInterestModel interestModel) external {
         _configuration.setInterestModel(interestModel);
     }
+
+    function setBalanceCap(address tokenAddress, uint256 balanceCap) external {
+        _configuration.setBalanceCap(tokenAddress, balanceCap);
+    }
 }

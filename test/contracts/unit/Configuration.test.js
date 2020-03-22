@@ -116,4 +116,25 @@ contract('Configuration', function([owner]) {
       );
     });
   });
+
+  describe('#setBalanceCap', () => {
+    it('succeeds', async () => {
+      const token = await createERC20Token(owner);
+      const balanceCap = new BN(100);
+      const { logs } = await configuration.setBalanceCap(
+        token.address,
+        balanceCap,
+      );
+
+      expect(
+        await configuration.getBalanceCap(token.address),
+      ).to.bignumber.equal(balanceCap);
+
+      expectEvent.inLogs(logs, 'SetBalanceCapSucceed', {
+        adminAddress: owner,
+        tokenAddress: token.address,
+        balanceCap,
+      });
+    });
+  });
 });

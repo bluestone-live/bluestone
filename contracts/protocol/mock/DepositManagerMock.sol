@@ -190,4 +190,8 @@ contract DepositManagerMock {
     {
         _configuration.setInterestReserveAddress(interestReserveAddress);
     }
+
+    function setBalanceCap(address tokenAddress, uint256 balanceCap) external {
+        _configuration.setBalanceCap(tokenAddress, balanceCap);
+    }
 }
