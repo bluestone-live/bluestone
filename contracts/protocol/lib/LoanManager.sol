@@ -12,7 +12,6 @@ import './Configuration.sol';
 import './LiquidityPools.sol';
 import './DepositManager.sol';
 
-
 library LoanManager {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -403,7 +402,8 @@ library LoanManager {
         if (
             self
                 .loanAndCollateralTokenPairs[loanTokenAddress][collateralTokenAddress]
-                .minCollateralCoverageRatio == 0
+                .minCollateralCoverageRatio ==
+            0
         ) {
             self.loanAndCollateralTokenPairList.push(tokenPair);
         }

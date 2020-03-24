@@ -11,7 +11,6 @@ import './LoanManager.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
 
-
 library DepositManager {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -307,12 +306,7 @@ library DepositManager {
             'DepositManager: deposit is not matured'
         );
 
-        (
-            uint256 interestForDepositor,
-            uint256 interestForDepositDistributor,
-            ,
-            uint256 interestForProtocolReserve
-        ) = _getInterestDistributionByDepositId(
+        (uint256 interestForDepositor, uint256 interestForDepositDistributor, , uint256 interestForProtocolReserve) = _getInterestDistributionByDepositId(
             self,
             liquidityPools,
             depositId
@@ -459,12 +453,7 @@ library DepositManager {
             'DepositManager: invalid deposit ID'
         );
 
-        (
-            uint256 interestForDepositor,
-            ,
-            ,
-
-        ) = _getInterestDistributionByDepositId(
+        (uint256 interestForDepositor, , , ) = _getInterestDistributionByDepositId(
             self,
             liquidityPools,
             depositId

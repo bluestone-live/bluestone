@@ -1085,6 +1085,14 @@ contract('LoanManager', function([
             });
           });
 
+          it('emits event', async () => {
+            expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
+              accountAddress: liquidator,
+              recordId: recordId,
+              liquidateAmount: liquidateAmount,
+            });
+          });
+
           it('updates loan record', async () => {
             const currLoanRecord = await loanManager.getLoanRecordById(
               recordId,
