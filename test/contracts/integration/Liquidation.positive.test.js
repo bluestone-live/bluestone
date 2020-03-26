@@ -212,7 +212,7 @@ contract(
         expectEvent.inLogs(liquidationLogs, 'LiquidateLoanSucceed', {
           accountAddress: liquidator,
           recordId: loanId,
-          amount: liquidateAmount,
+          liquidateAmount: liquidateAmount,
         });
 
         expect(
@@ -270,7 +270,7 @@ contract(
         expectEvent.inLogs(liquidationLogs, 'LiquidateLoanSucceed', {
           accountAddress: liquidator,
           recordId: loanId,
-          amount: new BN(record.remainingDebt),
+          liquidateAmount: new BN(record.remainingDebt),
         });
 
         expect(
@@ -373,7 +373,7 @@ contract(
         expectEvent.inLogs(liquidationLogs, 'LiquidateLoanSucceed', {
           accountAddress: liquidator,
           recordId: loanId,
-          amount: liquidateAmount,
+          liquidateAmount: liquidateAmount,
         });
 
         expect(
@@ -431,7 +431,7 @@ contract(
         expectEvent.inLogs(liquidationLogs, 'LiquidateLoanSucceed', {
           accountAddress: liquidator,
           recordId: loanId,
-          amount: new BN(record.remainingDebt),
+          liquidateAmount: new BN(record.remainingDebt),
         });
 
         expect(

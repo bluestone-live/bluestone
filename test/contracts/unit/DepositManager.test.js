@@ -419,8 +419,23 @@ contract('DepositManager', function([
         let depositorEthBalanceBeforeAction, depositorEthBalanceAfterAction;
         let distributorEthBalanceBeforeAction, distributorEthBalanceAfterAction;
 
+        let interestForProtocolReserve;
+        let interestForDepositDistributor;
+
         beforeEach(async () => {
           await time.increase(time.duration.days(depositTerm + 1));
+          originalBalanceInDistributorAccount = await token.balanceOf(
+            distributorAddress,
+          );
+
+          const interest = await depositManager.getInterestDistributionByDepositId(
+            recordId,
+          );
+
+          interestForDepositor = interest.interestForDepositor;
+          interestForProtocolReserve = interest.interestForProtocolReserve;
+          interestForDepositDistributor =
+            interest.interestForDepositDistributor;
 
           depositorEthBalanceBeforeAction = new BN(
             await web3.eth.getBalance(depositor),
@@ -443,6 +458,20 @@ contract('DepositManager', function([
           expectEvent.inLogs(tx.logs, 'WithdrawSucceed', {
             accountAddress: depositor,
             recordId,
+          });
+
+          expectEvent.inLogs(tx.logs, 'WithdrawSucceed', {
+            accountAddress: depositor,
+          });
+
+          expectEvent.inLogs(tx.logs, 'InterestReserveTransfered', {
+            recordId: recordId,
+            interestForProtocolReserve: new BN(interestForProtocolReserve),
+          });
+
+          expectEvent.inLogs(tx.logs, 'DepositDistributorFeeTransfered', {
+            recordId: recordId,
+            interestForDistributor: new BN(interestForDepositDistributor),
           });
         });
 

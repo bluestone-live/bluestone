@@ -47,17 +47,32 @@ library DepositManager {
     event DepositSucceed(
         address indexed accountAddress,
         bytes32 recordId,
+        address indexed depositTokenAddress,
         uint256 amount
     );
     event WithdrawSucceed(
         address indexed accountAddress,
         bytes32 recordId,
+        address indexed depositTokenAddress,
         uint256 amount
     );
     event EarlyWithdrawSucceed(
         address indexed accountAddress,
         bytes32 recordId,
+        address indexed depositTokenAddress,
         uint256 amount
+    );
+    event InterestReserveTransfered(
+        address indexed accountAddress,
+        bytes32 recordId,
+        address indexed depositTokenAddress,
+        uint256 interestForProtocolReserve
+    );
+    event DepositDistributorFeeTransfered(
+        address indexed distributorAccountAddress,
+        bytes32 recordId,
+        address indexed depositTokenAddress,
+        uint256 interestForDistributor
     );
 
     function enableDepositTerm(
@@ -250,6 +265,7 @@ library DepositManager {
         emit DepositSucceed(
             accountAddress,
             currDepositId,
+            depositParameters.tokenAddress,
             depositParameters.depositAmount
         );
 
@@ -314,6 +330,13 @@ library DepositManager {
                 depositRecord.distributorAddress.transfer(
                     interestForDepositDistributor
                 );
+
+                emit DepositDistributorFeeTransfered(
+                    depositRecord.distributorAddress,
+                    depositId,
+                    tokenAddress,
+                    interestForDepositDistributor
+                );
             }
 
             // Transfer protocol reserve to interest reserve address
@@ -328,6 +351,13 @@ library DepositManager {
             if (depositRecord.distributorAddress != address(this)) {
                 ERC20(tokenAddress).safeTransfer(
                     depositRecord.distributorAddress,
+                    interestForDepositDistributor
+                );
+
+                emit DepositDistributorFeeTransfered(
+                    depositRecord.distributorAddress,
+                    depositId,
+                    tokenAddress,
                     interestForDepositDistributor
                 );
             }
@@ -348,7 +378,15 @@ library DepositManager {
         emit WithdrawSucceed(
             accountAddress,
             depositId,
+            tokenAddress,
             depositPlusInterestAmount
+        );
+
+        emit InterestReserveTransfered(
+            configuration.interestReserveAddress,
+            depositId,
+            tokenAddress,
+            interestForProtocolReserve
         );
 
         return depositPlusInterestAmount;
@@ -397,6 +435,7 @@ library DepositManager {
         emit EarlyWithdrawSucceed(
             accountAddress,
             depositRecord.depositId,
+            depositRecord.tokenAddress,
             depositRecord.depositAmount
         );
 

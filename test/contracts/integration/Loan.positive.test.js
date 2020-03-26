@@ -212,7 +212,7 @@ contract(
           expectEvent.inLogs(loanLogs, 'LoanSucceed', {
             accountAddress: loaner,
             recordId: loanId,
-            amount: toFixedBN(loanAmount),
+            loanAmount: toFixedBN(loanAmount),
           });
         });
         it('increase the collateral token amount of protocol contract', async () => {
@@ -407,7 +407,7 @@ contract(
           expectEvent.inLogs(repayLogs, 'RepayLoanSucceed', {
             accountAddress: loaner,
             recordId: loanId,
-            amount: toFixedBN(loanAmount),
+            repayAmount: toFixedBN(loanAmount),
           });
         });
         it('get correct data of record', async () => {
@@ -469,7 +469,7 @@ contract(
           expectEvent.inLogs(repayLogs, 'RepayLoanSucceed', {
             accountAddress: loaner,
             recordId: loanId,
-            amount: new BN(record.remainingDebt),
+            repayAmount: new BN(record.remainingDebt),
           });
         });
         it('subtract correct balance from user account', async () => {

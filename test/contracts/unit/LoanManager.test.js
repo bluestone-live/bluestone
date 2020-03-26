@@ -595,6 +595,9 @@ contract('LoanManager', function([
 
         expectEvent.inLogs(logs, 'LoanSucceed', {
           accountAddress: loaner,
+          loanAmount,
+          collateralAmount,
+          collateralTokenAddress: collateralToken.address,
         });
       });
     });
@@ -629,6 +632,7 @@ contract('LoanManager', function([
 
         expectEvent.inLogs(logs, 'LoanSucceed', {
           accountAddress: loaner,
+          collateralAmount,
         });
       });
     });
@@ -751,7 +755,9 @@ contract('LoanManager', function([
         expectEvent.inLogs(tx.logs, 'RepayLoanSucceed', {
           accountAddress: loaner,
           recordId: recordId,
-          amount: loanAmount,
+          repayAmount: loanAmount,
+          returnedCollateralAmount: new BN(0),
+          isFullyRepaid: false,
         });
       });
 
@@ -800,7 +806,9 @@ contract('LoanManager', function([
         expectEvent.inLogs(tx.logs, 'RepayLoanSucceed', {
           accountAddress: loaner,
           recordId: recordId,
-          amount: repayAmount,
+          repayAmount: repayAmount,
+          returnedCollateralAmount: new BN(0),
+          isFullyRepaid: false,
         });
       });
 
@@ -859,7 +867,9 @@ contract('LoanManager', function([
         expectEvent.inLogs(tx.logs, 'RepayLoanSucceed', {
           accountAddress: loaner,
           recordId: recordId,
-          amount: repayAmount,
+          repayAmount: repayAmount,
+          returnedCollateralAmount: new BN(0),
+          isFullyRepaid: false,
         });
       });
 
@@ -911,7 +921,13 @@ contract('LoanManager', function([
         expectEvent.inLogs(tx.logs, 'RepayLoanSucceed', {
           accountAddress: loaner,
           recordId: recordId,
-          amount: repayAmount,
+          repayAmount: repayAmount,
+          returnedCollateralAmount: collateralAmount,
+          isFullyRepaid: true,
+        });
+
+        expectEvent.inLogs(tx.logs, 'LoanDistributorFeeTransfered', {
+          recordId: recordId,
         });
       });
 
@@ -1069,14 +1085,6 @@ contract('LoanManager', function([
             });
           });
 
-          it('emits event', async () => {
-            expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
-              accountAddress: liquidator,
-              recordId: recordId,
-              amount: liquidateAmount,
-            });
-          });
-
           it('updates loan record', async () => {
             const currLoanRecord = await loanManager.getLoanRecordById(
               recordId,
@@ -1097,6 +1105,15 @@ contract('LoanManager', function([
                 .mul(toFixedBN(1))
                 .div(toFixedBN(1).sub(liquidationDiscount)),
             );
+          });
+
+          it('emits event', async () => {
+            expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
+              accountAddress: liquidator,
+              recordId: recordId,
+              liquidateAmount: liquidateAmount,
+              soldCollateralAmount,
+            });
           });
 
           it('reduces loan tokens from liquidator', async () => {
@@ -1165,7 +1182,7 @@ contract('LoanManager', function([
             expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
               accountAddress: liquidator,
               recordId: recordId,
-              amount: liquidateAmount,
+              liquidateAmount: liquidateAmount,
             });
           });
 
@@ -1273,7 +1290,7 @@ contract('LoanManager', function([
           expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
             accountAddress: liquidator,
             recordId: recordId,
-            amount: liquidateAmount,
+            liquidateAmount: liquidateAmount,
           });
         });
 
@@ -1361,7 +1378,7 @@ contract('LoanManager', function([
           expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
             accountAddress: liquidator,
             recordId: recordId,
-            amount: liquidateAmount,
+            liquidateAmount: liquidateAmount,
           });
         });
 

@@ -41,19 +41,36 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     event DepositSucceed(
         address indexed accountAddress,
         bytes32 recordId,
+        address indexed depositTokenAddress,
         uint256 amount
     );
 
     event WithdrawSucceed(
         address indexed accountAddress,
         bytes32 recordId,
+        address indexed depositTokenAddress,
         uint256 amount
     );
 
     event EarlyWithdrawSucceed(
         address indexed accountAddress,
         bytes32 recordId,
+        address indexed depositTokenAddress,
         uint256 amount
+    );
+
+    event InterestReserveTransfered(
+        address indexed accountAddress,
+        bytes32 recordId,
+        address indexed depositTokenAddress,
+        uint256 interestForProtocolReserve
+    );
+
+    event DepositDistributorFeeTransfered(
+        address indexed distributorAccountAddress,
+        bytes32 recordId,
+        address indexed depositTokenAddress,
+        uint256 interestForDistributor
     );
 
     event SetLoanAndCollateralTokenPairSucceed(
@@ -73,24 +90,42 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     event LoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
-        uint256 amount
+        address indexed loanTokenAddress,
+        uint256 loanAmount,
+        address indexed collateralTokenAddress,
+        uint256 collateralAmount
     );
 
     event RepayLoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
-        uint256 amount
+        address indexed loanTokenAddress,
+        uint256 repayAmount,
+        address indexed collateralTokenAddress,
+        uint256 returnedCollateralAmount,
+        bool isFullyRepaid
     );
 
     event LiquidateLoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
-        uint256 amount
+        address indexed loanTokenAddress,
+        uint256 liquidateAmount,
+        address indexed collateralTokenAddress, 
+        uint256 soldCollateralAmount
+    );
+
+    event LoanDistributorFeeTransfered(
+        address indexed distributorAccountAddress,
+        bytes32 recordId,
+        address indexed loanTokenAddress,
+        uint256 interestForLoanDistributor
     );
 
     event AddCollateralSucceed(
         address indexed accountAddress,
-        bytes32 indexed recordId,
+        bytes32 recordId,
+        address indexed collateralTokenAddress,
         uint256 collateralAmount
     );
 
