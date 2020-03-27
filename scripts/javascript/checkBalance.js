@@ -29,6 +29,8 @@ module.exports = makeTruffleScript(async network => {
         { repayAmount, returnedCollateralAmount },
         addCollateralAmount,
         { liquidateAmount, soldCollateralAmount },
+        payDepositDistributorFailedAmount,
+        payLoanDistributorFailedAmount,
       ] = await Promise.all([
         getDepositAmount(t.address),
         getWithdrawAmount(t.address),
@@ -40,6 +42,8 @@ module.exports = makeTruffleScript(async network => {
         getRepayAndReturnedCollateralAmount(t.address),
         getAddCollateralAmount(t.address),
         getLiquidateAmount(t.address),
+        getPayDepositDistributorFailedAmount(t.address),
+        getPayLoanDistributorFailedAmount(t.address),
       ]);
 
       const balance = depositAmount
@@ -54,7 +58,9 @@ module.exports = makeTruffleScript(async network => {
         .add(addCollateralAmount)
         .add(liquidateAmount)
         .sub(soldCollateralAmount)
-        .sub(loanDistributorInterest);
+        .sub(loanDistributorInterest)
+        .add(payDepositDistributorFailedAmount)
+        .add(payLoanDistributorFailedAmount);
 
       return { ...t, balance };
     }),
@@ -201,6 +207,14 @@ module.exports = makeTruffleScript(async network => {
       { loanTokenAddress },
       'interestForLoanDistributor',
     );
+  }
+
+  function getPayDepositDistributorFailedAmount(depositTokenAddress) {
+    return calcAmount('PayDepositDistributorFailed', { depositTokenAddress });
+  }
+
+  function getPayLoanDistributorFailedAmount(loanTokenAddress) {
+    return calcAmount('PayLoanDistributorFailed', { loanTokenAddress });
   }
 
   /**
