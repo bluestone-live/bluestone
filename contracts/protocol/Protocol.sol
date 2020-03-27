@@ -193,7 +193,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         onlyOwner
         override
     {
-        _depositManager.enableDepositToken(_liquidityPools, tokenAddress);
+        _depositManager.enableDepositToken(tokenAddress);
     }
 
     function disableDepositToken(address tokenAddress)
@@ -255,7 +255,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         return
             _depositManager.earlyWithdraw(
                 _liquidityPools,
-                _configuration,
                 depositId
             );
     }
@@ -368,7 +367,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         return
             _loanManager.repayLoan(
                 _liquidityPools,
-                _configuration,
                 loanId,
                 repayAmount
             );
@@ -437,9 +435,9 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         returns (uint256 totalCollateralAmount)
     {
         if (msg.value > 0) {
-            return _loanManager.addCollateral(_configuration, loanId, msg.value);
+            return _loanManager.addCollateral(loanId, msg.value);
         } else {
-            return _loanManager.addCollateral(_configuration, loanId, collateralAmount);
+            return _loanManager.addCollateral(loanId, collateralAmount);
         }
     }
 

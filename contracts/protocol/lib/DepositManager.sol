@@ -129,11 +129,9 @@ library DepositManager {
         emit DisableDepositTermSucceed(msg.sender, term);
     }
 
-    function enableDepositToken(
-        State storage self,
-        LiquidityPools.State storage liquidityPools,
-        address tokenAddress
-    ) external {
+    function enableDepositToken(State storage self, address tokenAddress)
+        external
+    {
         require(
             !self.isDepositTokenEnabled[tokenAddress],
             'DepositManager: token already enabled'
@@ -412,7 +410,6 @@ library DepositManager {
     function earlyWithdraw(
         State storage self,
         LiquidityPools.State storage liquidityPools,
-        Configuration.State storage configuration,
         bytes32 depositId
     ) external returns (uint256 withdrewAmount) {
         IStruct.DepositRecord storage depositRecord = self
@@ -466,7 +463,7 @@ library DepositManager {
     )
         public
         view
-        returns (IStruct.GetDepositRecordResponse memory depositRecord)
+        returns (IStruct.GetDepositRecordResponse memory depositRecordResponse)
     {
         IStruct.DepositRecord memory depositRecord = self
             .depositRecordById[depositId];
@@ -487,20 +484,18 @@ library DepositManager {
             depositId
         );
 
-        IStruct.GetDepositRecordResponse memory depositRecordResponse = IStruct
-            .GetDepositRecordResponse({
-            depositId: depositId,
-            tokenAddress: depositRecord.tokenAddress,
-            depositTerm: depositRecord.depositTerm,
-            depositAmount: depositRecord.depositAmount,
-            poolId: depositRecord.poolId,
-            interest: interestForDepositor,
-            createdAt: depositRecord.createdAt,
-            withdrewAt: depositRecord.withdrewAt,
-            weight: depositRecord.weight
-        });
-
-        return depositRecordResponse;
+        return
+            IStruct.GetDepositRecordResponse({
+                depositId: depositId,
+                tokenAddress: depositRecord.tokenAddress,
+                depositTerm: depositRecord.depositTerm,
+                depositAmount: depositRecord.depositAmount,
+                poolId: depositRecord.poolId,
+                interest: interestForDepositor,
+                createdAt: depositRecord.createdAt,
+                withdrewAt: depositRecord.withdrewAt,
+                weight: depositRecord.weight
+            });
     }
 
     function _getInterestDistributionByDepositId(

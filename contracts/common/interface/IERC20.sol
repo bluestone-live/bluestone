@@ -1,5 +1,6 @@
 pragma solidity ^0.6.0;
 
+
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP. Does not include
  * the optional functions; to access them see {ERC20Detailed}.
@@ -8,12 +9,12 @@ interface IERC20 {
     /**
      * @dev Returns the amount of tokens in existence.
      */
-    function totalSupply() external view virtual returns (uint256);
+    function totalSupply() external view returns (uint256);
 
     /**
      * @dev Returns the amount of tokens owned by `account`.
      */
-    function balanceOf(address account) external view virtual returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
 
     /**
      * @dev Moves `amount` tokens from the caller's account to `recipient`.
@@ -24,7 +25,6 @@ interface IERC20 {
      */
     function transfer(address recipient, uint256 amount)
         external
-        virtual
         returns (bool);
 
     /**
@@ -37,7 +37,6 @@ interface IERC20 {
     function allowance(address owner, address spender)
         external
         view
-        virtual
         returns (uint256);
 
     /**
@@ -54,10 +53,7 @@ interface IERC20 {
      *
      * Emits an {Approval} event.
      */
-    function approve(address spender, uint256 amount)
-        external
-        virtual
-        returns (bool);
+    function approve(address spender, uint256 amount) external returns (bool);
 
     /**
      * @dev Moves `amount` tokens from `sender` to `recipient` using the
@@ -70,7 +66,6 @@ interface IERC20 {
      */
     function transferFrom(address sender, address recipient, uint256 amount)
         external
-        virtual
         returns (bool);
 
     /**

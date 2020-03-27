@@ -21,7 +21,7 @@ contract('LiquidityPools', function([owner]) {
     it('succeed', async () => {
       const depositTerm = 30;
       await liquidityPools.setPoolGroupSize(depositTerm);
-      const numPools = await liquidityPools.getPoolGroupSize(token.address);
+      const numPools = await liquidityPools.getPoolGroupSize();
       expect(numPools).to.bignumber.equal(new BN(depositTerm));
     });
   });

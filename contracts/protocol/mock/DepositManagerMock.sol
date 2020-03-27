@@ -29,7 +29,7 @@ contract DepositManagerMock {
     }
 
     function enableDepositToken(address tokenAddress) external {
-        _depositManager.enableDepositToken(_liquidityPools, tokenAddress);
+        _depositManager.enableDepositToken(tokenAddress);
     }
 
     function disableDepositToken(address tokenAddress) external {
@@ -90,12 +90,7 @@ contract DepositManagerMock {
         external
         returns (uint256 withdrewAmount)
     {
-        return
-            _depositManager.earlyWithdraw(
-                _liquidityPools,
-                _configuration,
-                depositId
-            );
+        return _depositManager.earlyWithdraw(_liquidityPools, depositId);
     }
 
     function getDepositTerms()
@@ -173,11 +168,7 @@ contract DepositManagerMock {
         return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 
-    function getPoolGroupSize(address tokenAddress)
-        external
-        view
-        returns (uint256 poolGroupSize)
-    {
+    function getPoolGroupSize() external view returns (uint256 poolGroupSize) {
         return _liquidityPools.poolGroupSize;
     }
 

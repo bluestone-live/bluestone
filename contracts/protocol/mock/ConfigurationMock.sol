@@ -98,7 +98,7 @@ contract ConfigurationMock {
     // -- Helpers --
 
     function enableDepositToken(address tokenAddress) external {
-        _depositManager.enableDepositToken(_liquidityPools, tokenAddress);
+        _depositManager.enableDepositToken(tokenAddress);
     }
 
     function enableDepositTerm(uint256 term) external {

@@ -101,11 +101,7 @@ contract LiquidityPoolsMock {
 
     /// --- Helpers
 
-    function getPoolGroupSize(address tokenAddress)
-        external
-        view
-        returns (uint256 poolGroupSize)
-    {
+    function getPoolGroupSize() external view returns (uint256 poolGroupSize) {
         return _liquidityPools.poolGroupSize;
     }
 

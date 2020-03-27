@@ -85,12 +85,14 @@ library LiquidityPools {
         PoolGroup storage poolGroup = self.poolGroups[loanRecord
             .loanTokenAddress];
         uint256 firstPoolId = DateTime.toDays();
-        uint256 poolId;
         uint256 availableAmount;
 
         // Calculate available amount to borrow for the loan term
-        for (uint256 i = loanRecord.loanTerm; i <= self.poolGroupSize; i++) {
-            poolId = firstPoolId.add(i);
+        for (
+            uint256 poolId = firstPoolId.add(loanRecord.loanTerm);
+            poolId <= firstPoolId.add(self.poolGroupSize);
+            poolId = poolId.add(1)
+        ) {
             availableAmount = availableAmount.add(
                 poolGroup.poolsById[poolId].availableAmount
             );
@@ -165,8 +167,8 @@ library LiquidityPools {
         uint256 firstPoolId = DateTime.toDays();
 
         // Repay loan back to each pool, proportional to the total loan from all pools
-        uint256 loanAmountFromThisPool;
         uint256 repayAmountToThisPool;
+
         for (
             uint256 poolId = firstPoolId;
             poolId <= firstPoolId.add(self.poolGroupSize);

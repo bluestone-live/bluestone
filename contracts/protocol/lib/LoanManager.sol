@@ -199,7 +199,6 @@ library LoanManager {
 
     function addCollateral(
         State storage self,
-        Configuration.State storage configuration,
         bytes32 loanId,
         uint256 collateralAmount
     ) external returns (uint256 totalCollateralAmount) {
@@ -552,14 +551,10 @@ library LoanManager {
     function repayLoan(
         State storage self,
         LiquidityPools.State storage liquidityPools,
-        Configuration.State storage configuration,
         bytes32 loanId,
         uint256 repayAmount
     ) external returns (uint256 remainingDebt) {
         IStruct.LoanRecord storage loanRecord = self.loanRecordById[loanId];
-        IStruct.LoanAndCollateralTokenPair storage tokenPair = self
-            .loanAndCollateralTokenPairs[loanRecord.loanTokenAddress][loanRecord
-            .collateralTokenAddress];
 
         require(
             msg.sender == loanRecord.ownerAddress,
