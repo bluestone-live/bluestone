@@ -116,7 +116,9 @@ const AccountOverview = (props: IProps) => {
   // Callbacks
   const onTabClick = useCallback((param: ClickParam) => {
     setSelectedTab(param.key);
-    history.push(window.location.pathname + `?activeTab=${param.key}`);
+    history.push(
+      window.location.pathname + `?activeTab=${param.key}&fromUser=1`,
+    );
   }, []);
 
   const onClick = useCallback(
