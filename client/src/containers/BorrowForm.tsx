@@ -60,10 +60,10 @@ const BorrowForm = (props: IProps) => {
   const dispatch = useDispatch();
 
   // States
-  const [borrowAmount, setBorrowAmount] = useState();
+  const [borrowAmount, setBorrowAmount] = useState(0);
   const [collateralToken, setCollateralToken] = useState<IToken>();
   const [collateralRatio, setCollateralRatio] = useState();
-  const [collateralAmount, setCollateralAmount] = useState();
+  const [collateralAmount, setCollateralAmount] = useState<string | number>();
 
   // Initialize
   useDepsUpdated(async () => {
@@ -143,19 +143,23 @@ const BorrowForm = (props: IProps) => {
   // Callbacks
   const onBorrowAmountChange = useCallback(
     (value: string) => {
+      if (Number.parseFloat(value) < 0) {
+        return;
+      }
+
       setBorrowAmount(Number.parseFloat(value));
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
             collateralRatio,
-            totalDebt || '0',
+            value,
             collateralToken.price,
             loanToken.price,
           ),
         );
       }
     },
-    [setBorrowAmount, collateralToken, loanToken, totalDebt],
+    [setBorrowAmount, collateralToken, collateralRatio, loanToken, totalDebt],
   );
 
   const onBorrowAmountMaxButtonClick = useCallback(() => {
