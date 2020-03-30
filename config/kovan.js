@@ -41,6 +41,6 @@ module.exports = {
     protocolReserveRatio: 0.07,
     depositDistributorFeeRatio: 0.01,
     loanDistributorFeeRatio: 0.02,
-    interestReserveAddress: '0x25A02a9cc5Fe6d44f6ff2ACCb2854BA634806F8e',
+    interestReserveAddress: '0xF78237d7aE69c0C2A6e85431341b87d689F29dFF',
   },
 };

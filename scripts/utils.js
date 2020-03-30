@@ -120,12 +120,6 @@ const makeTruffleScript = fn => {
       args = restArgs;
     }
 
-    const network = args[0];
-
-    debug('Override NODE_ENV value with network value: %s', network);
-    // To ensure scripts load from corresponding config correctly
-    process.NODE_ENV = args[0];
-
     debug('Received arguments: %o', args);
 
     try {

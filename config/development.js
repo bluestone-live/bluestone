@@ -1,21 +1,4 @@
 module.exports = {
-  server: {
-    port: 3000,
-  },
-  coinmarketcap: {
-    sandbox: true,
-    // To get a sandbox API key, signup for a sandbox account and choose the Professional Plan:
-    // https://sandbox.coinmarketcap.com/signup
-    apiKey: '<ADD-YOUR-API-KEY>',
-  },
-  cryptocompare: {
-    // Get a free key here: https://min-api.cryptocompare.com/pricing
-    apiKey: '<ADD-YOUR-API-KEY>',
-  },
-  infura: {
-    // Go to https://infura.io/dashboard, click "VIEW PROJECT" and get the project ID.
-    projectId: '<ADD-PROJECT-ID>',
-  },
   contract: {
     tokens: {
       DAI: {
@@ -52,6 +35,6 @@ module.exports = {
     protocolReserveRatio: 0.1,
     depositDistributorFeeRatio: 0.01,
     loanDistributorFeeRatio: 0.02,
-    interestReserveAddress: '<ADD-ADDRESS>',
+    interestReserveAddress: '0x25A02a9cc5Fe6d44f6ff2ACCb2854BA634806F8e',
   },
 };

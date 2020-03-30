@@ -1,20 +1,7 @@
 module.exports = {
-  server: {
-    port: 3000,
-  },
-  coinmarketcap: {
-    sandbox: true,
-    // To get a sandbox API key, signup for a sandbox account and choose the Professional Plan:
-    // https://sandbox.coinmarketcap.com/signup
-    apiKey: '<ADD-YOUR-API-KEY>',
-  },
-  cryptocompare: {
-    // Get a free key here: https://min-api.cryptocompare.com/pricing
-    apiKey: '<ADD-YOUR-API-KEY>',
-  },
   infura: {
-    // Go to https://infura.io/dashboard, click "VIEW PROJECT" and get the project ID.
-    projectId: '<ADD-PROJECT-ID>',
+    // https://infura.io/dashboard
+    projectId: '24cc9d4197c643ec81bbe2ecbaa26d31',
   },
   // The twelve word phrase the wallet uses to generate public/private key pairs.
   // This is needed when we deploy contracts to testnet.

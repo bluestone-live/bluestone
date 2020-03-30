@@ -79,6 +79,16 @@ module.exports = {
       network_id: 4,
     },
 
+    kovan: {
+      provider: () =>
+        new HDWalletProvider(
+          config.get('mnemonic'),
+          `https://kovan.infura.io/v3/${config.get('infura.projectId')}`,
+          config.get('accountIndex'),
+        ),
+      network_id: 42,
+    },
+
     // Useful for private networks
     // private: {
     // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),

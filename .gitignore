@@ -20,6 +20,7 @@ config/local*
 
 # ethereum network configs
 networks/development.json
+networks/*-fork.json
 
 # contract build files
 client/src/contracts

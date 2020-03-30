@@ -1,12 +1,5 @@
 {
   "contracts": {
-    "Configuration": "0x8D37d773Db6aacd50b89851fe091575582828d7c",
-    "PriceOracle": "0x4A183De6Fa285F303DE32F03857D25cb700Ea4eb",
-    "TokenManager": "0x83Ba8c9D48413E4fC49ea2b9F0526078954ac22d",
-    "AccountManager": "0x0D6C90452865821a9cD2128df79F704Be0a0D51c",
-    "DepositManager": "0xCF58d082363A5eca2102211713bEd5eAF33E29C5",
-    "LoanManager": "0xac29521B19B98EA8413E806CA7f2562748F02289",
-    "LiquidityPools": "0xE6CaB933A217Bc7083f0AAd2BEAc455Fb6f68E29",
     "Protocol": "0x10Fbc2d0448fEB7dFEd9D88d2d7186c8A55Beabe",
     "InterestModel": "0x333aBd6055F05A15965af49b65F3E2b8258Ab377"
   },

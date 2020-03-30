@@ -72,8 +72,8 @@ export class CommonService {
     );
   }
 
-  async getMaxLoanTerm(tokenAddress: string): Promise<string> {
-    return this.provider.protocol.methods.getMaxLoanTerm(tokenAddress).call();
+  async getMaxLoanTerm(): Promise<string> {
+    return this.provider.protocol.methods.getMaxLoanTerm().call();
   }
 
   /**

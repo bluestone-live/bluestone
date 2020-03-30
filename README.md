@@ -83,7 +83,7 @@ Because deployed contracts are final, we always deploy fresh new contracts to th
 
 ### Rinkeby testnet
 
-First, fill in the infura projectId and mnemonic in `config.js`.
+First, fill in the mnemonic in `config/local.js`.
 
 Deploy new contracts to rinkeby testnet:
 
