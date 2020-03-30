@@ -40,7 +40,11 @@ const RepayForm = (props: IProps) => {
 
   const onRepayAmountChange = useCallback(
     (value: string) => {
-      setRepayAmount(value);
+      const safeValue = Math.min(
+        Number.parseFloat(value),
+        Number.parseFloat(convertWeiToDecimal(record.remainingDebt, 18)),
+      );
+      setRepayAmount(`${safeValue}`);
     },
     [setRepayAmount],
   );
