@@ -53,37 +53,25 @@ export class DepositService {
     depositTerm: string,
     distributorAddress: string,
   ): Promise<string> {
-    const flow = await this.provider.getContractEventFlow(
-      EventName.DepositSucceed,
-      {
-        filter: {
-          accountAddress,
+    const isETHDeposit = tokenAddress === ETHIdentificationAddress;
+
+    const {
+      events: {
+        DepositSucceed: {
+          returnValues: { recordId },
         },
       },
-    );
-    const {
-      returnValues: { recordId },
-    } = await flow(async protocol => {
-      if (tokenAddress === ETHIdentificationAddress) {
-        return protocol.methods
-          .deposit(
-            tokenAddress,
-            '0',
-            depositTerm.toString(),
-            distributorAddress,
-          )
-          .send({ from: accountAddress, value: depositAmount });
-      }
-
-      return protocol.methods
-        .deposit(
-          tokenAddress,
-          depositAmount.toString(),
-          depositTerm.toString(),
-          distributorAddress,
-        )
-        .send({ from: accountAddress });
-    });
+    } = await this.provider.protocol.methods
+      .deposit(
+        tokenAddress,
+        isETHDeposit ? '0' : depositAmount.toString(),
+        depositTerm.toString(),
+        distributorAddress,
+      )
+      .send({
+        from: accountAddress,
+        value: isETHDeposit ? depositAmount : undefined,
+      });
 
     return recordId;
   }
