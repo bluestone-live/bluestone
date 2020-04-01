@@ -52,7 +52,16 @@ const DepositForm = (props: IProps) => {
 
   // Callbacks
   const onDepositAmountChange = useCallback(
-    (value: string) => setDepositAmount(value),
+    (value: string) => {
+      if (Number.parseFloat(value) < 0) {
+        return;
+      }
+      const safeValue = Math.min(
+        Number.parseFloat(convertWeiToDecimal(tokenBalance.balance)),
+        Number.parseFloat(value),
+      );
+      setDepositAmount(`${safeValue}`);
+    },
     [setDepositAmount],
   );
 
