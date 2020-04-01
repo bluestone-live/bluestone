@@ -6,6 +6,8 @@ import {
   ViewActions,
   useLoading,
   CommonActions,
+  useLoadingType,
+  LoadingType,
 } from '../stores';
 import TextBox from '../components/TextBox';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
@@ -35,7 +37,7 @@ const RepayForm = (props: IProps) => {
   } = props;
   const dispatch = useDispatch();
 
-  const loading = useLoading();
+  const loadingType = useLoadingType();
   const [repayAmount, setRepayAmount] = useState('0');
 
   const onRepayAmountChange = useCallback(
@@ -54,7 +56,7 @@ const RepayForm = (props: IProps) => {
   }, [record]);
 
   const submit = useCallback(async () => {
-    dispatch(ViewActions.setLoading(true));
+    dispatch(ViewActions.setLoadingType(LoadingType.Repay));
     try {
       if (
         selectedLoanPair.loanToken.allowance &&
@@ -103,12 +105,12 @@ const RepayForm = (props: IProps) => {
         ),
       );
     }
-    dispatch(ViewActions.setLoading(false));
+    dispatch(ViewActions.setLoadingType(LoadingType.None));
   }, [record, repayAmount, selectedLoanPair]);
 
   const buttonText = useMemo(() => {
-    if (loading) {
-      return t('common_loading');
+    if (loadingType !== LoadingType.None) {
+      return t(`common_loading_${loadingType}`);
     }
     if (
       selectedLoanPair.loanToken.allowance &&
@@ -117,7 +119,7 @@ const RepayForm = (props: IProps) => {
       return t('borrow_form_button_approve');
     }
     return t('repay_form_button_repay');
-  }, [loading, selectedLoanPair]);
+  }, [selectedLoanPair, loadingType]);
 
   return (
     <div className="repay-form">
@@ -147,7 +149,7 @@ const RepayForm = (props: IProps) => {
           block
           size="large"
           onClick={submit}
-          disabled={loading}
+          disabled={loadingType !== LoadingType.None}
         >
           {buttonText}
         </Button>

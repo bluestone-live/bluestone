@@ -10,6 +10,8 @@ import {
   useLoading,
   ViewActions,
   ETHIdentificationAddress,
+  useLoadingType,
+  LoadingType,
 } from '../stores';
 import FormInput from '../components/FormInput';
 import TextBox from '../components/TextBox';
@@ -44,8 +46,7 @@ const DepositForm = (props: IProps) => {
 
   const dispatch = useDispatch();
 
-  // Selectors
-  const loading = useLoading();
+  const loadingType = useLoadingType();
 
   // States
   const [depositAmount, setDepositAmount] = useState('0');
@@ -71,7 +72,7 @@ const DepositForm = (props: IProps) => {
       depositService,
       commonService,
     } = await getService();
-    dispatch(ViewActions.setLoading(true));
+    dispatch(ViewActions.setLoadingType(LoadingType.Deposit));
     try {
       if (token.allowance && token.allowance.toString() === '0') {
         await commonService.approveFullAllowance(
@@ -123,20 +124,20 @@ const DepositForm = (props: IProps) => {
         ),
       );
     }
-    dispatch(ViewActions.setLoading(false));
+    dispatch(ViewActions.setLoadingType(LoadingType.None));
   }, [token, depositAmount, pool]);
 
   // Computed
 
   const buttonText = useMemo(() => {
-    if (loading) {
-      return t('common_loading');
+    if (loadingType !== LoadingType.None) {
+      return t(`common_loading_${loadingType}`);
     }
     if (token.allowance && token.allowance.toString() === '0') {
       return t('deposit_form_button_approve');
     }
     return t('deposit_form_button_deposit');
-  }, [loading, token]);
+  }, [token, loadingType]);
 
   return (
     <div className="deposit-from">
@@ -168,7 +169,11 @@ const DepositForm = (props: IProps) => {
           type="primary"
           block
           onClick={submit}
-          disabled={loading || !depositAmount || depositAmount === '0'}
+          disabled={
+            loadingType !== LoadingType.None ||
+            !depositAmount ||
+            depositAmount === '0'
+          }
         >
           {buttonText}
         </Button>

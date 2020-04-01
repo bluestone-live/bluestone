@@ -5,9 +5,10 @@ import {
   useDepositTokens,
   useDefaultAccount,
   AccountActions,
-  useLoading,
   IToken,
   ViewActions,
+  LoadingType,
+  useLoadingType,
 } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
@@ -21,7 +22,7 @@ const MintTokenPage = () => {
   const tokens = useDepositTokens();
   const tokenBalance = useTokenBalance();
   const dispatch = useDispatch();
-  const loading = useLoading();
+  const loadingType = useLoadingType();
 
   useDepsUpdated(async () => {
     const { accountService } = await getService();
@@ -42,7 +43,7 @@ const MintTokenPage = () => {
 
   const mintToken = useCallback(
     (token: IToken) => async () => {
-      dispatch(ViewActions.setLoading(true));
+      dispatch(ViewActions.setLoadingType(LoadingType.Mint));
 
       const { accountService } = await getService();
 
@@ -61,7 +62,7 @@ const MintTokenPage = () => {
         ),
       );
 
-      dispatch(ViewActions.setLoading(false));
+      dispatch(ViewActions.setLoadingType(LoadingType.None));
     },
     [tokens],
   );
@@ -89,7 +90,7 @@ const MintTokenPage = () => {
             return (
               <Button
                 onClick={mintToken(record.token)}
-                disabled={loading}
+                disabled={loadingType !== LoadingType.None}
                 size="small"
                 type="primary"
               >

@@ -1,7 +1,13 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { IDepositRecord, ITransaction, IToken, ViewActions } from '../stores';
+import {
+  IDepositRecord,
+  ITransaction,
+  IToken,
+  ViewActions,
+  LoadingType,
+} from '../stores';
 import RecordStatus from '../components/RecordStatus';
 import { Row, Col } from 'antd/lib/grid';
 import TextBox from '../components/TextBox';
@@ -72,7 +78,7 @@ const DepositDetail = (props: IProps) => {
 
   const earlyWithdraw = useCallback(async () => {
     try {
-      dispatch(ViewActions.setLoading(true));
+      dispatch(ViewActions.setLoadingType(LoadingType.Withdraw));
       const { depositService } = await getService();
       await depositService.earlyWithdrawDeposit(
         accountAddress,
@@ -89,13 +95,13 @@ const DepositDetail = (props: IProps) => {
         ),
       );
     }
-    dispatch(ViewActions.setLoading(false));
+    dispatch(ViewActions.setLoadingType(LoadingType.None));
     hideEarlyWithdrawModal();
   }, [record, accountAddress]);
 
   const withdraw = useCallback(async () => {
     try {
-      dispatch(ViewActions.setLoading(true));
+      dispatch(ViewActions.setLoadingType(LoadingType.Withdraw));
       const { depositService } = await getService();
       await depositService.withdrawDeposit(accountAddress, record.recordId);
       dispatch(
@@ -111,6 +117,7 @@ const DepositDetail = (props: IProps) => {
         ),
       );
     }
+    dispatch(ViewActions.setLoadingType(LoadingType.None));
   }, [record, accountAddress]);
 
   const APR =

@@ -153,6 +153,13 @@
     "transaction_list_event_LoanSucceed": "Borrowed {{amount}} {{unit}}",
     "transaction_list_event_RepayLoanSucceed": "Repaid {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "Withdrew {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "Transactions({{count}})"
+    "transaction_list_title_transactions": "Transactions({{count}})",
+    "common_loading_approve": "Approving...",
+    "common_loading_deposit": "Depositing...",
+    "common_loading_withdraw": "Withdrawing...",
+    "common_loading_borrow": "Borrowing...",
+    "common_loading_add_collateral": "Adding...",
+    "common_loading_repay": "Repaying...",
+    "common_loading_default": "Loading..."
   }
 }

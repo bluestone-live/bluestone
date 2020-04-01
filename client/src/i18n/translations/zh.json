@@ -153,6 +153,13 @@
     "transaction_list_event_LoanSucceed": "贷款 {{amount}} {{unit}} ",
     "transaction_list_event_RepayLoanSucceed": "还款 {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "取款 {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "事务({{count}})"
+    "transaction_list_title_transactions": "事务({{count}})",
+    "common_loading_approve": "授权中……",
+    "common_loading_deposit": "存款中……",
+    "common_loading_withdraw": "取款中……",
+    "common_loading_borrow": "借款中……",
+    "common_loading_add_collateral": "追加中……",
+    "common_loading_repay": "还款中……",
+    "common_loading_default": "执行中……"
   }
 }

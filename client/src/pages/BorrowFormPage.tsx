@@ -9,13 +9,14 @@ import {
   useDefaultAccount,
   useDistributorAddress,
   IState,
-  useLoading,
   useLoanInterestRates,
   useDepositTokens,
   PoolActions,
   CommonActions,
   LoanActions,
   useInterestModelParameters,
+  useLoadingType,
+  LoadingType,
 } from '../stores';
 import { RouteComponentProps } from 'react-router';
 import { parseQuery } from '../utils/parseQuery';
@@ -48,7 +49,7 @@ const BorrowFormPage = (props: IProps) => {
 
   const distributorAddress = useDistributorAddress();
 
-  const loading = useLoading();
+  const loadingType = useLoadingType();
 
   const pools = usePools();
 
@@ -166,7 +167,7 @@ const BorrowFormPage = (props: IProps) => {
           loanPairs={loanPairs}
           tokenBalance={tokenBalance}
           distributorAddress={distributorAddress}
-          loading={loading}
+          loading={loadingType !== LoadingType.None}
         />
       )}
     </div>

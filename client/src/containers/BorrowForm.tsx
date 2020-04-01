@@ -9,6 +9,8 @@ import {
   CommonActions,
   ETHIdentificationAddress,
   ViewActions,
+  useLoadingType,
+  LoadingType,
 } from '../stores';
 import Form from 'antd/lib/form';
 import FormInput from '../components/FormInput';
@@ -64,6 +66,8 @@ const BorrowForm = (props: IProps) => {
   const [collateralToken, setCollateralToken] = useState<IToken>();
   const [collateralRatio, setCollateralRatio] = useState();
   const [collateralAmount, setCollateralAmount] = useState<string | number>();
+
+  const loadingType = useLoadingType();
 
   // Initialize
   useDepsUpdated(async () => {
@@ -174,7 +178,7 @@ const BorrowForm = (props: IProps) => {
     if (!loanToken || !collateralToken || !selectedPool) {
       return;
     }
-    dispatch(ViewActions.setLoading(true));
+    dispatch(ViewActions.setLoadingType(LoadingType.Borrow));
     try {
       const { loanService, commonService } = await getService();
       if (
@@ -223,7 +227,7 @@ const BorrowForm = (props: IProps) => {
         ),
       );
     }
-    dispatch(ViewActions.setLoading(false));
+    dispatch(ViewActions.setLoadingType(LoadingType.None));
   }, [
     loanToken,
     collateralToken,
@@ -316,7 +320,7 @@ const BorrowForm = (props: IProps) => {
 
   const buttonText = useMemo(() => {
     if (loading) {
-      return t('common_loading');
+      return t(`common_loading_${loadingType}`);
     }
     if (
       collateralToken &&
@@ -326,7 +330,7 @@ const BorrowForm = (props: IProps) => {
       return t('borrow_form_button_approve');
     }
     return t('borrow_form_button_borrow');
-  }, [loading, collateralToken]);
+  }, [loading, collateralToken, loadingType]);
 
   const illegalRatio = useMemo(() => {
     return (

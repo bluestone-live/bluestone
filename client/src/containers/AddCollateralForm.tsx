@@ -4,8 +4,9 @@ import {
   ILoanRecord,
   ILoanPair,
   ViewActions,
-  useLoading,
   CommonActions,
+  useLoadingType,
+  LoadingType,
 } from '../stores';
 import CollateralCoverageRatio from '../components/CollateralCoverageRatio';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
@@ -41,7 +42,7 @@ const AddCollateralForm = (props: IProps) => {
   } = props;
   const dispatch = useDispatch();
 
-  const loading = useLoading();
+  const loadingType = useLoadingType();
 
   const [collateralRatio, setCollateralRatio] = useState<number>(
     Number.parseFloat(
@@ -140,7 +141,7 @@ const AddCollateralForm = (props: IProps) => {
   );
 
   const submit = useCallback(async () => {
-    dispatch(ViewActions.setLoading(true));
+    dispatch(ViewActions.setLoadingType(LoadingType.AddCollateral));
     try {
       if (
         selectedLoanPair.loanToken.allowance &&
@@ -188,12 +189,12 @@ const AddCollateralForm = (props: IProps) => {
         ),
       );
     }
-    dispatch(ViewActions.setLoading(false));
+    dispatch(ViewActions.setLoadingType(LoadingType.None));
   }, [accountAddress, record, additionalCollateralAmount]);
 
   const buttonText = useMemo(() => {
     if (loading) {
-      return t('common_loading');
+      return t(`common_loading_${loadingType}`);
     }
     if (
       selectedLoanPair.collateralToken.allowance &&
@@ -202,7 +203,7 @@ const AddCollateralForm = (props: IProps) => {
       return t('borrow_form_button_approve');
     }
     return t('add_collateral_form_button_add_collateral');
-  }, [loading, selectedLoanPair]);
+  }, [loading, selectedLoanPair, loadingType]);
 
   return (
     <div className="add-collateral-form">

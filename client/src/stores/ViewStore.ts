@@ -2,14 +2,26 @@ import { IAction, IState } from '.';
 import { useSelector } from 'react-redux';
 import { BannerType } from '../components/Banner';
 
+export enum LoadingType {
+  Approve = 'approve',
+  Deposit = 'deposit',
+  Withdraw = 'withdraw',
+  Borrow = 'borrow',
+  AddCollateral = 'add_collateral',
+  Repay = 'repay',
+  Mint = 'mint',
+  None = 'default',
+}
+
 export enum ViewActionType {
   SetBanner = 'SET_BANNER',
-  SetLoading = 'SET_LOADING',
+  SetLoadingType = 'SET_LOADING_TYPE',
   SetNetwork = 'SET_NETWORK',
 }
 
 interface IViewStore {
   loading: boolean;
+  loadingType?: LoadingType;
   banner?: string;
   bannerType: BannerType;
   bannerModalContent?: string;
@@ -32,7 +44,7 @@ export const ViewReducer = (
         ...state,
         ...action.payload,
       };
-    case ViewActionType.SetLoading:
+    case ViewActionType.SetLoadingType:
       return {
         ...state,
         ...action.payload,
@@ -72,11 +84,11 @@ export class ViewActions {
     };
   }
 
-  static setLoading(loading: boolean) {
+  static setLoadingType(loadingType: LoadingType) {
     return {
-      type: ViewActionType.SetLoading,
+      type: ViewActionType.SetLoadingType,
       payload: {
-        actionButtonLoading: loading,
+        loadingType,
       },
     };
   }
@@ -103,8 +115,10 @@ export const useBanner = () =>
     };
   });
 
-export const useLoading = () =>
-  useSelector<IState, boolean>(state => state.view.actionButtonLoading);
+export const useLoadingType = () =>
+  useSelector<IState, LoadingType>(
+    state => state.view.loadingType || LoadingType.None,
+  );
 
 export const useNetwork = () =>
   useSelector<IState, string>(state => state.view.network);
