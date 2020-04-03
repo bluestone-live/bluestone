@@ -34,7 +34,7 @@ const BorrowDetail = (props: IProps) => {
     return (
       <span>
         <span className={currentCollateralRatioColor}>
-          {currentCollateralRatio}%
+          {currentCollateralRatio.toFixed(0)}%
         </span>
         /{minCollateralCoverageRatio}%;
       </span>
