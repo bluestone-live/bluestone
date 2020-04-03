@@ -193,7 +193,7 @@ const AddCollateralForm = (props: IProps) => {
   }, [accountAddress, record, additionalCollateralAmount]);
 
   const buttonText = useMemo(() => {
-    if (loading) {
+    if (loadingType !== LoadingType.None) {
       return t(`common_loading_${loadingType}`);
     }
     if (
@@ -203,7 +203,7 @@ const AddCollateralForm = (props: IProps) => {
       return t('borrow_form_button_approve');
     }
     return t('add_collateral_form_button_add_collateral');
-  }, [loading, selectedLoanPair, loadingType]);
+  }, [selectedLoanPair, loadingType]);
 
   return (
     <div className="add-collateral-form">
@@ -274,7 +274,9 @@ const AddCollateralForm = (props: IProps) => {
           type="primary"
           block
           size="large"
-          disabled={loading || additionalCollateralAmount <= 0}
+          disabled={
+            loadingType !== LoadingType.None || additionalCollateralAmount <= 0
+          }
           onClick={submit}
         >
           {buttonText}

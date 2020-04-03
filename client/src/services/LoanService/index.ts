@@ -1,4 +1,4 @@
-import { MetaMaskProvider, EventName } from '../../utils/MetaMaskProvider';
+import { MetaMaskProvider } from '../../utils/MetaMaskProvider';
 import { loanRecordsPipe } from './Pipes';
 import { ILoanRecord, ETHIdentificationAddress } from '../../stores';
 
@@ -43,40 +43,29 @@ export class LoanService {
     loanTerm: number,
     distributorAddress: string,
   ): Promise<string> {
-    const flow = await this.provider.getContractEventFlow(
-      EventName.LoanSucceed,
-      {
-        filter: {
-          accountAddress,
+    const isEtherCollateral =
+      collateralTokenAddress === ETHIdentificationAddress;
+
+    const {
+      events: {
+        LoanSucceed: {
+          returnValues: { recordId },
         },
       },
-    );
-    const {
-      returnValues: { recordId },
-    } = await flow(async protocol => {
-      if (collateralTokenAddress === ETHIdentificationAddress) {
-        return protocol.methods
-          .loan(
-            loanTokenAddress,
-            collateralTokenAddress,
-            loanAmount.toString(),
-            '0',
-            loanTerm.toString(),
-            distributorAddress,
-          )
-          .send({ from: accountAddress, value: collateralAmount });
-      }
-      return protocol.methods
-        .loan(
-          loanTokenAddress,
-          collateralTokenAddress,
-          loanAmount.toString(),
-          collateralAmount.toString(),
-          loanTerm.toString(),
-          distributorAddress,
-        )
-        .send({ from: accountAddress });
-    });
+    } = await this.provider.protocol.methods
+      .loan(
+        loanTokenAddress,
+        collateralTokenAddress,
+        loanAmount.toString(),
+        isEtherCollateral ? '0' : collateralAmount.toString(),
+        loanTerm.toString(),
+        distributorAddress,
+      )
+      .send({
+        from: accountAddress,
+        value: isEtherCollateral ? collateralAmount : undefined,
+      });
+
     return recordId;
   }
 
@@ -84,19 +73,15 @@ export class LoanService {
    * @returns remainingDebt remaining debt of this loan
    */
   async repayLoan(accountAddress: string, loanId: string, repayAmount: string) {
-    const flow = await this.provider.getContractEventFlow(
-      EventName.RepayLoanSucceed,
-      {
-        filter: {
-          accountAddress,
-        },
+    const {
+      events: {
+        RepayLoanSucceed: { returnValues },
       },
-    );
-    return flow(protocol => {
-      return protocol.methods
-        .repayLoan(loanId, repayAmount.toString())
-        .send({ from: accountAddress });
-    });
+    } = await this.provider.protocol.methods
+      .repayLoan(loanId, repayAmount.toString())
+      .send({ from: accountAddress });
+
+    return returnValues;
   }
 
   async addCollateral(
@@ -105,23 +90,23 @@ export class LoanService {
     collateralTokenAddress: string,
     collateralAmount: string,
   ) {
-    const flow = await this.provider.getContractEventFlow(
-      EventName.AddCollateralSucceed,
-      {
-        filter: {
-          accountAddress,
-        },
+    const isEtherCollateral =
+      collateralTokenAddress === ETHIdentificationAddress;
+
+    const {
+      events: {
+        AddCollateralSucceed: { returnValues },
       },
-    );
-    return flow(protocol => {
-      if (collateralTokenAddress === ETHIdentificationAddress) {
-        return protocol.methods
-          .addCollateral(loanId, '0')
-          .send({ from: accountAddress, value: collateralAmount.toString() });
-      }
-      return protocol.methods
-        .addCollateral(loanId, collateralAmount.toString())
-        .send({ from: accountAddress });
-    });
+    } = await this.provider.protocol.methods
+      .addCollateral(
+        loanId,
+        isEtherCollateral ? '0' : collateralAmount.toString(),
+      )
+      .send({
+        from: accountAddress,
+        value: isEtherCollateral ? collateralAmount.toString() : undefined,
+      });
+
+    return returnValues;
   }
 }
