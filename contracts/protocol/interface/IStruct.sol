@@ -64,6 +64,7 @@ interface IStruct {
         uint256 currentCollateralRatio;
         uint256 minCollateralCoverageRatio;
         uint256 alreadyPaidAmount;
+        uint256 liquidatedAmount;
         uint256 soldCollateralAmount;
         uint256 createdAt;
         uint256 dueAt;
