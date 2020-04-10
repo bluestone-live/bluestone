@@ -30,7 +30,7 @@ final class CustomTestEngine extends ArcanistUnitTestEngine {
         // print out every 50ms 
         // resolve returns null if the timeout is hit.
         // ref: https://secure.phabricator.com/book/libphutil/class/Future/#method/resolve
-        $result = $future->resolve(0.05); 
+        $result = $future->resolve();
         list($stdout, $stderr) = $future->read(); 
         echo $stdout;
         echo $stderr;   

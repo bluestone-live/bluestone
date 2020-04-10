@@ -9,7 +9,8 @@ module.exports = makeTruffleScript(async network => {
   }
 
   const net = loadNetwork(network);
-  const tokens = Object.getOwnPropertyNames(net.tokens).map(name => {
+  const protocolAddress = net.contracts.Protocol;
+  const tokens = Object.keys(net.tokens).map(name => {
     return {
       symbol: name,
       address: net.tokens[name].address,
@@ -66,7 +67,7 @@ module.exports = makeTruffleScript(async network => {
     }),
   );
 
-  const factor = new BN(10).pow(18);
+  const factor = new BN('10').pow(new BN('18'));
 
   for (let r of result) {
     debug(`${r.symbol} Balance: ${r.balance.div(factor)}`); // For better formatting, use ethers.utils.formatUnit
@@ -225,11 +226,15 @@ module.exports = makeTruffleScript(async network => {
    * @returns {Promise<BN>} Calculated value
    */
   async function calcAmount(event, filter, valueKey = 'amount') {
-    const protocol = await Protocol.at(net.contracts.Protocol);
+    const protocol = await Protocol.at(protocolAddress);
 
-    const values = (await protocol.getPastEvents(event, { filter })).map(
-      e => e.returnValues,
-    );
+    const events = await protocol.getPastEvents(event, {
+      filter: filter,
+      fromBlcok: 0,
+      toBlock: 'latest',
+      topics: null,
+    });
+    const values = events.map(e => e.returnValues);
 
     return values
       .map(v => new BN(v[valueKey]))
