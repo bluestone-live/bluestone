@@ -96,7 +96,7 @@ const BorrowDetail = (props: IProps) => {
       <Row>
         <Col span={24}>
           <TextBox label={t('borrow_detail_label_liquidated_collateral')}>
-            {convertWeiToDecimal(record.liquidatedAmount)}{' '}
+            {convertWeiToDecimal(record.soldCollateralAmount)}{' '}
             {selectedLoanPair.collateralToken.tokenSymbol}
           </TextBox>
         </Col>
