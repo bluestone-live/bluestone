@@ -56,6 +56,13 @@
     "common_early_withdraw_deposit_fail_title": "Early withdraw failed",
     "common_early_withdraw_deposit_succeed": "Early withdraw succeed",
     "common_loading": "Loading",
+    "common_loading_add_collateral": "Adding...",
+    "common_loading_approve": "Approving...",
+    "common_loading_borrow": "Borrowing...",
+    "common_loading_default": "Loading...",
+    "common_loading_deposit": "Depositing...",
+    "common_loading_repay": "Repaying...",
+    "common_loading_withdraw": "Withdrawing...",
     "common_repay_fail_title": "Repay failed",
     "common_repay_succeed": "Repay succeed",
     "common_withdraw_deposit_fail_title": "Withdraw failed",
@@ -150,16 +157,10 @@
     "transaction_list_event_AddCollateralSucceed": "Add collateral {{amount}} {{unit}} ",
     "transaction_list_event_DepositSucceed": "Deposit {{amount}} {{unit}}",
     "transaction_list_event_EarlyWithdrawSucceed": "Early withdrew {{amount}} {{unit}}",
+    "transaction_list_event_LiquidateLoanSucceed": "Liquidated {{amount}} {{unit}}",
     "transaction_list_event_LoanSucceed": "Borrowed {{amount}} {{unit}}",
     "transaction_list_event_RepayLoanSucceed": "Repaid {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "Withdrew {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "Transactions({{count}})",
-    "common_loading_approve": "Approving...",
-    "common_loading_deposit": "Depositing...",
-    "common_loading_withdraw": "Withdrawing...",
-    "common_loading_borrow": "Borrowing...",
-    "common_loading_add_collateral": "Adding...",
-    "common_loading_repay": "Repaying...",
-    "common_loading_default": "Loading..."
+    "transaction_list_title_transactions": "Transactions({{count}})"
   }
 }

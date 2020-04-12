@@ -56,6 +56,13 @@
     "common_early_withdraw_deposit_fail_title": "提前取款失败",
     "common_early_withdraw_deposit_succeed": "提前取款成功",
     "common_loading": "执行中",
+    "common_loading_add_collateral": "追加中……",
+    "common_loading_approve": "授权中……",
+    "common_loading_borrow": "借款中……",
+    "common_loading_default": "执行中……",
+    "common_loading_deposit": "存款中……",
+    "common_loading_repay": "还款中……",
+    "common_loading_withdraw": "取款中……",
     "common_repay_fail_title": "还款失败",
     "common_repay_succeed": "还款成功",
     "common_withdraw_deposit_fail_title": "取款失败",
@@ -150,16 +157,10 @@
     "transaction_list_event_AddCollateralSucceed": "追加 {{amount}} {{unit}} 抵押",
     "transaction_list_event_DepositSucceed": "存款 {{amount}} {{unit}}",
     "transaction_list_event_EarlyWithdrawSucceed": "提前取款 {{amount}} {{unit}}",
+    "transaction_list_event_LiquidateLoanSucceed": "清算 {{amount}} {{unit}}",
     "transaction_list_event_LoanSucceed": "贷款 {{amount}} {{unit}} ",
     "transaction_list_event_RepayLoanSucceed": "还款 {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "取款 {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "事务({{count}})",
-    "common_loading_approve": "授权中……",
-    "common_loading_deposit": "存款中……",
-    "common_loading_withdraw": "取款中……",
-    "common_loading_borrow": "借款中……",
-    "common_loading_add_collateral": "追加中……",
-    "common_loading_repay": "还款中……",
-    "common_loading_default": "执行中……"
+    "transaction_list_title_transactions": "事务({{count}})"
   }
 }

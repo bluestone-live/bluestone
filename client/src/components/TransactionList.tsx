@@ -43,6 +43,9 @@ const TransactionList = (props: IProps) => {
         case 'rinkeby':
           txLink = `https://rinkeby.etherscan.io/tx/${transaction.transactionHash}`;
           break;
+        case 'kovan':
+          txLink = `https://kovan.etherscan.io/tx/${transaction.transactionHash}`;
+          break;
         default:
           txLink = `https://etherscan.io/tx/${transaction.transactionHash}`;
       }
@@ -87,13 +90,22 @@ const TransactionList = (props: IProps) => {
             unit: collateralToken ? collateralToken.tokenSymbol : '',
           });
         }
+
+        let tokenSymbol = '';
+
+        if (loanToken) {
+          tokenSymbol = loanToken.tokenSymbol;
+        } else if (collateralToken) {
+          tokenSymbol = collateralToken.tokenSymbol;
+        }
+
         return t(`transaction_list_event_${tx.event}`, {
           amount: new BigNumber(tx.amount).lt(
             new BigNumber(convertDecimalToWei(0.0001)),
           )
-            ? '≈0.0001'
+            ? `≈0.0001`
             : convertWeiToDecimal(tx.amount, 4),
-          unit: loanToken ? loanToken.tokenSymbol : '',
+          unit: tokenSymbol,
         });
       }
     },

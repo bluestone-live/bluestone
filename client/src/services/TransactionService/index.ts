@@ -13,6 +13,7 @@ export class TransactionService {
         this.getDepositSucceedEvents(accountAddress),
         this.getWithdrawDepositSucceedEvents(accountAddress),
         this.getEarlyWithdrawDepositSucceedEvents(accountAddress),
+        this.getLiquidateLoanSucceedEvents(accountAddress),
       ]))
         .reduce((allEvents, eventArray) => [...allEvents, ...eventArray], [])
         .map(event =>
@@ -32,4 +33,6 @@ export class TransactionService {
     this.provider.getPastEvents(accountAddress, EventName.WithdrawSucceed);
   getEarlyWithdrawDepositSucceedEvents = async (accountAddress: string) =>
     this.provider.getPastEvents(accountAddress, EventName.EarlyWithdrawSucceed);
+  getLiquidateLoanSucceedEvents = async (accountAddress: string) =>
+    this.provider.getPastEvents(accountAddress, EventName.LiquidateLoanSucceed);
 }
