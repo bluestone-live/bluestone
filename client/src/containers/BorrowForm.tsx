@@ -65,10 +65,13 @@ const BorrowForm = (props: IProps) => {
   // States
   const [borrowAmount, setBorrowAmount] = useState(0);
   const [collateralToken, setCollateralToken] = useState<IToken>();
-  const [collateralRatio, setCollateralRatio] = useState();
+  const [collateralRatio, setCollateralRatio] = useState<any>();
   const [collateralAmount, setCollateralAmount] = useState<string | number>();
 
   const loadingType = useLoadingType();
+  const setSafeCollateralRatio = (value: any) => {
+    setCollateralRatio(Math.max(150, Number.parseFloat(value)));
+  };
 
   // Initialize
   useDepsUpdated(async () => {
@@ -208,7 +211,7 @@ const BorrowForm = (props: IProps) => {
           loanToken.tokenAddress,
           collateralToken.tokenAddress,
           convertDecimalToWei(borrowAmount),
-          convertDecimalToWei(collateralAmount),
+          convertDecimalToWei(collateralAmount!),
           selectedPool.term,
           distributorAddress,
         );
@@ -241,7 +244,7 @@ const BorrowForm = (props: IProps) => {
 
   useDepsUpdated(async () => {
     if (selectedLoanPair) {
-      setCollateralRatio(
+      setSafeCollateralRatio(
         Number.parseFloat(
           convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
         ) * 150,
@@ -272,7 +275,7 @@ const BorrowForm = (props: IProps) => {
     (value: string) => {
       setCollateralAmount(Number.parseFloat(value));
       if (collateralToken && loanToken) {
-        setCollateralRatio(
+        setSafeCollateralRatio(
           calcCollateralRatio(
             value,
             totalDebt || '0',
@@ -287,7 +290,7 @@ const BorrowForm = (props: IProps) => {
 
   const onCollateralRatioChange = useCallback(
     (value: string) => {
-      setCollateralRatio(Number.parseFloat(value));
+      setSafeCollateralRatio(Number.parseFloat(value));
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -304,7 +307,7 @@ const BorrowForm = (props: IProps) => {
 
   const modifyCollateralRatio = useCallback(
     (num: number) => () => {
-      setCollateralRatio(Number.parseFloat(collateralRatio) + num);
+      setSafeCollateralRatio(Number.parseFloat(collateralRatio) + num);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
