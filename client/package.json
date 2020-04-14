@@ -20,6 +20,7 @@
     "i18next": "^17.3.1",
     "i18next-browser-languagedetector": "^3.1.1",
     "i18next-localforage-cache": "^1.0.3",
+    "ismobilejs": "^1.1.0",
     "less": "^3.10.3",
     "less-loader": "^5.0.0",
     "localforage": "^1.7.3",

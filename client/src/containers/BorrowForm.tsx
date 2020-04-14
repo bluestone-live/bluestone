@@ -29,6 +29,7 @@ import {
 } from '../utils/calcCollateralRatio';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { BannerType } from '../components/Banner';
+import isMobile from 'ismobilejs';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   protocolContractAddress: string;
@@ -386,7 +387,7 @@ const BorrowForm = (props: IProps) => {
       {selectedLoanPair && (
         <FormInput
           label={t('borrow_form_input_label_collateral_ratio')}
-          type="number"
+          type={isMobile(window.navigator).any ? 'number' : 'text'}
           value={collateralRatio}
           suffix="%"
           onChange={onCollateralRatioChange}
