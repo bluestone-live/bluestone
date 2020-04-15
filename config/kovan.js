@@ -3,13 +3,13 @@ module.exports = {
     tokens: {
       DAI: {
         name: 'Dai',
-        loanInterestRateLowerBound: 0.1,
-        loanInterestRateUpperBound: 0.15,
+        loanInterestRateLowerBound: 0.03,
+        loanInterestRateUpperBound: 0.04,
       },
       USDT: {
         name: 'Tether',
-        loanInterestRateLowerBound: 0.07,
-        loanInterestRateUpperBound: 0.09,
+        loanInterestRateLowerBound: 0.03,
+        loanInterestRateUpperBound: 0.04,
       },
       ETH: {
         name: 'Native Ether',
