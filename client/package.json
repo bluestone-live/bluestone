@@ -16,6 +16,7 @@
     "babel-polyfill": "^6.26.0",
     "bn.js": "^4.11.8",
     "dayjs": "^1.8.18",
+    "ethers": "^4.0.46",
     "i18next": "^17.3.1",
     "i18next-browser-languagedetector": "^3.1.1",
     "i18next-localforage-cache": "^1.0.3",
