@@ -12,8 +12,14 @@ export const getTransactionPipe = async (
     case EventName.AddCollateralSucceed:
       amount = event.returnValues.collateralAmount;
       break;
+    case EventName.LoanSucceed:
+      amount = event.returnValues.loanAmount;
+      break;
+    case EventName.RepayLoanSucceed:
+      amount = event.returnValues.loanAmount;
+      break;
     case EventName.LiquidateLoanSucceed:
-      amount = event.returnValues.liquidatedAmount;
+      amount = event.returnValues.liquidateAmount;
       break;
     default:
       amount = event.returnValues.amount;
