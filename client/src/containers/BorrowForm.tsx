@@ -151,11 +151,12 @@ const BorrowForm = (props: IProps) => {
   // Callbacks
   const onBorrowAmountChange = useCallback(
     (value: string) => {
-      if (Number.parseFloat(value) < 0) {
+      const tokenAmount = Number.parseFloat(value);
+      if (tokenAmount < 0 || tokenAmount > selectedPool!.availableAmount) {
         return;
       }
 
-      setBorrowAmount(Number.parseFloat(value));
+      setBorrowAmount(tokenAmount);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -167,7 +168,14 @@ const BorrowForm = (props: IProps) => {
         );
       }
     },
-    [setBorrowAmount, collateralToken, collateralRatio, loanToken, totalDebt],
+    [
+      setBorrowAmount,
+      collateralToken,
+      collateralRatio,
+      loanToken,
+      totalDebt,
+      selectedPool,
+    ],
   );
 
   const onBorrowAmountMaxButtonClick = useCallback(() => {
