@@ -338,7 +338,7 @@ const BorrowForm = (props: IProps) => {
 
   const illegalRatio = useMemo(() => {
     return (
-      collateralRatio <=
+      collateralRatio <
       Number.parseFloat(
         convertWeiToDecimal(
           selectedLoanPair && selectedLoanPair.minCollateralCoverageRatio,
