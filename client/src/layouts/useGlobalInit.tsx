@@ -62,22 +62,18 @@ export const useGlobalInit = (
 
     // Get deposit tokens
     const depositTokens = await Promise.all(
-      (await commonService.getDepositTokens()).map(async (token: IToken) => {
-        if (token.tokenAddress === ETHIdentificationAddress) {
+      (await commonService.getDepositTokens())
+        .filter(token => token.tokenAddress !== ETHIdentificationAddress)
+        .map(async (token: IToken) => {
           return {
             ...token,
-            allowance: undefined,
+            allowance: await commonService.getTokenAllowance(
+              token,
+              accounts[0],
+              protocolContractAddress,
+            ),
           };
-        }
-        return {
-          ...token,
-          allowance: await commonService.getTokenAllowance(
-            token,
-            accounts[0],
-            protocolContractAddress,
-          ),
-        };
-      }),
+        }),
     );
     dispatch(CommonActions.setDepositTokens(depositTokens));
 

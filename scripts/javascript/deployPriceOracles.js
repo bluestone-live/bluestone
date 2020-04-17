@@ -21,9 +21,9 @@ module.exports = makeTruffleScript(async network => {
 
   const { tokens } = loadNetwork(network);
 
-  const { ETH, DAI, USDT } = tokens;
+  const { ETH, DAI, USDT, USDC } = tokens;
 
-  if (!ETH || !DAI || !USDT) {
+  if (!ETH || !DAI || !USDT || !USDC) {
     throw new Error('Please ensure tokens are deployed.');
   }
 
@@ -67,7 +67,7 @@ module.exports = makeTruffleScript(async network => {
     priceUpperBound,
     priceLowerBound,
   );
-  const usdtPriceOracle = await FixedPriceOracle.new(toFixedBN(1));
+  const fixedPriceOracle = await FixedPriceOracle.new(toFixedBN(1));
   const protocol = await Protocol.deployed();
 
   const setPriceOracle = async (
@@ -87,5 +87,6 @@ module.exports = makeTruffleScript(async network => {
 
   await setPriceOracle('ETH', ETH.address, ethPriceOracle.address);
   await setPriceOracle('DAI', DAI.address, daiPriceOracle.address);
-  await setPriceOracle('USDT', USDT.address, usdtPriceOracle.address);
+  await setPriceOracle('USDT', USDT.address, fixedPriceOracle.address);
+  await setPriceOracle('USDC', USDC.address, fixedPriceOracle.address);
 });
