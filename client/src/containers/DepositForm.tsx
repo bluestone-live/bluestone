@@ -72,9 +72,10 @@ const DepositForm = (props: IProps) => {
       depositService,
       commonService,
     } = await getService();
-    dispatch(ViewActions.setLoadingType(LoadingType.Deposit));
     try {
       if (token.allowance && token.allowance.toString() === '0') {
+        dispatch(ViewActions.setLoadingType(LoadingType.Approve));
+
         await commonService.approveFullAllowance(
           accountAddress,
           token,
@@ -92,6 +93,8 @@ const DepositForm = (props: IProps) => {
           ),
         );
       } else {
+        dispatch(ViewActions.setLoadingType(LoadingType.Deposit));
+
         const recordId = await depositService.deposit(
           accountAddress,
           token.tokenAddress,
@@ -172,7 +175,7 @@ const DepositForm = (props: IProps) => {
           disabled={
             loadingType !== LoadingType.None ||
             !depositAmount ||
-            depositAmount === '0'
+            (depositAmount === '0' && token.allowance !== '0')
           }
         >
           {buttonText}
