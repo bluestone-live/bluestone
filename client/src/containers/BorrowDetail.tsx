@@ -112,12 +112,8 @@ const BorrowDetail = (props: IProps) => {
         )}
         <Col span={12}>
           <TextBox label={t('borrow_detail_label_total_debt')}>
-            {convertWeiToDecimal(
-              (
-                Number.parseFloat(record.loanAmount) +
-                Number.parseFloat(record.interest)
-              ).toString(),
-            )}{' '}
+            {Number.parseFloat(convertWeiToDecimal(record.loanAmount)) +
+              Number.parseFloat(convertWeiToDecimal(record.interest))}
             {selectedLoanPair.loanToken.tokenSymbol}
           </TextBox>
         </Col>
