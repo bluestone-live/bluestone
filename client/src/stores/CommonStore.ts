@@ -22,6 +22,7 @@ export interface IToken {
   allowance?: string;
   price?: string;
   erc20Instance?: Contract;
+  decimals: string;
 }
 
 export interface ITerm {

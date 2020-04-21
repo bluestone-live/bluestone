@@ -98,7 +98,7 @@ const DepositForm = (props: IProps) => {
         const recordId = await depositService.deposit(
           accountAddress,
           token.tokenAddress,
-          convertDecimalToWei(depositAmount),
+          convertDecimalToWei(depositAmount, token.decimals),
           pool.term.toString(),
           distributorAddress,
         );
@@ -153,7 +153,11 @@ const DepositForm = (props: IProps) => {
           value={depositAmount}
           onChange={onDepositAmountChange}
           extra={t('deposit_form_input_extra_balance', {
-            balance: convertWeiToDecimal(tokenBalance.balance),
+            balance: convertWeiToDecimal(
+              tokenBalance.balance,
+              4,
+              token.decimals,
+            ),
             unit: token.tokenSymbol,
           })}
         />

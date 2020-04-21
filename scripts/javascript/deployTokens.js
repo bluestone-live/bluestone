@@ -20,13 +20,15 @@ module.exports = makeTruffleScript(async network => {
 
     if (symbol === 'USDT') {
       deployedToken = await USDTMock.new(token.name, symbol);
+    } else if (symbol === 'USDC') {
+      deployedToken = await ERC20Mock.new(token.name, symbol, 6);
     } else if (symbol === 'ETH') {
       // We use address(1) to identify ETH
       deployedToken = Object.assign({}, deployedToken, {
         address: '0x0000000000000000000000000000000000000001',
       });
     } else {
-      deployedToken = await ERC20Mock.new(token.name, symbol);
+      deployedToken = await ERC20Mock.new(token.name, symbol, 18);
     }
 
     debug(`Deployed ${symbol} at ${deployedToken.address}`);

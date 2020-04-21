@@ -6,7 +6,7 @@ export { BigNumber };
 export const convertWeiToDecimal = (
   bn?: BigNumber | string,
   precision: number = 4,
-  decimals = 18,
+  decimals: number | string = 18,
 ) => {
   if (!bn) {
     return '0';
@@ -24,8 +24,11 @@ export const convertWeiToDecimal = (
  * toFixed(0.03) -> 3e16
  * toFixed(5, 16) -> 5e16
  */
-export const convertDecimalToWei = (num: number | string): string => {
-  return utils.parseEther(`${num || 0}`).toString();
+export const convertDecimalToWei = (
+  num: number | string,
+  decimals: number | string = 18,
+): string => {
+  return utils.parseUnits(`${num || 0}`, decimals).toString();
 };
 
 export const ZERO = new BigNumber(0);

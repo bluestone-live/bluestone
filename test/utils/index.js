@@ -37,7 +37,7 @@ const createERC20Token = async (
   symbol = 'NT',
 ) => {
   const ERC20Mock = artifacts.require('./ERC20Mock.sol');
-  const token = await ERC20Mock.new(name, symbol);
+  const token = await ERC20Mock.new(name, symbol, 18);
   token.mint(owner, initialSupply);
   return token;
 };

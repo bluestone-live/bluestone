@@ -46,11 +46,10 @@ const MintTokenPage = () => {
       dispatch(ViewActions.setLoadingType(LoadingType.Mint));
 
       const { accountService } = await getService();
-
       await accountService.mintToken(
         accountAddress,
         token,
-        convertDecimalToWei(1000000),
+        convertDecimalToWei(1000000, token.decimals),
       );
 
       dispatch(
@@ -113,7 +112,9 @@ const MintTokenPage = () => {
         return {
           symbol: token.tokenSymbol,
           token,
-          balance: balance ? convertWeiToDecimal(balance.balance) : '0',
+          balance: balance
+            ? convertWeiToDecimal(balance.balance, 0, token.decimals)
+            : '0',
         };
       }),
     [tokens, tokenBalance],

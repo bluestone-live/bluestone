@@ -22,6 +22,9 @@ export const depositTokenPipe = async (
       .map(async ({ tokenAddress, erc20Instance }) => ({
         tokenAddress,
         erc20Instance,
+        decimals: erc20Instance
+          ? await erc20Instance!.methods.decimals().call()
+          : '18',
         tokenSymbol:
           tokenAddress === ETHIdentificationAddress
             ? 'ETH'

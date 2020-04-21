@@ -15,7 +15,7 @@ module.exports = makeTruffleScript(async (network, accountAddress) => {
       continue;
     }
     const erc20 = await ERC20Mock.at(token.address);
-    const scaledValue = toFixedBN(1000000);
+    const scaledValue = toFixedBN(1000000, symbol === 'USDC' ? 6 : 18);
     debug(`Token symbol: ${symbol}`);
     debug(`Account address: ${accountAddress}`);
     debug(`Token amount in wei: ${scaledValue}`);

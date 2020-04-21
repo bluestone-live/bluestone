@@ -218,7 +218,7 @@ const BorrowForm = (props: IProps) => {
           accountAddress,
           loanToken.tokenAddress,
           collateralToken.tokenAddress,
-          convertDecimalToWei(borrowAmount),
+          convertDecimalToWei(borrowAmount, loanToken.decimals),
           convertDecimalToWei(collateralAmount!),
           selectedPool.term,
           distributorAddress,

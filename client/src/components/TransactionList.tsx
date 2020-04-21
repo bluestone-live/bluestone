@@ -63,7 +63,12 @@ const TransactionList = (props: IProps) => {
         );
         return t(`transaction_list_event_${tx.event}`, {
           amount: new BigNumber(tx.amount).lt(
-            new BigNumber(convertDecimalToWei(0.0001)),
+            new BigNumber(
+              convertDecimalToWei(
+                0.0001,
+                depositToken ? depositToken!.decimals : undefined,
+              ),
+            ),
           )
             ? '≈0.0001'
             : convertWeiToDecimal(tx.amount, 4),
@@ -101,7 +106,9 @@ const TransactionList = (props: IProps) => {
 
         return t(`transaction_list_event_${tx.event}`, {
           amount: new BigNumber(tx.amount).lt(
-            new BigNumber(convertDecimalToWei(0.0001)),
+            new BigNumber(
+              convertDecimalToWei(0.0001, loanToken ? loanToken.decimals : 18),
+            ),
           )
             ? `≈0.0001`
             : convertWeiToDecimal(tx.amount, 4),

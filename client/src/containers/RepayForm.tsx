@@ -52,7 +52,13 @@ const RepayForm = (props: IProps) => {
   );
 
   const onRepayAmountMaxButtonClick = useCallback(() => {
-    setRepayAmount(convertWeiToDecimal(record.remainingDebt, 18));
+    setRepayAmount(
+      convertWeiToDecimal(
+        record.remainingDebt,
+        4,
+        selectedLoanPair.loanToken.decimals,
+      ),
+    );
   }, [record]);
 
   const submit = useCallback(async () => {
@@ -85,7 +91,7 @@ const RepayForm = (props: IProps) => {
         await loanService.repayLoan(
           accountAddress,
           record.recordId,
-          convertDecimalToWei(repayAmount),
+          convertDecimalToWei(repayAmount, selectedLoanPair.loanToken.decimals),
         );
 
         dispatch(ViewActions.setBanner(t('common_repay_succeed')));
