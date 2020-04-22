@@ -104,7 +104,7 @@
     "layout_default_account": "Records",
     "layout_default_borrow": "Borrow",
     "layout_default_deposit": "Deposit",
-    "layout_network_alert_content": "BlueStone is not available on current network, please switch to Rinkeby test net.",
+    "layout_network_alert_content": "BlueStone is not available on current network, please switch to Kovan test net.",
     "layout_network_alert_title": "Notice",
     "monitor_detail_page_label_apr": "APR",
     "monitor_detail_page_label_available_amount": "Available Amount",

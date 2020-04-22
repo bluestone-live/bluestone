@@ -104,7 +104,7 @@
     "layout_default_account": "账户",
     "layout_default_borrow": "借钱",
     "layout_default_deposit": "存钱",
-    "layout_network_alert_content": "我们在当前网络中没有提供服务，请切换到 Rinkeby 测试网络",
+    "layout_network_alert_content": "我们在当前网络中没有提供服务，请切换到 Kovan 测试网络",
     "layout_network_alert_title": "注意",
     "monitor_detail_page_label_apr": "年化利率",
     "monitor_detail_page_label_available_amount": "可用余额",
