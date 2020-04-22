@@ -16,7 +16,7 @@ export const getTransactionPipe = async (
       amount = event.returnValues.loanAmount;
       break;
     case EventName.RepayLoanSucceed:
-      amount = event.returnValues.loanAmount;
+      amount = event.returnValues.repayAmount;
       break;
     case EventName.LiquidateLoanSucceed:
       amount = event.returnValues.liquidateAmount;
