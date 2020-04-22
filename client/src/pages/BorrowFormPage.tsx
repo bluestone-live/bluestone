@@ -69,7 +69,7 @@ const BorrowFormPage = (props: IProps) => {
   ]);
 
   const computedPools = useMemo(
-    () => composePools(selectedPools, interestRates),
+    () => composePools(selectedPools, interestRates, tokens),
     [selectedPools, interestRates],
   );
 

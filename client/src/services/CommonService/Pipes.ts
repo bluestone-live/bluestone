@@ -57,6 +57,7 @@ export const loanPairPipe = async (
         }) => ({
           loanToken: {
             tokenAddress: loanTokenAddress,
+            decimals: '18',
             erc20Instance:
               loanTokenAddress === ETHIdentificationAddress
                 ? undefined
@@ -64,6 +65,7 @@ export const loanPairPipe = async (
           },
           collateralToken: {
             tokenAddress: collateralTokenAddress,
+            decimals: '18',
             erc20Instance:
               collateralTokenAddress === ETHIdentificationAddress
                 ? undefined
@@ -82,6 +84,10 @@ export const loanPairPipe = async (
         }) => ({
           loanToken: {
             ...loanToken,
+            decimals:
+              loanToken.tokenAddress === ETHIdentificationAddress
+                ? '18'
+                : await loanToken.erc20Instance!.methods.decimals().call(),
             tokenSymbol:
               loanToken.tokenAddress === ETHIdentificationAddress
                 ? 'ETH'

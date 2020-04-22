@@ -120,7 +120,7 @@ const BorrowOverview = (props: IProps) => {
   }, [selectedToken, selectedPools, interestModelParameters]);
 
   const computedPools = useMemo(
-    () => composePools(selectedPools, interestRates),
+    () => composePools(selectedPools, interestRates, tokens),
     [selectedPools, interestRates],
   );
 

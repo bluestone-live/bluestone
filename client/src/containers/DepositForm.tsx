@@ -58,7 +58,9 @@ const DepositForm = (props: IProps) => {
         return;
       }
       const safeValue = Math.min(
-        Number.parseFloat(convertWeiToDecimal(tokenBalance.balance)),
+        Number.parseFloat(
+          convertWeiToDecimal(tokenBalance.balance, 4, token.decimals),
+        ),
         Number.parseFloat(value),
       );
       setDepositAmount(`${safeValue}`);

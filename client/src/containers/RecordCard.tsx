@@ -92,7 +92,13 @@ const RecordCard = (props: IProps) => {
 
       const APR = (
         (Number.parseFloat(convertWeiToDecimal(depositRecord.interest)) /
-          Number.parseFloat(convertWeiToDecimal(depositRecord.depositAmount)) /
+          Number.parseFloat(
+            convertWeiToDecimal(
+              depositRecord.depositAmount,
+              4,
+              depositToken && depositToken.decimals,
+            ),
+          ) /
           depositRecord.depositTerm.value) *
         365 *
         100
@@ -114,7 +120,11 @@ const RecordCard = (props: IProps) => {
           <Row>
             <Col span={8}>
               <span className="ant-form-text">
-                {convertWeiToDecimal(depositRecord.depositAmount)}{' '}
+                {convertWeiToDecimal(
+                  depositRecord.depositAmount,
+                  4,
+                  depositToken && depositToken.decimals,
+                )}{' '}
                 {depositToken && depositToken.tokenSymbol}
               </span>
             </Col>
