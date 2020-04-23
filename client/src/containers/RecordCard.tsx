@@ -159,7 +159,11 @@ const RecordCard = (props: IProps) => {
           </Row>
           <Col span={12}>
             <span className="ant-form-text">
-              {convertWeiToDecimal(borrowRecord.remainingDebt)}{' '}
+              {convertWeiToDecimal(
+                borrowRecord.remainingDebt,
+                4,
+                loanToken && loanToken.decimals,
+              )}{' '}
               {loanToken && loanToken.tokenSymbol}
             </span>
           </Col>

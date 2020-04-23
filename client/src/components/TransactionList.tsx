@@ -71,7 +71,11 @@ const TransactionList = (props: IProps) => {
             ),
           )
             ? '≈0.0001'
-            : convertWeiToDecimal(tx.amount, 4),
+            : convertWeiToDecimal(
+                tx.amount,
+                4,
+                depositToken && depositToken.decimals,
+              ),
           unit: depositToken ? depositToken.tokenSymbol : '',
         });
       } else {
@@ -111,7 +115,11 @@ const TransactionList = (props: IProps) => {
             ),
           )
             ? `≈0.0001`
-            : convertWeiToDecimal(tx.amount, 4),
+            : convertWeiToDecimal(
+                tx.amount,
+                4,
+                loanToken && loanToken.decimals,
+              ),
           unit: tokenSymbol,
         });
       }

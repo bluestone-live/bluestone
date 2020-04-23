@@ -122,7 +122,13 @@ const DepositDetail = (props: IProps) => {
 
   const APR =
     (Number.parseFloat(convertWeiToDecimal(record.interest)) /
-      Number.parseFloat(convertWeiToDecimal(record.depositAmount)) /
+      Number.parseFloat(
+        convertWeiToDecimal(
+          record.depositAmount,
+          4,
+          depositToken && depositToken.decimals,
+        ),
+      ) /
       record.depositTerm.value) *
     365 *
     100;
@@ -151,7 +157,11 @@ const DepositDetail = (props: IProps) => {
         <Col span={12}>
           <TextBox label={t('deposit_detail_label_amount')}>
             <span className="primary">
-              {convertWeiToDecimal(record.depositAmount)}{' '}
+              {convertWeiToDecimal(
+                record.depositAmount,
+                4,
+                depositToken && depositToken.decimals,
+              )}{' '}
             </span>
             {depositToken && depositToken.tokenSymbol}
           </TextBox>
@@ -178,7 +188,13 @@ const DepositDetail = (props: IProps) => {
                 : t('deposit_detail_label_estimated_interest')
             }
           >
-            {isEarlyWithdrew ? '0.0000' : convertWeiToDecimal(record.interest)}{' '}
+            {isEarlyWithdrew
+              ? '0.0000'
+              : convertWeiToDecimal(
+                  record.interest,
+                  4,
+                  depositToken && depositToken.decimals,
+                )}{' '}
             {depositToken && depositToken.tokenSymbol}
           </TextBox>
         </Col>

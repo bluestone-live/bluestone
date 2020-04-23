@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useAllPools, useDepositTokens, PoolActions } from '../stores';
+import { useAllPools, useDepositTokens, PoolActions, IPool } from '../stores';
 import { RouteComponentProps } from 'react-router';
 import { parseQuery } from '../utils/parseQuery';
 import { useDepsUpdated } from '../utils/useEffectAsync';
@@ -25,19 +25,11 @@ const MonitorDetailPage = (props: IProps) => {
 
   const dispatch = useDispatch();
 
-  const allPools = useAllPools();
   const tokens = useDepositTokens();
   const queryParams = parseQuery(search);
 
-  const selectedPool = useMemo(() => {
-    if (allPools.length > 0 && poolId && queryParams.tokenAddress) {
-      return allPools.find(
-        pool =>
-          pool.tokenAddress === queryParams.tokenAddress &&
-          pool.poolId === poolId,
-      );
-    }
-  }, [queryParams.tokenAddress, poolId]);
+  const [selectedPool, setSelectedPool] = useState<IPool>();
+
   const selectedToken = useMemo(() => {
     if (queryParams.tokenAddress) {
       return tokens.find(
@@ -50,15 +42,8 @@ const MonitorDetailPage = (props: IProps) => {
     if (queryParams.tokenAddress) {
       const { poolService } = await getService();
 
-      dispatch(
-        PoolActions.replacePool(
-          queryParams.tokenAddress,
-          poolId,
-          await poolService.getPoolByTokenAndId(
-            queryParams.tokenAddress,
-            poolId,
-          ),
-        ),
+      setSelectedPool(
+        await poolService.getPoolByTokenAndId(queryParams.tokenAddress, poolId),
       );
     }
   }, [queryParams.tokenAddress]);
@@ -91,36 +76,52 @@ const MonitorDetailPage = (props: IProps) => {
       <Row>
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_total_deposit')}>
-            {convertWeiToDecimal(selectedPool.totalDeposit)}
+            {convertWeiToDecimal(
+              selectedPool.totalDeposit,
+              4,
+              selectedToken.decimals,
+            )}
           </TextBox>
         </Col>
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_total_deposit_weight')}>
-            {convertWeiToDecimal(selectedPool.totalDepositWeight)}
+            {convertWeiToDecimal(
+              selectedPool.totalDepositWeight,
+              4,
+              selectedToken.decimals,
+            )}
           </TextBox>
         </Col>
       </Row>
       <Row>
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_loan_interest')}>
-            {convertWeiToDecimal(selectedPool.loanInterest)}
+            {convertWeiToDecimal(
+              selectedPool.loanInterest,
+              2,
+              selectedToken.decimals,
+            )}
           </TextBox>
         </Col>
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_apr')}>
-            {convertWeiToDecimal(selectedPool.APR)}
+            {selectedPool.APR}
           </TextBox>
         </Col>
       </Row>
       <Row>
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_available_amount')}>
-            {convertWeiToDecimal(selectedPool.availableAmount)}
+            {convertWeiToDecimal(
+              selectedPool.availableAmount,
+              4,
+              selectedToken.decimals,
+            )}
           </TextBox>
         </Col>
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_utilization')}>
-            {convertWeiToDecimal(selectedPool.utilization)}
+            {selectedPool.utilization}
           </TextBox>
         </Col>
       </Row>

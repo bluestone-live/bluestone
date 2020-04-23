@@ -68,7 +68,11 @@ const BorrowDetail = (props: IProps) => {
       <Row>
         <Col span={12}>
           <TextBox label={t('borrow_detail_label_amount')}>
-            {convertWeiToDecimal(record.loanAmount)}{' '}
+            {convertWeiToDecimal(
+              record.loanAmount,
+              4,
+              selectedLoanPair.loanToken.decimals,
+            )}{' '}
             {selectedLoanPair.loanToken.tokenSymbol}
           </TextBox>
         </Col>
@@ -105,15 +109,31 @@ const BorrowDetail = (props: IProps) => {
         {!record.isClosed && (
           <Col span={12}>
             <TextBox label={t('borrow_detail_label_remaining_debt')}>
-              {convertWeiToDecimal(record.remainingDebt)}{' '}
+              {convertWeiToDecimal(
+                record.remainingDebt,
+                4,
+                selectedLoanPair.loanToken.decimals,
+              )}{' '}
               {selectedLoanPair.loanToken.tokenSymbol}
             </TextBox>
           </Col>
         )}
         <Col span={12}>
           <TextBox label={t('borrow_detail_label_total_debt')}>
-            {Number.parseFloat(convertWeiToDecimal(record.loanAmount)) +
-              Number.parseFloat(convertWeiToDecimal(record.interest))}
+            {Number.parseFloat(
+              convertWeiToDecimal(
+                record.loanAmount,
+                4,
+                selectedLoanPair.loanToken.decimals,
+              ),
+            ) +
+              Number.parseFloat(
+                convertWeiToDecimal(
+                  record.interest,
+                  4,
+                  selectedLoanPair.loanToken.decimals,
+                ),
+              )}
             {selectedLoanPair.loanToken.tokenSymbol}
           </TextBox>
         </Col>
