@@ -359,6 +359,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
 
     function repayLoan(bytes32 loanId, uint256 repayAmount)
         external
+        payable
         whenNotPaused
         nonReentrant
         override
@@ -374,6 +375,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
 
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
         external
+        payable
         whenNotPaused
         nonReentrant
         override

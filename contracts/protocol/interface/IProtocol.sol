@@ -140,6 +140,7 @@ interface IProtocol {
     /// @return remainingDebt remaining debt of the loan
     function repayLoan(bytes32 loanId, uint256 repayAmount)
         external
+        payable
         returns (uint256 remainingDebt);
 
     /// @notice Liquidate a loan that is under-collateralized or defaulted
@@ -151,6 +152,7 @@ interface IProtocol {
     /// @return liquidatedAmount The amount of debt that is liquidated.
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
         external
+        payable
         returns (uint256 remainingCollateral, uint256 liquidatedAmount);
 
     /// @notice Add collateral to a loan
