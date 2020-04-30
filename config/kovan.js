@@ -16,6 +16,12 @@ module.exports = {
         loanInterestRateLowerBound: 0.06,
         loanInterestRateUpperBound: 0.12,
       },
+      USDC: {
+        name: 'USDC',
+        loanInterestRateLowerBound: 0.07,
+        loanInterestRateUpperBound: 0.09,
+        balanceCap: 10000000,
+      },
     },
     depositTerms: [30, 60, 90],
     loanAndCollateralTokenPairs: [
@@ -34,6 +40,12 @@ module.exports = {
       {
         loanTokenSymbol: 'USDT',
         collateralTokenSymbol: 'DAI',
+        minCollateralCoverageRatio: 1.5,
+        liquidationDiscount: 0.03,
+      },
+      {
+        loanTokenSymbol: 'USDC',
+        collateralTokenSymbol: 'ETH',
         minCollateralCoverageRatio: 1.5,
         liquidationDiscount: 0.03,
       },
