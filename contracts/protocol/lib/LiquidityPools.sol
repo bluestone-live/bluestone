@@ -207,17 +207,17 @@ library LiquidityPools {
     function getPoolsByToken(State storage self, address tokenAddress)
         external
         view
-        returns (IStruct.getPoolsByTokenResponse[] memory poolList)
+        returns (IStruct.GetPoolsByTokenResponse[] memory poolList)
     {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
-        poolList = new IStruct.getPoolsByTokenResponse[](
+        poolList = new IStruct.GetPoolsByTokenResponse[](
             self.poolGroupSize + 1
         );
         uint256 firstPoolId = DateTime.toDays();
         IStruct.Pool memory pool;
         for (uint256 i = 0; i <= self.poolGroupSize; i++) {
             pool = poolGroup.poolsById[firstPoolId.add(i)];
-            poolList[i] = IStruct.getPoolsByTokenResponse({
+            poolList[i] = IStruct.GetPoolsByTokenResponse({
                 poolId: firstPoolId.add(i),
                 depositAmount: pool.depositAmount,
                 availableAmount: pool.availableAmount,

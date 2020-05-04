@@ -209,7 +209,7 @@ interface IProtocol {
     function getPoolsByToken(address tokenAddress)
         external
         view
-        returns (IStruct.getPoolsByTokenResponse[] memory poolList);
+        returns (IStruct.GetPoolsByTokenResponse[] memory poolList);
 
     function getPoolById(address tokenAddress, uint256 poolId)
         external

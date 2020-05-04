@@ -74,7 +74,7 @@ contract LiquidityPoolsMock {
     function getPoolsByToken(address tokenAddress)
         external
         view
-        returns (IStruct.getPoolsByTokenResponse[] memory poolList)
+        returns (IStruct.GetPoolsByTokenResponse[] memory poolList)
     {
         return _liquidityPools.getPoolsByToken(tokenAddress);
     }

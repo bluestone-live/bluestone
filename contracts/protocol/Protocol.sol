@@ -485,7 +485,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         view
         whenNotPaused
         override
-        returns (IStruct.getPoolsByTokenResponse[] memory poolList)
+        returns (IStruct.GetPoolsByTokenResponse[] memory poolList)
     {
         return _liquidityPools.getPoolsByToken(tokenAddress);
     }

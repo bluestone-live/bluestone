@@ -1,5 +1,6 @@
 pragma solidity ^0.6.0;
 
+
 interface IStruct {
     struct DepositRecord {
         bytes32 depositId;
@@ -95,7 +96,7 @@ interface IStruct {
         uint256 protocolReserveRatio;
     }
 
-    struct getPoolsByTokenResponse {
+    struct GetPoolsByTokenResponse {
         uint256 poolId;
         uint256 depositAmount;
         uint256 availableAmount;
