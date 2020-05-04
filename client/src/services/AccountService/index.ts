@@ -35,9 +35,12 @@ export class AccountService {
     if (this.provider.network === 'main') {
       return;
     }
-    return token
+
+    const receipt = await token
       .erc20Instance!.methods.mint(accountAddress, amount)
       .send({ from: accountAddress });
+
+    return receipt;
   }
 
   /**
