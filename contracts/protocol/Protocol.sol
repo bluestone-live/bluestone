@@ -212,15 +212,10 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     ) external payable whenNotPaused nonReentrant override returns (bytes32 depositId) {
         IStruct.DepositParameters memory depositParameters = IStruct.DepositParameters({
             tokenAddress: tokenAddress,
-            depositAmount: 0,
+            depositAmount: depositAmount,
             depositTerm: depositTerm,
             distributorAddress: distributorAddress
         });
-        if (tokenAddress == address(1)) {
-            depositParameters.depositAmount = msg.value;
-        } else {
-            depositParameters.depositAmount = depositAmount;
-        }
 
         return
             _depositManager.deposit(
@@ -340,13 +335,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
             loanTerm: loanTerm,
             distributorAddress: distributorAddress
         });
-
-        // check if eth
-        if (collateralTokenAddress == address(1)) {
-            loanParameters.collateralAmount = msg.value;
-        } else {
-            loanParameters.collateralAmount = collateralAmount;
-        }
 
         loanId = _loanManager.loan(
             _configuration,

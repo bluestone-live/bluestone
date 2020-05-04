@@ -34,6 +34,8 @@ library DepositManager {
         mapping(address => bytes32[]) depositIdsByAccountAddress;
     }
 
+    address private constant ETH_IDENTIFIER = address(1);
+
     event EnableDepositTermSucceed(address indexed adminAddress, uint256 term);
     event DisableDepositTermSucceed(address indexed adminAddress, uint256 term);
     event EnableDepositTokenSucceed(
@@ -197,15 +199,26 @@ library DepositManager {
             'DepositManager: invalid distributor address'
         );
 
+        uint256 depositAmount;
         uint256 currTokenBalance;
 
-        if (depositParameters.tokenAddress == address(1)) {
+        if (depositParameters.tokenAddress == ETH_IDENTIFIER) {
+            depositAmount = msg.value;
             currTokenBalance = address(this).balance;
         } else {
+            require(
+                msg.value == 0,
+                'DepositManager: msg.value is not accepted'
+            );
+
+            depositAmount = depositParameters.depositAmount;
+
             currTokenBalance = ERC20(depositParameters.tokenAddress).balanceOf(
                 address(this)
             );
         }
+
+        require(depositAmount > 0, 'DepositManager: invalid deposit amount');
 
         require(
             currTokenBalance.add(depositParameters.depositAmount) <=
@@ -213,16 +226,14 @@ library DepositManager {
             'DepositManager: token balance cap exceeded'
         );
 
-        address payable accountAddress = msg.sender;
-
         uint256 depositWeight = configuration.interestModel.getDepositWeight(
-            depositParameters.depositAmount,
+            depositAmount,
             depositParameters.depositTerm
         );
 
         uint256 poolId = liquidityPools.addDepositToPool(
             depositParameters.tokenAddress,
-            depositParameters.depositAmount,
+            depositAmount,
             depositParameters.depositTerm,
             depositWeight,
             configuration.depositDistributorFeeRatio,
@@ -234,15 +245,15 @@ library DepositManager {
 
         // Compute a hash as deposit ID
         bytes32 currDepositId = keccak256(
-            abi.encode(accountAddress, poolId, self.numDeposits)
+            abi.encode(msg.sender, poolId, self.numDeposits)
         );
 
         self.depositRecordById[currDepositId] = IStruct.DepositRecord({
             depositId: currDepositId,
-            ownerAddress: accountAddress,
+            ownerAddress: msg.sender,
             tokenAddress: depositParameters.tokenAddress,
             depositTerm: depositParameters.depositTerm,
-            depositAmount: depositParameters.depositAmount,
+            depositAmount: depositAmount,
             poolId: poolId,
             createdAt: now,
             withdrewAt: 0,
@@ -251,26 +262,21 @@ library DepositManager {
         });
 
         // Transfer ERC20 token from user to protocol (`this` refers to Protocol contract)
-        if (depositParameters.tokenAddress != address(1)) {
-            require(
-                msg.value == 0,
-                'DepositManager: msg.value is not accepted'
-            );
-
+        if (depositParameters.tokenAddress != ETH_IDENTIFIER) {
             ERC20(address(depositParameters.tokenAddress)).safeTransferFrom(
-                accountAddress,
+                msg.sender,
                 address(this),
-                depositParameters.depositAmount
+                depositAmount
             );
         }
 
-        self.depositIdsByAccountAddress[accountAddress].push(currDepositId);
+        self.depositIdsByAccountAddress[msg.sender].push(currDepositId);
 
         emit DepositSucceed(
-            accountAddress,
+            msg.sender,
             currDepositId,
             depositParameters.tokenAddress,
-            depositParameters.depositAmount
+            depositAmount
         );
 
         return currDepositId;
@@ -296,10 +302,9 @@ library DepositManager {
         );
 
         address tokenAddress = depositRecord.tokenAddress;
-        address payable accountAddress = msg.sender;
 
         require(
-            accountAddress == depositRecord.ownerAddress,
+            msg.sender == depositRecord.ownerAddress,
             'DepositManager: invalid owner'
         );
         require(
@@ -328,7 +333,7 @@ library DepositManager {
 
         depositRecord.withdrewAt = now;
 
-        if (tokenAddress == address(1)) {
+        if (tokenAddress == ETH_IDENTIFIER) {
             // Transfer deposit distributor fee to distributor if distributor set
             if (depositRecord.distributorAddress != address(this)) {
                 /// By using .send() instead of .transfer(), we ensure this call does not revert
@@ -360,7 +365,7 @@ library DepositManager {
             );
 
             // Transfer deposit plus interest to depositor
-            accountAddress.transfer(depositPlusInterestAmount);
+            msg.sender.transfer(depositPlusInterestAmount);
         } else {
             // Transfer deposit distributor fee to distributor if distributor set
             if (depositRecord.distributorAddress != address(this)) {
@@ -385,13 +390,13 @@ library DepositManager {
 
             // Transfer deposit plus interest to depositor
             ERC20(tokenAddress).safeTransfer(
-                accountAddress,
+                msg.sender,
                 depositPlusInterestAmount
             );
         }
 
         emit WithdrawSucceed(
-            accountAddress,
+            msg.sender,
             depositId,
             tokenAddress,
             depositPlusInterestAmount
@@ -416,10 +421,9 @@ library DepositManager {
             .depositRecordById[depositId];
 
         address tokenAddress = depositRecord.tokenAddress;
-        address payable accountAddress = msg.sender;
 
         require(
-            accountAddress == depositRecord.ownerAddress,
+            msg.sender == depositRecord.ownerAddress,
             'DepositManager: invalid owner'
         );
 
@@ -437,17 +441,17 @@ library DepositManager {
 
         depositRecord.withdrewAt = now;
 
-        if (tokenAddress == address(1)) {
-            accountAddress.transfer(depositRecord.depositAmount);
+        if (tokenAddress == ETH_IDENTIFIER) {
+            msg.sender.transfer(depositRecord.depositAmount);
         } else {
             ERC20(tokenAddress).safeTransfer(
-                accountAddress,
+                msg.sender,
                 depositRecord.depositAmount
             );
         }
 
         emit EarlyWithdrawSucceed(
-            accountAddress,
+            msg.sender,
             depositRecord.depositId,
             depositRecord.tokenAddress,
             depositRecord.depositAmount

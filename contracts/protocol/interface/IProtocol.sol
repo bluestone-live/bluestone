@@ -28,7 +28,7 @@ interface IProtocol {
 
     /// @notice Deposit token with specific term and amount
     /// @param tokenAddress Token address
-    /// @param depositAmount Deposit amount
+    /// @param depositAmount Deposit amount (overwritten by msg.value if deposit token is ETH)
     /// @param depositTerm Deposit term
     /// @param distributorAddress distributor account address
     /// @return depositId ID that identifies the deposit
@@ -121,7 +121,7 @@ interface IProtocol {
     /// @param loanTokenAddress token to borrow
     /// @param collateralTokenAddress token to collateralize the loan
     /// @param loanAmount Amount to borrow
-    /// @param collateralAmount Amount to collateralize
+    /// @param collateralAmount Amount to collateralize (overwritten by msg.value if collateral token is ETH)
     /// @param loanTerm Loan term
     /// @param distributorAddress Distributor account address
     /// @return loanId ID that identifies the loan
@@ -136,7 +136,7 @@ interface IProtocol {
 
     /// @notice Pay back a specific amount of loan
     /// @param loanId ID that identifies the loan
-    /// @param repayAmount Amount to repay
+    /// @param repayAmount Amount to repay (overwritten by msg.value if loan token is ETH)
     /// @return remainingDebt remaining debt of the loan
     function repayLoan(bytes32 loanId, uint256 repayAmount)
         external
@@ -148,6 +148,7 @@ interface IProtocol {
     /// @param liquidateAmount The amount requested to liquidate. If the amount
     ///        is greater than the remaining debt of the loan, it will
     ///        liquidate the full remaining debt.
+    ///        (overwritten by msg.value if loan token is ETH)
     /// @return remainingCollateral The remaining amount of collateral after liquidation
     /// @return liquidatedAmount The amount of debt that is liquidated.
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
@@ -157,7 +158,7 @@ interface IProtocol {
 
     /// @notice Add collateral to a loan
     /// @param loanId ID that identifies the loan
-    /// @param collateralAmount The collateral amount to be added to the loan
+    /// @param collateralAmount The collateral amount to be added to the loan (overwritten by msg.value if collateral token is ETH)
     /// @return totalCollateralAmount The total collateral amount after adding collateral
     function addCollateral(bytes32 loanId, uint256 collateralAmount)
         external
