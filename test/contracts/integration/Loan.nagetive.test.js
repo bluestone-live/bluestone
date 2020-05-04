@@ -200,14 +200,6 @@ contract(
           );
         });
 
-        it('revert add collateral', async () => {
-          await expectRevert(
-            protocol.addCollateral(loanId, collateralAmount, {
-              from: loaner,
-            }),
-            'LoanManager: invalid token pair',
-          );
-        });
         it('repay succeed', async () => {
           const { remainingDebt } = await protocol.getLoanRecordById(loanId);
 
@@ -219,6 +211,7 @@ contract(
 
           expect(remainingDebtAfterRepaid).to.equal('0');
         });
+
         it('revert loan', async () => {
           await expectRevert(
             protocol.loan(
@@ -307,15 +300,6 @@ contract(
           );
         });
 
-        it('revert add collateral', async () => {
-          await expectRevert(
-            protocol.addCollateral(loanId, '0', {
-              from: loaner,
-              value: collateralAmount,
-            }),
-            'LoanManager: invalid token pair',
-          );
-        });
         it('repay succeed', async () => {
           const { remainingDebt } = await protocol.getLoanRecordById(loanId);
 
@@ -327,6 +311,7 @@ contract(
 
           expect(remainingDebtAfterRepaid).to.equal('0');
         });
+
         it('revert loan', async () => {
           await expectRevert(
             protocol.loan(

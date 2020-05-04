@@ -220,11 +220,6 @@ library LoanManager {
             .loanAndCollateralTokenPairs[record.loanTokenAddress][record
             .collateralTokenAddress];
 
-        require(
-            tokenPair.minCollateralCoverageRatio != 0,
-            'LoanManager: invalid token pair'
-        );
-
         if (record.collateralTokenAddress == ETH_IDENTIFIER) {
             collateralAmount = msg.value;
         } else {
@@ -274,11 +269,6 @@ library LoanManager {
         IStruct.LoanAndCollateralTokenPair storage tokenPair = self
             .loanAndCollateralTokenPairs[record.loanTokenAddress][record
             .collateralTokenAddress];
-
-        require(
-            tokenPair.minCollateralCoverageRatio != 0,
-            'LoanManager: invalid token pair'
-        );
 
         IPriceOracle loanTokenPriceOracle = configuration
             .priceOracleByToken[record.loanTokenAddress];
@@ -684,11 +674,6 @@ library LoanManager {
         IStruct.LoanAndCollateralTokenPair storage tokenPair = self
             .loanAndCollateralTokenPairs[loanRecord.loanTokenAddress][loanRecord
             .collateralTokenAddress];
-
-        require(
-            tokenPair.minCollateralCoverageRatio != 0,
-            'LoanManager: invalid token pair'
-        );
 
         require(
             msg.sender != loanRecord.ownerAddress,
