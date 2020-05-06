@@ -21,6 +21,7 @@ import dayjs from 'dayjs';
 import Modal from 'antd/lib/modal';
 import { useDispatch } from 'react-redux';
 import { BannerType } from '../components/Banner';
+import { getTimezone } from '../utils/formatSolidityTime';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -201,7 +202,11 @@ const DepositDetail = (props: IProps) => {
       </Row>
       <Row>
         <Col span={24}>
-          <TextBox label={t('deposit_detail_label_maturity_date')}>
+          <TextBox
+            label={`${t(
+              'deposit_detail_label_maturity_date',
+            )} (${getTimezone()})`}
+          >
             {dayjs
               .utc(getTimestampByPoolId(record.poolId))
               .local()

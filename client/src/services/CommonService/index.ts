@@ -107,15 +107,19 @@ export class CommonService {
     const erc20 = token.erc20Instance!;
     const amount = await erc20.methods.totalSupply().call();
 
-    const {
-      events: {
-        Approval: { returnValues },
-      },
-    } = await erc20.methods
-      .approve(protocolContractAddress, amount)
-      .send({ from: accountAddress });
+    try {
+      const {
+        events: {
+          Approval: { returnValues },
+        },
+      } = await erc20.methods
+        .approve(protocolContractAddress, amount)
+        .send({ from: accountAddress });
 
-    return returnValues;
+      return returnValues;
+    } catch (error) {
+      return undefined;
+    }
   }
 
   /**

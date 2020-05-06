@@ -84,7 +84,7 @@
     "deposit_detail_modal_pool_id": "Pool ID",
     "deposit_detail_text_pool": "Pool: {{poolId}}",
     "deposit_detail_text_term": "{{term}} days",
-    "deposit_form_button_approve": "Approve",
+    "deposit_form_button_approve": "Enable",
     "deposit_form_button_deposit": "Deposit",
     "deposit_form_input_amount": "Amount",
     "deposit_form_input_extra_balance": "Available amount:{{balance}} {{unit}}",
@@ -161,6 +161,7 @@
     "transaction_list_event_LoanSucceed": "Borrowed {{amount}} {{unit}}",
     "transaction_list_event_RepayLoanSucceed": "Repaid {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "Withdrew {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "Transactions({{count}})"
+    "transaction_list_title_transactions": "Transactions({{count}})",
+    "depost_form_approve_tip": "To Supply or Repay assets to Bluestone, please enable it first."
   }
 }

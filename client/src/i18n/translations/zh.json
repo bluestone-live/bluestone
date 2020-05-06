@@ -161,6 +161,7 @@
     "transaction_list_event_LoanSucceed": "贷款 {{amount}} {{unit}} ",
     "transaction_list_event_RepayLoanSucceed": "还款 {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "取款 {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "事务({{count}})"
+    "transaction_list_title_transactions": "事务({{count}})",
+    "depost_form_approve_tip": "请授权后使用Bluestone"
   }
 }

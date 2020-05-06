@@ -4,7 +4,6 @@ import {
   ILoanRecord,
   ILoanPair,
   ViewActions,
-  useLoading,
   CommonActions,
   useLoadingType,
   LoadingType,
@@ -55,7 +54,7 @@ const RepayForm = (props: IProps) => {
     setRepayAmount(
       convertWeiToDecimal(
         record.remainingDebt,
-        4,
+        Number.parseInt(`${selectedLoanPair.loanToken.decimals || 18}`, 10),
         selectedLoanPair.loanToken.decimals,
       ),
     );

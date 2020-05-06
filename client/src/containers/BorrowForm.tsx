@@ -30,6 +30,7 @@ import {
 import { RouteComponentProps, withRouter } from 'react-router';
 import { BannerType } from '../components/Banner';
 import isMobile from 'ismobilejs';
+import { getTimezone } from '../utils/formatSolidityTime';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   protocolContractAddress: string;
@@ -466,7 +467,9 @@ const BorrowForm = (props: IProps) => {
         </TextBox>
       )}
       {selectedPool && (
-        <TextBox label={t('borrow_form_text_label_due_date')}>
+        <TextBox
+          label={`${t('borrow_form_text_label_due_date')} (${getTimezone()})`}
+        >
           {dayjs
             .utc()
             .add(selectedPool.term, 'day')

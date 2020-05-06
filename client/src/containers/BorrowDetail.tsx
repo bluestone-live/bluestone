@@ -133,7 +133,7 @@ const BorrowDetail = (props: IProps) => {
                   4,
                   selectedLoanPair.loanToken.decimals,
                 ),
-              )}
+              )}{' '}
             {selectedLoanPair.loanToken.tokenSymbol}
           </TextBox>
         </Col>

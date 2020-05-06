@@ -230,7 +230,7 @@ module.exports = makeTruffleScript(async network => {
 
     const events = await protocol.getPastEvents(event, {
       filter: filter,
-      fromBlcok: 0,
+      fromBlock: 0,
       toBlock: 'latest',
       topics: null,
     });
