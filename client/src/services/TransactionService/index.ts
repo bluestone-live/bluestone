@@ -10,6 +10,7 @@ export class TransactionService {
         this.getLoanSucceedEvents(accountAddress),
         this.getRepayLoanSucceedEvents(accountAddress),
         this.getAddCollateralSucceedEvents(accountAddress),
+        this.getSubtractCollateralSucceedEvents(accountAddress),
         this.getDepositSucceedEvents(accountAddress),
         this.getWithdrawDepositSucceedEvents(accountAddress),
         this.getEarlyWithdrawDepositSucceedEvents(accountAddress),
@@ -27,6 +28,11 @@ export class TransactionService {
     this.provider.getPastEvents(accountAddress, EventName.RepayLoanSucceed);
   getAddCollateralSucceedEvents = async (accountAddress: string) =>
     this.provider.getPastEvents(accountAddress, EventName.AddCollateralSucceed);
+  getSubtractCollateralSucceedEvents = async (accountAddress: string) =>
+    this.provider.getPastEvents(
+      accountAddress,
+      EventName.SubtractCollateralSucceed,
+    );
   getDepositSucceedEvents = async (accountAddress: string) =>
     this.provider.getPastEvents(accountAddress, EventName.DepositSucceed);
   getWithdrawDepositSucceedEvents = async (accountAddress: string) =>

@@ -109,4 +109,27 @@ export class LoanService {
 
     return returnValues;
   }
+
+  async removeCollateral(
+    accountAddress: string,
+    loanId: string,
+    collateralTokenAddress: string,
+    collateralAmount: string,
+  ) {
+    const isEtherCollateral =
+      collateralTokenAddress === ETHIdentificationAddress;
+
+    const {
+      events: {
+        SubtractCollateralSucceed: { returnValues },
+      },
+    } = await this.provider.protocol.methods
+      .subtractCollateral(loanId, collateralAmount.toString())
+      .send({
+        from: accountAddress,
+        value: '0',
+      });
+
+    return returnValues;
+  }
 }

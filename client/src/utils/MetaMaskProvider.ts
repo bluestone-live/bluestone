@@ -20,6 +20,7 @@ export enum EventName {
   LoanSucceed = 'LoanSucceed',
   RepayLoanSucceed = 'RepayLoanSucceed',
   AddCollateralSucceed = 'AddCollateralSucceed',
+  SubtractCollateralSucceed = 'SubtractCollateralSucceed',
   DepositSucceed = 'DepositSucceed',
   WithdrawSucceed = 'WithdrawSucceed',
   EarlyWithdrawSucceed = 'EarlyWithdrawSucceed',

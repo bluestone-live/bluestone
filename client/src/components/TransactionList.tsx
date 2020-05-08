@@ -89,15 +89,18 @@ const TransactionList = (props: IProps) => {
             (record as ILoanRecord).collateralTokenAddress,
         );
 
-        if (tx.event === EventName.AddCollateralSucceed) {
-          return t(`transaction_list_event_${tx.event}`, {
-            amount: new BigNumber(tx.amount).lt(
-              new BigNumber(convertDecimalToWei(0.0001)),
-            )
-              ? '≈0.0001'
-              : convertWeiToDecimal(tx.amount, 4),
-            unit: collateralToken ? collateralToken.tokenSymbol : '',
-          });
+        switch (tx.event) {
+          case EventName.AddCollateralSucceed:
+          case EventName.SubtractCollateralSucceed:
+            return t(`transaction_list_event_${tx.event}`, {
+              amount: new BigNumber(tx.amount).lt(
+                new BigNumber(convertDecimalToWei(0.0001)),
+              )
+                ? '≈0.0001'
+                : convertWeiToDecimal(tx.amount, 4),
+              unit: collateralToken ? collateralToken.tokenSymbol : '',
+            });
+          default:
         }
 
         let tokenSymbol = '';

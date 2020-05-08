@@ -32,14 +32,7 @@ interface IProps extends WithTranslation, RouteComponentProps {
 }
 
 const AddCollateralForm = (props: IProps) => {
-  const {
-    accountAddress,
-    protocolContractAddress,
-    record,
-    selectedLoanPair,
-    history,
-    t,
-  } = props;
+  const { accountAddress, record, selectedLoanPair, history, t } = props;
   const dispatch = useDispatch();
 
   const loadingType = useLoadingType();
@@ -49,6 +42,16 @@ const AddCollateralForm = (props: IProps) => {
       convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
     ) * 100,
   );
+  const setSafeCollateralRatio = (value: number) =>
+    setCollateralRatio(
+      Math.max(
+        value,
+        Number.parseFloat(
+          convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
+        ) * 100,
+      ),
+    );
+
   const [additionalCollateralAmount, setAdditionalCollateralAmount] = useState<
     number
   >(0);
@@ -62,22 +65,16 @@ const AddCollateralForm = (props: IProps) => {
 
   useDepsUpdated(async () => {
     if (record) {
-      setCollateralRatio(
-        Math.max(
-          Number.parseFloat(
-            convertWeiToDecimal(record.currentCollateralRatio),
-          ) * 100,
-          Number.parseFloat(
-            convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
-          ) * 100,
-        ),
+      setSafeCollateralRatio(
+        Number.parseFloat(convertWeiToDecimal(record.currentCollateralRatio)) *
+          100,
       );
     }
   }, [record]);
 
   const onCollateralRatioChange = useCallback(
     (value: string) => {
-      setCollateralRatio(Number.parseFloat(value));
+      setSafeCollateralRatio(Number.parseFloat(value));
       if (selectedLoanPair.collateralToken && selectedLoanPair.loanToken) {
         setAdditionalCollateralAmount(
           Number.parseFloat(
@@ -96,7 +93,7 @@ const AddCollateralForm = (props: IProps) => {
 
   const modifyCollateralRatio = useCallback(
     (num: number) => () => {
-      setCollateralRatio(collateralRatio + num);
+      setSafeCollateralRatio(collateralRatio + num);
       if (selectedLoanPair.collateralToken && selectedLoanPair.loanToken) {
         setAdditionalCollateralAmount(
           Number.parseFloat(
@@ -142,42 +139,20 @@ const AddCollateralForm = (props: IProps) => {
 
   const submit = useCallback(async () => {
     dispatch(ViewActions.setLoadingType(LoadingType.AddCollateral));
+
     try {
-      if (
-        selectedLoanPair.loanToken.allowance &&
-        selectedLoanPair.loanToken.allowance.toString() === '0'
-      ) {
-        const { commonService } = await getService();
-        await commonService.approveFullAllowance(
-          accountAddress,
-          selectedLoanPair.loanToken,
-          protocolContractAddress,
-        );
+      const { loanService } = await getService();
 
-        dispatch(
-          CommonActions.setAllowance(
-            selectedLoanPair.loanToken.tokenAddress,
-            await commonService.getTokenAllowance(
-              selectedLoanPair.loanToken,
-              accountAddress,
-              protocolContractAddress,
-            ),
-          ),
-        );
-      } else {
-        const { loanService } = await getService();
+      await loanService.addCollateral(
+        accountAddress,
+        record.recordId,
+        record.collateralTokenAddress,
+        convertDecimalToWei(additionalCollateralAmount),
+      );
 
-        await loanService.addCollateral(
-          accountAddress,
-          record.recordId,
-          record.collateralTokenAddress,
-          convertDecimalToWei(additionalCollateralAmount),
-        );
+      dispatch(ViewActions.setBanner(t('common_add_collateral_succeed')));
 
-        dispatch(ViewActions.setBanner(t('common_add_collateral_succeed')));
-
-        history.push(`/account/borrow/${record.recordId}`);
-      }
+      history.push(`/account/borrow/${record.recordId}`);
       // Ignore the error
       // tslint:disable-next-line:no-empty
     } catch (e) {
@@ -189,13 +164,46 @@ const AddCollateralForm = (props: IProps) => {
         ),
       );
     }
+
     dispatch(ViewActions.setLoadingType(LoadingType.None));
   }, [accountAddress, record, additionalCollateralAmount]);
 
-  const buttonText = useMemo(() => {
-    if (loadingType !== LoadingType.None) {
+  const removeCollateral = useCallback(async () => {
+    dispatch(ViewActions.setLoadingType(LoadingType.SubtractCollateral));
+
+    try {
+      const { loanService } = await getService();
+
+      await loanService.removeCollateral(
+        accountAddress,
+        record.recordId,
+        record.collateralTokenAddress,
+        convertDecimalToWei(Math.abs(additionalCollateralAmount)),
+      );
+
+      dispatch(ViewActions.setBanner(t('common_add_collateral_succeed')));
+
+      history.push(`/account/borrow/${record.recordId}`);
+      // Ignore the error
+      // tslint:disable-next-line:no-empty
+    } catch (e) {
+      dispatch(
+        ViewActions.setBanner(
+          t('common_add_collateral_fail_title'),
+          BannerType.Warning,
+          t('common_add_collateral_fail_content'),
+        ),
+      );
+    }
+
+    dispatch(ViewActions.setLoadingType(LoadingType.None));
+  }, [accountAddress, record, additionalCollateralAmount]);
+
+  const addButtonText = useMemo(() => {
+    if (loadingType === LoadingType.AddCollateral) {
       return t(`common_loading_${loadingType}`);
     }
+
     if (
       selectedLoanPair.collateralToken.allowance &&
       selectedLoanPair.collateralToken.allowance.toString() === '0'
@@ -205,16 +213,16 @@ const AddCollateralForm = (props: IProps) => {
     return t('add_collateral_form_button_add_collateral');
   }, [selectedLoanPair, loadingType]);
 
+  const removeButtonText = useMemo(() => {
+    if (loadingType === LoadingType.SubtractCollateral) {
+      return t(`common_loading_${loadingType}`);
+    }
+
+    return t('add_collateral_form_button_remove_collateral');
+  }, [selectedLoanPair, loadingType]);
+
   return (
     <div className="add-collateral-form">
-      <div className="notice">
-        {t('add_collateral_form_notice', {
-          minCollateralCoverageRatio:
-            Number.parseFloat(
-              convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
-            ) * 100,
-        })}
-      </div>
       <Form>
         <CollateralCoverageRatio
           currentCollateralRatio={(
@@ -228,6 +236,18 @@ const AddCollateralForm = (props: IProps) => {
             ) * 100
           ).toFixed(2)}
         />
+
+        <div className="notice">
+          {t('add_collateral_form_notice', {
+            minCollateralCoverageRatio:
+              Number.parseFloat(
+                convertWeiToDecimal(
+                  selectedLoanPair.minCollateralCoverageRatio,
+                ),
+              ) * 100,
+          })}
+        </div>
+
         <TextBox label={t('add_collateral_form_label_collateral_amount')}>
           {convertWeiToDecimal(record.collateralAmount)}
         </TextBox>
@@ -270,17 +290,30 @@ const AddCollateralForm = (props: IProps) => {
             </span>
           }
         />
-        <Button
-          type="primary"
-          block
-          size="large"
-          disabled={
-            loadingType !== LoadingType.None || additionalCollateralAmount <= 0
-          }
-          onClick={submit}
-        >
-          {buttonText}
-        </Button>
+        <div className="buttons">
+          <Button
+            type="primary"
+            size="large"
+            disabled={
+              loadingType !== LoadingType.None ||
+              additionalCollateralAmount >= 0
+            }
+            onClick={removeCollateral}
+          >
+            {removeButtonText}
+          </Button>
+          <Button
+            type="primary"
+            size="large"
+            disabled={
+              loadingType !== LoadingType.None ||
+              additionalCollateralAmount <= 0
+            }
+            onClick={submit}
+          >
+            {addButtonText}
+          </Button>
+        </div>
       </Form>
     </div>
   );

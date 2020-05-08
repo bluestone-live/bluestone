@@ -8,6 +8,7 @@ export enum LoadingType {
   Withdraw = 'withdraw',
   Borrow = 'borrow',
   AddCollateral = 'add_collateral',
+  SubtractCollateral = 'subtract_collateral',
   Repay = 'repay',
   Mint = 'mint',
   None = 'default',

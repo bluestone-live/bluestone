@@ -44,7 +44,7 @@ const CollateralCoverageRatio = (props: IProps) => {
       <Form.Item
         label={
           <span>
-            Collateral Ratio
+            {t('borrow_detail_label_collateral_ratio')}
             <Icon
               className="tip-icon"
               type="question-circle"

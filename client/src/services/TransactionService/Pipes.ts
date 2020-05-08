@@ -10,6 +10,7 @@ export const getTransactionPipe = async (
 
   switch (event.event as EventName) {
     case EventName.AddCollateralSucceed:
+    case EventName.SubtractCollateralSucceed:
       amount = event.returnValues.collateralAmount;
       break;
     case EventName.LoanSucceed:
