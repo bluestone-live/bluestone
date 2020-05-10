@@ -12,7 +12,7 @@ const {
   expectRevert,
   expectEvent,
   time,
-} = require('openzeppelin-test-helpers');
+} = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 contract('LoanManager', function([

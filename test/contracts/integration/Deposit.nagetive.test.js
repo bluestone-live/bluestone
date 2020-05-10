@@ -5,9 +5,8 @@ const DateTime = artifacts.require('DateTime');
 const {
   expectRevert,
   expectEvent,
-  BN,
   time,
-} = require('openzeppelin-test-helpers');
+} = require('@openzeppelin/test-helpers');
 const {
   toFixedBN,
   createERC20Token,
@@ -29,11 +28,9 @@ contract(
     let protocol, interestModel, loanToken, collateralToken, datetime;
 
     const initialSupply = toFixedBN(10000);
-    const ZERO = toFixedBN(0);
 
     // configurations
     const depositTerms = [1, 5, 7];
-    const maxLoanTerm = 7;
     const minCollateralCoverageRatio = 1.5;
     const liquidationDiscount = 0.05;
     const protocolReserveRatio = 0.07;
@@ -43,8 +40,6 @@ contract(
     const loanInterestRateLowerBound = 0.1;
     const loanInterestRateUpperBound = 0.15;
 
-    let currentLoanInterestRate;
-
     // Token prices
     const loanTokenPrice = 1;
     const collateralTokenPrice = 100;
@@ -52,11 +47,6 @@ contract(
     // deposit parameters
     const depositAmount = 100;
     const depositTerm = 7;
-
-    // loan parameters
-    const loanAmount = 100;
-    const collateralAmount = 20;
-    const loanTerm = 7;
 
     before(async () => {
       // Get protocol instance

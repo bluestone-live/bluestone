@@ -1,6 +1,6 @@
 const EthPriceOracle = artifacts.require('EthPriceOracle');
 const Medianizer = artifacts.require('MedianizerMock');
-const { BN } = require('openzeppelin-test-helpers');
+const { BN } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 contract('EthPriceOracle', function() {

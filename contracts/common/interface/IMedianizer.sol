@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 
 
 /// The medianizer is the smart contract which provides Makers trusted reference price.

@@ -1,10 +1,10 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/Pausable.sol';
+import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 import '../oracle/interface/IPriceOracle.sol';
-import '../common/Ownable.sol';
-import '../common/Pausable.sol';
-import '../common/ReentrancyGuard.sol';
 import './interface/IProtocol.sol';
 import './interface/IInterestModel.sol';
 import './lib/Configuration.sol';
@@ -616,5 +616,13 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         returns (uint256 balanceCap)
     {
         return _configuration.balanceCapByToken[tokenAddress];
+    }
+
+    function pause() external whenNotPaused {
+        _pause();
+    }
+
+    function unpause() external whenPaused {
+        _unpause();
     }
 }

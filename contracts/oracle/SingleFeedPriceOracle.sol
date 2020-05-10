@@ -1,7 +1,8 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 
-import '../common/Ownable.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 import './interface/IPriceOracle.sol';
+
 
 /// A simple price oracle that receives price update from owner only.
 contract SingleFeedPriceOracle is IPriceOracle, Ownable {
@@ -12,7 +13,7 @@ contract SingleFeedPriceOracle is IPriceOracle, Ownable {
         return;
     }
 
-    function getPrice() external view override returns (uint256) {
+    function getPrice() external override view returns (uint256) {
         return _price;
     }
 

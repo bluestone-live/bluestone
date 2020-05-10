@@ -7,19 +7,19 @@
     "test:client": "jest client/"
   },
   "devDependencies": {
+    "@openzeppelin/test-helpers": "^0.5.5",
     "@types/jest": "^24.0.18",
     "chai": "^4.2.0",
     "ganache-cli": "^6.9.1",
     "husky": "^3.0.5",
     "jest": "^24.9.0",
     "lint-staged": ">=8",
-    "openzeppelin-test-helpers": "^0.5.5",
     "prettier": "^1.18.2",
-    "prettier-plugin-solidity": "^1.0.0-alpha.45",
+    "prettier-plugin-solidity": "^1.0.0-alpha.51",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "seamless-immutable": "^7.1.4",
-    "truffle": "^5.1.19",
+    "truffle": "^5.1.25",
     "ts-jest": "^24.1.0",
     "tslint": "^5.20.0",
     "tslint-config-prettier": "^1.18.0",
@@ -28,10 +28,10 @@
     "typescript": "^3.6.3"
   },
   "dependencies": {
-    "config": "^3.2.4",
+    "@openzeppelin/contracts": "^3.0.1",
     "canonical-weth": "^1.4.0",
+    "config": "^3.2.4",
     "debug": "^4.1.1",
-    "openzeppelin-solidity": "^2.5.0",
     "shelljs": "^0.8.3",
     "truffle-hdwallet-provider": "^1.0.13"
   },

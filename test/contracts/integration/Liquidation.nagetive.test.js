@@ -7,7 +7,7 @@ const {
   expectEvent,
   BN,
   time,
-} = require('openzeppelin-test-helpers');
+} = require('@openzeppelin/test-helpers');
 const {
   toFixedBN,
   createERC20Token,

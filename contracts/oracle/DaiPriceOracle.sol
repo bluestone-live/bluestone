@@ -1,13 +1,13 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
-import '../common/interface/IERC20.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/math/Math.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
 import '../common/interface/IMedianizer.sol';
 import '../common/interface/IOasisDex.sol';
 import '../common/lib/DateTime.sol';
-import '../common/lib/SafeMath.sol';
-import '../common/lib/Math.sol';
-import '../common/Ownable.sol';
 import './interface/IPriceOracle.sol';
 
 
@@ -201,11 +201,11 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         }
     }
 
-    function _getMidValue(uint256 a, uint256 b, uint256 c)
-        private
-        pure
-        returns (uint256)
-    {
+    function _getMidValue(
+        uint256 a,
+        uint256 b,
+        uint256 c
+    ) private pure returns (uint256) {
         uint256 maximum = Math.max(a, Math.max(b, c));
 
         if (maximum == a) {

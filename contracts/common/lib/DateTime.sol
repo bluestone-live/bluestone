@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
+
 
 /// Unix timestamp conversion utilities
 /// To learn more, try this online converter: https://www.epochconverter.com/

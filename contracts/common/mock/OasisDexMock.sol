@@ -1,7 +1,8 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 
 import '../interface/IOasisDex.sol';
 import '../lib/FixedMath.sol';
+
 
 contract OasisDexMock is IOasisDex {
     using FixedMath for uint256;
@@ -11,15 +12,15 @@ contract OasisDexMock is IOasisDex {
     uint256 private _buyAmount;
     uint256 private _payAmount;
 
-    function buyEnabled() external view override returns (bool) {
+    function buyEnabled() external override view returns (bool) {
         return true;
     }
 
-    function matchingEnabled() external view override returns (bool) {
+    function matchingEnabled() external override view returns (bool) {
         return true;
     }
 
-    function isClosed() external view override returns (bool) {
+    function isClosed() external override view returns (bool) {
         return stopped;
     }
 
@@ -39,7 +40,7 @@ contract OasisDexMock is IOasisDex {
         address, /* buy_gem */
         address, /* pay_gem */
         uint256 /* pay_amt */
-    ) external view override returns (uint256) {
+    ) external override view returns (uint256) {
         return _buyAmount;
     }
 
@@ -47,7 +48,7 @@ contract OasisDexMock is IOasisDex {
         address, /* pay_gem */
         address, /* buy_gem */
         uint256 /* buy_amt */
-    ) external view override returns (uint256) {
+    ) external override view returns (uint256) {
         return _payAmount;
     }
 }

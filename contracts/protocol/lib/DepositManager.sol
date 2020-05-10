@@ -1,11 +1,11 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
-import '../../common/ERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
-import '../../common/lib/SafeMath.sol';
 import '../../common/lib/FixedMath.sol';
-import '../../common/lib/SafeERC20.sol';
 import '../interface/IStruct.sol';
 import './LoanManager.sol';
 import './Configuration.sol';

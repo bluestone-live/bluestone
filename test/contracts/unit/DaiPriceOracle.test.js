@@ -7,7 +7,7 @@ const {
   time,
   expectEvent,
   expectRevert,
-} = require('openzeppelin-test-helpers');
+} = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 contract('DaiPriceOracle', function([owner]) {

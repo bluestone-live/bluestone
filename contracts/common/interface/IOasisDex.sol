@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 
 
 /// Oasis is a decentralized application that runs on the Ethereum blockchain. Anyone can use Oasis to trade tokens, borrow against them, and earn savings using Dai.
@@ -12,13 +12,15 @@ interface IOasisDex {
 
     function matchingEnabled() external view returns (bool);
 
-    function getBuyAmount(address buy_gem, address pay_gem, uint256 pay_amt)
-        external
-        view
-        returns (uint256);
+    function getBuyAmount(
+        address buy_gem,
+        address pay_gem,
+        uint256 pay_amt
+    ) external view returns (uint256);
 
-    function getPayAmount(address pay_gem, address buy_gem, uint256 buy_amt)
-        external
-        view
-        returns (uint256);
+    function getPayAmount(
+        address pay_gem,
+        address buy_gem,
+        uint256 buy_amt
+    ) external view returns (uint256);
 }

@@ -2,7 +2,7 @@ const Protocol = artifacts.require('Protocol');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
-const { expectRevert } = require('openzeppelin-test-helpers');
+const { expectRevert } = require('@openzeppelin/test-helpers');
 const {
   toFixedBN,
   createERC20Token,

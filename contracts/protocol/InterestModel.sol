@@ -1,9 +1,10 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 
-import '../common/lib/SafeMath.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
 import '../common/lib/FixedMath.sol';
-import '../common/Ownable.sol';
 import './interface/IInterestModel.sol';
+
 
 contract InterestModel is IInterestModel, Ownable {
     using SafeMath for uint256;
@@ -19,8 +20,8 @@ contract InterestModel is IInterestModel, Ownable {
 
     function getDepositWeight(uint256 amount, uint256 term)
         external
-        pure
         override
+        pure
         returns (uint256)
     {
         return amount.mul(term);
@@ -30,8 +31,10 @@ contract InterestModel is IInterestModel, Ownable {
         address tokenAddress,
         uint256 loanTerm,
         uint256 maxLoanTerm
-    ) external view override returns (uint256 loanInterestRate) {
-        LoanParameters memory params = _loanParametersByTokenAddress[tokenAddress];
+    ) external override view returns (uint256 loanInterestRate) {
+
+            LoanParameters memory params
+         = _loanParametersByTokenAddress[tokenAddress];
         uint256 H = params.loanInterestRateUpperBound;
         uint256 L = params.loanInterestRateLowerBound;
 

@@ -1,6 +1,7 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 
 import '../lib/FixedMath.sol';
+
 
 contract FixedMathMock {
     function mulFixed(uint256 a, uint256 b) public pure returns (uint256) {

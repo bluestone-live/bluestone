@@ -6,7 +6,7 @@ const {
   expectEvent,
   BN,
   time,
-} = require('openzeppelin-test-helpers');
+} = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 const {
   createERC20Token,

@@ -1,4 +1,4 @@
-const { BN } = require('openzeppelin-test-helpers');
+const { BN } = require('@openzeppelin/test-helpers');
 
 const printLogs = logs => {
   logs.forEach(({ event, args }) => {

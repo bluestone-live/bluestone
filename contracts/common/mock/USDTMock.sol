@@ -1,6 +1,7 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 
-import '../lib/SafeMath.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
+
 
 contract USDTMock {
     using SafeMath for uint256;
@@ -87,9 +88,11 @@ contract USDTMock {
      * - the caller must have allowance for `sender`'s tokens of at least
      * `amount`.
      */
-    function transferFrom(address sender, address recipient, uint256 amount)
-        public
-    {
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public {
         _transfer(sender, recipient, amount);
         _approve(
             sender,
@@ -156,9 +159,11 @@ contract USDTMock {
      * - `recipient` cannot be the zero address.
      * - `sender` must have a balance of at least `amount`.
      */
-    function _transfer(address sender, address recipient, uint256 amount)
-        internal
-    {
+    function _transfer(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal {
         require(sender != address(0), 'ERC20: transfer from the zero address');
         require(recipient != address(0), 'ERC20: transfer to the zero address');
 
@@ -216,7 +221,11 @@ contract USDTMock {
      * - `owner` cannot be the zero address.
      * - `spender` cannot be the zero address.
      */
-    function _approve(address owner, address spender, uint256 amount) internal {
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal {
         require(owner != address(0), 'ERC20: approve from the zero address');
         require(spender != address(0), 'ERC20: approve to the zero address');
 

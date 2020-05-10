@@ -1,8 +1,8 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
+import '@openzeppelin/contracts/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
-import '../../common/lib/SafeMath.sol';
 import '../lib/LiquidityPools.sol';
 import '../lib/LoanManager.sol';
 import '../interface/IStruct.sol';

@@ -1,12 +1,12 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
-import '../../common/ERC20.sol';
-import '../../common/lib/Math.sol';
-import '../../common/lib/SafeMath.sol';
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
+import '@openzeppelin/contracts/math/Math.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
 import '../../common/lib/FixedMath.sol';
 import '../../common/lib/DateTime.sol';
-import '../../common/lib/SafeERC20.sol';
 import '../interface/IStruct.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
@@ -215,10 +215,6 @@ library LoanManager {
             !self.loanRecordById[loanId].isClosed,
             'LoanManager: loan already closed'
         );
-
-        IStruct.LoanAndCollateralTokenPair storage tokenPair = self
-            .loanAndCollateralTokenPairs[record.loanTokenAddress][record
-            .collateralTokenAddress];
 
         if (record.collateralTokenAddress == ETH_IDENTIFIER) {
             collateralAmount = msg.value;
@@ -671,9 +667,6 @@ library LoanManager {
         uint256 liquidateAmount
     ) external returns (uint256 remainingCollateral, uint256 liquidatedAmount) {
         IStruct.LoanRecord storage loanRecord = self.loanRecordById[loanId];
-        IStruct.LoanAndCollateralTokenPair storage tokenPair = self
-            .loanAndCollateralTokenPairs[loanRecord.loanTokenAddress][loanRecord
-            .collateralTokenAddress];
 
         require(
             msg.sender != loanRecord.ownerAddress,

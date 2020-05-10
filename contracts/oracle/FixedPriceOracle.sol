@@ -1,6 +1,7 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.7;
 
 import './interface/IPriceOracle.sol';
+
 
 /// @title Price oracle that returns a fixed price in USD.
 contract FixedPriceOracle is IPriceOracle {
@@ -14,7 +15,7 @@ contract FixedPriceOracle is IPriceOracle {
         return;
     }
 
-    function getPrice() external view override returns (uint256) {
+    function getPrice() external override view returns (uint256) {
         return _price;
     }
 }

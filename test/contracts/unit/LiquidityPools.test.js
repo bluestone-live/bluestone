@@ -1,6 +1,6 @@
 const LiquidityPools = artifacts.require('LiquidityPoolsMock');
 const DateTime = artifacts.require('DateTime');
-const { BN, expectRevert } = require('openzeppelin-test-helpers');
+const { BN, expectRevert } = require('@openzeppelin/test-helpers');
 const { createERC20Token, toFixedBN } = require('../../utils/index');
 const { expect } = require('chai');
 

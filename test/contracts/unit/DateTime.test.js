@@ -1,5 +1,5 @@
 const DateTime = artifacts.require('DateTime');
-const { BN } = require('openzeppelin-test-helpers');
+const { BN } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 const DAY_IN_SECONDS = 86400;

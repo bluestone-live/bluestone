@@ -1,6 +1,6 @@
 const InterestModel = artifacts.require('InterestModel');
 const { toFixedBN, createERC20Token } = require('../../utils/index.js');
-const { BN } = require('openzeppelin-test-helpers');
+const { BN } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 contract('InterestModel', function([owner]) {
