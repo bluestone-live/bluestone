@@ -18,13 +18,15 @@ const DepositPoolCard = (props: IProps) => {
   const title = useMemo(
     () => (
       <div className="deposit-pool-card__title">
-        <div className="term">
+        <div
+          className={`term ${highlightColumn === 'term' ? 'highlight' : ''}`}
+        >
           {t('deposit_pool_card_term', { term: pool.term })}
         </div>
         {isMostBorrowed && <div className="status">MOST BORROWED</div>}
       </div>
     ),
-    [pool.term, isMostBorrowed],
+    [pool.term, isMostBorrowed, highlightColumn],
   );
 
   return (

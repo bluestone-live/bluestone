@@ -98,12 +98,11 @@
     "deposit_overview_sorting_APR": "APR",
     "deposit_overview_sorting_term": "Term",
     "deposit_overview_sorting_utilization": "Utilization",
-    "deposit_overview_title": "Select Term",
+    "deposit_overview_title": "Terms",
     "deposit_pool_card_term": "{{term}}-day",
     "deposit_pool_card_text_apr": "APR",
     "deposit_pool_card_text_total_deposit": "Total Deposit",
     "deposit_pool_card_text_utilization": "Utilization",
-    "depost_form_approve_tip": "To Supply or Repay assets to Bluestone, please enable it first.",
     "Key": "English",
     "layout_default_account": "Records",
     "layout_default_borrow": "Borrow",
@@ -166,8 +165,6 @@
     "transaction_list_event_RepayLoanSucceed": "Repaid {{amount}} {{unit}}",
     "transaction_list_event_SubtractCollateralSucceed": "Withdrew Collateral {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "Withdrew {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "Transactions({{count}})",
-    "common_loading_subtract_collateral": "Withdrawing...",
-    "transaction_list_event_SubtractCollateralSucceed": "Withdrew Collateral {{amount}} {{unit}}"
+    "transaction_list_title_transactions": "Transactions({{count}})"
   }
 }

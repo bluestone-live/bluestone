@@ -42,7 +42,7 @@
     "borrow_form_tip_title": "请注意",
     "borrow_overview_button_next": "下一步",
     "borrow_overview_drag_bar": "请拖动滑块选择借款周期",
-    "borrow_overview_title_select_term": " 选择贷款周期",
+    "borrow_overview_title_select_term": "选择贷款周期",
     "borrow_pool_card_term": "{{term}}天",
     "borrow_pool_card_text_apr": "年化利率",
     "borrow_pool_card_text_available_amount": "可用余额",
@@ -103,7 +103,6 @@
     "deposit_pool_card_text_apr": " 年化利率",
     "deposit_pool_card_text_total_deposit": "总存款额",
     "deposit_pool_card_text_utilization": "使用率",
-    "depost_form_approve_tip": "请授权后使用Bluestone",
     "Key": "Chinese",
     "layout_default_account": "账户",
     "layout_default_borrow": "借钱",
@@ -166,8 +165,6 @@
     "transaction_list_event_RepayLoanSucceed": "还款 {{amount}} {{unit}}",
     "transaction_list_event_SubtractCollateralSucceed": "减少 {{amount}} {{unit}} 抵押",
     "transaction_list_event_WithdrawSucceed": "取款 {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "事务({{count}})",
-    "common_loading_subtract_collateral": "正在取回...",
-    "transaction_list_event_SubtractCollateralSucceed": "减少 {{amount}} {{unit}} 抵押"
+    "transaction_list_title_transactions": "事务({{count}})"
   }
 }
