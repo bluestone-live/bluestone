@@ -26,6 +26,7 @@ import { composePools } from '../utils/composePools';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import { getLoanInterestRates } from '../utils/interestModel';
+import ApproveForm from '../containers/ApproveForm';
 
 interface IProps
   extends WithTranslation,
@@ -158,7 +159,17 @@ const BorrowFormPage = (props: IProps) => {
           </TextBox>
         </Col>
       </Row>
-      {selectedPool && (
+      {loanToken && loanToken.allowance === '0' ? (
+        <ApproveForm
+          t={t}
+          token={loanToken!}
+          accountAddress={accountAddress}
+          protocolContractAddress={protocolContractAddress}
+        />
+      ) : (
+        undefined
+      )}
+      {selectedPool && (loanToken && loanToken.allowance !== '0') ? (
         <BorrowForm
           protocolContractAddress={protocolContractAddress}
           selectedPool={selectedPool}
@@ -169,6 +180,8 @@ const BorrowFormPage = (props: IProps) => {
           distributorAddress={distributorAddress}
           loading={loadingType !== LoadingType.None}
         />
+      ) : (
+        undefined
       )}
     </div>
   );
