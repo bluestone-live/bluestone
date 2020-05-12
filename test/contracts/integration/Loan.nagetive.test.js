@@ -21,7 +21,7 @@ contract(
     loanDistributor,
     protocolReserveAddress,
   ]) => {
-    let protocol, interestModel, loanToken, collateralToken, datetime;
+    let protocol, interestModel, loanToken, collateralToken;
 
     const initialSupply = toFixedBN(10000);
 

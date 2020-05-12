@@ -3,7 +3,6 @@ pragma experimental ABIEncoderV2;
 
 import '@openzeppelin/contracts/math/Math.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
-import '../../common/lib/FixedMath.sol';
 import '../../common/lib/DateTime.sol';
 import '../interface/IStruct.sol';
 import './LoanManager.sol';
@@ -11,7 +10,6 @@ import './LoanManager.sol';
 
 library LiquidityPools {
     using SafeMath for uint256;
-    using FixedMath for uint256;
 
     struct State {
         // token -> PoolGroup
@@ -26,6 +24,8 @@ library LiquidityPools {
         // Loan ID -> Pool ID -> Borrow amount
         mapping(bytes32 => mapping(uint256 => uint256)) loanAmountByLoanIdAndPoolId;
     }
+
+    uint256 private constant ONE = 10**18;
 
     function setPoolGroupSize(State storage self, uint256 poolGroupSize)
         external
@@ -134,7 +134,8 @@ library LiquidityPools {
 
             uint256 distributorInterestFromPool = pool
                 .loanDistributorFeeRatio
-                .mulFixed(loanInterestToPool);
+                .mul(loanInterestToPool)
+                .div(ONE);
 
             pool.availableAmount = pool.availableAmount.sub(loanAmountFromPool);
             pool.loanInterest = pool.loanInterest.add(loanInterestToPool);
@@ -189,9 +190,9 @@ library LiquidityPools {
             /// Calculate the amount to repay to this pool, e.g., if I loaned total of 100
             /// from all pools, where 10 is from this pool, and I want to repay 50 now.
             /// Then the amount pay back to this pool will be: 50 * 10 / 100 = 5
-            repayAmountToThisPool = repayAmount
-                .mulFixed(loanAmountFromThisPool)
-                .divFixed(loanRecord.loanAmount);
+            repayAmountToThisPool = repayAmount.mul(loanAmountFromThisPool).div(
+                loanRecord.loanAmount
+            );
 
             IStruct.Pool storage pool = poolGroup.poolsById[poolId];
             pool.availableAmount = pool.availableAmount.add(

@@ -62,7 +62,7 @@ interface IStruct {
         uint256 loanTerm;
         uint256 annualInterestRate;
         uint256 interest;
-        uint256 currentCollateralRatio;
+        uint256 collateralCoverageRatio;
         uint256 minCollateralCoverageRatio;
         uint256 alreadyPaidAmount;
         uint256 liquidatedAmount;

@@ -1,12 +1,9 @@
 pragma solidity ^0.6.7;
 
 import '../interface/IOasisDex.sol';
-import '../lib/FixedMath.sol';
 
 
 contract OasisDexMock is IOasisDex {
-    using FixedMath for uint256;
-
     bool public stopped;
     uint256 private _ethPrice;
     uint256 private _buyAmount;

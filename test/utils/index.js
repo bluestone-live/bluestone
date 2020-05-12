@@ -35,9 +35,10 @@ const createERC20Token = async (
   initialSupply = toFixedBN(1000),
   name = 'NewToken',
   symbol = 'NT',
+  decimals = 18,
 ) => {
   const ERC20Mock = artifacts.require('./ERC20Mock.sol');
-  const token = await ERC20Mock.new(name, symbol, 18);
+  const token = await ERC20Mock.new(name, symbol, decimals);
   token.mint(owner, initialSupply);
   return token;
 };

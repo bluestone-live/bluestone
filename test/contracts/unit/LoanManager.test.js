@@ -30,7 +30,7 @@ contract('LoanManager', function([
   const initialSupply = toFixedBN(1000);
   const balanceCap = toFixedBN(100000);
 
-  let loanToken, collateralToken;
+  let loanToken, collateralToken, loanTokenUSDC, collateralTokenUSDC;
 
   const setLoanAndCollateralTokenPair = async () => {
     await loanManager.setLoanAndCollateralTokenPair(
@@ -56,10 +56,26 @@ contract('LoanManager', function([
 
     loanToken = await createERC20Token(depositor, initialSupply);
     collateralToken = await createERC20Token(loaner, initialSupply);
+    loanTokenUSDC = await createERC20Token(
+      depositor,
+      initialSupply,
+      'USD Coin',
+      'USDC',
+      6,
+    );
+    collateralTokenUSDC = await createERC20Token(
+      loaner,
+      initialSupply,
+      'USD Coin',
+      'USDC',
+      6,
+    );
 
     await loanManager.setBalanceCap(loanToken.address, balanceCap);
     await loanManager.setBalanceCap(collateralToken.address, balanceCap);
     await loanManager.setBalanceCap(ETHIdentificationAddress, balanceCap);
+    await loanManager.setBalanceCap(loanTokenUSDC.address, balanceCap);
+    await loanManager.setBalanceCap(collateralTokenUSDC.address, balanceCap);
   });
 
   describe('#getLoanRecordById', () => {
@@ -566,18 +582,44 @@ contract('LoanManager', function([
         ETHIdentificationAddress,
         priceOracle.address,
       );
+      await loanManager.setPriceOracle(
+        loanTokenUSDC.address,
+        priceOracle.address,
+      );
+      await loanManager.setPriceOracle(
+        collateralTokenUSDC.address,
+        priceOracle.address,
+      );
+
       await loanManager.enableDepositToken(loanToken.address);
+      await loanManager.enableDepositToken(loanTokenUSDC.address);
       await loanManager.enableDepositTerm(depositTerm);
       await loanToken.approve(loanManager.address, initialSupply, {
+        from: depositor,
+      });
+      await loanTokenUSDC.approve(loanManager.address, initialSupply, {
         from: depositor,
       });
 
       await collateralToken.approve(loanManager.address, initialSupply, {
         from: loaner,
       });
+      await collateralTokenUSDC.approve(loanManager.address, initialSupply, {
+        from: loaner,
+      });
 
       await loanManager.deposit(
         loanToken.address,
+        depositAmount.mul(new BN(2)),
+        depositTerm,
+        distributorAddress,
+        {
+          from: depositor,
+        },
+      );
+
+      await loanManager.deposit(
+        loanTokenUSDC.address,
         depositAmount.mul(new BN(2)),
         depositTerm,
         distributorAddress,
@@ -780,6 +822,78 @@ contract('LoanManager', function([
         expectEvent.inLogs(logs, 'LoanSucceed', {
           accountAddress: loaner,
           collateralAmount,
+        });
+      });
+    });
+
+    context.only('when loan 18-decimal token by 6-decimal collateral', () => {
+      beforeEach(async () => {
+        await loanManager.setLoanAndCollateralTokenPair(
+          loanToken.address,
+          collateralTokenUSDC.address,
+          minCollateralCoverageRatio,
+          liquidationDiscount,
+        );
+      });
+
+      it('succeeds', async () => {
+        const loanAmount = toFixedBN(10);
+        const collateralAmount = toFixedBN(30, 6);
+        const loanTerm = 30;
+
+        const { logs } = await loanManager.loan(
+          loanToken.address,
+          collateralTokenUSDC.address,
+          loanAmount,
+          collateralAmount,
+          loanTerm,
+          distributorAddress,
+          {
+            from: loaner,
+          },
+        );
+
+        expectEvent.inLogs(logs, 'LoanSucceed', {
+          accountAddress: loaner,
+          loanAmount,
+          collateralAmount,
+          collateralTokenAddress: collateralTokenUSDC.address,
+        });
+      });
+    });
+
+    context.only('when loan 6-decimal token by 18-decimal collateral', () => {
+      beforeEach(async () => {
+        await loanManager.setLoanAndCollateralTokenPair(
+          loanTokenUSDC.address,
+          collateralToken.address,
+          minCollateralCoverageRatio,
+          liquidationDiscount,
+        );
+      });
+
+      it('succeeds', async () => {
+        const loanAmount = toFixedBN(10, 6);
+        const collateralAmount = toFixedBN(30);
+        const loanTerm = 30;
+
+        const { logs } = await loanManager.loan(
+          loanTokenUSDC.address,
+          collateralToken.address,
+          loanAmount,
+          collateralAmount,
+          loanTerm,
+          distributorAddress,
+          {
+            from: loaner,
+          },
+        );
+
+        expectEvent.inLogs(logs, 'LoanSucceed', {
+          accountAddress: loaner,
+          loanAmount,
+          collateralAmount,
+          collateralTokenAddress: collateralToken.address,
         });
       });
     });

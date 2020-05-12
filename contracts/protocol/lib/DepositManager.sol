@@ -5,7 +5,6 @@ import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
-import '../../common/lib/FixedMath.sol';
 import '../interface/IStruct.sol';
 import './LoanManager.sol';
 import './Configuration.sol';
@@ -18,7 +17,6 @@ library DepositManager {
     using LoanManager for LoanManager.State;
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
-    using FixedMath for uint256;
 
     struct State {
         uint256[] depositTermList;
@@ -34,6 +32,7 @@ library DepositManager {
         mapping(address => bytes32[]) depositIdsByAccountAddress;
     }
 
+    uint256 private constant ONE = 10**18;
     address private constant ETH_IDENTIFIER = address(1);
 
     event EnableDepositTermSucceed(address indexed adminAddress, uint256 term);
@@ -533,21 +532,22 @@ library DepositManager {
             return (0, 0, 0, 0);
         }
 
-        uint256 totalInterest = pool.loanInterest.mulFixed(
-            depositRecord.weight.divFixed(pool.totalDepositWeight)
-        );
+        uint256 totalInterest = pool
+            .loanInterest
+            .mul(depositRecord.weight.mul(ONE).div(pool.totalDepositWeight))
+            .div(ONE);
 
-        interestForDepositDistributor = totalInterest.mulFixed(
-            pool.depositDistributorFeeRatio
-        );
+        interestForDepositDistributor = totalInterest
+            .mul(pool.depositDistributorFeeRatio)
+            .div(ONE);
 
-        interestForLoanDistributor = totalInterest.mulFixed(
-            pool.loanDistributorFeeRatio
-        );
+        interestForLoanDistributor = totalInterest
+            .mul(pool.loanDistributorFeeRatio)
+            .div(ONE);
 
-        interestForProtocolReserve = totalInterest.mulFixed(
-            pool.protocolReserveRatio
-        );
+        interestForProtocolReserve = totalInterest
+            .mul(pool.protocolReserveRatio)
+            .div(ONE);
 
         interestForDepositor = totalInterest
             .sub(interestForDepositDistributor)

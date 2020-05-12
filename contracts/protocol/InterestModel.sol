@@ -2,13 +2,11 @@ pragma solidity ^0.6.7;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
-import '../common/lib/FixedMath.sol';
 import './interface/IInterestModel.sol';
 
 
 contract InterestModel is IInterestModel, Ownable {
     using SafeMath for uint256;
-    using FixedMath for uint256;
 
     mapping(address => LoanParameters) _loanParametersByTokenAddress;
 

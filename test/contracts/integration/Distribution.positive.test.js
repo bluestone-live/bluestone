@@ -339,7 +339,6 @@ contract(
 
     describe('Early withdraw deposit flow', () => {
       let otherDeposits, depositId;
-      let loanId;
 
       before(async () => {
         // Create deposit record
