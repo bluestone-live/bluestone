@@ -91,7 +91,7 @@ const ApproveForm = (props: IApproveProps) => {
       <div>
         <img src={tokens[token.tokenSymbol]} alt={token.tokenSymbol} />
       </div>
-      <div>{t('depost_form_approve_tip')}</div>
+      <div>{t('deposit_form_approve_tip', { asset: token.tokenSymbol })}</div>
 
       <Button
         type="primary"
