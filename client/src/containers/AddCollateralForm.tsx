@@ -259,12 +259,14 @@ const AddCollateralForm = (props: IProps) => {
           onChange={onCollateralRatioChange}
           actionButtons={[
             <Button
+              className="collateral_ratio_minus"
               key="collateral_ratio_minus"
               onClick={modifyCollateralRatio(-10)}
             >
               -10%
             </Button>,
             <Button
+              className="collateral_ratio_plus"
               key="collateral_ratio_plus"
               onClick={modifyCollateralRatio(10)}
             >

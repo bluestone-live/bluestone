@@ -405,6 +405,7 @@ const BorrowForm = (props: IProps) => {
           onChange={onCollateralRatioChange}
           actionButtons={[
             <Button
+              className="collateral_ratio_minus"
               key="collateral_ratio_minus"
               onClick={modifyCollateralRatio(-10)}
               disabled={illegalRatio}
@@ -413,6 +414,7 @@ const BorrowForm = (props: IProps) => {
             </Button>,
             <Button
               key="collateral_ratio_plus"
+              className="collateral_ratio_plus"
               onClick={modifyCollateralRatio(10)}
             >
               +10%
