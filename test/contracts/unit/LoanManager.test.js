@@ -826,7 +826,7 @@ contract('LoanManager', function([
       });
     });
 
-    context.only('when loan 18-decimal token by 6-decimal collateral', () => {
+    context('when loan 18-decimal token by 6-decimal collateral', () => {
       beforeEach(async () => {
         await loanManager.setLoanAndCollateralTokenPair(
           loanToken.address,
@@ -862,7 +862,7 @@ contract('LoanManager', function([
       });
     });
 
-    context.only('when loan 6-decimal token by 18-decimal collateral', () => {
+    context('when loan 6-decimal token by 18-decimal collateral', () => {
       beforeEach(async () => {
         await loanManager.setLoanAndCollateralTokenPair(
           loanTokenUSDC.address,
