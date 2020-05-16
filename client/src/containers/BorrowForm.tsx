@@ -181,11 +181,20 @@ const BorrowForm = (props: IProps) => {
 
   const onBorrowAmountMaxButtonClick = useCallback(() => {
     if (selectedPool) {
-      setBorrowAmount(
-        Number.parseFloat(selectedPool.availableAmount.toString()),
-      );
+      setBorrowAmount(selectedPool.availableAmount);
+
+      if (collateralToken && loanToken) {
+        setCollateralAmount(
+          calcCollateralAmount(
+            collateralRatio,
+            selectedPool.availableAmount.toString(),
+            collateralToken.price,
+            loanToken.price,
+          ),
+        );
+      }
     }
-  }, [selectedPool]);
+  }, [selectedPool, collateralToken, loanToken]);
 
   const submit = useCallback(async () => {
     if (!loanToken || !collateralToken || !selectedPool) {

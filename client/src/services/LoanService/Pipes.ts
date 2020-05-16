@@ -13,7 +13,7 @@ interface IGetLoanRecordResponse {
   loanTerm: string;
   annualInterestRate: string;
   interest: string;
-  currentCollateralRatio: string;
+  collateralCoverageRatio: string;
   minCollateralCoverageRatio: string;
   alreadyPaidAmount: string;
   soldCollateralAmount: string;
@@ -35,7 +35,7 @@ export const loanRecordsPipe = (
     loanTerm: getTermObjectByValue(loanRecord.loanTerm),
     annualInterestRate: loanRecord.annualInterestRate,
     interest: loanRecord.interest,
-    currentCollateralRatio: loanRecord.currentCollateralRatio,
+    collateralCoverageRatio: loanRecord.collateralCoverageRatio,
     minCollateralCoverageRatio: loanRecord.minCollateralCoverageRatio,
     alreadyPaidAmount: loanRecord.alreadyPaidAmount,
     soldCollateralAmount: loanRecord.soldCollateralAmount,

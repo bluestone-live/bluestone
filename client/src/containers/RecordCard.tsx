@@ -171,7 +171,7 @@ const RecordCard = (props: IProps) => {
             <span className="ant-form-text">
               {(
                 Number.parseFloat(
-                  convertWeiToDecimal(borrowRecord.currentCollateralRatio),
+                  convertWeiToDecimal(borrowRecord.collateralCoverageRatio),
                 ) * 100
               ).toFixed(2)}
               %

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { IPool } from '../stores';
+import { IPool, useDepositTokens } from '../stores';
 import Card from 'antd/lib/card';
 import { Row, Col } from 'antd/lib/grid';
 import TextBox from '../components/TextBox';
@@ -14,6 +14,10 @@ interface IProps extends WithTranslation {
 
 const DepositPoolCard = (props: IProps) => {
   const { pool, isMostBorrowed, highlightColumn, t } = props;
+
+  const tokens = useDepositTokens();
+  const token = tokens.find(ft => ft.tokenAddress === pool.tokenAddress);
+  const decimals = token ? token.decimals : 18;
 
   const title = useMemo(
     () => (
@@ -48,7 +52,7 @@ const DepositPoolCard = (props: IProps) => {
                 highlightColumn === 'totalDeposit' ? 'highlight' : undefined
               }
             >
-              {convertWeiToDecimal(pool.totalDeposit)}
+              {convertWeiToDecimal(pool.totalDeposit, 4, decimals)}
             </span>
           </TextBox>
         </Col>

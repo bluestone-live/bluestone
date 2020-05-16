@@ -18,7 +18,7 @@ export interface ILoanRecord {
   loanTerm: ITerm;
   annualInterestRate: string;
   interest: string;
-  currentCollateralRatio: string;
+  collateralCoverageRatio: string;
   minCollateralCoverageRatio: string;
   alreadyPaidAmount: string;
   soldCollateralAmount: string;

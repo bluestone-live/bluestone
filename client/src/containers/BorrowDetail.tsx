@@ -20,8 +20,9 @@ const BorrowDetail = (props: IProps) => {
 
   const collateralRatio = useMemo(() => {
     const currentCollateralRatio =
-      Number.parseFloat(convertWeiToDecimal(record.currentCollateralRatio, 2)) *
-      100;
+      Number.parseFloat(
+        convertWeiToDecimal(record.collateralCoverageRatio, 2),
+      ) * 100;
 
     const minCollateralCoverageRatio =
       Number.parseFloat(

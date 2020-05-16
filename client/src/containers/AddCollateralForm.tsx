@@ -66,7 +66,7 @@ const AddCollateralForm = (props: IProps) => {
   useDepsUpdated(async () => {
     if (record) {
       setSafeCollateralRatio(
-        Number.parseFloat(convertWeiToDecimal(record.currentCollateralRatio)) *
+        Number.parseFloat(convertWeiToDecimal(record.collateralCoverageRatio)) *
           100,
       );
     }
@@ -227,7 +227,7 @@ const AddCollateralForm = (props: IProps) => {
         <CollateralCoverageRatio
           currentCollateralRatio={(
             Number.parseFloat(
-              convertWeiToDecimal(record.currentCollateralRatio),
+              convertWeiToDecimal(record.collateralCoverageRatio),
             ) * 100
           ).toFixed(2)}
           minCollateralRatio={(

@@ -152,7 +152,7 @@ const RecordDetail = (props: IProps) => {
               <label htmlFor="collateralRatio">{t('collateral_ratio')}:</label>
               <TextBox id="collateralRatio">
                 {Number.parseFloat(
-                  convertWeiToDecimal(loanRecord.currentCollateralRatio),
+                  convertWeiToDecimal(loanRecord.collateralCoverageRatio),
                 ) * 100}{' '}
                 %
               </TextBox>
