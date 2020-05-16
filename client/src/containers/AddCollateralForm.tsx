@@ -7,6 +7,7 @@ import {
   CommonActions,
   useLoadingType,
   LoadingType,
+  useDepositTokens,
 } from '../stores';
 import CollateralCoverageRatio from '../components/CollateralCoverageRatio';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
@@ -34,7 +35,6 @@ interface IProps extends WithTranslation, RouteComponentProps {
 const AddCollateralForm = (props: IProps) => {
   const { accountAddress, record, selectedLoanPair, history, t } = props;
   const dispatch = useDispatch();
-
   const loadingType = useLoadingType();
 
   const [collateralRatio, setCollateralRatio] = useState<number>(
@@ -95,17 +95,28 @@ const AddCollateralForm = (props: IProps) => {
     (num: number) => () => {
       setSafeCollateralRatio(collateralRatio + num);
       if (selectedLoanPair.collateralToken && selectedLoanPair.loanToken) {
-        setAdditionalCollateralAmount(
+        const additionalAmount =
           Number.parseFloat(
             calcCollateralAmount(
               (collateralRatio + num).toString(),
-              convertWeiToDecimal(record.remainingDebt) || '0',
+              convertWeiToDecimal(
+                record.remainingDebt,
+                4,
+                selectedLoanPair.loanToken.decimals,
+              ) || '0',
               selectedLoanPair.collateralToken.price,
               selectedLoanPair.loanToken.price,
             ),
           ) -
-            Number.parseFloat(convertWeiToDecimal(record.collateralAmount, 18)),
-        );
+          Number.parseFloat(
+            convertWeiToDecimal(
+              record.collateralAmount,
+              4,
+              selectedLoanPair.collateralToken.decimals,
+            ),
+          );
+
+        setAdditionalCollateralAmount(additionalAmount);
       }
     },
     [collateralRatio, selectedLoanPair, record],
@@ -147,7 +158,10 @@ const AddCollateralForm = (props: IProps) => {
         accountAddress,
         record.recordId,
         record.collateralTokenAddress,
-        convertDecimalToWei(additionalCollateralAmount),
+        convertDecimalToWei(
+          additionalCollateralAmount,
+          selectedLoanPair && selectedLoanPair.collateralToken.decimals,
+        ),
       );
 
       dispatch(ViewActions.setBanner(t('common_add_collateral_succeed')));
@@ -178,7 +192,10 @@ const AddCollateralForm = (props: IProps) => {
         accountAddress,
         record.recordId,
         record.collateralTokenAddress,
-        convertDecimalToWei(Math.abs(additionalCollateralAmount)),
+        convertDecimalToWei(
+          Math.abs(additionalCollateralAmount),
+          selectedLoanPair && selectedLoanPair.collateralToken.decimals,
+        ),
       );
 
       dispatch(ViewActions.setBanner(t('common_add_collateral_succeed')));
@@ -277,7 +294,7 @@ const AddCollateralForm = (props: IProps) => {
         <FormInput
           label={t('add_collateral_form_label_additional_collateral_amount')}
           type="number"
-          value={additionalCollateralAmount}
+          value={additionalCollateralAmount.toFixed(6)}
           onChange={onAdditionalCollateralAmountChange}
           suffix={selectedLoanPair.collateralToken.tokenSymbol}
           extra={
