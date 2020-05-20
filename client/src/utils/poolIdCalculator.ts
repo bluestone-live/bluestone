@@ -8,7 +8,7 @@ export const getPoolIdByTimestamp = (timestamp: number) =>
 
 export const getTimestampByPoolId = (poolId: string) =>
   dayjs
-    .utc((Number.parseInt(poolId, 10) + 1) * 3600 * 1000 * 24)
-    .local()
+    .utc(Number.parseInt(poolId, 10) * 3600 * 1000 * 24)
     .endOf('day')
+    .local()
     .valueOf();

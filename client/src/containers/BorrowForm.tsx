@@ -483,6 +483,7 @@ const BorrowForm = (props: IProps) => {
         >
           {dayjs
             .utc()
+            .local()
             .add(selectedPool.term, 'day')
             .format('YYYY-MM-DD HH:mm')}
         </TextBox>

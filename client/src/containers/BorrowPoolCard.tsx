@@ -32,7 +32,7 @@ const BorrowPoolCard = (props: IProps) => {
         {t('borrow_pool_card_text_apr')}:{' '}
         {(pool.loanInterestRate * 100).toFixed(2)}% <br />
         {t('borrow_pool_card_text_available_amount')}:
-        {`${pool.availableAmount} ${token && token.tokenSymbol}`}
+        {` ${pool.availableAmount} ${token && token.tokenSymbol}`}
       </p>
     </Card>
   );
