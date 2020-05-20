@@ -1,8 +1,8 @@
 # Client
 
-This is the web client for BlueStone.
+This is the web client for BlueStone built on [React](https://reactjs.org/) and [TypeScript](https://www.typescriptlang.org/).
 
-## Structures
+## Project Structure
 
 In `src` directory:
 
@@ -10,15 +10,13 @@ In `src` directory:
 - containers: Smart components. Maintaining component states, dispatch actions. Cares about how things work.
 - pages: Page components where each corresponds to a URL route.
 - layouts: Different layouts. for example: `DefaultLayout` for function page, `CoverLayout` for login or MetaMask alert page.
-- routes: React-router configs
-- stores: Redux stores
-- services: Implementation of the business call to the contract
-  - Pipes: Some data transform function, we can transform input data to the desired output and validate input data if valid
+- routes: Router configs.
+- stores: Redux stores.
+- services: Services that interacts with the contract.
+  - Pipes: Functions that transform input data to the desired output.
 - styles: Themes variables and customize styles
   - main.less: Styles entry file. Put all styles imports into it.
   - theme.js: Theme variable override declarations. reference: [style variables](https://github.com/ant-design/ant-design/blob/master/components/style/themes/default.less)
-- utils: Some useful utils or helpers
-  - `*Provider.ts`: Provides a contract generic call interface for the Service
 
 ## Prerequisites
 
@@ -39,9 +37,7 @@ Connect MetaMask to local Ganache RPC server:
 
 To import a Ganache account:
 
-##### for ganache cli
-
-1. check stdout in terminal, find `Private Keys`, locate the private key you want to import. (the first three accounts have test token balance)
+1. Check stdout in terminal, find `Private Keys`, locate the private key you want to import. (the first three accounts have test token balance)
 2. Open MetaMask, click the account icon on top-right corner.
 3. Click `Import Account`.
 4. Paste the private key and click `Import`.
@@ -65,6 +61,8 @@ This is a rather curbersome process, so we need to automate it later on.
 
 ## Development
 
+Install dependencies and start dev server:
+
 ```
 yarn
 yarn dev
@@ -83,25 +81,3 @@ Deploy to dev server:
 ```
 yarn run deploy:dev
 ```
-
-## Other Scripts
-
-- lint code
-
-```
-yarn lint [--fix]
-```
-
-- show compile analyzer
-
-```
-yarn analyzer
-```
-
-- Update translations
-
-```
-yarn translations
-```
-
-[edit translations](https://docs.google.com/spreadsheets/d/1l3lNajxq3ppXuYPp5mnlw_EU1i0Q3o1-eLHCv-bqBYM/edit#gid=0)

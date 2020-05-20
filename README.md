@@ -1,6 +1,22 @@
 # BlueStone
 
-BlueStone provides a set of banking services on Ethereum blockchain. This repository contains everything related to BlueStone: smart contracts, back-end services, web client and useful scripts.
+BlueStone is a decentralized banking protocol on Ethereum blockchain. It provides a set of banking services, including deposit, borrow and liquidation of ETH and supported ERC20 tokens.
+
+Read [Design Paper](https://github.com/bluestone-live/design-paper/blob/master/BlueStone%20Protocol.pdf) for more technical details.
+
+## Project structure
+
+The project is bootstrapped by [Truffle](https://github.com/trufflesuite/truffle).
+
+- `arcanist-extensions/`: Custom PHP extensions written for [arcanist](https://secure.phabricator.com/book/phabricator/article/arcanist/).
+- `client/`: Web client.
+- `config/`: Configuration files following [node-config](https://github.com/lorenwest/node-config/wiki/Configuration-Files) conventions.
+- `contracts/`: Smart contracts.
+- `networks/`: Contains deployed contract and token addresses.
+- `scripts/`: Scripts for smart contract interaction and common tasks.
+- `test/`: Test files.
+
+More details may be presented in individual folder's README.
 
 ## Prerequisite
 
@@ -12,7 +28,7 @@ Install the following tools:
 
 Make sure you have read through [Truffle Documentation](https://truffleframework.com/docs/truffle/overview).
 
-## Setup your environment
+## Development
 
 Create a config file for local development:
 
@@ -41,60 +57,40 @@ Prepare test environment for local development:
 ./scripts/bash/setupEnvironment
 ```
 
-## Project structure
-
-- `arcanist-extensions/`: Custom PHP extensions written for arcanist.
-- `config/`: Configuration files following [node-config](https://github.com/lorenwest/node-config/wiki/Configuration-Files) conventions.
-- `contracts/`: Smart contracts written in Solidity.
-- `libs/`: Common libraries.
-- `migrations/`: Truffle migrations. Each file will be ran in sequence on `npx truffle migrate` and corresponding contracts will be deployed.
-- `networks/`: Contains deployed contract and token addresses.
-- `scripts/`: Scripts to interact with smart contracts and run common tasks.
-- `test/`: All test files go to this directory.
-- `clients/`: All user interfaces using in React, Mobx and TypeScript.
-
-More details may be presented in individual folder's README.
-
-## Development
-
-Read [here](https://phabricator.bluestone.live/w/workflow/) for general development workflow.
-
 ## Test
 
-To run all tests under `test/` folder:
+To run all tests:
 
 ```
 npx truffle test
 ```
 
-To run some specific tests:
+To run some specific tests under `test/` folder:
 
 ```
 npx truffle test <test_file>
 ```
 
-Notice that `arc unit` will be executed in the `arc diff` process, which will run all the truffle tests for us.
-
 ## Deployment
 
 **WARNING: current deployment strategy is still highly experienmental and immature.**
 
-Because deployed contracts are final, we always deploy fresh new contracts to the testnet and setup test environment from scratch. We may change our deployment strategy once we figure out how to upgrade existing contracts.
+Because deployed contracts are final, we always deploy fresh new contracts to the testnet and setup test environment from scratch.
 
-### Rinkeby testnet
+### Testnet
 
 First, fill in the mnemonic in `config/local.js`.
 
-Deploy new contracts to rinkeby testnet:
+Deploy new contracts to the target testnet:
 
 ```
-npx truffle migrate --network rinkeby --reset
+npx truffle migrate --network <testnet> --reset
 ```
 
 Setup initial state for the test environment:
 
 ```
-./scripts/bash/setupEnvironment rinkeby
+./scripts/bash/setupEnvironment <testnet>
 ```
 
 Since contract ABIs have been changed, we need to redeploy web app following the same section in client's README.

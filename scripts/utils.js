@@ -1,6 +1,4 @@
 const _debug = require('debug')('script:utils');
-const CoinMarketCap = require('../libs/CoinMarketCap.js');
-const config = require('config');
 const fs = require('fs');
 const path = require('path');
 const Immutable = require('seamless-immutable');
@@ -73,26 +71,6 @@ const getTokenAddress = async tokenSymbol => {
   return tokenAddress;
 };
 
-const fetchTokenPrices = async (tokenList, currencyCode = 'USD') => {
-  const debug = _debug.extend('fetchTokenPrices');
-  const { apiKey, sandbox } = config.get('coinmarketcap');
-  const coinMarketCap = new CoinMarketCap(apiKey, sandbox);
-
-  debug('Fetching prices for tokens: %o', tokenList);
-  const { data } = await coinMarketCap.getCryptocurrencyQuotesLatest({
-    symbol: tokenList.join(','),
-    convert: currencyCode,
-  });
-
-  const priceList = tokenList
-    .map(token => data[token].quote[currencyCode].price)
-    .map(price => price.toFixed(2))
-    .map(price => Number(price));
-
-  debug('Got token prices in %s: %o', currencyCode, priceList);
-  return priceList;
-};
-
 // This function reduces boilerplates code we need to write external scripts
 // for truffle and outputs useful debugging info. It accepts a function that
 // contains main scripting logic and returns another function to be
@@ -152,7 +130,6 @@ function toFixedBN(num, significant = 18) {
 module.exports = {
   constants,
   getTokenAddress,
-  fetchTokenPrices,
   makeTruffleScript,
   loadNetwork,
   saveNetwork,
