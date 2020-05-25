@@ -12,9 +12,10 @@ export const convertWeiToDecimal = (
     return '0';
   }
 
-  return Number.parseFloat(utils.formatUnits(`${bn}`, decimals)).toFixed(
-    precision,
-  );
+  const value = utils.formatUnits(`${bn}`, decimals);
+  const dotIndex = value.indexOf('.');
+
+  return dotIndex === -1 ? value : value.substring(0, dotIndex + precision + 1);
 };
 
 /**
