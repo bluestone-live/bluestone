@@ -191,7 +191,6 @@ const AddCollateralForm = (props: IProps) => {
       await loanService.removeCollateral(
         accountAddress,
         record.recordId,
-        record.collateralTokenAddress,
         convertDecimalToWei(
           Math.abs(additionalCollateralAmount),
           selectedLoanPair && selectedLoanPair.collateralToken.decimals,

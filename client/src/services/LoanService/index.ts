@@ -72,14 +72,22 @@ export class LoanService {
   /**
    * @returns remainingDebt remaining debt of this loan
    */
-  async repayLoan(accountAddress: string, loanId: string, repayAmount: string) {
+  async repayLoan(
+    accountAddress: string,
+    loanId: string,
+    repayAmount: string,
+    loanTokenAddress: string,
+  ) {
     const {
       events: {
         RepayLoanSucceed: { returnValues },
       },
     } = await this.provider.protocol.methods
       .repayLoan(loanId, repayAmount.toString())
-      .send({ from: accountAddress });
+      .send({
+        from: accountAddress,
+        value: loanTokenAddress === ETHIdentificationAddress ? repayAmount : 0,
+      });
 
     return returnValues;
   }
@@ -113,12 +121,8 @@ export class LoanService {
   async removeCollateral(
     accountAddress: string,
     loanId: string,
-    collateralTokenAddress: string,
     collateralAmount: string,
   ) {
-    const isEtherCollateral =
-      collateralTokenAddress === ETHIdentificationAddress;
-
     const {
       events: {
         SubtractCollateralSucceed: { returnValues },

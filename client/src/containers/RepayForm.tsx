@@ -91,6 +91,7 @@ const RepayForm = (props: IProps) => {
           accountAddress,
           record.recordId,
           convertDecimalToWei(repayAmount, selectedLoanPair.loanToken.decimals),
+          record.loanTokenAddress,
         );
 
         dispatch(ViewActions.setBanner(t('common_repay_succeed')));
@@ -131,7 +132,7 @@ const RepayForm = (props: IProps) => {
       <TextBox label={t('repay_form_label_remaining_debt')}>
         {convertWeiToDecimal(
           record.remainingDebt,
-          18,
+          Number.parseInt(selectedLoanPair.loanToken.decimals, 10),
           selectedLoanPair.loanToken.decimals,
         )}{' '}
         {selectedLoanPair.loanToken.tokenSymbol}
