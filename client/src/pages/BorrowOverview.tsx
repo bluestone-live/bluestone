@@ -131,7 +131,7 @@ const BorrowOverview = (props: IProps) => {
 
   const onNextButtonClick = useCallback(() => {
     if (selectedToken && selectedPool) {
-      history.replace(
+      history.push(
         `/borrow/${selectedPool.poolId}?tokenAddress=${selectedToken.tokenAddress}`,
       );
     }
