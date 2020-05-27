@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { IPool } from '../stores';
+import { IPool, useDepositTokens } from '../stores';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { RouteComponentProps, withRouter } from 'react-router';
 import Card from 'antd/lib/card';
@@ -17,6 +17,9 @@ const MonitorPoolCard = (props: IProps) => {
   const { pool, onClick, t } = props;
 
   const currentPoolId = getCurrentPoolId();
+  const tokens = useDepositTokens();
+  const token = tokens.find(tt => tt.tokenAddress === pool.tokenAddress);
+  const decimals = token && token.decimals;
 
   const title = useMemo(
     () => (
@@ -46,24 +49,27 @@ const MonitorPoolCard = (props: IProps) => {
       <Row>
         <Col span={12}>
           <TextBox label={t('monitor_pool_card_label_total_deposit')}>
-            {convertWeiToDecimal(pool.totalDeposit)}
+            {convertWeiToDecimal(pool.totalDeposit, 4, decimals)}
           </TextBox>
         </Col>
         <Col span={12}>
           <TextBox label={t('monitor_pool_card_label_available_amount')}>
-            {convertWeiToDecimal(pool.availableAmount)}
+            {convertWeiToDecimal(pool.availableAmount, 4, decimals)}
           </TextBox>
         </Col>
       </Row>
       <Row>
         <Col span={12}>
           <TextBox label={t('monitor_pool_card_label_loan_interest')}>
-            {convertWeiToDecimal(pool.loanInterest)}
+            {Number.parseFloat(
+              convertWeiToDecimal(pool.loanInterest, 4, decimals),
+            )}
+            {`%`}
           </TextBox>
         </Col>
         <Col span={12}>
           <TextBox label={t('monitor_pool_card_label_total_deposit_weight')}>
-            {convertWeiToDecimal(pool.totalDepositWeight)}
+            {convertWeiToDecimal(pool.totalDepositWeight, 4, decimals)}
           </TextBox>
         </Col>
       </Row>

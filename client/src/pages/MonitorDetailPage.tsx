@@ -96,16 +96,20 @@ const MonitorDetailPage = (props: IProps) => {
       <Row>
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_loan_interest')}>
-            {convertWeiToDecimal(
-              selectedPool.loanInterest,
-              2,
-              selectedToken.decimals,
+            {Number.parseFloat(
+              convertWeiToDecimal(
+                selectedPool.loanInterest,
+                2,
+                selectedToken.decimals,
+              ),
             )}
+            {'%'}
           </TextBox>
         </Col>
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_apr')}>
             {selectedPool.APR}
+            {'%'}
           </TextBox>
         </Col>
       </Row>
@@ -122,6 +126,7 @@ const MonitorDetailPage = (props: IProps) => {
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_utilization')}>
             {selectedPool.utilization}
+            {'%'}
           </TextBox>
         </Col>
       </Row>

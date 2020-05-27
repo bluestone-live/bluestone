@@ -15,7 +15,7 @@ export const convertWeiToDecimal = (
   const value = utils.formatUnits(`${bn}`, decimals);
   const dotIndex = value.indexOf('.');
 
-  return dotIndex === -1 ? value : value.substring(0, dotIndex + precision + 1);
+  return value.substring(0, dotIndex + precision + 1).replace(/\.$/, '');
 };
 
 /**
