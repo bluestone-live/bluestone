@@ -70,7 +70,7 @@ const TransactionList = (props: IProps) => {
               ),
             ),
           )
-            ? '≈0.0001'
+            ? ' ≈ 0.0001'
             : convertWeiToDecimal(
                 tx.amount,
                 4,
@@ -96,7 +96,7 @@ const TransactionList = (props: IProps) => {
               amount: new BigNumber(tx.amount).lt(
                 new BigNumber(convertDecimalToWei(0.0001)),
               )
-                ? '≈0.0001'
+                ? ' ≈ 0.0001'
                 : convertWeiToDecimal(tx.amount, 4),
               unit: collateralToken ? collateralToken.tokenSymbol : '',
             });
@@ -117,7 +117,7 @@ const TransactionList = (props: IProps) => {
               convertDecimalToWei(0.0001, loanToken ? loanToken.decimals : 18),
             ),
           )
-            ? `≈0.0001`
+            ? ` ≈ 0.0001`
             : convertWeiToDecimal(
                 tx.amount,
                 4,
