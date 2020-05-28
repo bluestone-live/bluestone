@@ -7,6 +7,7 @@ import {
   IToken,
   ViewActions,
   LoadingType,
+  useLoadingType,
 } from '../stores';
 import RecordStatus from '../components/RecordStatus';
 import { Row, Col } from 'antd/lib/grid';
@@ -147,6 +148,8 @@ const DepositDetail = (props: IProps) => {
     [record.tokenAddress, record.poolId],
   );
 
+  const loading = useLoadingType();
+
   return (
     <div className="deposit-detail">
       <Row>
@@ -269,6 +272,7 @@ const DepositDetail = (props: IProps) => {
                   size="large"
                   block
                   key="early-withdraw-btn-confirm"
+                  loading={loading === LoadingType.Withdraw}
                   onClick={earlyWithdraw}
                 >
                   {t('deposit_detail_modal_early_withdraw')}

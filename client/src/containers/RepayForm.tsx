@@ -159,6 +159,7 @@ const RepayForm = (props: IProps) => {
           block
           size="large"
           onClick={submit}
+          loading={loadingType === LoadingType.Repay}
           disabled={loadingType !== LoadingType.None}
         >
           {buttonText}

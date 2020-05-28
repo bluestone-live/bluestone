@@ -492,6 +492,7 @@ const BorrowForm = (props: IProps) => {
         type="primary"
         block
         onClick={submit}
+        loading={loadingType === LoadingType.Borrow}
         disabled={loading || illegalRatio}
       >
         {buttonText}

@@ -261,6 +261,7 @@ const DepositForm = (props: IProps) => {
             type="primary"
             block
             onClick={submit}
+            loading={loadingType === LoadingType.Deposit}
             disabled={loadingType !== LoadingType.None || !depositAmount}
           >
             {buttonText}
