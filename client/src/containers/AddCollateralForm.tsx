@@ -101,7 +101,7 @@ const AddCollateralForm = (props: IProps) => {
               (collateralRatio + num).toString(),
               convertWeiToDecimal(
                 record.remainingDebt,
-                4,
+                18,
                 selectedLoanPair.loanToken.decimals,
               ) || '0',
               selectedLoanPair.collateralToken.price,
@@ -111,7 +111,7 @@ const AddCollateralForm = (props: IProps) => {
           Number.parseFloat(
             convertWeiToDecimal(
               record.collateralAmount,
-              4,
+              18,
               selectedLoanPair.collateralToken.decimals,
             ),
           );
@@ -159,7 +159,7 @@ const AddCollateralForm = (props: IProps) => {
         record.recordId,
         record.collateralTokenAddress,
         convertDecimalToWei(
-          additionalCollateralAmount,
+          additionalCollateralAmount.toFixed(18),
           selectedLoanPair && selectedLoanPair.collateralToken.decimals,
         ),
       );
@@ -192,7 +192,7 @@ const AddCollateralForm = (props: IProps) => {
         accountAddress,
         record.recordId,
         convertDecimalToWei(
-          Math.abs(additionalCollateralAmount),
+          Math.abs(additionalCollateralAmount).toFixed(18),
           selectedLoanPair && selectedLoanPair.collateralToken.decimals,
         ),
       );
@@ -293,7 +293,7 @@ const AddCollateralForm = (props: IProps) => {
         <FormInput
           label={t('add_collateral_form_label_additional_collateral_amount')}
           type="number"
-          value={additionalCollateralAmount.toFixed(6)}
+          value={additionalCollateralAmount.toFixed(18)}
           onChange={onAdditionalCollateralAmountChange}
           suffix={selectedLoanPair.collateralToken.tokenSymbol}
           extra={
