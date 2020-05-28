@@ -37,13 +37,12 @@ export const calcCollateralAmount = (
   ) {
     return '0.00';
   }
-  return (
-    Math.ceil(
-      (((Number.parseFloat(collateralRatio) / 100) *
-        Number.parseFloat(remainingDebt) *
-        Number.parseFloat(convertWeiToDecimal(loanAssetPrice, 18))) /
-        Number.parseFloat(convertWeiToDecimal(collateralAssetPrice, 18))) *
-        10e4,
-    ) / 10e4
-  ).toFixed(18);
+
+  const value =
+    ((Number.parseFloat(collateralRatio) / 100) *
+      Number.parseFloat(remainingDebt) *
+      Number.parseFloat(convertWeiToDecimal(loanAssetPrice, 18))) /
+    Number.parseFloat(convertWeiToDecimal(collateralAssetPrice, 18));
+
+  return value.toFixed(18);
 };
