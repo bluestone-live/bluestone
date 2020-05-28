@@ -105,7 +105,8 @@ export class CommonService {
     protocolContractAddress: string,
   ) {
     const erc20 = token.erc20Instance!;
-    const amount = await erc20.methods.totalSupply().call();
+    const amount =
+      '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
     try {
       const {
