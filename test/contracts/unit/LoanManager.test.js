@@ -1229,6 +1229,7 @@ contract('LoanManager', function([
     const depositAmount = toFixedBN(10);
     const depositTerm = 30;
     const loanAmount = toFixedBN(10);
+    const loanUSDCAmount = toFixedBN(10, 6);
     const collateralAmount = toFixedBN(20);
     const loanTerm = 30;
     const liquidationDiscount = toFixedBN(0.05);
@@ -1236,13 +1237,16 @@ contract('LoanManager', function([
     const prevCollateralTokenPrice = toFixedBN(10);
     let recordId,
       prevProtocolLoanBalance,
+      prevProtocolLoanUSDCBalance,
       prevProtocolCollateralBalance,
       prevLiquidatorLoanBalance,
+      prevLiquidatorLoanUSDCBalance,
       prevLiquidatorCollateralBalance,
       prevLoanerCollateralBalance;
 
     beforeEach(async () => {
       await loanToken.mint(liquidator, initialSupply);
+      await loanTokenUSDC.mint(liquidator, initialSupply);
       await priceOracle.setPrice(prevLoanTokenPrice);
       await collateralPriceOracle.setPrice(prevCollateralTokenPrice);
       await loanManager.setPriceOracle(loanToken.address, priceOracle.address);
@@ -1250,20 +1254,52 @@ contract('LoanManager', function([
         collateralToken.address,
         collateralPriceOracle.address,
       );
+      await loanManager.setPriceOracle(
+        loanTokenUSDC.address,
+        priceOracle.address,
+      );
+      await loanManager.setPriceOracle(
+        collateralTokenUSDC.address,
+        priceOracle.address,
+      );
       await loanManager.enableDepositToken(loanToken.address);
+      await loanManager.enableDepositToken(loanTokenUSDC.address);
       await setLoanAndCollateralTokenPair();
+      await loanManager.setLoanAndCollateralTokenPair(
+        loanTokenUSDC.address,
+        collateralToken.address,
+        minCollateralCoverageRatio,
+        liquidationDiscount,
+      );
+
       await loanManager.enableDepositTerm(depositTerm);
 
       await loanToken.approve(loanManager.address, initialSupply, {
+        from: depositor,
+      });
+      await loanTokenUSDC.approve(loanManager.address, initialSupply, {
         from: depositor,
       });
 
       await collateralToken.approve(loanManager.address, initialSupply, {
         from: loaner,
       });
+      await collateralTokenUSDC.approve(loanManager.address, initialSupply, {
+        from: loaner,
+      });
 
       await loanManager.deposit(
         loanToken.address,
+        depositAmount,
+        depositTerm,
+        distributorAddress,
+        {
+          from: depositor,
+        },
+      );
+
+      await loanManager.deposit(
+        loanTokenUSDC.address,
         depositAmount,
         depositTerm,
         distributorAddress,
@@ -1284,14 +1320,34 @@ contract('LoanManager', function([
         },
       );
 
+      const { logs: logsLoanUSDC } = await loanManager.loan(
+        loanTokenUSDC.address,
+        collateralToken.address,
+        loanUSDCAmount,
+        collateralAmount,
+        loanTerm,
+        distributorAddress,
+        {
+          from: loaner,
+        },
+      );
+
       recordId = logs.filter(log => log.event === 'LoanSucceed')[0].args
         .recordId;
 
+      loanUSDCRecordId = logsLoanUSDC.filter(
+        log => log.event === 'LoanSucceed',
+      )[0].args.recordId;
+
       prevProtocolLoanBalance = await loanToken.balanceOf(loanManager.address);
+      prevProtocolLoanUSDCBalance = await loanTokenUSDC.balanceOf(
+        loanManager.address,
+      );
       prevProtocolCollateralBalance = await collateralToken.balanceOf(
         loanManager.address,
       );
       prevLiquidatorLoanBalance = await loanToken.balanceOf(liquidator);
+      prevLiquidatorLoanUSDCBalance = await loanTokenUSDC.balanceOf(liquidator);
       prevLiquidatorCollateralBalance = await collateralToken.balanceOf(
         liquidator,
       );
@@ -1525,6 +1581,120 @@ contract('LoanManager', function([
             );
           });
         });
+
+        context(
+          'when liquidates fully with 6-decimal loan token and 18-decimal collateral token',
+          () => {
+            let tx, liquidateAmount, soldCollateralAmount, prevLoanRecord;
+
+            beforeEach(async () => {
+              prevLoanRecord = await loanManager.getLoanRecordById(
+                loanUSDCRecordId,
+              );
+
+              await loanTokenUSDC.approve(
+                loanManager.address,
+                new BN(prevLoanRecord.remainingDebt),
+                {
+                  from: liquidator,
+                },
+              );
+
+              liquidateAmount = new BN(prevLoanRecord.remainingDebt);
+
+              tx = await loanManager.liquidateLoan(
+                loanUSDCRecordId,
+                liquidateAmount,
+                {
+                  from: liquidator,
+                },
+              );
+            });
+
+            it('emits event', async () => {
+              expectEvent.inLogs(tx.logs, 'LiquidateLoanSucceed', {
+                accountAddress: liquidator,
+                recordId: loanUSDCRecordId,
+                liquidateAmount: liquidateAmount,
+              });
+            });
+
+            it('updates loan record', async () => {
+              const currLoanRecord = await loanManager.getLoanRecordById(
+                loanUSDCRecordId,
+              );
+              soldCollateralAmount = new BN(
+                currLoanRecord.soldCollateralAmount,
+              );
+
+              expect(new BN(currLoanRecord.remainingDebt)).to.bignumber.equal(
+                new BN(prevLoanRecord.remainingDebt).sub(liquidateAmount),
+              );
+
+              expect(currLoanRecord.isClosed).to.be.true;
+
+              expect(soldCollateralAmount).to.bignumber.equal(
+                liquidateAmount
+                  .mul(prevLoanTokenPrice)
+                  .mul(toFixedBN(1, 12))
+                  .div(currCollateralTokenPrice)
+                  .mul(toFixedBN(1))
+                  .div(toFixedBN(1).sub(liquidationDiscount)),
+              );
+            });
+
+            it('reduces loan tokens from liquidator', async () => {
+              const currLiquidatorBalance = await loanTokenUSDC.balanceOf(
+                liquidator,
+              );
+
+              expect(currLiquidatorBalance).to.bignumber.equal(
+                prevLiquidatorLoanUSDCBalance.sub(liquidateAmount),
+              );
+            });
+
+            it('adds loan tokens to protocol', async () => {
+              const currProtocolBalance = await loanTokenUSDC.balanceOf(
+                loanManager.address,
+              );
+
+              expect(currProtocolBalance).to.bignumber.equal(
+                prevProtocolLoanUSDCBalance.add(liquidateAmount),
+              );
+            });
+
+            it('adds sold collateral tokens to liquidator', async () => {
+              const currLiquidatorBalance = await collateralToken.balanceOf(
+                liquidator,
+              );
+
+              expect(currLiquidatorBalance).to.bignumber.equal(
+                prevLiquidatorCollateralBalance.add(soldCollateralAmount),
+              );
+            });
+
+            it('reduces all collateral tokens from protocol', async () => {
+              const currProtocolBalance = await collateralToken.balanceOf(
+                loanManager.address,
+              );
+
+              expect(currProtocolBalance).to.bignumber.equal(
+                prevProtocolCollateralBalance.sub(collateralAmount),
+              );
+            });
+
+            it('returns remaining collateral tokens to loaner', async () => {
+              const currLoanerBalance = await collateralToken.balanceOf(loaner);
+              const remainingCollateralAmount = collateralAmount.sub(
+                soldCollateralAmount,
+              );
+
+              expect(currLoanerBalance).to.bignumber.equal(
+                prevLoanerCollateralBalance.add(remainingCollateralAmount),
+              );
+            });
+          },
+        );
       },
     );
 

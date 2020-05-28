@@ -62,6 +62,8 @@ library LoanManager {
         uint256 soldCollateralAmount;
         uint256 loanTokenPrice;
         uint256 collateralTokenPrice;
+        uint256 loanTokenDecimals;
+        uint256 collateralTokenDecimals;
         bool isUnderCollateralCoverageRatio;
         bool isOverDue;
     }
@@ -767,6 +769,12 @@ library LoanManager {
         local.collateralTokenPrice = local
             .collateralTokenPriceOracle
             .getPrice();
+        local.loanTokenDecimals = _getTokenDecimals(
+            loanRecord.loanTokenAddress
+        );
+        local.collateralTokenDecimals = _getTokenDecimals(
+            loanRecord.collateralTokenAddress
+        );
 
         local.remainingDebt = _calculateRemainingDebt(loanRecord);
 
@@ -775,14 +783,10 @@ library LoanManager {
                 collateralAmount: loanRecord.collateralAmount.sub(
                     loanRecord.soldCollateralAmount
                 ),
-                collateralTokenDecimals: _getTokenDecimals(
-                    loanRecord.collateralTokenAddress
-                ),
+                collateralTokenDecimals: local.collateralTokenDecimals,
                 collateralTokenPrice: local.collateralTokenPrice,
                 loanAmount: local.remainingDebt,
-                loanTokenDecimals: _getTokenDecimals(
-                    loanRecord.loanTokenAddress
-                ),
+                loanTokenDecimals: local.loanTokenDecimals,
                 loanTokenPrice: local.loanTokenPrice
             })
         );
@@ -812,6 +816,9 @@ library LoanManager {
             local
                 .liquidatedAmount
                 .mul(local.loanTokenPrice)
+            /// Scale up loan tokens value if loan token is less than 18 decimals
+            /// since token prices are represented in 10**18 scale
+                .mul(ONE.div(10**local.loanTokenDecimals))
                 .div(local.collateralTokenPrice)
                 .mul(ONE)
                 .div(ONE.sub(loanRecord.liquidationDiscount)),
