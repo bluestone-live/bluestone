@@ -12,13 +12,18 @@ import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';
 import './lib/LoanManager.sol';
 
-/// @title Main contract
+/// @title The main contract that exposes all external functions
+/// @dev We can consider this contract as a master contract that contains no actual
+/// business logic but enforces permission checks and delegates function calls to
+/// corresponding libraries. Although contract states are defined in libraries,
+/// they are initialized and stored in this contract.
 contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
     using DepositManager for DepositManager.State;
     using LoanManager for LoanManager.State;
 
+    /// Initialize library instances
     Configuration.State _configuration;
     LiquidityPools.State _liquidityPools;
     DepositManager.State _depositManager;
@@ -178,8 +183,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         revert();
     }
 
-    /// --- Deposit Configurations---
-
     function enableDepositTerm(uint256 term) external onlyOwner override {
         _depositManager.enableDepositTerm(_liquidityPools, term);
     }
@@ -274,8 +277,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         return _depositManager.depositTokenAddressList;
     }
 
-    /// --- Deposit
-
     function getDepositRecordById(bytes32 depositId)
         external
         view
@@ -307,8 +308,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
                 depositId
             );
     }
-
-    /// --- Loan
 
     function getMaxLoanTerm()
         external
@@ -394,8 +393,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
             );
     }
 
-    /// -- Loan ---
-
     function getLoanRecordById(bytes32 loanId)
         external
         view
@@ -478,8 +475,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         return _loanManager.getLoanAndCollateralTokenPairs();
     }
 
-    /// --- LiquidityPools ---
-
     function getPoolsByToken(address tokenAddress)
         external
         view
@@ -499,7 +494,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 
-    /// --- Configuration ---
     function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
         external
         onlyOwner

@@ -11,6 +11,7 @@ import './Configuration.sol';
 import './LiquidityPools.sol';
 
 
+/// @title Implement deposit-related operations
 library DepositManager {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -19,7 +20,11 @@ library DepositManager {
     using SafeMath for uint256;
 
     struct State {
+        // Total number of deposits
+        uint256 numDeposits;
+        // Enabled deposit terms
         uint256[] depositTermList;
+        // Enabled deposit tokens
         address[] depositTokenAddressList;
         // Deposit term -> enabled?
         mapping(uint256 => bool) isDepositTermEnabled;
@@ -27,7 +32,6 @@ library DepositManager {
         mapping(address => bool) isDepositTokenEnabled;
         // ID -> DepositRecord
         mapping(bytes32 => IStruct.DepositRecord) depositRecordById;
-        uint256 numDeposits;
         // AccountAddress -> DepositIds
         mapping(address => bytes32[]) depositIdsByAccountAddress;
     }
@@ -36,51 +40,126 @@ library DepositManager {
     address private constant ETH_IDENTIFIER = address(1);
 
     event EnableDepositTermSucceed(address indexed adminAddress, uint256 term);
+
     event DisableDepositTermSucceed(address indexed adminAddress, uint256 term);
+
     event EnableDepositTokenSucceed(
         address indexed adminAddress,
         address tokenAddress
     );
+
     event DisableDepositTokenSucceed(
         address indexed adminAddress,
         address tokenAddress
     );
+
     event DepositSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         address indexed depositTokenAddress,
         uint256 amount
     );
+
     event WithdrawSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         address indexed depositTokenAddress,
         uint256 amount
     );
+
     event EarlyWithdrawSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         address indexed depositTokenAddress,
         uint256 amount
     );
+
     event InterestReserveTransfered(
         address indexed accountAddress,
         bytes32 recordId,
         address indexed depositTokenAddress,
         uint256 interestForProtocolReserve
     );
+
     event DepositDistributorFeeTransfered(
         address indexed distributorAccountAddress,
         bytes32 recordId,
         address indexed depositTokenAddress,
         uint256 interestForDistributor
     );
+
     event PayDepositDistributorFailed(
         address indexed distributorAddress,
         address indexed depositTokenAddress,
         bytes32 recordId,
         uint256 amount
     );
+
+    function getDepositRecordById(
+        State storage self,
+        LiquidityPools.State storage liquidityPools,
+        bytes32 depositId
+    )
+        public
+        view
+        returns (IStruct.GetDepositRecordResponse memory depositRecordResponse)
+    {
+        IStruct.DepositRecord memory depositRecord = self
+            .depositRecordById[depositId];
+
+        require(
+            depositRecord.tokenAddress != address(0),
+            'DepositManager: invalid deposit ID'
+        );
+
+        (
+            uint256 interestForDepositor,
+            ,
+            ,
+
+        ) = _getInterestDistributionByDepositId(
+            self,
+            liquidityPools,
+            depositId
+        );
+
+        return
+            IStruct.GetDepositRecordResponse({
+                depositId: depositId,
+                tokenAddress: depositRecord.tokenAddress,
+                depositTerm: depositRecord.depositTerm,
+                depositAmount: depositRecord.depositAmount,
+                poolId: depositRecord.poolId,
+                interest: interestForDepositor,
+                createdAt: depositRecord.createdAt,
+                withdrewAt: depositRecord.withdrewAt,
+                weight: depositRecord.weight
+            });
+    }
+
+    function isDepositEarlyWithdrawable(
+        State storage self,
+        LiquidityPools.State storage liquidityPools,
+        bytes32 depositId
+    ) public view returns (bool isEarlyWithdrawable) {
+        IStruct.DepositRecord memory depositRecord = self
+            .depositRecordById[depositId];
+
+        if (
+            depositRecord.tokenAddress == address(0) ||
+            depositRecord.withdrewAt != 0 ||
+            depositRecord.poolId <= DateTime.toDays()
+        ) {
+            return false;
+        }
+
+        IStruct.Pool memory pool = liquidityPools.getPoolById(
+            depositRecord.tokenAddress,
+            depositRecord.poolId
+        );
+
+        return pool.availableAmount >= depositRecord.depositAmount;
+    }
 
     function enableDepositTerm(
         State storage self,
@@ -459,46 +538,31 @@ library DepositManager {
         return depositRecord.depositAmount;
     }
 
-    function getDepositRecordById(
+    function getDepositRecordsByAccount(
         State storage self,
         LiquidityPools.State storage liquidityPools,
-        bytes32 depositId
+        address accountAddress
     )
-        public
+        external
         view
-        returns (IStruct.GetDepositRecordResponse memory depositRecordResponse)
+        returns (IStruct.GetDepositRecordResponse[] memory depositRecordList)
     {
-        IStruct.DepositRecord memory depositRecord = self
-            .depositRecordById[depositId];
+        bytes32[] memory depositIdList = self
+            .depositIdsByAccountAddress[accountAddress];
 
-        require(
-            depositRecord.tokenAddress != address(0),
-            'DepositManager: invalid deposit ID'
+        depositRecordList = new IStruct.GetDepositRecordResponse[](
+            depositIdList.length
         );
 
-        (
-            uint256 interestForDepositor,
-            ,
-            ,
+        for (uint256 i = 0; i < depositIdList.length; i++) {
+            depositRecordList[i] = getDepositRecordById(
+                self,
+                liquidityPools,
+                depositIdList[i]
+            );
+        }
 
-        ) = _getInterestDistributionByDepositId(
-            self,
-            liquidityPools,
-            depositId
-        );
-
-        return
-            IStruct.GetDepositRecordResponse({
-                depositId: depositId,
-                tokenAddress: depositRecord.tokenAddress,
-                depositTerm: depositRecord.depositTerm,
-                depositAmount: depositRecord.depositAmount,
-                poolId: depositRecord.poolId,
-                interest: interestForDepositor,
-                createdAt: depositRecord.createdAt,
-                withdrewAt: depositRecord.withdrewAt,
-                weight: depositRecord.weight
-            });
+        return depositRecordList;
     }
 
     function _getInterestDistributionByDepositId(
@@ -560,56 +624,5 @@ library DepositManager {
             interestForLoanDistributor,
             interestForProtocolReserve
         );
-    }
-
-    function getDepositRecordsByAccount(
-        State storage self,
-        LiquidityPools.State storage liquidityPools,
-        address accountAddress
-    )
-        external
-        view
-        returns (IStruct.GetDepositRecordResponse[] memory depositRecordList)
-    {
-        bytes32[] memory depositIdList = self
-            .depositIdsByAccountAddress[accountAddress];
-
-        depositRecordList = new IStruct.GetDepositRecordResponse[](
-            depositIdList.length
-        );
-
-        for (uint256 i = 0; i < depositIdList.length; i++) {
-            depositRecordList[i] = getDepositRecordById(
-                self,
-                liquidityPools,
-                depositIdList[i]
-            );
-        }
-
-        return depositRecordList;
-    }
-
-    function isDepositEarlyWithdrawable(
-        State storage self,
-        LiquidityPools.State storage liquidityPools,
-        bytes32 depositId
-    ) public view returns (bool isEarlyWithdrawable) {
-        IStruct.DepositRecord memory depositRecord = self
-            .depositRecordById[depositId];
-
-        if (
-            depositRecord.tokenAddress == address(0) ||
-            depositRecord.withdrewAt != 0 ||
-            depositRecord.poolId <= DateTime.toDays()
-        ) {
-            return false;
-        }
-
-        IStruct.Pool memory pool = liquidityPools.getPoolById(
-            depositRecord.tokenAddress,
-            depositRecord.poolId
-        );
-
-        return pool.availableAmount >= depositRecord.depositAmount;
     }
 }

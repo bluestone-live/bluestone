@@ -4,18 +4,22 @@ import '../../oracle/interface/IPriceOracle.sol';
 import '../interface/IInterestModel.sol';
 
 
+/// @title Protocol configurations
 library Configuration {
     struct State {
+        // The percentage deposit distributor takes from deposit interest as reward
         uint256 depositDistributorFeeRatio;
+        // The percentage loan distributor takes from deposit interest as reward
         uint256 loanDistributorFeeRatio;
-        // The percentage protocol takes from deposit interest as reserve.
+        // The percentage protocol takes from deposit interest as profit
         uint256 protocolReserveRatio;
+        // The address where the protocol sends earned profit to
         address payable interestReserveAddress;
-        IInterestModel interestModel;
         // Token address -> price oracle
         mapping(address => IPriceOracle) priceOracleByToken;
         // Token address -> maximum token balance allowed
         mapping(address => uint256) balanceCapByToken;
+        IInterestModel interestModel;
     }
 
     event SetPriceOracleSucceed(

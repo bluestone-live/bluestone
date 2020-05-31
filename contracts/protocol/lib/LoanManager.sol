@@ -12,6 +12,7 @@ import './LiquidityPools.sol';
 import './DepositManager.sol';
 
 
+/// @title Implement loan-related operations
 library LoanManager {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -20,14 +21,16 @@ library LoanManager {
     using SafeMath for uint256;
 
     struct State {
-        // ID -> LoanRecord
+        // Total number of loans
+        uint256 numLoans;
+        // Loan ID -> LoanRecord
         mapping(bytes32 => IStruct.LoanRecord) loanRecordById;
         // accountAddress -> loanIds
         mapping(address => bytes32[]) loanIdsByAccount;
         // loanTokenAddress -> collateralTokenAddress -> LoanAndCollateralTokenPair
         mapping(address => mapping(address => IStruct.LoanAndCollateralTokenPair)) loanAndCollateralTokenPairs;
+        // Enabled list of token pairs
         IStruct.LoanAndCollateralTokenPair[] loanAndCollateralTokenPairList;
-        uint256 numLoans;
     }
 
     uint256 private constant ONE = 10**18;
@@ -97,11 +100,13 @@ library LoanManager {
         uint256 minCollateralCoverageRatio,
         uint256 liquidationDiscount
     );
+
     event RemoveLoanAndCollateralTokenPairSucceed(
         address indexed adminAddress,
         address loanTokenAddress,
         address collateralTokenAddress
     );
+
     event LoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
@@ -110,6 +115,7 @@ library LoanManager {
         address indexed collateralTokenAddress,
         uint256 collateralAmount
     );
+
     event RepayLoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
@@ -119,6 +125,7 @@ library LoanManager {
         uint256 returnedCollateralAmount,
         bool isFullyRepaid
     );
+
     event LiquidateLoanSucceed(
         address indexed accountAddress,
         bytes32 recordId,
@@ -127,24 +134,28 @@ library LoanManager {
         address indexed collateralTokenAddress,
         uint256 soldCollateralAmount
     );
+
     event AddCollateralSucceed(
         address indexed accountAddress,
         bytes32 recordId,
         address indexed collateralTokenAddress,
         uint256 collateralAmount
     );
+
     event LoanDistributorFeeTransfered(
         address indexed distributorAccountAddress,
         bytes32 recordId,
         address indexed loanTokenAddress,
         uint256 interestForLoanDistributor
     );
+
     event PayLoanDistributorFailed(
         address indexed distributorAddress,
         address indexed loanTokenAddress,
         bytes32 recordId,
         uint256 amount
     );
+
     event SubtractCollateralSucceed(
         address indexed accountAddress,
         address indexed collateralTokenAddress,
@@ -899,17 +910,33 @@ library LoanManager {
         );
     }
 
-    function _calculateRemainingDebt(IStruct.LoanRecord memory loanRecord)
-        internal
-        pure
-        returns (uint256 remainingDebt)
+    function getLoanAndCollateralTokenPairs(State storage self)
+        external
+        view
+        returns (
+            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
+        )
     {
+        return self.loanAndCollateralTokenPairList;
+    }
+
+    function getLoanInterestRate(
+        State storage,
+        Configuration.State storage configuration,
+        LiquidityPools.State storage liquidityPools,
+        address tokenAddress,
+        uint256 loanTerm
+    ) external view returns (uint256 loanInterestRate) {
+        require(
+            loanTerm <= liquidityPools.poolGroupSize,
+            'LoanManager: invalid loan term'
+        );
         return
-            loanRecord
-                .loanAmount
-                .add(loanRecord.interest)
-                .sub(loanRecord.alreadyPaidAmount)
-                .sub(loanRecord.liquidatedAmount);
+            configuration.interestModel.getLoanInterestRate(
+                tokenAddress,
+                loanTerm,
+                liquidityPools.poolGroupSize
+            );
     }
 
     function _payDistributorInterest(IStruct.LoanRecord memory loanRecord)
@@ -947,33 +974,17 @@ library LoanManager {
         }
     }
 
-    function getLoanAndCollateralTokenPairs(State storage self)
-        external
-        view
-        returns (
-            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
-        )
+    function _calculateRemainingDebt(IStruct.LoanRecord memory loanRecord)
+        internal
+        pure
+        returns (uint256 remainingDebt)
     {
-        return self.loanAndCollateralTokenPairList;
-    }
-
-    function getLoanInterestRate(
-        State storage,
-        Configuration.State storage configuration,
-        LiquidityPools.State storage liquidityPools,
-        address tokenAddress,
-        uint256 loanTerm
-    ) external view returns (uint256 loanInterestRate) {
-        require(
-            loanTerm <= liquidityPools.poolGroupSize,
-            'LoanManager: invalid loan term'
-        );
         return
-            configuration.interestModel.getLoanInterestRate(
-                tokenAddress,
-                loanTerm,
-                liquidityPools.poolGroupSize
-            );
+            loanRecord
+                .loanAmount
+                .add(loanRecord.interest)
+                .sub(loanRecord.alreadyPaidAmount)
+                .sub(loanRecord.liquidatedAmount);
     }
 
     function _getTokenDecimals(address tokenAddress)

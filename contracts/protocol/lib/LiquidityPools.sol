@@ -8,16 +8,21 @@ import '../interface/IStruct.sol';
 import './LoanManager.sol';
 
 
+/// @title Stores pool instances and contains fund-matching logic.
 library LiquidityPools {
     using SafeMath for uint256;
 
     struct State {
-        // token -> PoolGroup
+        // Token -> PoolGroup
         mapping(address => PoolGroup) poolGroups;
         // Number of pools in a PoolGroup
         uint256 poolGroupSize;
     }
 
+    /// A PoolGroup essentially assigns a Pool, where liquidity info is recorded,
+    /// to each day (converted from `block.timestamp`). For example, when a deposit
+    /// happens, we calculate the day we want to deposit into based on the deposit
+    /// term, then we record deposit amount in the Pool data structure.
     struct PoolGroup {
         // Pool ID (in day) -> Pool
         mapping(uint256 => IStruct.Pool) poolsById;
@@ -107,6 +112,8 @@ library LiquidityPools {
 
         uint256 distributorInterest;
 
+        /// Borrow from the first pool available, go to the next pool in PoolGroup
+        /// and repeat until the total loan amount is fulfilled
         for (
             uint256 poolId = firstPoolId.add(loanRecord.loanTerm);
             poolId <= firstPoolId.add(self.poolGroupSize);
@@ -187,8 +194,8 @@ library LiquidityPools {
                 continue;
             }
 
-            /// Calculate the amount to repay to this pool, e.g., if I loaned total of 100
-            /// from all pools, where 10 is from this pool, and I want to repay 50 now.
+            /// Calculate the amount to repay to this pool, e.g., if we loaned total of 100
+            /// from all pools, where 10 is from this pool, and we want to repay 50 now.
             /// Then the amount pay back to this pool will be: 50 * 10 / 100 = 5
             repayAmountToThisPool = repayAmount.mul(loanAmountFromThisPool).div(
                 loanRecord.loanAmount
@@ -216,6 +223,7 @@ library LiquidityPools {
         );
         uint256 firstPoolId = DateTime.toDays();
         IStruct.Pool memory pool;
+
         for (uint256 i = 0; i <= self.poolGroupSize; i++) {
             pool = poolGroup.poolsById[firstPoolId.add(i)];
             poolList[i] = IStruct.GetPoolsByTokenResponse({

@@ -6,10 +6,8 @@ import './IInterestModel.sol';
 import './IStruct.sol';
 
 
-/// @title Interface for main protocol
+/// @title Interface for the main contract
 interface IProtocol {
-    /// --- Deposit ---
-
     /// @notice Enable a deposit term
     /// @param depositTerm Deposit term
     function enableDepositTerm(uint256 depositTerm) external;
@@ -89,8 +87,6 @@ interface IProtocol {
         external
         view
         returns (bool isEarlyWithdrawable);
-
-    /// --- Loan ---
 
     /// @notice Set a loan and collateral token pair, e.g., ETH_DAI.
     /// @param loanTokenAddress Loan token address
@@ -203,8 +199,6 @@ interface IProtocol {
         external
         view
         returns (uint256 loanInterestRate);
-
-    /// --- Configuration ---
 
     function getPoolsByToken(address tokenAddress)
         external
