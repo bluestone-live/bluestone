@@ -33,6 +33,7 @@
     "borrow_form_input_label_collateral_amount": "抵押金额",
     "borrow_form_input_label_collateral_ratio": "抵押率",
     "borrow_form_label_term": "借款周期",
+    "borrow_form_notice_after_due_date": "如果到期后仍未偿还债务，该记录将被清算",
     "borrow_form_select_label_collateral_token": "抵押物",
     "borrow_form_text_apr": "年化利率",
     "borrow_form_text_label_due_date": "过期时间",
