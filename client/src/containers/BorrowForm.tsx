@@ -241,11 +241,9 @@ const BorrowForm = (props: IProps) => {
     } catch (e) {
       dispatch(
         ViewActions.setBanner(
-          t(
-            'common_borrow_fail_title',
-            BannerType.Warning,
-            t('common_borrow_fail_succeed'),
-          ),
+          t('common_borrow_fail_title'),
+          BannerType.Warning,
+          e.message,
         ),
       );
     }

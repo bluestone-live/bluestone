@@ -103,11 +103,9 @@ const RepayForm = (props: IProps) => {
     } catch (e) {
       dispatch(
         ViewActions.setBanner(
-          t(
-            'common_repay_fail_title',
-            BannerType.Warning,
-            t('common_repay_fail_content'),
-          ),
+          t('common_repay_fail_title'),
+          BannerType.Warning,
+          e.message,
         ),
       );
     }
