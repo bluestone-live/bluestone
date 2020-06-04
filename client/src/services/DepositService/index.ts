@@ -90,7 +90,7 @@ export class DepositService {
       events: {
         WithdrawSucceed: { returnValues },
       },
-    } = this.provider.protocol.methods
+    } = await this.provider.protocol.methods
       .withdraw(depositId)
       .send({ from: accountAddress });
 

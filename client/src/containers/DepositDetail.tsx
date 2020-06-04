@@ -93,7 +93,7 @@ const DepositDetail = (props: IProps) => {
         ViewActions.setBanner(
           t('common_withdraw_deposit_fail_title'),
           BannerType.Warning,
-          t('common_withdraw_deposit_fail_content'),
+          e.message,
         ),
       );
     }
@@ -115,7 +115,7 @@ const DepositDetail = (props: IProps) => {
         ViewActions.setBanner(
           t('common_early_withdraw_deposit_fail_title'),
           BannerType.Warning,
-          t('common_early_withdraw_deposit_fail_content'),
+          e.message,
         ),
       );
     }
