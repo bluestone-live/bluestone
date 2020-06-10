@@ -24,8 +24,7 @@ contract('DepositManager', function([
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
   const balanceCap = toFixedBN(100000);
-  let token, depositManager;
-  let interestModel;
+  let token, depositManager, interestModel, datetime;
 
   beforeEach(async () => {
     depositManager = await DepositManager.new();
@@ -346,6 +345,8 @@ contract('DepositManager', function([
         let depositorTokenBalanceAfterAction;
         let distributorTokenBalanceBeforeAction;
         let distributorTokenBalanceAfterAction;
+        let poolBeforeAction;
+        let poolAfterAction;
 
         beforeEach(async () => {
           await time.increase(time.duration.days(depositTerm + 1));
@@ -354,12 +355,23 @@ contract('DepositManager', function([
           distributorTokenBalanceBeforeAction = await token.balanceOf(
             distributorAddress,
           );
+          const poolId = (await depositManager.getDepositRecordById(recordId))
+            .poolId;
+          poolBeforeAction = await depositManager.getPoolById(
+            token.address,
+            poolId,
+          );
+
           tx = await depositManager.withdraw(recordId, {
             from: depositor,
           });
           depositorTokenBalanceAfterAction = await token.balanceOf(depositor);
           distributorTokenBalanceAfterAction = await token.balanceOf(
             distributorAddress,
+          );
+          poolAfterAction = await depositManager.getPoolById(
+            token.address,
+            poolId,
           );
         });
 
@@ -393,6 +405,21 @@ contract('DepositManager', function([
             ),
           ).to.bignumber.equal(interestForDepositDistributor);
         });
+
+        it('removes principal, interest, distributor fee and protocol fee from the pool', async () => {
+          const {
+            interestForDepositor,
+            interestForDepositDistributor,
+            interestForProtocolReserve,
+          } = await depositManager.getInterestDistributionByDepositId(recordId);
+          expect(new BN(poolAfterAction.availableAmount)).to.bignumber.equal(
+            new BN(poolBeforeAction.availableAmount)
+              .sub(depositAmount)
+              .sub(interestForDepositor)
+              .sub(interestForDepositDistributor)
+              .sub(interestForProtocolReserve),
+          );
+        });
       });
     });
 
@@ -418,6 +445,7 @@ contract('DepositManager', function([
       context('when deposit is matured', () => {
         let depositorEthBalanceBeforeAction, depositorEthBalanceAfterAction;
         let distributorEthBalanceBeforeAction, distributorEthBalanceAfterAction;
+        let poolBeforeAction, poolAfterAction;
 
         let interestForProtocolReserve;
         let interestForDepositDistributor;
@@ -443,6 +471,13 @@ contract('DepositManager', function([
           distributorEthBalanceBeforeAction = new BN(
             await web3.eth.getBalance(distributorAddress),
           );
+          const poolId = (await depositManager.getDepositRecordById(recordId))
+            .poolId;
+          poolBeforeAction = await depositManager.getPoolById(
+            ETHIdentificationAddress,
+            poolId,
+          );
+
           tx = await depositManager.withdraw(recordId, {
             from: depositor,
           });
@@ -451,6 +486,10 @@ contract('DepositManager', function([
           );
           distributorEthBalanceAfterAction = new BN(
             await web3.eth.getBalance(distributorAddress),
+          );
+          poolAfterAction = await depositManager.getPoolById(
+            ETHIdentificationAddress,
+            poolId,
           );
         });
 
@@ -500,6 +539,21 @@ contract('DepositManager', function([
               distributorEthBalanceBeforeAction,
             ),
           ).to.bignumber.equal(interestForDepositDistributor);
+        });
+
+        it('removes principal, interest, distributor fee and protocol fee from the pool', async () => {
+          const {
+            interestForDepositor,
+            interestForDepositDistributor,
+            interestForProtocolReserve,
+          } = await depositManager.getInterestDistributionByDepositId(recordId);
+          expect(new BN(poolAfterAction.availableAmount)).to.bignumber.equal(
+            new BN(poolBeforeAction.availableAmount)
+              .sub(depositAmount)
+              .sub(interestForDepositor)
+              .sub(interestForDepositDistributor)
+              .sub(interestForProtocolReserve),
+          );
         });
       });
     });

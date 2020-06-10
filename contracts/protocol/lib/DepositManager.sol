@@ -405,6 +405,20 @@ library DepositManager {
             depositId
         );
 
+        uint256 availableAmountToBeWithdrawn = depositRecord
+            .depositAmount
+            .add(interestForDepositor)
+            .add(interestForDepositDistributor)
+            .add(interestForProtocolReserve);
+
+        liquidityPools.withdrawFromPool(
+            depositRecord.tokenAddress,
+            0,
+            0,
+            availableAmountToBeWithdrawn,
+            depositRecord.poolId
+        );
+
         uint256 depositPlusInterestAmount = depositRecord.depositAmount.add(
             interestForDepositor
         );
@@ -510,10 +524,11 @@ library DepositManager {
             'DepositManager: cannot early withdraw'
         );
 
-        liquidityPools.subtractDepositFromPool(
+        liquidityPools.withdrawFromPool(
             depositRecord.tokenAddress,
             depositRecord.depositAmount,
             depositRecord.weight,
+            depositRecord.depositAmount,
             depositRecord.poolId
         );
 

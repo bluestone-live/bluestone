@@ -43,16 +43,18 @@ contract LiquidityPoolsMock {
             );
     }
 
-    function subtractDepositFromPool(
+    function withdrawFromPool(
         address tokenAddress,
         uint256 depositAmount,
         uint256 depositWeight,
+        uint256 availableAmount,
         uint256 poolId
     ) external {
-        _liquidityPools.subtractDepositFromPool(
+        _liquidityPools.withdrawFromPool(
             tokenAddress,
             depositAmount,
             depositWeight,
+            availableAmount,
             poolId
         );
     }

@@ -110,7 +110,7 @@ contract('LiquidityPools', function([owner]) {
     });
   });
 
-  describe('#subtractDepositFromPool', () => {
+  describe('#withdrawFromPool', () => {
     const depositAmount = toFixedBN(100);
 
     beforeEach(async () => {
@@ -130,10 +130,11 @@ contract('LiquidityPools', function([owner]) {
       const firstPoolId = await datetime.toDays();
       const poolId = firstPoolId.add(new BN(depositTerm));
 
-      await liquidityPools.subtractDepositFromPool(
+      await liquidityPools.withdrawFromPool(
         token.address,
         depositAmount,
         depositAmount.mul(new BN(depositTerm)),
+        depositAmount,
         poolId,
       );
 
