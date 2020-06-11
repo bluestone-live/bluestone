@@ -36,13 +36,25 @@ module.exports = {
       {
         loanTokenSymbol: 'DAI',
         collateralTokenSymbol: 'ETH',
-        minCollateralCoverageRatio: 1.2,
+        minCollateralCoverageRatio: 1.55,
         liquidationDiscount: 0.03,
       },
       {
         loanTokenSymbol: 'USDT',
         collateralTokenSymbol: 'ETH',
-        minCollateralCoverageRatio: 1.2,
+        minCollateralCoverageRatio: 1.55,
+        liquidationDiscount: 0.03,
+      },
+      {
+        loanTokenSymbol: 'USDT',
+        collateralTokenSymbol: 'DAI',
+        minCollateralCoverageRatio: 1.55,
+        liquidationDiscount: 0.03,
+      },
+      {
+        loanTokenSymbol: 'USDC',
+        collateralTokenSymbol: 'ETH',
+        minCollateralCoverageRatio: 1.55,
         liquidationDiscount: 0.03,
       },
     ],
