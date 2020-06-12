@@ -475,7 +475,6 @@ const BorrowForm = (props: IProps) => {
           {loanToken.tokenSymbol}
         </TextBox>
       )}
-      <div className="notice">{t('borrow_form_notice_after_due_date')}</div>
       {selectedPool && (
         <TextBox
           label={`${t('borrow_form_text_label_due_date')} (${getTimezone()})`}
@@ -487,6 +486,7 @@ const BorrowForm = (props: IProps) => {
             .format('YYYY-MM-DD HH:mm')}
         </TextBox>
       )}
+      <div className="notice">{t('borrow_form_notice_after_due_date')}</div>
       <Button
         type="primary"
         block
