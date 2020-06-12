@@ -67,7 +67,7 @@ const BorrowDetail = (props: IProps) => {
         </Col>
       </Row>
       <Row>
-        <Col span={12}>
+        <Col span={8}>
           <TextBox label={t('borrow_detail_label_amount')}>
             {convertWeiToDecimal(
               record.loanAmount,
@@ -77,9 +77,18 @@ const BorrowDetail = (props: IProps) => {
             {selectedLoanPair.loanToken.tokenSymbol}
           </TextBox>
         </Col>
-        <Col span={12}>
+        <Col span={8}>
           <TextBox label={t('borrow_detail_label_term')}>
             {t('borrow_detail_text_term', { term: record.loanTerm.value })}
+          </TextBox>
+        </Col>
+        <Col span={8}>
+          <TextBox label={t('borrow_form_text_apr')}>
+            {`${(
+              Number.parseFloat(
+                convertWeiToDecimal(record.annualInterestRate),
+              ) * 100
+            ).toFixed(2)}%`}
           </TextBox>
         </Col>
       </Row>
