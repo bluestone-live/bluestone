@@ -8,6 +8,7 @@ import TextBox from '../components/TextBox';
 import { convertWeiToDecimal } from '../utils/BigNumber';
 import TransactionList from '../components/TransactionList';
 import Button from 'antd/lib/button';
+import { getTimezone } from '../utils/formatSolidityTime';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   record: ILoanRecord;
@@ -150,7 +151,9 @@ const BorrowDetail = (props: IProps) => {
       </Row>
       <Row>
         <Col span={24}>
-          <TextBox label={t('borrow_detail_label_due_date')}>
+          <TextBox
+            label={`${t('borrow_detail_label_due_date')} (${getTimezone()})`}
+          >
             {record.dueAt.local().format('YYYY.MM.DD HH:mm')}
           </TextBox>
         </Col>

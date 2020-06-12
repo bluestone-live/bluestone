@@ -17,6 +17,7 @@ import { getService } from '../services';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { useDispatch } from 'react-redux';
 import { BannerType } from '../components/Banner';
+import { getTimezone } from '../utils/formatSolidityTime';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -135,7 +136,7 @@ const RepayForm = (props: IProps) => {
         )}{' '}
         {selectedLoanPair.loanToken.tokenSymbol}
       </TextBox>
-      <TextBox label={t('repay_form_label_due_date')}>
+      <TextBox label={`${t('repay_form_label_due_date')} (${getTimezone()})`}>
         {record.dueAt.local().format('YYYY.MM.DD HH:mm')}
       </TextBox>
       <Form>
