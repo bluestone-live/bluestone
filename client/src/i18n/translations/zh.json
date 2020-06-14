@@ -68,6 +68,8 @@
     "common_loading_withdraw": "取款中……",
     "common_repay_fail_title": "还款失败",
     "common_repay_succeed": "还款成功",
+    "common_withdraw_collateral_failed": "提取抵押物失败",
+    "common_withdraw_collateral_succeed": "提取抵押物成功",
     "common_withdraw_deposit_fail_title": "取款失败",
     "common_withdraw_deposit_succeed": "取款成功",
     "deposit_detail_button_early_withdraw": "提前取款",

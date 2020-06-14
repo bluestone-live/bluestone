@@ -153,18 +153,29 @@ const AddCollateralForm = (props: IProps) => {
 
     try {
       const { loanService } = await getService();
+      const symbol =
+        selectedLoanPair && selectedLoanPair.collateralToken.tokenSymbol;
+      const decimals =
+        selectedLoanPair && selectedLoanPair.collateralToken.decimals;
+      const value = convertDecimalToWei(
+        additionalCollateralAmount.toFixed(18),
+        decimals,
+      );
 
       await loanService.addCollateral(
         accountAddress,
         record.recordId,
         record.collateralTokenAddress,
-        convertDecimalToWei(
-          additionalCollateralAmount.toFixed(18),
-          selectedLoanPair && selectedLoanPair.collateralToken.decimals,
-        ),
+        value,
       );
 
-      dispatch(ViewActions.setBanner(t('common_add_collateral_succeed')));
+      const amount = convertWeiToDecimal(value, 4, decimals);
+
+      dispatch(
+        ViewActions.setBanner(
+          t('common_add_collateral_succeed', { amount, unit: symbol }),
+        ),
+      );
 
       history.push(`/account/borrow/${record.recordId}`);
       // Ignore the error
@@ -197,7 +208,7 @@ const AddCollateralForm = (props: IProps) => {
         ),
       );
 
-      dispatch(ViewActions.setBanner(t('common_add_collateral_succeed')));
+      dispatch(ViewActions.setBanner(t('common_withdraw_collateral_succeed')));
 
       history.push(`/account/borrow/${record.recordId}`);
       // Ignore the error
@@ -205,9 +216,9 @@ const AddCollateralForm = (props: IProps) => {
     } catch (e) {
       dispatch(
         ViewActions.setBanner(
-          t('common_add_collateral_fail_title'),
+          t('common_withdraw_collateral_failed'),
           BannerType.Warning,
-          t('common_add_collateral_fail_content'),
+          e.message,
         ),
       );
     }
