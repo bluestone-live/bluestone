@@ -38,10 +38,7 @@ const DepositOverview = (props: IProps) => {
 
   const network = useNetwork();
 
-  const depositTerms =
-    network !== 'main' && isMobile
-      ? useTestingDepositTerms()
-      : useDepositTerms();
+  const depositTerms = useDepositTerms();
 
   const sortingParams = useMemo(
     () => ['term', 'APR', 'utilization'],
