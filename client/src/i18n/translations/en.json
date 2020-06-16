@@ -27,7 +27,7 @@
     "borrow_form_button_approve": "Approve",
     "borrow_form_button_borrow": "Borrow",
     "borrow_form_input_button_max": "MAX",
-    "borrow_form_input_extra_available_amount": "Available Amount:{{balance}} {{unit}}",
+    "borrow_form_input_extra_available_amount": "Available Amount: {{balance}} {{unit}}",
     "borrow_form_input_extra_price": "{{symbol}} Price: ${{price}}",
     "borrow_form_input_label_borrow_amount": "Borrowing Amount",
     "borrow_form_input_label_collateral_amount": "Collateral Amount",
@@ -93,7 +93,7 @@
     "deposit_form_button_approve": "Enable",
     "deposit_form_button_deposit": "Deposit",
     "deposit_form_input_amount": "Amount",
-    "deposit_form_input_extra_balance": "Available amount:{{balance}} {{unit}}",
+    "deposit_form_input_extra_balance": "Available amount: {{balance}} {{unit}}",
     "deposit_form_page_title_select_term": "Select Term",
     "deposit_form_text_current_apr": "Current APR",
     "deposit_form_text_maturity_date": "Maturity Date",
@@ -168,6 +168,10 @@
     "transaction_list_event_RepayLoanSucceed": "Repaid {{amount}} {{unit}}",
     "transaction_list_event_SubtractCollateralSucceed": "Withdrew Collateral {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "Withdrew {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "Transactions({{count}})"
+    "transaction_list_title_transactions": "Transactions({{count}})",
+    "common_deposit_fund_negative": "Amount cannot be negative.",
+    "common_deposit_fund_not_enough": "Not enough balance.",
+    "common_borrow_fund_not_enough": "Not enough pool balance.",
+    "common_illegal_collateral_ratio": "Collateral Coverage Ratio should be greater than 150%"
   }
 }

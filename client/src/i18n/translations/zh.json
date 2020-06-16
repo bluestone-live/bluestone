@@ -27,7 +27,7 @@
     "borrow_form_button_approve": "授权",
     "borrow_form_button_borrow": "借款",
     "borrow_form_input_button_max": "最大",
-    "borrow_form_input_extra_available_amount": "可借金额:{{balance}} {{unit}}",
+    "borrow_form_input_extra_available_amount": "可借金额: {{balance}} {{unit}}",
     "borrow_form_input_extra_price": "{{symbol}}: ${{price}}",
     "borrow_form_input_label_borrow_amount": "借款金额",
     "borrow_form_input_label_collateral_amount": "抵押金额",
@@ -93,7 +93,7 @@
     "deposit_form_button_approve": "授权",
     "deposit_form_button_deposit": " 存款",
     "deposit_form_input_amount": " 金额",
-    "deposit_form_input_extra_balance": " 可用余额:{{balance}} {{unit}}",
+    "deposit_form_input_extra_balance": " 可用余额: {{balance}} {{unit}}",
     "deposit_form_page_title_select_term": "选择存款池",
     "deposit_form_text_current_apr": "当前年化利率",
     "deposit_form_text_maturity_date": " 到期时间",
@@ -168,6 +168,10 @@
     "transaction_list_event_RepayLoanSucceed": "还款 {{amount}} {{unit}}",
     "transaction_list_event_SubtractCollateralSucceed": "减少 {{amount}} {{unit}} 抵押",
     "transaction_list_event_WithdrawSucceed": "取款 {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "事务({{count}})"
+    "transaction_list_title_transactions": "事务({{count}})",
+    "common_deposit_fund_negative": "输入资金不能为负",
+    "common_deposit_fund_not_enough": "输入资金超出余额",
+    "common_borrow_fund_not_enough": "输入资金超出资金池余额",
+    "common_illegal_collateral_ratio": "抵押率应在 150% 以上"
   }
 }

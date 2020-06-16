@@ -70,8 +70,10 @@ const BorrowForm = (props: IProps) => {
   const [collateralAmount, setCollateralAmount] = useState<string | number>();
 
   const loadingType = useLoadingType();
+
   const setSafeCollateralRatio = (value: any) => {
-    setCollateralRatio(Math.max(150, Number.parseFloat(value)));
+    const ratio = Number.parseFloat(value || '0');
+    setCollateralRatio(ratio);
   };
 
   // Initialize
@@ -149,12 +151,26 @@ const BorrowForm = (props: IProps) => {
     }
   }, [selectedLoanPair, borrowAmount, selectedPool]);
 
+  const [illegalBorrowAmount, setIllegalBorrowAmount] = useState(true);
+  const [isNegativeBorrowAmount, setNegativeBorrowAmount] = useState(false);
+  const [isOverAvailableAmount, setOverAvailableAmount] = useState(false);
+
   // Callbacks
   const onBorrowAmountChange = useCallback(
     (value: string) => {
+      value = value || '0';
       const tokenAmount = Number.parseFloat(value);
-      if (tokenAmount < 0 || tokenAmount > selectedPool!.availableAmount) {
-        return;
+
+      if (
+        tokenAmount < 0 ||
+        tokenAmount > selectedPool!.availableAmount ||
+        value === '0'
+      ) {
+        setIllegalBorrowAmount(true);
+        setNegativeBorrowAmount(tokenAmount < 0);
+        setOverAvailableAmount(tokenAmount > selectedPool!.availableAmount);
+      } else {
+        setIllegalBorrowAmount(false);
       }
 
       setBorrowAmount(tokenAmount);
@@ -367,24 +383,34 @@ const BorrowForm = (props: IProps) => {
   return (
     <Form>
       {loanToken && selectedPool && (
-        <FormInput
-          label={t('borrow_form_input_label_borrow_amount')}
-          type="number"
-          suffix={loanToken.tokenSymbol}
-          value={borrowAmount}
-          onChange={onBorrowAmountChange}
-          extra={t('borrow_form_input_extra_available_amount', {
-            balance: selectedPool
-              ? selectedPool.availableAmount.toString()
-              : '0',
-            unit: loanToken.tokenSymbol,
-          })}
-          actionButtons={[
-            <Button key="max_btn" onClick={onBorrowAmountMaxButtonClick}>
-              {t('borrow_form_input_button_max')}
-            </Button>,
-          ]}
-        />
+        <div>
+          <FormInput
+            label={t('borrow_form_input_label_borrow_amount')}
+            type="number"
+            suffix={loanToken.tokenSymbol}
+            value={borrowAmount}
+            onChange={onBorrowAmountChange}
+            actionButtons={[
+              <Button key="max_btn" onClick={onBorrowAmountMaxButtonClick}>
+                {t('borrow_form_input_button_max')}
+              </Button>,
+            ]}
+          />
+
+          {illegalBorrowAmount && borrowAmount !== 0 ? (
+            <div className="notice">
+              {t(
+                isNegativeBorrowAmount
+                  ? 'common_deposit_fund_negative'
+                  : isOverAvailableAmount
+                  ? 'common_borrow_fund_not_enough'
+                  : '',
+              )}
+            </div>
+          ) : (
+            undefined
+          )}
+        </div>
       )}
       {loanToken && loanPairs && collateralToken && (
         <Form.Item label={t('borrow_form_select_label_collateral_token')}>
@@ -404,45 +430,53 @@ const BorrowForm = (props: IProps) => {
         </Form.Item>
       )}
       {selectedLoanPair && (
-        <FormInput
-          label={t('borrow_form_input_label_collateral_ratio')}
-          type={isMobile(window.navigator).any ? 'number' : 'text'}
-          value={collateralRatio}
-          suffix="%"
-          onChange={onCollateralRatioChange}
-          actionButtons={[
-            <Button
-              className="collateral_ratio_minus"
-              key="collateral_ratio_minus"
-              onClick={modifyCollateralRatio(-10)}
-              disabled={illegalRatio}
-            >
-              -10%
-            </Button>,
-            <Button
-              key="collateral_ratio_plus"
-              className="collateral_ratio_plus"
-              onClick={modifyCollateralRatio(10)}
-            >
-              +10%
-            </Button>,
-          ]}
-          tip={{
-            title: t('borrow_form_tip_title'),
-            content: (
-              <div>
-                {t('borrow_form_tip_content', {
-                  minCollateralCoverageRatio:
-                    Number.parseFloat(
-                      convertWeiToDecimal(
-                        selectedLoanPair.minCollateralCoverageRatio,
-                      ),
-                    ) * 100,
-                })}
-              </div>
-            ),
-          }}
-        />
+        <div>
+          <FormInput
+            label={t('borrow_form_input_label_collateral_ratio')}
+            type={isMobile(window.navigator).any ? 'number' : 'text'}
+            value={collateralRatio}
+            suffix="%"
+            onChange={onCollateralRatioChange}
+            actionButtons={[
+              <Button
+                className="collateral_ratio_minus"
+                key="collateral_ratio_minus"
+                onClick={modifyCollateralRatio(-10)}
+                disabled={illegalRatio}
+              >
+                -10%
+              </Button>,
+              <Button
+                key="collateral_ratio_plus"
+                className="collateral_ratio_plus"
+                onClick={modifyCollateralRatio(10)}
+              >
+                +10%
+              </Button>,
+            ]}
+            tip={{
+              title: t('borrow_form_tip_title'),
+              content: (
+                <div>
+                  {t('borrow_form_tip_content', {
+                    minCollateralCoverageRatio:
+                      Number.parseFloat(
+                        convertWeiToDecimal(
+                          selectedLoanPair.minCollateralCoverageRatio,
+                        ),
+                      ) * 100,
+                  })}
+                </div>
+              ),
+            }}
+          />
+
+          {illegalRatio ? (
+            <div className="notice">{t('common_illegal_collateral_ratio')}</div>
+          ) : (
+            undefined
+          )}
+        </div>
       )}
       {collateralToken && selectedBalance && (
         <FormInput
@@ -492,7 +526,7 @@ const BorrowForm = (props: IProps) => {
         block
         onClick={submit}
         loading={loadingType === LoadingType.Borrow}
-        disabled={loading || illegalRatio}
+        disabled={loading || illegalRatio || illegalBorrowAmount}
       >
         {buttonText}
       </Button>

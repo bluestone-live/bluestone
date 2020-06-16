@@ -117,6 +117,12 @@ const DepositForm = (props: IProps) => {
     t,
   } = props;
 
+  const userBalance = convertWeiToDecimal(
+    tokenBalance.balance,
+    4,
+    token.decimals,
+  );
+
   const dispatch = useDispatch();
 
   const loadingType = useLoadingType();
@@ -124,19 +130,30 @@ const DepositForm = (props: IProps) => {
   // States
   const [depositAmount, setDepositAmount] = useState('0');
 
+  const [illegalAmount, setIllegalAmount] = useState(true);
+
+  const [negativeAmount, setNegativeAmount] = useState(false);
+
+  const [balanceNotEnough, setBalanceNotEnough] = useState(false);
+
   // Callbacks
   const onDepositAmountChange = useCallback(
     (value: string) => {
-      if (Number.parseFloat(value) < 0) {
-        return;
+      value = value || '0';
+
+      const isNegative = Number.parseFloat(value) < 0;
+      const overBalance =
+        Number.parseFloat(value) > Number.parseFloat(userBalance);
+
+      if (isNegative || overBalance || value === '0') {
+        setIllegalAmount(true);
+        setNegativeAmount(isNegative);
+        setBalanceNotEnough(overBalance);
+      } else {
+        setIllegalAmount(false);
       }
-      const safeValue = Math.min(
-        Number.parseFloat(
-          convertWeiToDecimal(tokenBalance.balance, 4, token.decimals),
-        ),
-        Number.parseFloat(value),
-      );
-      setDepositAmount(`${safeValue}`);
+
+      setDepositAmount(`${Number.parseFloat(value)}`);
     },
     [setDepositAmount],
   );
@@ -235,15 +252,20 @@ const DepositForm = (props: IProps) => {
             size="large"
             value={depositAmount}
             onChange={onDepositAmountChange}
-            extra={t('deposit_form_input_extra_balance', {
-              balance: convertWeiToDecimal(
-                tokenBalance.balance,
-                4,
-                token.decimals,
-              ),
-              unit: token.tokenSymbol,
-            })}
           />
+          {illegalAmount && depositAmount !== '0' ? (
+            <div className="notice">
+              {t(
+                negativeAmount
+                  ? 'common_deposit_fund_negative'
+                  : balanceNotEnough
+                  ? 'common_deposit_fund_not_enough'
+                  : '',
+              )}
+            </div>
+          ) : (
+            undefined
+          )}
           <TextBox label={t('deposit_form_text_current_apr')}>
             {pool.APR}%
           </TextBox>
@@ -262,7 +284,11 @@ const DepositForm = (props: IProps) => {
             block
             onClick={submit}
             loading={loadingType === LoadingType.Deposit}
-            disabled={loadingType !== LoadingType.None || !depositAmount}
+            disabled={
+              loadingType !== LoadingType.None ||
+              !depositAmount ||
+              illegalAmount
+            }
           >
             {buttonText}
           </Button>
