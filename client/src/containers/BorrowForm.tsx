@@ -199,6 +199,9 @@ const BorrowForm = (props: IProps) => {
   const onBorrowAmountMaxButtonClick = useCallback(() => {
     if (selectedPool) {
       setBorrowAmount(selectedPool.availableAmount);
+      setIllegalBorrowAmount(false);
+      setNegativeBorrowAmount(false);
+      setOverAvailableAmount(false);
 
       if (collateralToken && loanToken) {
         setCollateralAmount(
