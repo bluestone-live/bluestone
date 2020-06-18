@@ -25,6 +25,7 @@ import usdc from '../styles/images/usdc.svg';
 import usdt from '../styles/images/usdt.svg';
 import dai from '../styles/images/dai.svg';
 import { getTimezone } from '../utils/formatSolidityTime';
+import sleep from '../utils/sleep';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   accountAddress: string;
@@ -203,6 +204,15 @@ const DepositForm = (props: IProps) => {
               : await accountService.getTokenBalance(accountAddress, token),
           ),
         );
+
+        while (true) {
+          try {
+            await depositService.getDepositRecordById(recordId);
+            break;
+          } catch (error) {
+            await sleep(2500);
+          }
+        }
 
         dispatch(ViewActions.setBanner(t('common_deposit_succeed')));
 

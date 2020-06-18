@@ -31,6 +31,7 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import { BannerType } from '../components/Banner';
 import isMobile from 'ismobilejs';
 import { getTimezone } from '../utils/formatSolidityTime';
+import sleep from '../utils/sleep';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   protocolContractAddress: string;
@@ -249,6 +250,15 @@ const BorrowForm = (props: IProps) => {
           selectedPool.term,
           distributorAddress,
         );
+
+        while (true) {
+          try {
+            await loanService.getLoanRecordById(recordId);
+            break;
+          } catch (error) {
+            await sleep(2500);
+          }
+        }
 
         dispatch(ViewActions.setBanner(t('common_borrow_succeed')));
 
