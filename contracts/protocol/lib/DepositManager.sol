@@ -385,10 +385,12 @@ library DepositManager {
             msg.sender == depositRecord.ownerAddress,
             'DepositManager: invalid owner'
         );
+
         require(
             depositRecord.withdrewAt == 0,
             'DepositManager: deposit is withdrawn'
         );
+
         require(
             depositRecord.poolId < DateTime.toDays(),
             'DepositManager: deposit is not matured'
@@ -410,6 +412,15 @@ library DepositManager {
             .add(interestForDepositor)
             .add(interestForDepositDistributor)
             .add(interestForProtocolReserve);
+
+        IStruct.Pool memory pool = liquidityPools.getPoolById(
+            tokenAddress,
+            depositRecord.poolId
+        );
+        require(
+            pool.availableAmount >= availableAmountToBeWithdrawn,
+            'DepositManager: insufficient available amount for withdrawal'
+        );
 
         liquidityPools.withdrawFromPool(
             depositRecord.tokenAddress,

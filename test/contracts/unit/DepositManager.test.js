@@ -1,4 +1,5 @@
 const DepositManager = artifacts.require('DepositManagerMock');
+const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
 const {
@@ -17,6 +18,7 @@ const {
 contract('DepositManager', function([
   owner,
   depositor,
+  loaner,
   distributorAddress,
   interestReserveAddress,
 ]) {
@@ -340,6 +342,70 @@ contract('DepositManager', function([
           .recordId;
       });
 
+      context('when pool available amount is insufficient', () => {
+        let priceOracle, collateralPriceOracle;
+        let collateralToken;
+
+        beforeEach(async () => {
+          priceOracle = await SingleFeedPriceOracle.new();
+          collateralPriceOracle = await SingleFeedPriceOracle.new();
+          collateralToken = await createERC20Token(loaner, toFixedBN(1000));
+          await priceOracle.setPrice(toFixedBN(10));
+          await collateralPriceOracle.setPrice(toFixedBN(10));
+          await depositManager.setPriceOracle(
+            token.address,
+            priceOracle.address,
+          );
+          await depositManager.setPriceOracle(
+            collateralToken.address,
+            collateralPriceOracle.address,
+          );
+          await depositManager.setLoanAndCollateralTokenPair(
+            token.address,
+            collateralToken.address,
+            toFixedBN(1.5),
+            toFixedBN(0.05),
+          );
+          await token.approve(depositManager.address, toFixedBN(1000), {
+            from: loaner,
+          });
+          await collateralToken.approve(
+            depositManager.address,
+            toFixedBN(1000),
+            {
+              from: loaner,
+            },
+          );
+
+          const loanAmount = toFixedBN(10);
+          const collateralAmount = toFixedBN(20);
+          await depositManager.loan(
+            token.address,
+            collateralToken.address,
+            loanAmount,
+            collateralAmount,
+            1,
+            distributorAddress,
+            {
+              from: loaner,
+            },
+          );
+
+          await time.increase(time.duration.days(depositTerm + 1));
+          // When the loan is matured but not repaid, there is insufficient
+          // amount for withdrawal.
+        });
+
+        it('fails to withdraw', async () => {
+          await expectRevert(
+            depositManager.withdraw(recordId, {
+              from: depositor,
+            }),
+            'DepositManager: insufficient available amount for withdrawal',
+          );
+        });
+      });
+
       context('when deposit is matured', () => {
         let depositorTokenBalanceBeforeAction;
         let depositorTokenBalanceAfterAction;
@@ -440,6 +506,67 @@ contract('DepositManager', function([
 
         recordId = tx.logs.filter(log => log.event === 'DepositSucceed')[0].args
           .recordId;
+      });
+
+      context('when pool available amount is insufficient', () => {
+        let priceOracle, collateralPriceOracle;
+        let collateralToken;
+
+        beforeEach(async () => {
+          priceOracle = await SingleFeedPriceOracle.new();
+          collateralPriceOracle = await SingleFeedPriceOracle.new();
+          collateralToken = await createERC20Token(loaner, toFixedBN(1000));
+          await priceOracle.setPrice(toFixedBN(10));
+          await collateralPriceOracle.setPrice(toFixedBN(10));
+          await depositManager.setPriceOracle(
+            ETHIdentificationAddress,
+            priceOracle.address,
+          );
+          await depositManager.setPriceOracle(
+            collateralToken.address,
+            collateralPriceOracle.address,
+          );
+          await depositManager.setLoanAndCollateralTokenPair(
+            ETHIdentificationAddress,
+            collateralToken.address,
+            toFixedBN(1.5),
+            toFixedBN(0.05),
+          );
+          await collateralToken.approve(
+            depositManager.address,
+            toFixedBN(1000),
+            {
+              from: loaner,
+            },
+          );
+
+          const loanAmount = toFixedBN(10);
+          const collateralAmount = toFixedBN(20);
+          await depositManager.loan(
+            ETHIdentificationAddress,
+            collateralToken.address,
+            loanAmount,
+            collateralAmount,
+            1,
+            distributorAddress,
+            {
+              from: loaner,
+            },
+          );
+
+          await time.increase(time.duration.days(depositTerm + 1));
+          // When the loan is matured but not repaid, there is insufficient
+          // amount for withdrawal.
+        });
+
+        it('fails to withdraw', async () => {
+          await expectRevert(
+            depositManager.withdraw(recordId, {
+              from: depositor,
+            }),
+            'DepositManager: insufficient available amount for withdrawal',
+          );
+        });
       });
 
       context('when deposit is matured', () => {

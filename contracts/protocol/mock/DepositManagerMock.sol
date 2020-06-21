@@ -185,4 +185,50 @@ contract DepositManagerMock {
     function setBalanceCap(address tokenAddress, uint256 balanceCap) external {
         _configuration.setBalanceCap(tokenAddress, balanceCap);
     }
+
+    function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
+        external
+    {
+        _configuration.setPriceOracle(tokenAddress, priceOracle);
+    }
+
+    function setLoanAndCollateralTokenPair(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 minCollateralCoverageRatio,
+        uint256 liquidationDiscount
+    ) external {
+        _loanManager.setLoanAndCollateralTokenPair(
+            loanTokenAddress,
+            collateralTokenAddress,
+            minCollateralCoverageRatio,
+            liquidationDiscount
+        );
+    }
+
+    function loan(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 loanAmount,
+        uint256 collateralAmount,
+        uint256 loanTerm,
+        address payable distributorAddress
+    ) external payable returns (bytes32 loanId) {
+        IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
+            loanTokenAddress: loanTokenAddress,
+            collateralTokenAddress: collateralTokenAddress,
+            loanAmount: loanAmount,
+            collateralAmount: collateralAmount,
+            loanTerm: loanTerm,
+            distributorAddress: distributorAddress
+        });
+        if (collateralTokenAddress == address(1)) {
+            loanParameters.collateralAmount = msg.value;
+        } else {
+            loanParameters.collateralAmount = collateralAmount;
+        }
+
+        return
+            _loanManager.loan(_configuration, _liquidityPools, loanParameters);
+    }
 }
