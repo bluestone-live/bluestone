@@ -15,10 +15,6 @@ const ERC20Mock = artifacts.require('ERC20Mock');
 const Protocol = artifacts.require('Protocol');
 
 module.exports = makeTruffleScript(async network => {
-  if (network === 'main') {
-    throw new Error('Please deploy manually for mainnet.');
-  }
-
   const { tokens } = loadNetwork(network);
 
   const { ETH, DAI, USDT, USDC } = tokens;
@@ -27,31 +23,46 @@ module.exports = makeTruffleScript(async network => {
     throw new Error('Please ensure tokens are deployed.');
   }
 
-  const medianizer = await MedianizerMock.deployed();
-  const oasisDex = await OasisDexMock.deployed();
+  const medianizer =
+    network === 'main'
+      ? { address: '0x729D19f657BD0614b4985Cf1D82531c67569197B' } // Medianizer address
+      : await MedianizerMock.deployed();
 
   const ethPriceOracle = await EthPriceOracle.new(medianizer.address);
   const ethPrice = await ethPriceOracle.getPrice();
 
-  // Setup Oasis
-  await oasisDex.setBuyAmount(ethPrice.mul(new BN(10)));
-  await oasisDex.setPayAmount(ethPrice.mul(new BN(10)));
+  const oasisDex =
+    network === 'main'
+      ? { address: '0x794e6e91555438aFc3ccF1c5076A74F42133d08D' } // OasisV2 DEX address
+      : await OasisDexMock.deployed();
 
-  // Setup uniswap
-  const uniswap = await web3.eth.accounts.create();
-  const uniswapPrice = toFixedBN(1);
-  const uniswapEthAmount = new BN(1);
-  const uniswapDaiAmount = ethPrice.mul(uniswapEthAmount).div(uniswapPrice);
-  const accounts = await web3.eth.getAccounts();
+  if (network !== 'main') {
+    // Setup Oasis
+    await oasisDex.setBuyAmount(ethPrice.mul(new BN(10)));
+    await oasisDex.setPayAmount(ethPrice.mul(new BN(10)));
+  }
 
-  await web3.eth.sendTransaction({
-    from: accounts[0],
-    to: uniswap.address,
-    value: uniswapEthAmount,
-  });
+  const uniswap =
+    network === 'main'
+      ? { address: '0x2a1530C4C41db0B0b2bB646CB5Eb1A67b7158667' } // Uniswap V1 DAI Exchange Address
+      : await web3.eth.accounts.create();
 
-  const dai = await ERC20Mock.at(DAI.address);
-  await dai.mint(uniswap.address, uniswapDaiAmount);
+  if (network !== 'main') {
+    // Setup uniswap
+    const uniswapPrice = toFixedBN(1);
+    const uniswapEthAmount = new BN(1);
+    const uniswapDaiAmount = ethPrice.mul(uniswapEthAmount).div(uniswapPrice);
+    const accounts = await web3.eth.getAccounts();
+
+    await web3.eth.sendTransaction({
+      from: accounts[0],
+      to: uniswap.address,
+      value: uniswapEthAmount,
+    });
+
+    const dai = await ERC20Mock.at(DAI.address);
+    await dai.mint(uniswap.address, uniswapDaiAmount);
+  }
 
   const oasisEthAmount = toFixedBN(10);
   const priceUpperBound = toFixedBN(1.1);

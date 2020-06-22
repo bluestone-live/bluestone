@@ -2,6 +2,10 @@ const config = require('config');
 const { makeTruffleScript, saveNetwork, loadNetwork } = require('../utils.js');
 
 module.exports = makeTruffleScript(async network => {
+  if (network === 'main') {
+    return;
+  }
+
   const debug = require('debug')('script:deployTokens');
   const ERC20Mock = artifacts.require('./ERC20Mock.sol');
   const USDTMock = artifacts.require('./USDTMock.sol');

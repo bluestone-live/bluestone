@@ -38,12 +38,14 @@ module.exports = async function(deployer, network) {
   await deploy(deployer, network, Protocol);
   await deploy(deployer, network, InterestModel);
 
-  const ethPrice = toFixedBN(200);
-  const medianizer = await deployer.deploy(MedianizerMock);
-  await medianizer.setPrice(ethPrice);
+  if (network !== 'main') {
+    const ethPrice = toFixedBN(200);
+    const medianizer = await deployer.deploy(MedianizerMock);
+    await medianizer.setPrice(ethPrice);
 
-  const oasisDex = await deployer.deploy(OasisDexMock);
-  await oasisDex.setEthPrice(ethPrice);
+    const oasisDex = await deployer.deploy(OasisDexMock);
+    await oasisDex.setEthPrice(ethPrice);
+  }
 };
 
 async function deployLibMocks(deployer) {
