@@ -1,6 +1,6 @@
 const LiquidityPools = artifacts.require('LiquidityPoolsMock');
 const DateTime = artifacts.require('DateTime');
-const { BN, expectRevert } = require('@openzeppelin/test-helpers');
+const { BN, expectRevert, time } = require('@openzeppelin/test-helpers');
 const { createERC20Token, toFixedBN } = require('../../utils/index');
 const { expect } = require('chai');
 
@@ -112,6 +112,7 @@ contract('LiquidityPools', function([owner]) {
 
   describe('#withdrawFromPool', () => {
     const depositAmount = toFixedBN(100);
+    let depositPoolId;
 
     beforeEach(async () => {
       await liquidityPools.setPoolGroupSize(365);
@@ -124,25 +125,47 @@ contract('LiquidityPools', function([owner]) {
         loanDistributorFeeRatio,
         protocolReserveRatio,
       );
+      const firstPoolId = await datetime.toDays();
+      depositPoolId = firstPoolId.add(new BN(depositTerm));
     });
 
-    it('succeeds', async () => {
-      const firstPoolId = await datetime.toDays();
-      const poolId = firstPoolId.add(new BN(depositTerm));
+    context('when available amount is sufficient for the withdrawal', () => {
+      beforeEach(async () => {
+        await liquidityPools.withdrawFromPool(
+          token.address,
+          depositAmount,
+          depositAmount.mul(new BN(depositTerm)),
+          depositAmount,
+          depositPoolId,
+        );
+      });
 
-      await liquidityPools.withdrawFromPool(
-        token.address,
-        depositAmount,
-        depositAmount.mul(new BN(depositTerm)),
-        depositAmount,
-        poolId,
-      );
+      it('succeeds', async () => {
+        const pool = await liquidityPools.getPoolById(
+          token.address,
+          depositPoolId,
+        );
 
-      const pool = await liquidityPools.getPoolById(token.address, poolId);
+        expect(new BN(pool.depositAmount)).to.bignumber.equal(new BN(0));
+        expect(new BN(pool.availableAmount)).to.bignumber.equal(new BN(0));
+        expect(new BN(pool.loanInterest)).to.bignumber.equal(new BN(0));
+      });
+    });
 
-      expect(new BN(pool.depositAmount)).to.bignumber.equal(new BN(0));
-      expect(new BN(pool.availableAmount)).to.bignumber.equal(new BN(0));
-      expect(new BN(pool.loanInterest)).to.bignumber.equal(new BN(0));
+    context('when available amount is insufficient for the withdrawal', () => {
+      it('reverts', async () => {
+        const withdrawAmount = depositAmount.add(new BN(1));
+        await expectRevert(
+          liquidityPools.withdrawFromPool(
+            token.address,
+            depositAmount,
+            depositAmount.mul(new BN(depositTerm)),
+            withdrawAmount,
+            depositPoolId,
+          ),
+          'SafeMath: subtraction overflow',
+        );
+      });
     });
   });
 
@@ -351,7 +374,7 @@ contract('LiquidityPools', function([owner]) {
   });
 
   describe('#repayLoanToPools', () => {
-    let loanId;
+    let loanId, loanTerm;
 
     beforeEach(async () => {
       const depositAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
@@ -374,7 +397,7 @@ contract('LiquidityPools', function([owner]) {
         protocolReserveRatioList,
       );
       const loanAmount = toFixedBN(15);
-      const loanTerm = 1;
+      loanTerm = 1;
       const loanInterest = toFixedBN(0.5);
 
       await liquidityPools.createLoanRecord(
@@ -419,6 +442,35 @@ contract('LiquidityPools', function([owner]) {
       it('partially repays 3 to pool[2]', async () => {
         const pool2 = await liquidityPools.getPoolByIndex(token.address, 2);
         expect(new BN(pool2.availableAmount)).to.bignumber.equal(toFixedBN(8));
+      });
+    });
+
+    context('when fully repay after the pool matures', () => {
+      let firstMatchedPoolId, secondMatchedPoolId;
+
+      beforeEach(async () => {
+        firstMatchedPoolId = (await datetime.toDays()).add(new BN(1));
+        secondMatchedPoolId = firstMatchedPoolId.add(new BN(1));
+        await time.increase(time.duration.days(loanTerm + 1));
+
+        const repayAmount = toFixedBN(15);
+        await liquidityPools.repayLoanToPools(loanId, repayAmount);
+      });
+
+      it('fully repays 10 to the first matched pool', async () => {
+        const pool1 = await liquidityPools.getPoolById(
+          token.address,
+          firstMatchedPoolId,
+        );
+        expect(new BN(pool1.availableAmount)).to.bignumber.equal(toFixedBN(10));
+      });
+
+      it('fully repays 5 to the second matched pool', async () => {
+        const pool2 = await liquidityPools.getPoolById(
+          token.address,
+          secondMatchedPoolId,
+        );
+        expect(new BN(pool2.availableAmount)).to.bignumber.equal(toFixedBN(10));
       });
     });
   });

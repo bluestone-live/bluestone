@@ -28,6 +28,8 @@ library LiquidityPools {
         mapping(uint256 => IStruct.Pool) poolsById;
         // Loan ID -> Pool ID -> Borrow amount
         mapping(bytes32 => mapping(uint256 => uint256)) loanAmountByLoanIdAndPoolId;
+        // Loan ID -> Pool IDs
+        mapping(bytes32 => uint256[]) matchedPoolIdsByLoanId;
     }
 
     uint256 private constant ONE = 10**18;
@@ -153,7 +155,9 @@ library LiquidityPools {
                 distributorInterestFromPool
             );
 
-            // Record the actual pool we loan from, so we know which pool to repay back later
+            // Record the actual pool we loan from and amount from the pool,
+            // so we know which pool to repay back later
+            poolGroup.matchedPoolIdsByLoanId[loanRecord.loanId].push(poolId);
             poolGroup.loanAmountByLoanIdAndPoolId[loanRecord
                 .loanId][poolId] = loanAmountFromPool;
 
@@ -172,28 +176,15 @@ library LiquidityPools {
         PoolGroup storage poolGroup = self.poolGroups[loanRecord
             .loanTokenAddress];
 
-        uint256 remainingRepayAmount = repayAmount;
-        uint256 firstPoolId = DateTime.toDays();
-
         // Repay loan back to each pool, proportional to the total loan from all pools
         uint256 repayAmountToThisPool;
 
-        for (
-            uint256 poolId = firstPoolId;
-            poolId <= firstPoolId.add(self.poolGroupSize);
-            poolId = poolId.add(1)
-        ) {
-            if (remainingRepayAmount == 0) {
-                break;
-            }
-
+        uint256[] storage matchedPoolIds = poolGroup
+            .matchedPoolIdsByLoanId[loanRecord.loanId];
+        for (uint256 i = 0; i < matchedPoolIds.length; i++) {
+            uint256 poolId = matchedPoolIds[i];
             uint256 loanAmountFromThisPool = poolGroup
                 .loanAmountByLoanIdAndPoolId[loanRecord.loanId][poolId];
-
-            if (loanAmountFromThisPool == 0) {
-                // Skip this pool since it has no loan
-                continue;
-            }
 
             /// Calculate the amount to repay to this pool, e.g., if we loaned total of 100
             /// from all pools, where 10 is from this pool, and we want to repay 50 now.
@@ -204,10 +195,6 @@ library LiquidityPools {
 
             IStruct.Pool storage pool = poolGroup.poolsById[poolId];
             pool.availableAmount = pool.availableAmount.add(
-                repayAmountToThisPool
-            );
-
-            remainingRepayAmount = remainingRepayAmount.sub(
                 repayAmountToThisPool
             );
         }
