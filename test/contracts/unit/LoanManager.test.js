@@ -1187,7 +1187,7 @@ contract('LoanManager', function([
           isFullyRepaid: true,
         });
 
-        expectEvent.inLogs(tx.logs, 'LoanDistributorFeeTransfered', {
+        expectEvent.inLogs(tx.logs, 'LoanDistributorFeeTransferred', {
           recordId: recordId,
         });
       });

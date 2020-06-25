@@ -630,12 +630,12 @@ contract('DepositManager', function([
             accountAddress: depositor,
           });
 
-          expectEvent.inLogs(tx.logs, 'InterestReserveTransfered', {
+          expectEvent.inLogs(tx.logs, 'InterestReserveTransferred', {
             recordId: recordId,
             interestForProtocolReserve: new BN(interestForProtocolReserve),
           });
 
-          expectEvent.inLogs(tx.logs, 'DepositDistributorFeeTransfered', {
+          expectEvent.inLogs(tx.logs, 'DepositDistributorFeeTransferred', {
             recordId: recordId,
             interestForDistributor: new BN(interestForDepositDistributor),
           });

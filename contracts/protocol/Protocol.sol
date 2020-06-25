@@ -64,14 +64,14 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         uint256 amount
     );
 
-    event InterestReserveTransfered(
+    event InterestReserveTransferred(
         address indexed accountAddress,
         bytes32 recordId,
         address indexed depositTokenAddress,
         uint256 interestForProtocolReserve
     );
 
-    event DepositDistributorFeeTransfered(
+    event DepositDistributorFeeTransferred(
         address indexed distributorAccountAddress,
         bytes32 recordId,
         address indexed depositTokenAddress,
@@ -125,7 +125,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         uint256 soldCollateralAmount
     );
 
-    event LoanDistributorFeeTransfered(
+    event LoanDistributorFeeTransferred(
         address indexed distributorAccountAddress,
         bytes32 recordId,
         address indexed loanTokenAddress,

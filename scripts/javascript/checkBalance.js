@@ -107,7 +107,7 @@ module.exports = makeTruffleScript(async network => {
    */
   function getInterestForProtocolReserve(depositTokenAddress) {
     return calcAmount(
-      'InterestReserveTransfered',
+      'InterestReserveTransferred',
       { depositTokenAddress },
       'interestForProtocolReserve',
     );
@@ -120,7 +120,7 @@ module.exports = makeTruffleScript(async network => {
    */
   function getInterestForDistributor(depositTokenAddress) {
     return calcAmount(
-      'DepositDistributorFeeTransfered',
+      'DepositDistributorFeeTransferred',
       { depositTokenAddress },
       'interestForDistributor',
     );
@@ -204,7 +204,7 @@ module.exports = makeTruffleScript(async network => {
    */
   function getInterestForLoanDistributor(loanTokenAddress) {
     return calcAmount(
-      'LoanDistributorFeeTransfered',
+      'LoanDistributorFeeTransferred',
       { loanTokenAddress },
       'interestForLoanDistributor',
     );

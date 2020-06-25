@@ -142,7 +142,7 @@ library LoanManager {
         uint256 collateralAmount
     );
 
-    event LoanDistributorFeeTransfered(
+    event LoanDistributorFeeTransferred(
         address indexed distributorAccountAddress,
         bytes32 recordId,
         address indexed loanTokenAddress,
@@ -958,7 +958,7 @@ library LoanManager {
         }
 
         if (succeed) {
-            emit LoanDistributorFeeTransfered(
+            emit LoanDistributorFeeTransferred(
                 loanRecord.distributorAddress,
                 loanRecord.loanId,
                 loanRecord.loanTokenAddress,
