@@ -65,7 +65,7 @@ const BorrowForm = (props: IProps) => {
   const dispatch = useDispatch();
 
   // States
-  const [borrowAmount, setBorrowAmount] = useState(0);
+  const [borrowAmount, setBorrowAmount] = useState('0');
   const [collateralToken, setCollateralToken] = useState<IToken>();
   const [collateralRatio, setCollateralRatio] = useState<any>();
   const [collateralAmount, setCollateralAmount] = useState<string | number>();
@@ -143,7 +143,7 @@ const BorrowForm = (props: IProps) => {
   const totalDebt = useMemo(() => {
     if (selectedLoanPair && selectedPool) {
       const remainingDebt = calcEstimateRepayAmount(
-        borrowAmount,
+        Number.parseFloat(borrowAmount),
         selectedPool.term,
         selectedPool.loanInterestRate || 0,
       );
@@ -174,7 +174,7 @@ const BorrowForm = (props: IProps) => {
         setIllegalBorrowAmount(false);
       }
 
-      setBorrowAmount(tokenAmount);
+      setBorrowAmount(`${tokenAmount}`);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -198,7 +198,7 @@ const BorrowForm = (props: IProps) => {
 
   const onBorrowAmountMaxButtonClick = useCallback(() => {
     if (selectedPool) {
-      setBorrowAmount(selectedPool.availableAmount);
+      setBorrowAmount(`${selectedPool.availableAmount}`);
       setIllegalBorrowAmount(false);
       setNegativeBorrowAmount(false);
       setOverAvailableAmount(false);
@@ -410,7 +410,7 @@ const BorrowForm = (props: IProps) => {
             ]}
           />
 
-          {illegalBorrowAmount && borrowAmount !== 0 ? (
+          {illegalBorrowAmount && borrowAmount !== '0' ? (
             <div className="notice">
               {t(
                 isNegativeBorrowAmount
@@ -496,7 +496,7 @@ const BorrowForm = (props: IProps) => {
           label={t('borrow_form_input_label_collateral_amount')}
           type="number"
           className="collateral-amount-input"
-          value={collateralAmount}
+          value={collateralAmount || 0}
           onChange={onCollateralAmountChange}
           suffix={collateralToken.tokenSymbol}
           placeholder={convertWeiToDecimal(selectedBalance.balance)}
