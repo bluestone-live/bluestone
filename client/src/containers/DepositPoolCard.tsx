@@ -8,7 +8,7 @@ import { convertWeiToDecimal } from '../utils/BigNumber';
 
 interface IProps extends WithTranslation {
   pool: IPool;
-  isMostBorrowed: boolean;
+  isMostBorrowed?: boolean;
   highlightColumn?: string;
 }
 
@@ -27,7 +27,6 @@ const DepositPoolCard = (props: IProps) => {
         >
           {t('deposit_pool_card_term', { term: pool.term })}
         </div>
-        {isMostBorrowed && <div className="status">MOST BORROWED</div>}
       </div>
     ),
     [pool.term, isMostBorrowed, highlightColumn],
@@ -56,16 +55,9 @@ const DepositPoolCard = (props: IProps) => {
             </span>
           </TextBox>
         </Col>
-        <Col span={8}>
-          <TextBox label={t('deposit_pool_card_text_utilization')}>
-            <span
-              className={
-                highlightColumn === 'utilization' ? 'highlight' : undefined
-              }
-            >
-              {pool.utilization}%
-            </span>
-          </TextBox>
+        <Col span={8} className="deposit-arrow">
+          <span>{`${t('layout_default_deposit')}`}</span>
+          <span className="icon">{'➤'}</span>
         </Col>
       </Row>
     </Card>
