@@ -156,10 +156,14 @@ const RepayForm = (props: IProps) => {
         <Button
           type="primary"
           block
-          size="large"
+          size="default"
           onClick={submit}
           loading={loadingType === LoadingType.Repay}
-          disabled={loadingType !== LoadingType.None}
+          disabled={
+            loadingType !== LoadingType.None ||
+            repayAmount === '0' ||
+            !repayAmount
+          }
         >
           {buttonText}
         </Button>
