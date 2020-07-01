@@ -52,11 +52,15 @@
     "common_add_collateral_fail_title": "Add collateral failed",
     "common_add_collateral_succeed": "Added collateral: {{amount}} {{unit}}",
     "common_borrow_fail_title": "Borrow failed",
+    "common_borrow_fund_not_enough": "Insufficient pool balance.",
     "common_borrow_succeed": "Borrow succeed",
     "common_deposit_fail_title": "Deposit failed",
+    "common_deposit_fund_negative": "Amount cannot be negative.",
+    "common_deposit_fund_not_enough": "Not enough balance.",
     "common_deposit_succeed": "Deposit succeed",
     "common_early_withdraw_deposit_fail_title": "Early withdraw failed",
     "common_early_withdraw_deposit_succeed": "Early withdraw succeed",
+    "common_illegal_collateral_ratio": "Collateral Coverage Ratio should be greater than 150%",
     "common_loading": "Loading",
     "common_loading_add_collateral": "Adding...",
     "common_loading_approve": "Enabling...",
@@ -169,9 +173,6 @@
     "transaction_list_event_SubtractCollateralSucceed": "Withdrew Collateral {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "Withdrew {{amount}} {{unit}}",
     "transaction_list_title_transactions": "Transactions({{count}})",
-    "common_deposit_fund_negative": "Amount cannot be negative.",
-    "common_deposit_fund_not_enough": "Not enough balance.",
-    "common_borrow_fund_not_enough": "Not enough pool balance.",
-    "common_illegal_collateral_ratio": "Collateral Coverage Ratio should be greater than 150%"
+    "common_deposit_fund_illegal": "Invalid number"
   }
 }

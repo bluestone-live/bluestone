@@ -122,7 +122,11 @@ const DepositFormPage = (props: IProps) => {
         {t('deposit_form_page_title_select_term')}
       </div>
       {queryParams.tokenAddress && params.poolId && selectedPool ? (
-        <DepositPoolCard isMostBorrowed={false} pool={selectedPool} />
+        <DepositPoolCard
+          isMostBorrowed={false}
+          pool={selectedPool}
+          showUtilization
+        />
       ) : (
         <DepositPoolCardPlaceholder />
       )}

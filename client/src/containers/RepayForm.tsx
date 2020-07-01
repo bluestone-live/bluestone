@@ -38,15 +38,24 @@ const RepayForm = (props: IProps) => {
   const dispatch = useDispatch();
 
   const loadingType = useLoadingType();
-  const [repayAmount, setRepayAmount] = useState('0');
+  const [repayAmount, setRepayAmount] = useState('');
+  const [illegalAmount, setIllegalAmount] = useState(true);
 
   const onRepayAmountChange = useCallback(
     (value: string) => {
+      const isNan = /^(\d+\.?\d*|\.\d+)$/.test(value) === false;
+
       const safeValue = Math.min(
         Number.parseFloat(value),
         Number.parseFloat(convertWeiToDecimal(record.remainingDebt, 18)),
       );
-      setRepayAmount(`${safeValue}`);
+
+      setIllegalAmount(
+        Number.parseFloat(value) < safeValue ||
+          Number.parseFloat(value) > safeValue ||
+          isNan,
+      );
+      setRepayAmount(value);
     },
     [setRepayAmount],
   );
@@ -141,9 +150,10 @@ const RepayForm = (props: IProps) => {
       </TextBox>
       <Form>
         <FormInput
-          type="number"
+          type="text"
           label={t('repay_form_input_label_repay')}
           value={repayAmount}
+          placeholder="0.00"
           onChange={onRepayAmountChange}
           suffix={selectedLoanPair.loanToken.tokenSymbol}
           actionButtons={[
@@ -160,6 +170,7 @@ const RepayForm = (props: IProps) => {
           onClick={submit}
           loading={loadingType === LoadingType.Repay}
           disabled={
+            illegalAmount ||
             loadingType !== LoadingType.None ||
             repayAmount === '0' ||
             !repayAmount

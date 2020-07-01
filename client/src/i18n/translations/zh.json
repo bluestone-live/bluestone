@@ -52,11 +52,15 @@
     "common_add_collateral_fail_title": "追加抵押失败",
     "common_add_collateral_succeed": "追加抵押成功",
     "common_borrow_fail_title": "借款失败",
+    "common_borrow_fund_not_enough": "输入资金超出资金池余额",
     "common_borrow_succeed": "借款成功",
     "common_deposit_fail_title": "存款失败",
+    "common_deposit_fund_negative": "输入资金不能为负",
+    "common_deposit_fund_not_enough": "输入资金超出余额",
     "common_deposit_succeed": "存款成功",
     "common_early_withdraw_deposit_fail_title": "提前取款失败",
     "common_early_withdraw_deposit_succeed": "提前取款成功",
+    "common_illegal_collateral_ratio": "抵押率应在 150% 以上",
     "common_loading": "执行中",
     "common_loading_add_collateral": "追加中……",
     "common_loading_approve": "授权中……",
@@ -169,9 +173,6 @@
     "transaction_list_event_SubtractCollateralSucceed": "减少 {{amount}} {{unit}} 抵押",
     "transaction_list_event_WithdrawSucceed": "取款 {{amount}} {{unit}}",
     "transaction_list_title_transactions": "事务({{count}})",
-    "common_deposit_fund_negative": "输入资金不能为负",
-    "common_deposit_fund_not_enough": "输入资金超出余额",
-    "common_borrow_fund_not_enough": "输入资金超出资金池余额",
-    "common_illegal_collateral_ratio": "抵押率应在 150% 以上"
+    "common_deposit_fund_illegal": "无效输入"
   }
 }

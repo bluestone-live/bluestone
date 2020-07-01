@@ -10,10 +10,11 @@ interface IProps extends WithTranslation {
   pool: IPool;
   isMostBorrowed?: boolean;
   highlightColumn?: string;
+  showUtilization?: boolean;
 }
 
 const DepositPoolCard = (props: IProps) => {
-  const { pool, isMostBorrowed, highlightColumn, t } = props;
+  const { pool, isMostBorrowed, highlightColumn, t, showUtilization } = props;
 
   const tokens = useDepositTokens();
   const token = tokens.find(ft => ft.tokenAddress === pool.tokenAddress);
@@ -55,9 +56,23 @@ const DepositPoolCard = (props: IProps) => {
             </span>
           </TextBox>
         </Col>
-        <Col span={8} className="deposit-arrow">
-          <span>{`${t('layout_default_deposit')}`}</span>
-          <span className="icon">{'➤'}</span>
+        <Col span={8} className={showUtilization ? '' : 'deposit-arrow'}>
+          {showUtilization ? (
+            <TextBox label={t('deposit_pool_card_text_utilization')}>
+              <span
+                className={
+                  highlightColumn === 'utilization' ? 'highlight' : undefined
+                }
+              >
+                {pool.utilization}%
+              </span>
+            </TextBox>
+          ) : (
+            <div>
+              <span>{`${t('layout_default_deposit')}`}</span>
+              <span className="icon">{'➤'}</span>
+            </div>
+          )}
         </Col>
       </Row>
     </Card>

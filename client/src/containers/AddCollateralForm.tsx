@@ -42,19 +42,11 @@ const AddCollateralForm = (props: IProps) => {
       convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
     ) * 100,
   );
-  const setSafeCollateralRatio = (value: number) =>
-    setCollateralRatio(
-      Math.max(
-        value,
-        Number.parseFloat(
-          convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
-        ) * 100,
-      ),
-    );
+  const setSafeCollateralRatio = (value: number) => setCollateralRatio(value);
 
   const [additionalCollateralAmount, setAdditionalCollateralAmount] = useState<
-    number
-  >(0);
+    string | number
+  >();
   const [maxEther, setMaxEther] = useState('0');
 
   useComponentMounted(async () => {
@@ -130,7 +122,7 @@ const AddCollateralForm = (props: IProps) => {
           parseFloat(value) +
             Number.parseFloat(convertWeiToDecimal(record.collateralAmount)),
         ) || 0;
-      setAdditionalCollateralAmount(safeValue);
+      setAdditionalCollateralAmount(value);
 
       if (selectedLoanPair.collateralToken && selectedLoanPair.loanToken) {
         setCollateralRatio(
@@ -158,7 +150,7 @@ const AddCollateralForm = (props: IProps) => {
       const decimals =
         selectedLoanPair && selectedLoanPair.collateralToken.decimals;
       const value = convertDecimalToWei(
-        additionalCollateralAmount.toFixed(18),
+        Number.parseFloat(`${additionalCollateralAmount}`).toFixed(18),
         decimals,
       );
 
@@ -203,7 +195,9 @@ const AddCollateralForm = (props: IProps) => {
         accountAddress,
         record.recordId,
         convertDecimalToWei(
-          Math.abs(additionalCollateralAmount).toFixed(18),
+          Math.abs(Number.parseFloat(`${additionalCollateralAmount}`)).toFixed(
+            18,
+          ),
           selectedLoanPair && selectedLoanPair.collateralToken.decimals,
         ),
       );
@@ -303,8 +297,8 @@ const AddCollateralForm = (props: IProps) => {
         />
         <FormInput
           label={t('add_collateral_form_label_additional_collateral_amount')}
-          type="number"
-          value={additionalCollateralAmount.toFixed(18)}
+          type="text"
+          value={additionalCollateralAmount || ''}
           onChange={onAdditionalCollateralAmountChange}
           suffix={selectedLoanPair.collateralToken.tokenSymbol}
           extra={
@@ -324,8 +318,10 @@ const AddCollateralForm = (props: IProps) => {
             type="primary"
             size="large"
             disabled={
+              additionalCollateralAmount === '-' ||
+              !additionalCollateralAmount ||
               loadingType !== LoadingType.None ||
-              additionalCollateralAmount >= 0
+              (additionalCollateralAmount as number) >= 0
             }
             onClick={removeCollateral}
           >
@@ -335,8 +331,10 @@ const AddCollateralForm = (props: IProps) => {
             type="primary"
             size="large"
             disabled={
+              additionalCollateralAmount === '-' ||
+              !additionalCollateralAmount ||
               loadingType !== LoadingType.None ||
-              additionalCollateralAmount <= 0
+              (additionalCollateralAmount as number) <= 0
             }
             onClick={submit}
           >

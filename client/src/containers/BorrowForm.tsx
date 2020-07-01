@@ -29,7 +29,6 @@ import {
 } from '../utils/calcCollateralRatio';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { BannerType } from '../components/Banner';
-import isMobile from 'ismobilejs';
 import { getTimezone } from '../utils/formatSolidityTime';
 import sleep from '../utils/sleep';
 
@@ -65,7 +64,7 @@ const BorrowForm = (props: IProps) => {
   const dispatch = useDispatch();
 
   // States
-  const [borrowAmount, setBorrowAmount] = useState('0');
+  const [borrowAmount, setBorrowAmount] = useState('');
   const [collateralToken, setCollateralToken] = useState<IToken>();
   const [collateralRatio, setCollateralRatio] = useState<any>();
   const [collateralAmount, setCollateralAmount] = useState<string | number>();
@@ -73,8 +72,7 @@ const BorrowForm = (props: IProps) => {
   const loadingType = useLoadingType();
 
   const setSafeCollateralRatio = (value: any) => {
-    const ratio = Number.parseFloat(value || '0');
-    setCollateralRatio(ratio);
+    setCollateralRatio(value);
   };
 
   // Initialize
@@ -159,10 +157,11 @@ const BorrowForm = (props: IProps) => {
   // Callbacks
   const onBorrowAmountChange = useCallback(
     (value: string) => {
-      value = value || '0';
+      const isNan = /^(\d+\.?\d*|\.\d+)$/.test(value) === false;
       const tokenAmount = Number.parseFloat(value);
 
       if (
+        isNan ||
         tokenAmount < 0 ||
         tokenAmount > selectedPool!.availableAmount ||
         value === '0'
@@ -174,7 +173,7 @@ const BorrowForm = (props: IProps) => {
         setIllegalBorrowAmount(false);
       }
 
-      setBorrowAmount(`${tokenAmount}`);
+      setBorrowAmount(value);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -318,7 +317,7 @@ const BorrowForm = (props: IProps) => {
 
   const onCollateralAmountChange = useCallback(
     (value: string) => {
-      setCollateralAmount(Number.parseFloat(value));
+      setCollateralAmount(Number.parseFloat(value) || '');
       if (collateralToken && loanToken) {
         setSafeCollateralRatio(
           calcCollateralRatio(
@@ -335,7 +334,7 @@ const BorrowForm = (props: IProps) => {
 
   const onCollateralRatioChange = useCallback(
     (value: string) => {
-      setSafeCollateralRatio(Number.parseFloat(value));
+      setSafeCollateralRatio(value);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -399,10 +398,11 @@ const BorrowForm = (props: IProps) => {
         <div>
           <FormInput
             label={t('borrow_form_input_label_borrow_amount')}
-            type="number"
+            type="text"
             suffix={loanToken.tokenSymbol}
             value={borrowAmount}
             onChange={onBorrowAmountChange}
+            placeholder="0.00"
             actionButtons={[
               <Button key="max_btn" onClick={onBorrowAmountMaxButtonClick}>
                 {t('borrow_form_input_button_max')}
@@ -410,14 +410,14 @@ const BorrowForm = (props: IProps) => {
             ]}
           />
 
-          {illegalBorrowAmount && borrowAmount !== '0' ? (
+          {illegalBorrowAmount && borrowAmount !== '0' && borrowAmount ? (
             <div className="notice">
               {t(
                 isNegativeBorrowAmount
                   ? 'common_deposit_fund_negative'
                   : isOverAvailableAmount
                   ? 'common_borrow_fund_not_enough'
-                  : '',
+                  : 'common_deposit_fund_illegal',
               )}
             </div>
           ) : (
@@ -446,7 +446,7 @@ const BorrowForm = (props: IProps) => {
         <div>
           <FormInput
             label={t('borrow_form_input_label_collateral_ratio')}
-            type={isMobile(window.navigator).any ? 'number' : 'text'}
+            type="text"
             value={collateralRatio}
             suffix="%"
             onChange={onCollateralRatioChange}
@@ -496,7 +496,7 @@ const BorrowForm = (props: IProps) => {
           label={t('borrow_form_input_label_collateral_amount')}
           type="number"
           className="collateral-amount-input"
-          value={collateralAmount || 0}
+          value={collateralAmount || ''}
           onChange={onCollateralAmountChange}
           suffix={collateralToken.tokenSymbol}
           placeholder={convertWeiToDecimal(selectedBalance.balance)}

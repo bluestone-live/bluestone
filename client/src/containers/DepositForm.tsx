@@ -129,7 +129,7 @@ const DepositForm = (props: IProps) => {
   const loadingType = useLoadingType();
 
   // States
-  const [depositAmount, setDepositAmount] = useState('0');
+  const [depositAmount, setDepositAmount] = useState('');
 
   const [illegalAmount, setIllegalAmount] = useState(true);
 
@@ -140,13 +140,12 @@ const DepositForm = (props: IProps) => {
   // Callbacks
   const onDepositAmountChange = useCallback(
     (value: string) => {
-      value = value || '0';
-
+      const isNan = /^(\d+\.?\d*|\.\d+)$/.test(value) === false;
       const isNegative = Number.parseFloat(value) < 0;
       const overBalance =
         Number.parseFloat(value) > Number.parseFloat(userBalance);
 
-      if (isNegative || overBalance || value === '0') {
+      if (isNan || isNegative || overBalance || value === '0') {
         setIllegalAmount(true);
         setNegativeAmount(isNegative);
         setBalanceNotEnough(overBalance);
@@ -154,7 +153,7 @@ const DepositForm = (props: IProps) => {
         setIllegalAmount(false);
       }
 
-      setDepositAmount(`${Number.parseFloat(value)}`);
+      setDepositAmount(value);
     },
     [setDepositAmount],
   );
@@ -258,19 +257,20 @@ const DepositForm = (props: IProps) => {
           <FormInput
             label={t('deposit_form_input_amount')}
             suffix={token.tokenSymbol}
-            type="number"
+            type="text"
             size="large"
             value={depositAmount}
+            placeholder="0.00"
             onChange={onDepositAmountChange}
           />
-          {illegalAmount && depositAmount !== '0' ? (
+          {illegalAmount && depositAmount ? (
             <div className="notice">
               {t(
                 negativeAmount
                   ? 'common_deposit_fund_negative'
                   : balanceNotEnough
                   ? 'common_deposit_fund_not_enough'
-                  : '',
+                  : 'common_deposit_fund_illegal',
               )}
             </div>
           ) : (
