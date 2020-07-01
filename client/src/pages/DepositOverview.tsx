@@ -40,10 +40,9 @@ const DepositOverview = (props: IProps) => {
 
   const depositTerms = useDepositTerms();
 
-  const sortingParams = useMemo(
-    () => ['term', 'APR', 'utilization'],
-    [],
-  ) as Array<keyof IPool>;
+  const sortingParams = useMemo(() => ['term', 'APR'], []) as Array<
+    keyof IPool
+  >;
 
   const allPools = usePools();
 
