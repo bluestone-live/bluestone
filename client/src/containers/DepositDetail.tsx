@@ -46,7 +46,7 @@ const DepositDetail = (props: IProps) => {
   const dispatch = useDispatch();
 
   const [poolIdModalVisible, setPoolIdModalVisible] = useState(false);
-
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
   const showPoolIdModal = useCallback(() => setPoolIdModalVisible(true), []);
   const hidePoolIdModal = useCallback(() => setPoolIdModalVisible(false), []);
 
@@ -102,6 +102,8 @@ const DepositDetail = (props: IProps) => {
   }, [record, accountAddress]);
 
   const withdraw = useCallback(async () => {
+    setIsWithdrawing(true);
+
     try {
       dispatch(ViewActions.setLoadingType(LoadingType.Withdraw));
       const { depositService } = await getService();
@@ -119,6 +121,8 @@ const DepositDetail = (props: IProps) => {
         ),
       );
     }
+
+    setIsWithdrawing(false);
     dispatch(ViewActions.setLoadingType(LoadingType.None));
   }, [record, accountAddress]);
 
@@ -233,8 +237,16 @@ const DepositDetail = (props: IProps) => {
         <Row style={{ marginTop: '40px' }}>
           <Col span={24}>
             {record.isMatured ? (
-              <Button block size="large" onClick={withdraw}>
-                {t('deposit_detail_button_withdraw')}
+              <Button
+                block
+                size="large"
+                onClick={withdraw}
+                loading={isWithdrawing}
+                disabled={isWithdrawing}
+              >
+                {isWithdrawing
+                  ? t('common_loading_withdraw')
+                  : t('deposit_detail_button_withdraw')}
               </Button>
             ) : (
               <Button block size="large" onClick={showEarlyWithdrawModal}>
