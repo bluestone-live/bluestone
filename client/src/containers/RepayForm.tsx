@@ -7,6 +7,7 @@ import {
   CommonActions,
   useLoadingType,
   LoadingType,
+  useDepositTokens,
 } from '../stores';
 import TextBox from '../components/TextBox';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
@@ -40,6 +41,10 @@ const RepayForm = (props: IProps) => {
   const loadingType = useLoadingType();
   const [repayAmount, setRepayAmount] = useState('');
   const [illegalAmount, setIllegalAmount] = useState(true);
+  const tokens = useDepositTokens();
+  const decimals = tokens.find(
+    token => token.tokenAddress === record.loanTokenAddress,
+  )!.decimals;
 
   const onRepayAmountChange = useCallback(
     (value: string) => {
@@ -47,14 +52,14 @@ const RepayForm = (props: IProps) => {
 
       const safeValue = Math.min(
         Number.parseFloat(value),
-        Number.parseFloat(convertWeiToDecimal(record.remainingDebt, 18)),
+        Number.parseFloat(
+          convertWeiToDecimal(record.remainingDebt, 18, decimals),
+        ),
       );
 
-      setIllegalAmount(
-        Number.parseFloat(value) < safeValue ||
-          Number.parseFloat(value) > safeValue ||
-          isNan,
-      );
+      const amount = Number.parseFloat(value);
+
+      setIllegalAmount(amount < safeValue || amount > safeValue || isNan);
       setRepayAmount(value);
     },
     [setRepayAmount],

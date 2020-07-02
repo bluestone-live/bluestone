@@ -53,7 +53,7 @@
     "common_add_collateral_succeed": "Added collateral: {{amount}} {{unit}}",
     "common_borrow_fail_title": "Borrow failed",
     "common_borrow_fund_not_enough": "Insufficient pool balance.",
-    "common_borrow_succeed": "Borrow succeed",
+    "common_borrow_succeed": "Loan succeed",
     "common_deposit_fail_title": "Deposit failed",
     "common_deposit_fund_illegal": "Invalid input.",
     "common_deposit_fund_negative": "Amount cannot be negative.",
