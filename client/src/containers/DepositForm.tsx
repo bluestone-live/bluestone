@@ -263,7 +263,7 @@ const DepositForm = (props: IProps) => {
             placeholder="0.00"
             onChange={onDepositAmountChange}
           />
-          {illegalAmount && depositAmount ? (
+          {illegalAmount && depositAmount && depositAmount !== '0' ? (
             <div className="notice">
               {t(
                 negativeAmount

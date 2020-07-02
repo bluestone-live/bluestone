@@ -61,6 +61,8 @@ const RepayForm = (props: IProps) => {
   );
 
   const onRepayAmountMaxButtonClick = useCallback(() => {
+    setIllegalAmount(false);
+
     setRepayAmount(
       convertWeiToDecimal(
         record.remainingDebt,
