@@ -439,7 +439,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getDepositTerms()
         external
         view
-        whenNotPaused
         override
         returns (uint256[] memory depositTermList)
     {
@@ -449,7 +448,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getDepositTokens()
         external
         view
-        whenNotPaused
         override
         returns (address[] memory depositTokenAddressList)
     {
@@ -477,7 +475,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function isDepositEarlyWithdrawable(bytes32 depositId)
         external
         view
-        whenNotPaused
         override
         returns (bool isEarlyWithdrawable)
     {
@@ -512,7 +509,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getLoanInterestRate(address tokenAddress, uint256 term)
         external
         view
-        whenNotPaused
         override
         returns (uint256 loanInterestRate)
     {
@@ -547,7 +543,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getPoolsByToken(address tokenAddress)
         external
         view
-        whenNotPaused
         override
         returns (IStruct.GetPoolsByTokenResponse[] memory poolList)
     {
@@ -567,7 +562,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getBalanceCap(address tokenAddress)
         external
         view
-        whenNotPaused
         override
         returns (uint256 balanceCap)
     {
@@ -577,7 +571,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getInterestModelAddress()
         external
         view
-        whenNotPaused
         override
         returns (address interestModelAddress)
     {
@@ -587,7 +580,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getTokenPrice(address tokenAddress)
         external
         view
-        whenNotPaused
         override
         returns (uint256 tokenPrice)
     {
@@ -597,7 +589,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getMaxDistributorFeeRatios()
         external
         view
-        whenNotPaused
         override
         returns (
             uint256 depositDistributorFeeRatio,
@@ -613,7 +604,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getProtocolReserveRatio()
         external
         view
-        whenNotPaused
         override
         returns (uint256 protocolReserveRatio)
     {
@@ -623,7 +613,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     function getInterestReserveAddress()
         external
         view
-        whenNotPaused
         override
         returns (address interestReserveAddress)
     {
