@@ -1,13 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import RepayForm from '../containers/RepayForm';
 import {
   useDefaultAccount,
   useLoanRecords,
   useLoanPairs,
   IState,
+  LoanActions,
+  TransactionActions,
 } from '../stores';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { getService } from '../services';
+import { useComponentMounted } from '../utils/useEffectAsync';
 
 const RepayFormPage = (props: RouteComponentProps<{ recordId: string }>) => {
   const {
@@ -40,6 +44,21 @@ const RepayFormPage = (props: RouteComponentProps<{ recordId: string }>) => {
       );
     }
   }, [record, loanPairs]);
+
+  const dispatch = useDispatch();
+
+  const reloadRecord = useCallback(async () => {
+    const { loanService } = await getService();
+
+    dispatch(
+      LoanActions.UpdateLoanRecord(
+        await loanService.getLoanRecordById(recordId),
+      ),
+    );
+  }, []);
+
+  // Initialize
+  useComponentMounted(reloadRecord);
 
   return (
     <div className="repay-form-page">

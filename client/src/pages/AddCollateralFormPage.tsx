@@ -1,13 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import AddCollateralForm from '../containers/AddCollateralForm';
 import {
   useDefaultAccount,
   useLoanPairs,
   useLoanRecords,
   IState,
+  LoanActions,
 } from '../stores';
 import { RouteComponentProps } from 'react-router';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { getService } from '../services';
+import { useComponentMounted } from '../utils/useEffectAsync';
 
 const AddCollateralFormPage = (
   props: RouteComponentProps<{ recordId: string }>,
@@ -41,6 +44,21 @@ const AddCollateralFormPage = (
       );
     }
   }, [loanPairs, record]);
+
+  const dispatch = useDispatch();
+
+  const reloadRecord = useCallback(async () => {
+    const { loanService } = await getService();
+
+    dispatch(
+      LoanActions.UpdateLoanRecord(
+        await loanService.getLoanRecordById(recordId),
+      ),
+    );
+  }, []);
+
+  // Initialize
+  useComponentMounted(reloadRecord);
 
   return (
     <div className="add-collateral-form-page">
