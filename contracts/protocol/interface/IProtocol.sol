@@ -8,6 +8,14 @@ import './IStruct.sol';
 
 /// @title Interface for the main contract
 interface IProtocol {
+    /// Admin functions
+
+    /// @notice Pause the contract
+    function pause() external;
+
+    /// @notice Unpause the contract
+    function unpause() external;
+
     /// @notice Enable a deposit term
     /// @param depositTerm Deposit term
     function enableDepositTerm(uint256 depositTerm) external;
@@ -23,6 +31,61 @@ interface IProtocol {
     /// @notice Disable an token, i.e., ERC20 token, for deposit
     /// @param tokenAddress Token address
     function disableDepositToken(address tokenAddress) external;
+
+    /// @notice Set a loan and collateral token pair, e.g., ETH_DAI.
+    /// @param loanTokenAddress Loan token address
+    /// @param collateralTokenAddress Collateral token address
+    /// @param minCollateralCoverageRatio Minimum collateral coverage ratio
+    /// @param liquidationDiscount Liquidation Discount
+    function setLoanAndCollateralTokenPair(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 minCollateralCoverageRatio,
+        uint256 liquidationDiscount
+    ) external;
+
+    /// @notice Remove a loan and collateral token pair, e.g., ETH_DAI
+    /// @param loanTokenAddress Loan token address
+    /// @param collateralTokenAddress collateral token address
+    function removeLoanAndCollateralTokenPair(
+        address loanTokenAddress,
+        address collateralTokenAddress
+    ) external;
+
+    /// @notice Set price oracle address
+    /// @param tokenAddress Token address
+    /// @param priceOracle Price oracle
+    function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
+        external;
+
+    /// @notice Set interest model
+    /// @param interestModel Interest model
+    function setInterestModel(IInterestModel interestModel) external;
+
+    /// @notice Set interest reserve address, which receives protocol reserve.
+    /// @param interestReserveAddress Protocol address
+    function setInterestReserveAddress(address payable interestReserveAddress)
+        external;
+
+    /// @notice Set protocol reserve ratio, which determines the percentage
+    ///         of interest that goes to protocol reserve.
+    /// @param protocolReserveRatio Protocol reserve ratio
+    function setProtocolReserveRatio(uint256 protocolReserveRatio) external;
+
+    /// @notice Set the maximum fee ratio for distributors
+    /// @param depositDistributorFeeRatio deposit distributor fee ratio
+    /// @param loanDistributorFeeRatio loan fee ratio
+    function setMaxDistributorFeeRatios(
+        uint256 depositDistributorFeeRatio,
+        uint256 loanDistributorFeeRatio
+    ) external;
+
+    /// @notice Set balance cap for a token
+    /// @param tokenAddress Token address
+    /// @param balanceCap Maximum balance allowed
+    function setBalanceCap(address tokenAddress, uint256 balanceCap) external;
+
+    /// Lender functions
 
     /// @notice Deposit token with specific term and amount
     /// @param tokenAddress Token address
@@ -50,6 +113,68 @@ interface IProtocol {
     function earlyWithdraw(bytes32 depositId)
         external
         returns (uint256 withdrewAmount);
+
+    /// Borrower functions
+
+    /// @notice Borrow token in a specific term
+    /// @param loanTokenAddress token to borrow
+    /// @param collateralTokenAddress token to collateralize the loan
+    /// @param loanAmount Amount to borrow
+    /// @param collateralAmount Amount to collateralize (overwritten by msg.value if collateral token is ETH)
+    /// @param loanTerm Loan term
+    /// @param distributorAddress Distributor account address
+    /// @return loanId ID that identifies the loan
+    function loan(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 loanAmount,
+        uint256 collateralAmount,
+        uint256 loanTerm,
+        address payable distributorAddress
+    ) external payable returns (bytes32 loanId);
+
+    /// @notice Pay back a specific amount of loan
+    /// @param loanId ID that identifies the loan
+    /// @param repayAmount Amount to repay (overwritten by msg.value if loan token is ETH)
+    /// @return remainingDebt remaining debt of the loan
+    function repayLoan(bytes32 loanId, uint256 repayAmount)
+        external
+        payable
+        returns (uint256 remainingDebt);
+
+    /// @notice Add collateral to a loan
+    /// @param loanId ID that identifies the loan
+    /// @param collateralAmount The collateral amount to be added to the loan (overwritten by msg.value if collateral token is ETH)
+    /// @return totalCollateralAmount The total collateral amount after adding collateral
+    function addCollateral(bytes32 loanId, uint256 collateralAmount)
+        external
+        payable
+        returns (uint256 totalCollateralAmount);
+
+    /// @notice Subtract collateral from a loan
+    /// @param loanId ID that identifies the loan
+    /// @param collateralAmount The collateral amount to be subtracted from the loan
+    /// @return totalCollateralAmount The total collateral amount after subtracting collateral
+    function subtractCollateral(bytes32 loanId, uint256 collateralAmount)
+        external
+        returns (uint256 totalCollateralAmount);
+
+    /// Liquidator functions
+
+    /// @notice Liquidate a loan that is under-collateralized or defaulted
+    /// @param loanId ID that identifies the loan
+    /// @param liquidateAmount The amount requested to liquidate. If the amount
+    ///        is greater than the remaining debt of the loan, it will
+    ///        liquidate the full remaining debt.
+    ///        (overwritten by msg.value if loan token is ETH)
+    /// @return remainingCollateral The remaining amount of collateral after liquidation
+    /// @return liquidatedAmount The amount of debt that is liquidated.
+    function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
+        external
+        payable
+        returns (uint256 remainingCollateral, uint256 liquidatedAmount);
+
+    /// Getters about deposit
 
     /// @notice Return enabled deposit terms
     /// @return depositTerms A list of enabled deposit terms
@@ -88,86 +213,28 @@ interface IProtocol {
         view
         returns (bool isEarlyWithdrawable);
 
-    /// @notice Set a loan and collateral token pair, e.g., ETH_DAI.
-    /// @param loanTokenAddress Loan token address
-    /// @param collateralTokenAddress Collateral token address
-    /// @param minCollateralCoverageRatio Minimum collateral coverage ratio
-    /// @param liquidationDiscount Liquidation Discount
-    function setLoanAndCollateralTokenPair(
-        address loanTokenAddress,
-        address collateralTokenAddress,
-        uint256 minCollateralCoverageRatio,
-        uint256 liquidationDiscount
-    ) external;
+    /// Getters about loan
 
-    /// @notice Remove a loan and collateral token pair, e.g., ETH_DAI
-    /// @param loanTokenAddress Loan token address
-    /// @param collateralTokenAddress collateral token address
-    function removeLoanAndCollateralTokenPair(
-        address loanTokenAddress,
-        address collateralTokenAddress
-    ) external;
+    /// @notice Return details for each loan and collateral token pair
+    /// @return loanAndCollateralTokenPairList A list of loan and collateral token pairs
+    function getLoanAndCollateralTokenPairs()
+        external
+        view
+        returns (
+            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
+        );
 
     /// @dev Remove documentation of return parameters in order to compile
     /// @notice Get maximum loan term
     /// @return maxLoanTerm
     function getMaxLoanTerm() external view returns (uint256 maxLoanTerm);
 
-    /// @notice Borrow token in a specific term
-    /// @param loanTokenAddress token to borrow
-    /// @param collateralTokenAddress token to collateralize the loan
-    /// @param loanAmount Amount to borrow
-    /// @param collateralAmount Amount to collateralize (overwritten by msg.value if collateral token is ETH)
-    /// @param loanTerm Loan term
-    /// @param distributorAddress Distributor account address
-    /// @return loanId ID that identifies the loan
-    function loan(
-        address loanTokenAddress,
-        address collateralTokenAddress,
-        uint256 loanAmount,
-        uint256 collateralAmount,
-        uint256 loanTerm,
-        address payable distributorAddress
-    ) external payable returns (bytes32 loanId);
-
-    /// @notice Pay back a specific amount of loan
-    /// @param loanId ID that identifies the loan
-    /// @param repayAmount Amount to repay (overwritten by msg.value if loan token is ETH)
-    /// @return remainingDebt remaining debt of the loan
-    function repayLoan(bytes32 loanId, uint256 repayAmount)
+    /// @notice Return loan interest rate for given token
+    /// @return loanInterestRate loan interest rate
+    function getLoanInterestRate(address tokenAddress, uint256 term)
         external
-        payable
-        returns (uint256 remainingDebt);
-
-    /// @notice Liquidate a loan that is under-collateralized or defaulted
-    /// @param loanId ID that identifies the loan
-    /// @param liquidateAmount The amount requested to liquidate. If the amount
-    ///        is greater than the remaining debt of the loan, it will
-    ///        liquidate the full remaining debt.
-    ///        (overwritten by msg.value if loan token is ETH)
-    /// @return remainingCollateral The remaining amount of collateral after liquidation
-    /// @return liquidatedAmount The amount of debt that is liquidated.
-    function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
-        external
-        payable
-        returns (uint256 remainingCollateral, uint256 liquidatedAmount);
-
-    /// @notice Add collateral to a loan
-    /// @param loanId ID that identifies the loan
-    /// @param collateralAmount The collateral amount to be added to the loan (overwritten by msg.value if collateral token is ETH)
-    /// @return totalCollateralAmount The total collateral amount after adding collateral
-    function addCollateral(bytes32 loanId, uint256 collateralAmount)
-        external
-        payable
-        returns (uint256 totalCollateralAmount);
-
-    /// @notice Subtract collateral from a loan
-    /// @param loanId ID that identifies the loan
-    /// @param collateralAmount The collateral amount to be subtracted from the loan
-    /// @return totalCollateralAmount The total collateral amount after subtracting collateral
-    function subtractCollateral(bytes32 loanId, uint256 collateralAmount)
-        external
-        returns (uint256 totalCollateralAmount);
+        view
+        returns (uint256 loanInterestRate);
 
     /// @notice Return basic info of a loan record
     /// @param loanId ID that identifies the loan record
@@ -184,22 +251,10 @@ interface IProtocol {
         view
         returns (IStruct.GetLoanRecordResponse[] memory loanRecordList);
 
-    /// @notice Return details for each loan and collateral token pair
-    /// @return loanAndCollateralTokenPairList A list of loan and collateral token pairs
-    function getLoanAndCollateralTokenPairs()
-        external
-        view
-        returns (
-            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
-        );
+    /// Getters about liquidity pools
 
-    /// @notice Return loan interest rate for given token
-    /// @return loanInterestRate loan interest rate
-    function getLoanInterestRate(address tokenAddress, uint256 term)
-        external
-        view
-        returns (uint256 loanInterestRate);
-
+    /// @notice Return details of all pools of a given token
+    /// @return poolList
     function getPoolsByToken(address tokenAddress)
         external
         view
@@ -210,53 +265,15 @@ interface IProtocol {
         view
         returns (IStruct.Pool memory pool);
 
-    /// @notice Set price oracle address
+    /// Miscellaneous functions
+
+    /// @notice Return the balance cap for a token
     /// @param tokenAddress Token address
-    /// @param priceOracle Price oracle
-    function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
-        external;
-
-    /// @notice Set interest model
-    /// @param interestModel Interest model
-    function setInterestModel(IInterestModel interestModel) external;
-
-    /// @notice Set interest reserve address, which receives protocol reserve.
-    /// @param interestReserveAddress Protocol address
-    function setInterestReserveAddress(address payable interestReserveAddress)
-        external;
-
-    /// @notice Set protocol reserve ratio, which determines the percentage
-    ///         of interest that goes to protocol reserve.
-    /// @param protocolReserveRatio Protocol reserve ratio
-    function setProtocolReserveRatio(uint256 protocolReserveRatio) external;
-
-    /// @notice Set the maximum fee ratio for distributors
-    /// @param depositDistributorFeeRatio deposit distributor fee ratio
-    /// @param loanDistributorFeeRatio loan fee ratio
-    function setMaxDistributorFeeRatios(
-        uint256 depositDistributorFeeRatio,
-        uint256 loanDistributorFeeRatio
-    ) external;
-
-    /// @notice Set balance cap for a token
-    /// @param tokenAddress Token address
-    /// @param balanceCap Maximum balance allowed
-    function setBalanceCap(address tokenAddress, uint256 balanceCap) external;
-
-    /// @notice Return USD price of a token
-    /// @param tokenAddress Token address
-    /// @return tokenPrice Token price in USD
-    function getTokenPrice(address tokenAddress)
+    /// @return balanceCap Maximum balance allowed
+    function getBalanceCap(address tokenAddress)
         external
         view
-        returns (uint256 tokenPrice);
-
-    /// @notice Return interest reserve address
-    /// @return interestReserveAddress interest reserve address
-    function getInterestReserveAddress()
-        external
-        view
-        returns (address interestReserveAddress);
+        returns (uint256 balanceCap);
 
     /// @notice Return interest model address
     /// @return interestModelAddress Interest model address
@@ -265,12 +282,13 @@ interface IProtocol {
         view
         returns (address interestModelAddress);
 
-    /// @notice Return protocol reserve ratio
-    /// @return protocolReserveRatio Protocol reserve ratio
-    function getProtocolReserveRatio()
+    /// @notice Return USD price of a token
+    /// @param tokenAddress Token address
+    /// @return tokenPrice Token price in USD
+    function getTokenPrice(address tokenAddress)
         external
         view
-        returns (uint256 protocolReserveRatio);
+        returns (uint256 tokenPrice);
 
     /// @notice Return the maximum fee ratio for distributors
     /// @return depositDistributorFeeRatio
@@ -283,11 +301,17 @@ interface IProtocol {
             uint256 loanDistributorFeeRatio
         );
 
-    /// @notice Return the balance cap for a token
-    /// @param tokenAddress Token address
-    /// @return balanceCap Maximum balance allowed
-    function getBalanceCap(address tokenAddress)
+    /// @notice Return protocol reserve ratio
+    /// @return protocolReserveRatio Protocol reserve ratio
+    function getProtocolReserveRatio()
         external
         view
-        returns (uint256 balanceCap);
+        returns (uint256 protocolReserveRatio);
+
+    /// @notice Return interest reserve address
+    /// @return interestReserveAddress interest reserve address
+    function getInterestReserveAddress()
+        external
+        view
+        returns (address interestReserveAddress);
 }

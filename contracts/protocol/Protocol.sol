@@ -29,6 +29,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     DepositManager.State _depositManager;
     LoanManager.State _loanManager;
 
+    /// Events
     event EnableDepositTermSucceed(address indexed adminAddress, uint256 term);
 
     event DisableDepositTermSucceed(address indexed adminAddress, uint256 term);
@@ -179,8 +180,18 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         uint256 maxLoanDistributorFeeRatio
     );
 
+    /// Prevent direct transfer to the contract.
     receive() external payable {
         revert();
+    }
+
+    /// Admin functions
+    function pause() external onlyOwner whenNotPaused override {
+        _pause();
+    }
+
+    function unpause() external onlyOwner whenPaused override {
+        _unpause();
     }
 
     function enableDepositTerm(uint256 term) external onlyOwner override {
@@ -207,239 +218,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         _depositManager.disableDepositToken(tokenAddress);
     }
 
-    function deposit(
-        address tokenAddress,
-        uint256 depositAmount,
-        uint256 depositTerm,
-        address payable distributorAddress
-    ) external payable whenNotPaused nonReentrant override returns (bytes32 depositId) {
-        IStruct.DepositParameters memory depositParameters = IStruct.DepositParameters({
-            tokenAddress: tokenAddress,
-            depositAmount: depositAmount,
-            depositTerm: depositTerm,
-            distributorAddress: distributorAddress
-        });
-
-        return
-            _depositManager.deposit(
-                _liquidityPools,
-                _configuration,
-                depositParameters
-            );
-    }
-
-    function withdraw(bytes32 depositId)
-        external
-        whenNotPaused
-        nonReentrant
-        override
-        returns (uint256 withdrewAmount)
-    {
-        return
-            _depositManager.withdraw(
-                _configuration,
-                _liquidityPools,
-                depositId
-            );
-    }
-
-    function earlyWithdraw(bytes32 depositId)
-        external
-        whenNotPaused
-        nonReentrant
-        override
-        returns (uint256 withdrewAmount)
-    {
-        return
-            _depositManager.earlyWithdraw(
-                _liquidityPools,
-                depositId
-            );
-    }
-
-    function getDepositTerms()
-        external
-        view
-        whenNotPaused
-        override
-        returns (uint256[] memory depositTermList)
-    {
-        return _depositManager.depositTermList;
-    }
-
-    function getDepositTokens()
-        external
-        view
-        whenNotPaused
-        override
-        returns (address[] memory depositTokenAddressList)
-    {
-        return _depositManager.depositTokenAddressList;
-    }
-
-    function getDepositRecordById(bytes32 depositId)
-        external
-        view
-        override
-        returns (IStruct.GetDepositRecordResponse memory depositRecord)
-    {
-        return _depositManager.getDepositRecordById(_liquidityPools, depositId);
-    }
-
-    function getDepositRecordsByAccount(address accountAddress)
-        external
-        view
-        override
-        returns (IStruct.GetDepositRecordResponse[] memory depositRecordList)
-    {
-        return _depositManager.getDepositRecordsByAccount(_liquidityPools, accountAddress);
-    }
-
-    function isDepositEarlyWithdrawable(bytes32 depositId)
-        external
-        view
-        whenNotPaused
-        override
-        returns (bool isEarlyWithdrawable)
-    {
-        return
-            _depositManager.isDepositEarlyWithdrawable(
-                _liquidityPools,
-                depositId
-            );
-    }
-
-    function getMaxLoanTerm()
-        external
-        view
-        override
-        returns (uint256 maxLoanTerm)
-    {
-        return _liquidityPools.poolGroupSize;
-    }
-
-    function loan(
-        address loanTokenAddress,
-        address collateralTokenAddress,
-        uint256 loanAmount,
-        uint256 collateralAmount,
-        uint256 loanTerm,
-        address payable distributorAddress
-    ) external payable whenNotPaused nonReentrant override returns (bytes32 loanId) {
-        IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
-            loanTokenAddress: loanTokenAddress,
-            collateralTokenAddress: collateralTokenAddress,
-            loanAmount: loanAmount,
-            collateralAmount: collateralAmount,
-            loanTerm: loanTerm,
-            distributorAddress: distributorAddress
-        });
-
-        loanId = _loanManager.loan(
-            _configuration,
-            _liquidityPools,
-            loanParameters
-        );
-
-        return loanId;
-    }
-
-    function repayLoan(bytes32 loanId, uint256 repayAmount)
-        external
-        payable
-        whenNotPaused
-        nonReentrant
-        override
-        returns (uint256 remainingDebt)
-    {
-        return
-            _loanManager.repayLoan(
-                _liquidityPools,
-                loanId,
-                repayAmount
-            );
-    }
-
-    function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
-        external
-        payable
-        whenNotPaused
-        nonReentrant
-        override
-        returns (uint256 remainingCollateral, uint256 liquidatedAmount)
-    {
-        return
-            _loanManager.liquidateLoan(
-                _configuration,
-                _liquidityPools,
-                loanId,
-                liquidateAmount
-            );
-    }
-
-    function getLoanInterestRate(address tokenAddress, uint256 term)
-        external
-        view
-        whenNotPaused
-        override
-        returns (uint256 loanInterestRate)
-    {
-        return
-            _loanManager.getLoanInterestRate(
-                _configuration,
-                _liquidityPools,
-                tokenAddress,
-                term
-            );
-    }
-
-    function getLoanRecordById(bytes32 loanId)
-        external
-        view
-        override
-        returns (IStruct.GetLoanRecordResponse memory loanRecord)
-    {
-        return _loanManager.getLoanRecordById(_configuration, loanId);
-    }
-
-    function getLoanRecordsByAccount(address accountAddress)
-        external
-        view
-        override
-        returns (IStruct.GetLoanRecordResponse[] memory loanRecordList)
-    {
-        return _loanManager.getLoanRecordsByAccount(_configuration, accountAddress);
-    }
-
-    function addCollateral(
-        bytes32 loanId,
-        uint256 collateralAmount
-    )
-        external
-        payable
-        whenNotPaused
-        override
-        returns (uint256 totalCollateralAmount)
-    {
-        if (msg.value > 0) {
-            return _loanManager.addCollateral(loanId, msg.value);
-        } else {
-            return _loanManager.addCollateral(loanId, collateralAmount);
-        }
-    }
-
-    function subtractCollateral(
-        bytes32 loanId,
-        uint256 collateralAmount
-    )
-        external
-        whenNotPaused
-        override
-        returns (uint256 totalCollateralAmount)
-    {
-        return _loanManager.subtractCollateral(_configuration, loanId, collateralAmount);
-    }
-
     function setLoanAndCollateralTokenPair(
         address loanTokenAddress,
         address collateralTokenAddress,
@@ -462,36 +240,6 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
             loanTokenAddress,
             collateralTokenAddress
         );
-    }
-
-    function getLoanAndCollateralTokenPairs()
-        external
-        view
-        override
-        returns (
-            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
-        )
-    {
-        return _loanManager.getLoanAndCollateralTokenPairs();
-    }
-
-    function getPoolsByToken(address tokenAddress)
-        external
-        view
-        whenNotPaused
-        override
-        returns (IStruct.GetPoolsByTokenResponse[] memory poolList)
-    {
-        return _liquidityPools.getPoolsByToken(tokenAddress);
-    }
-
-    function getPoolById(address tokenAddress, uint256 poolId)
-        external
-        view
-        override
-        returns (IStruct.Pool memory pool)
-    {
-        return _liquidityPools.getPoolById(tokenAddress, poolId);
     }
 
     function setPriceOracle(address tokenAddress, IPriceOracle priceOracle)
@@ -546,14 +294,284 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         );
     }
 
-    function getInterestReserveAddress()
+    /// Lender functions
+    function deposit(
+        address tokenAddress,
+        uint256 depositAmount,
+        uint256 depositTerm,
+        address payable distributorAddress
+    ) external payable whenNotPaused nonReentrant override returns (bytes32 depositId) {
+        IStruct.DepositParameters memory depositParameters = IStruct.DepositParameters({
+            tokenAddress: tokenAddress,
+            depositAmount: depositAmount,
+            depositTerm: depositTerm,
+            distributorAddress: distributorAddress
+        });
+
+        return
+            _depositManager.deposit(
+                _liquidityPools,
+                _configuration,
+                depositParameters
+            );
+    }
+
+    function withdraw(bytes32 depositId)
+        external
+        whenNotPaused
+        nonReentrant
+        override
+        returns (uint256 withdrewAmount)
+    {
+        return
+            _depositManager.withdraw(
+                _configuration,
+                _liquidityPools,
+                depositId
+            );
+    }
+
+    function earlyWithdraw(bytes32 depositId)
+        external
+        whenNotPaused
+        nonReentrant
+        override
+        returns (uint256 withdrewAmount)
+    {
+        return
+            _depositManager.earlyWithdraw(
+                _liquidityPools,
+                depositId
+            );
+    }
+
+    /// Borrower functions
+    function loan(
+        address loanTokenAddress,
+        address collateralTokenAddress,
+        uint256 loanAmount,
+        uint256 collateralAmount,
+        uint256 loanTerm,
+        address payable distributorAddress
+    ) external payable whenNotPaused nonReentrant override returns (bytes32 loanId) {
+        IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
+            loanTokenAddress: loanTokenAddress,
+            collateralTokenAddress: collateralTokenAddress,
+            loanAmount: loanAmount,
+            collateralAmount: collateralAmount,
+            loanTerm: loanTerm,
+            distributorAddress: distributorAddress
+        });
+
+        loanId = _loanManager.loan(
+            _configuration,
+            _liquidityPools,
+            loanParameters
+        );
+
+        return loanId;
+    }
+
+    function repayLoan(bytes32 loanId, uint256 repayAmount)
+        external
+        payable
+        whenNotPaused
+        nonReentrant
+        override
+        returns (uint256 remainingDebt)
+    {
+        return
+            _loanManager.repayLoan(
+                _liquidityPools,
+                loanId,
+                repayAmount
+            );
+    }
+
+    function addCollateral(
+        bytes32 loanId,
+        uint256 collateralAmount
+    )
+        external
+        payable
+        whenNotPaused
+        override
+        returns (uint256 totalCollateralAmount)
+    {
+        if (msg.value > 0) {
+            return _loanManager.addCollateral(loanId, msg.value);
+        } else {
+            return _loanManager.addCollateral(loanId, collateralAmount);
+        }
+    }
+
+    function subtractCollateral(
+        bytes32 loanId,
+        uint256 collateralAmount
+    )
+        external
+        whenNotPaused
+        override
+        returns (uint256 totalCollateralAmount)
+    {
+        return _loanManager.subtractCollateral(_configuration, loanId, collateralAmount);
+    }
+
+    /// Liquidator functions
+    function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
+        external
+        payable
+        whenNotPaused
+        nonReentrant
+        override
+        returns (uint256 remainingCollateral, uint256 liquidatedAmount)
+    {
+        return
+            _loanManager.liquidateLoan(
+                _configuration,
+                _liquidityPools,
+                loanId,
+                liquidateAmount
+            );
+    }
+
+    /// Getters about deposit
+    function getDepositTerms()
         external
         view
         whenNotPaused
         override
-        returns (address interestReserveAddress)
+        returns (uint256[] memory depositTermList)
     {
-        return _configuration.interestReserveAddress;
+        return _depositManager.depositTermList;
+    }
+
+    function getDepositTokens()
+        external
+        view
+        whenNotPaused
+        override
+        returns (address[] memory depositTokenAddressList)
+    {
+        return _depositManager.depositTokenAddressList;
+    }
+
+    function getDepositRecordById(bytes32 depositId)
+        external
+        view
+        override
+        returns (IStruct.GetDepositRecordResponse memory depositRecord)
+    {
+        return _depositManager.getDepositRecordById(_liquidityPools, depositId);
+    }
+
+    function getDepositRecordsByAccount(address accountAddress)
+        external
+        view
+        override
+        returns (IStruct.GetDepositRecordResponse[] memory depositRecordList)
+    {
+        return _depositManager.getDepositRecordsByAccount(_liquidityPools, accountAddress);
+    }
+
+    function isDepositEarlyWithdrawable(bytes32 depositId)
+        external
+        view
+        whenNotPaused
+        override
+        returns (bool isEarlyWithdrawable)
+    {
+        return
+            _depositManager.isDepositEarlyWithdrawable(
+                _liquidityPools,
+                depositId
+            );
+    }
+
+    /// Getters about loan
+    function getLoanAndCollateralTokenPairs()
+        external
+        view
+        override
+        returns (
+            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
+        )
+    {
+        return _loanManager.getLoanAndCollateralTokenPairs();
+    }
+
+    function getMaxLoanTerm()
+        external
+        view
+        override
+        returns (uint256 maxLoanTerm)
+    {
+        return _liquidityPools.poolGroupSize;
+    }
+
+    function getLoanInterestRate(address tokenAddress, uint256 term)
+        external
+        view
+        whenNotPaused
+        override
+        returns (uint256 loanInterestRate)
+    {
+        return
+            _loanManager.getLoanInterestRate(
+                _configuration,
+                _liquidityPools,
+                tokenAddress,
+                term
+            );
+    }
+
+    function getLoanRecordById(bytes32 loanId)
+        external
+        view
+        override
+        returns (IStruct.GetLoanRecordResponse memory loanRecord)
+    {
+        return _loanManager.getLoanRecordById(_configuration, loanId);
+    }
+
+    function getLoanRecordsByAccount(address accountAddress)
+        external
+        view
+        override
+        returns (IStruct.GetLoanRecordResponse[] memory loanRecordList)
+    {
+        return _loanManager.getLoanRecordsByAccount(_configuration, accountAddress);
+    }
+
+    /// Getters about liquidity pools
+    function getPoolsByToken(address tokenAddress)
+        external
+        view
+        whenNotPaused
+        override
+        returns (IStruct.GetPoolsByTokenResponse[] memory poolList)
+    {
+        return _liquidityPools.getPoolsByToken(tokenAddress);
+    }
+
+    function getPoolById(address tokenAddress, uint256 poolId)
+        external
+        view
+        override
+        returns (IStruct.Pool memory pool)
+    {
+        return _liquidityPools.getPoolById(tokenAddress, poolId);
+    }
+
+    /// Miscellaneous functions
+    function getBalanceCap(address tokenAddress)
+        external
+        view
+        whenNotPaused
+        override
+        returns (uint256 balanceCap)
+    {
+        return _configuration.balanceCapByToken[tokenAddress];
     }
 
     function getInterestModelAddress()
@@ -602,21 +620,13 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         return _configuration.protocolReserveRatio;
     }
 
-    function getBalanceCap(address tokenAddress)
+    function getInterestReserveAddress()
         external
         view
         whenNotPaused
         override
-        returns (uint256 balanceCap)
+        returns (address interestReserveAddress)
     {
-        return _configuration.balanceCapByToken[tokenAddress];
-    }
-
-    function pause() external whenNotPaused {
-        _pause();
-    }
-
-    function unpause() external whenPaused {
-        _unpause();
+        return _configuration.interestReserveAddress;
     }
 }
