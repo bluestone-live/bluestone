@@ -61,14 +61,7 @@ const OverviewLayout = (props: IProps) => {
   );
 
   const onBackButtonClick = useCallback(() => {
-    if (
-      /account\/borrow/.test(location.pathname) ||
-      /account\/deposit/.test(location.pathname)
-    ) {
-      history.push('/account');
-    } else {
-      history.goBack();
-    }
+    history.goBack();
   }, []);
 
   return (

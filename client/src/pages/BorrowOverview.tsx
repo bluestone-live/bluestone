@@ -27,7 +27,7 @@ import { parseQuery } from '../utils/parseQuery';
 interface IProps extends WithTranslation, RouteComponentProps {}
 
 const BorrowOverview = (props: IProps) => {
-  const { t, history } = props;
+  const { t, history, location } = props;
 
   const queryParams = parseQuery(location.search);
 
@@ -76,7 +76,12 @@ const BorrowOverview = (props: IProps) => {
 
   // Callbacks
   const onTokenSelect = useCallback(
-    (token: IToken) => setSelectedToken(token),
+    (token: IToken) => {
+      history.replace(
+        `${location.pathname}?tokenAddress=${token.tokenAddress}`,
+      );
+      setSelectedToken(token);
+    },
     [tokens],
   );
   const onTermChange = useCallback((term: number) => setSelectedTerm(term), [

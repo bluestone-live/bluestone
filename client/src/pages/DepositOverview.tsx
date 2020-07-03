@@ -28,7 +28,7 @@ import { parseQuery } from '../utils/parseQuery';
 interface IProps extends IWithMediaPage, WithTranslation, RouteComponentProps {}
 
 const DepositOverview = (props: IProps) => {
-  const { isMobile, location, t } = props;
+  const { isMobile, location, t, history } = props;
   const queryParams = parseQuery(location.search);
 
   const dispatch = useDispatch();
@@ -74,7 +74,12 @@ const DepositOverview = (props: IProps) => {
 
   // Callbacks
   const onTokenSelect = useCallback(
-    (token: IToken) => setSelectedToken(token),
+    (token: IToken) => {
+      history.replace(
+        `${location.pathname}?tokenAddress=${token.tokenAddress}`,
+      );
+      setSelectedToken(token);
+    },
     [tokens],
   );
   const onDropDownChange = useCallback(

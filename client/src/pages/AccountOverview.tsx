@@ -116,16 +116,14 @@ const AccountOverview = (props: IProps) => {
   // Callbacks
   const onTabClick = useCallback((param: ClickParam) => {
     setSelectedTab(param.key);
-    history.push(
+    history.replace(
       window.location.pathname + `?activeTab=${param.key}&fromUser=1`,
     );
   }, []);
 
   const onClick = useCallback(
     (record: IRecord) => {
-      history.push(
-        `/account/${record.recordType}/${record.recordId}?activeTab=${selectedTab}`,
-      );
+      history.push(`/account/${record.recordType}/${record.recordId}`);
     },
     [records],
   );

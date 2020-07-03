@@ -239,7 +239,7 @@ const DepositDetail = (props: IProps) => {
             {record.isMatured ? (
               <Button
                 block
-                size="large"
+                size="default"
                 onClick={withdraw}
                 loading={isWithdrawing}
                 disabled={isWithdrawing}
@@ -249,7 +249,7 @@ const DepositDetail = (props: IProps) => {
                   : t('deposit_detail_button_withdraw')}
               </Button>
             ) : (
-              <Button block size="large" onClick={showEarlyWithdrawModal}>
+              <Button block size="default" onClick={showEarlyWithdrawModal}>
                 {t('deposit_detail_button_early_withdraw')}
               </Button>
             )}
