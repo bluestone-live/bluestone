@@ -89,6 +89,16 @@ module.exports = {
       network_id: 42,
     },
 
+    main: {
+      provider: () =>
+        new HDWalletProvider(
+          config.get('mnemonic'),
+          `https://mainnet.infura.io/v3/${config.get('infura.projectId')}`,
+          config.get('accountIndex'),
+        ),
+      network_id: 1,
+    },
+
     // Useful for private networks
     // private: {
     // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
