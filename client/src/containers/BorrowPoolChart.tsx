@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { Chart, Axis, SmoothLine, SmoothArea, View, Guide } from 'viser-react';
 import Slider, { SliderValue } from 'antd/lib/slider';
+import i18n from '../i18n';
 
 const DataSet = require('@antv/data-set');
 
@@ -10,13 +11,15 @@ interface IProps {
     loanInterestRate: number;
     availableAmount: number;
   }>;
+  symbol?: string;
   maxBorrowTerm: number;
   selectedTerm: number;
   onTermChange: (term: number) => void;
+  t: i18n.TFunction;
 }
 
 const BorrowPoolChart = (props: IProps) => {
-  const { pools, maxBorrowTerm, selectedTerm, onTermChange } = props;
+  const { pools, maxBorrowTerm, selectedTerm, onTermChange, symbol, t } = props;
 
   const pointValue = useMemo(
     () =>
@@ -90,7 +93,7 @@ const BorrowPoolChart = (props: IProps) => {
             html={APRCrossPoint}
             offsetX={2}
           />
-          <SmoothLine position="term*loanInterestRate" color="#e1e1e1" />
+          <SmoothLine position="term*loanInterestRate" color="#52cc6580" />
         </View>
         <View
           data={dataSet}
@@ -114,6 +117,20 @@ const BorrowPoolChart = (props: IProps) => {
         max={maxBorrowTerm}
         min={1}
       />
+
+      <div className="label">
+        <span
+          className="liquidity"
+          title={t('borrow_pool_card_text_available_amount')}
+        >
+          {t('borrow_pool_card_text_available_amount')}:{' '}
+          {pointValue.availableAmount} {symbol}
+        </span>
+        <span className="apr">
+          {t('borrow_overview_loan_apr')}:{' '}
+          {(pointValue.loanInterestRate * 100).toFixed(2)}%
+        </span>
+      </div>
     </div>
   );
 };

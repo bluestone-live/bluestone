@@ -43,6 +43,7 @@
     "borrow_form_tip_title": "请注意",
     "borrow_overview_button_next": "下一步",
     "borrow_overview_drag_bar": "请拖动滑块选择借款周期",
+    "borrow_overview_input_term": "输入贷款周期",
     "borrow_overview_title_select_term": "选择贷款周期",
     "borrow_pool_card_term": "{{term}}天",
     "borrow_pool_card_text_apr": "年化利率",
@@ -54,6 +55,7 @@
     "common_borrow_fail_title": "借款失败",
     "common_borrow_fund_not_enough": "输入资金超出资金池余额",
     "common_borrow_succeed": "借款成功",
+    "common_day": "天",
     "common_deposit_fail_title": "存款失败",
     "common_deposit_fund_illegal": "无效输入",
     "common_deposit_fund_negative": "输入资金不能为负",
@@ -173,6 +175,7 @@
     "transaction_list_event_RepayLoanSucceed": "还款 {{amount}} {{unit}}",
     "transaction_list_event_SubtractCollateralSucceed": "减少 {{amount}} {{unit}} 抵押",
     "transaction_list_event_WithdrawSucceed": "取款 {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "事务({{count}})"
+    "transaction_list_title_transactions": "事务({{count}})",
+    "borrow_overview_loan_apr": "借款利率"
   }
 }

@@ -18,11 +18,11 @@ import TokenTab from '../components/TokenTab';
 import BorrowPoolChart from '../containers/BorrowPoolChart';
 import Button from 'antd/lib/button';
 import { withRouter, RouteComponentProps } from 'react-router';
-import BorrowPoolCard from '../containers/BorrowPoolCard';
 import { composePools } from '../utils/composePools';
 import { getLoanInterestRates } from '../utils/interestModel';
 import { uniqueBy } from '../utils/uniqueBy';
 import { parseQuery } from '../utils/parseQuery';
+import FormInput from '../components/FormInput';
 
 interface IProps extends WithTranslation, RouteComponentProps {}
 
@@ -52,6 +52,7 @@ const BorrowOverview = (props: IProps) => {
       ) || depositTokens[0],
   );
   const [selectedTerm, setSelectedTerm] = useState<number>(7);
+  const [borrowAmount, setBorrowAmount] = useState(0);
 
   // Init
   useDepsUpdated(async () => {
@@ -88,6 +89,16 @@ const BorrowOverview = (props: IProps) => {
     setSelectedTerm,
   ]);
 
+  const onInputTermChange = useCallback(
+    (term: any) => () => {
+      let value = Number.parseInt(term, 10) || 1;
+      value = Math.min(90, Math.max(1, value));
+
+      setSelectedTerm(value);
+    },
+    [],
+  );
+
   // Computed
   const selectedPools = useMemo(() => {
     if (allPools && selectedToken) {
@@ -95,6 +106,27 @@ const BorrowOverview = (props: IProps) => {
     }
     return [];
   }, [allPools, selectedToken]);
+
+  const computedPools = useMemo(
+    () => composePools(selectedPools, interestRates, tokens),
+    [selectedPools, interestRates],
+  );
+
+  const selectedPool = useMemo(
+    () => computedPools.find(pool => pool.term === selectedTerm),
+    [selectedTerm, computedPools],
+  );
+
+  const onBorrowAmountChange = useCallback((text: string) => {
+    setBorrowAmount(Number.parseFloat(text));
+  }, []);
+
+  const onBorrowAmountMaxButtonClick = useCallback(() => {
+    if (!selectedPool) {
+      return;
+    }
+    setBorrowAmount(selectedPool.availableAmount);
+  }, [selectedPool, selectedTerm]);
 
   useDepsUpdated(async () => {
     if (tokens.length > 0) {
@@ -124,23 +156,13 @@ const BorrowOverview = (props: IProps) => {
     }
   }, [selectedToken, selectedPools, interestModelParameters]);
 
-  const computedPools = useMemo(
-    () => composePools(selectedPools, interestRates, tokens),
-    [selectedPools, interestRates],
-  );
-
-  const selectedPool = useMemo(
-    () => computedPools.find(pool => pool.term === selectedTerm),
-    [selectedTerm, computedPools],
-  );
-
   const onNextButtonClick = useCallback(() => {
     if (selectedToken && selectedPool) {
       history.push(
-        `/borrow/${selectedPool.poolId}?tokenAddress=${selectedToken.tokenAddress}`,
+        `/borrow/${selectedPool.poolId}?tokenAddress=${selectedToken.tokenAddress}&amount=${borrowAmount}`,
       );
     }
-  }, [selectedToken, selectedPool]);
+  }, [selectedToken, selectedPool, selectedTerm, borrowAmount]);
 
   return (
     <div className="borrow-overview">
@@ -151,18 +173,60 @@ const BorrowOverview = (props: IProps) => {
       />
       <div className="title chart-block full-width">
         <div>{t('borrow_overview_title_select_term')}</div>
-        <p>{t('borrow_overview_drag_bar')}</p>
-        {selectedPool && (
-          <BorrowPoolCard pool={selectedPool} token={selectedToken} />
-        )}
         <BorrowPoolChart
           pools={computedPools}
           maxBorrowTerm={90}
           selectedTerm={selectedTerm}
           onTermChange={onTermChange}
+          symbol={selectedToken && selectedToken.tokenSymbol}
+          t={t}
         />
+        <div>
+          <FormInput
+            label={t('borrow_overview_input_term')}
+            type="text"
+            value={selectedTerm}
+            suffix={t('common_day')}
+            onChange={onInputTermChange}
+            actionButtons={[
+              <Button
+                className="collateral_ratio_minus"
+                key="collateral_ratio_minus"
+                onClick={onInputTermChange(selectedTerm - 1)}
+                disabled={selectedTerm === 1}
+              >
+                -1 {t('common_day')}
+              </Button>,
+              <Button
+                key="collateral_ratio_plus"
+                className="collateral_ratio_plus"
+                onClick={onInputTermChange(selectedTerm + 1)}
+                disabled={selectedTerm === 90}
+              >
+                +1 {t('common_day')}
+              </Button>,
+            ]}
+          />
+
+          {selectedToken && selectedPool && (
+            <FormInput
+              label={t('borrow_form_input_label_borrow_amount')}
+              type="text"
+              suffix={selectedToken.tokenSymbol}
+              value={Math.min(selectedPool.availableAmount, borrowAmount)}
+              onChange={onBorrowAmountChange}
+              placeholder="0.00"
+              actionButtons={[
+                <Button key="max_btn" onClick={onBorrowAmountMaxButtonClick}>
+                  {t('borrow_form_input_button_max')}
+                </Button>,
+              ]}
+            />
+          )}
+        </div>
         <Button
           type="primary"
+          className="next-button"
           block
           size="large"
           onClick={onNextButtonClick}

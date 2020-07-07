@@ -43,7 +43,8 @@
     "borrow_form_tip_title": "Notice",
     "borrow_overview_button_next": "Next",
     "borrow_overview_drag_bar": "Drag the bar to select term and APR",
-    "borrow_overview_title_select_term": "Select Term",
+    "borrow_overview_input_term": "Input Loan Term",
+    "borrow_overview_title_select_term": "Select Loan Term",
     "borrow_pool_card_term": "{{term}}-day",
     "borrow_pool_card_text_apr": "APR",
     "borrow_pool_card_text_available_amount": "Available Liquidity",
@@ -54,6 +55,7 @@
     "common_borrow_fail_title": "Borrow failed",
     "common_borrow_fund_not_enough": "Insufficient pool balance.",
     "common_borrow_succeed": "Loan succeed",
+    "common_day": "Day",
     "common_deposit_fail_title": "Deposit failed",
     "common_deposit_fund_illegal": "Invalid input.",
     "common_deposit_fund_negative": "Amount cannot be negative.",
@@ -163,7 +165,7 @@
     "route_title_deposit_detail": "Deposit Details",
     "route_title_mint_token": "Mint Test Token",
     "route_title_monitor": "Monitor",
-    "route_title_monitor_detail": "Monitor Detail",
+    "route_title_monitor_detail": "Pool Details",
     "route_title_repay": "Repay",
     "transaction_list_event_AddCollateralSucceed": " Added Collateral {{amount}} {{unit}}",
     "transaction_list_event_DepositSucceed": "Deposit {{amount}} {{unit}}",
@@ -173,6 +175,7 @@
     "transaction_list_event_RepayLoanSucceed": "Repaid {{amount}} {{unit}}",
     "transaction_list_event_SubtractCollateralSucceed": "Withdrew Collateral {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "Withdrew {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "Transactions({{count}})"
+    "transaction_list_title_transactions": "Transactions({{count}})",
+    "borrow_overview_loan_apr": "Loan APR"
   }
 }

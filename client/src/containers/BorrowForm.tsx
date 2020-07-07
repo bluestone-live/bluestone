@@ -17,7 +17,7 @@ import FormInput from '../components/FormInput';
 import Button from 'antd/lib/button';
 import Select from 'antd/lib/select';
 import { convertWeiToDecimal, convertDecimalToWei } from '../utils/BigNumber';
-import { useDepsUpdated } from '../utils/useEffectAsync';
+import { useDepsUpdated, useComponentMounted } from '../utils/useEffectAsync';
 import { getService } from '../services';
 import { useDispatch } from 'react-redux';
 import { calcEstimateRepayAmount } from '../utils/calcEstimateRepayAmount';
@@ -31,6 +31,7 @@ import { RouteComponentProps, withRouter } from 'react-router';
 import { BannerType } from '../components/Banner';
 import { getTimezone } from '../utils/formatSolidityTime';
 import sleep from '../utils/sleep';
+import { parseQuery } from '../utils/parseQuery';
 
 interface IProps extends WithTranslation, RouteComponentProps {
   protocolContractAddress: string;
@@ -65,15 +66,33 @@ const BorrowForm = (props: IProps) => {
 
   // States
   const [borrowAmount, setBorrowAmount] = useState('');
-  const [collateralToken, setCollateralToken] = useState<IToken>();
-  const [collateralRatio, setCollateralRatio] = useState<any>();
+  const [collateralToken, setCollateralToken] = useState<IToken>(
+    loanPairs.filter(
+      pair => pair.loanToken.tokenAddress === loanToken!.tokenAddress,
+    )[0].collateralToken,
+  );
+
+  // Computed
+  const selectedLoanPair = useMemo(() => {
+    if (loanPairs.length > 0 && loanToken && collateralToken) {
+      return loanPairs.find(
+        pair =>
+          pair.loanToken.tokenAddress === loanToken.tokenAddress &&
+          pair.collateralToken.tokenAddress === collateralToken.tokenAddress,
+      );
+    }
+  }, [loanPairs, loanToken, collateralToken]);
+
+  const [collateralRatio, setCollateralRatio] = useState<any>(
+    Number.parseFloat(
+      convertWeiToDecimal(
+        selectedLoanPair && selectedLoanPair.minCollateralCoverageRatio,
+      ),
+    ) * 150,
+  );
   const [collateralAmount, setCollateralAmount] = useState<string | number>();
 
   const loadingType = useLoadingType();
-
-  const setSafeCollateralRatio = (value: any) => {
-    setCollateralRatio(value);
-  };
 
   // Initialize
   useDepsUpdated(async () => {
@@ -98,19 +117,6 @@ const BorrowForm = (props: IProps) => {
   }, [tokenBalance, collateralToken]);
 
   useDepsUpdated(async () => {
-    if (!loanToken || !!collateralToken) {
-      return;
-    }
-    const defaultLoanPairs = loanPairs.filter(
-      pair => pair.loanToken.tokenAddress === loanToken.tokenAddress,
-    );
-    if (defaultLoanPairs.length === 0) {
-      return;
-    }
-    setCollateralToken(defaultLoanPairs[0].collateralToken);
-  }, [loanPairs, loanToken]);
-
-  useDepsUpdated(async () => {
     const { accountService } = await getService();
     if (collateralToken && accountAddress) {
       dispatch(
@@ -126,17 +132,6 @@ const BorrowForm = (props: IProps) => {
       );
     }
   }, [collateralToken, accountAddress]);
-
-  // Computed
-  const selectedLoanPair = useMemo(() => {
-    if (loanPairs.length > 0 && loanToken && collateralToken) {
-      return loanPairs.find(
-        pair =>
-          pair.loanToken.tokenAddress === loanToken.tokenAddress &&
-          pair.collateralToken.tokenAddress === collateralToken.tokenAddress,
-      );
-    }
-  }, [loanPairs, loanToken, collateralToken]);
 
   const totalDebt = useMemo(() => {
     if (selectedLoanPair && selectedPool) {
@@ -174,6 +169,7 @@ const BorrowForm = (props: IProps) => {
       }
 
       setBorrowAmount(value);
+
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -286,16 +282,6 @@ const BorrowForm = (props: IProps) => {
     distributorAddress,
   ]);
 
-  useDepsUpdated(async () => {
-    if (selectedLoanPair) {
-      setSafeCollateralRatio(
-        Number.parseFloat(
-          convertWeiToDecimal(selectedLoanPair.minCollateralCoverageRatio),
-        ) * 150,
-      );
-    }
-  }, [selectedLoanPair]);
-
   const availableCollateralTokens = useMemo(() => {
     if (loanToken) {
       return loanPairs
@@ -310,7 +296,7 @@ const BorrowForm = (props: IProps) => {
       setCollateralToken(
         availableCollateralTokens.find(
           token => token.tokenAddress === tokenAddress,
-        ),
+        )!,
       ),
     [availableCollateralTokens],
   );
@@ -319,7 +305,7 @@ const BorrowForm = (props: IProps) => {
     (value: string) => {
       setCollateralAmount(Number.parseFloat(value) || '');
       if (collateralToken && loanToken) {
-        setSafeCollateralRatio(
+        setCollateralRatio(
           calcCollateralRatio(
             value,
             totalDebt || '0',
@@ -334,7 +320,7 @@ const BorrowForm = (props: IProps) => {
 
   const onCollateralRatioChange = useCallback(
     (value: string) => {
-      setSafeCollateralRatio(value);
+      setCollateralRatio(value);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -351,7 +337,7 @@ const BorrowForm = (props: IProps) => {
 
   const modifyCollateralRatio = useCallback(
     (num: number) => () => {
-      setSafeCollateralRatio(Number.parseFloat(collateralRatio) + num);
+      setCollateralRatio(Number.parseFloat(collateralRatio) + num);
       if (collateralToken && loanToken) {
         setCollateralAmount(
           calcCollateralAmount(
@@ -391,6 +377,11 @@ const BorrowForm = (props: IProps) => {
         100
     );
   }, [collateralRatio, selectedLoanPair]);
+
+  useDepsUpdated(async () => {
+    const queryParams = parseQuery(location.search);
+    onBorrowAmountChange(queryParams.amount || '');
+  }, []);
 
   return (
     <Form>
