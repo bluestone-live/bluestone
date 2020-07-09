@@ -75,7 +75,7 @@ contract('Configuration', function([owner]) {
           await configuration.getProtocolReserveRatio(),
         ).to.bignumber.equal(protocolReserveRatio);
 
-        expectEvent.inLogs(logs, 'SetProtocolReverveRatioSucceed', {
+        expectEvent.inLogs(logs, 'SetProtocolReserveRatioSucceed', {
           adminAddress: owner,
           protocolReserveRatio: protocolReserveRatio,
         });

@@ -38,7 +38,7 @@ library Configuration {
         address interestModelAddress
     );
 
-    event SetProtocolReverveRatioSucceed(
+    event SetProtocolReserveRatioSucceed(
         address indexed adminAddress,
         uint256 protocolReserveRatio
     );
@@ -97,7 +97,7 @@ library Configuration {
     ) external {
         self.protocolReserveRatio = protocolReserveRatio;
 
-        emit SetProtocolReverveRatioSucceed(msg.sender, protocolReserveRatio);
+        emit SetProtocolReserveRatioSucceed(msg.sender, protocolReserveRatio);
     }
 
     function setMaxDistributorFeeRatios(

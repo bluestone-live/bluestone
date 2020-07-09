@@ -169,7 +169,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         address interestModelAddress
     );
 
-    event SetProtocolReverveRatioSucceed(
+    event SetProtocolReserveRatioSucceed(
         address indexed adminAddress,
         uint256 protocolReserveRatio
     );
