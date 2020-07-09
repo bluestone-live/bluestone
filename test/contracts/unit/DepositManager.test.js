@@ -25,7 +25,7 @@ contract('DepositManager', function([
   const depositTerm = 30;
   const depositDistributorFeeRatio = toFixedBN(0.01);
   const loanDistributorFeeRatio = toFixedBN(0.02);
-  const balanceCap = toFixedBN(100000);
+  const balanceCap = toFixedBN(100);
   let token, depositManager, interestModel, datetime;
 
   beforeEach(async () => {
@@ -192,20 +192,92 @@ contract('DepositManager', function([
           await depositManager.enableDepositTerm(depositTerm);
         });
 
-        context('when balance cap is exceeded', () => {
-          it('reverts', async () => {
-            await expectRevert(
-              depositManager.deposit(
+        context('if balance cap is exceeded after the transaction', () => {
+          const balanceCapPlusOne = balanceCap.add(new BN(1));
+
+          context('when deposit ERC20 tokens', () => {
+            it('reverts', async () => {
+              await expectRevert(
+                depositManager.deposit(
+                  token.address,
+                  balanceCapPlusOne,
+                  depositTerm,
+                  distributorAddress,
+                  {
+                    from: depositor,
+                  },
+                ),
+                'DepositManager: token balance cap exceeded',
+              );
+            });
+          });
+
+          context('when deposit ETH', () => {
+            it('reverts', async () => {
+              await expectRevert(
+                depositManager.deposit(
+                  ETHIdentificationAddress,
+                  balanceCapPlusOne,
+                  depositTerm,
+                  distributorAddress,
+                  {
+                    from: depositor,
+                    value: balanceCapPlusOne,
+                  },
+                ),
+                'DepositManager: token balance cap exceeded',
+              );
+            });
+          });
+        });
+
+        context('if balance cap is reached after the transaction', () => {
+          let tx;
+
+          context('when deposit ERC20 tokens', () => {
+            beforeEach(async () => {
+              await token.approve(depositManager.address, balanceCap, {
+                from: depositor,
+              });
+              tx = await depositManager.deposit(
                 token.address,
-                depositAmount.add(toFixedBN(balanceCap)),
+                balanceCap,
                 depositTerm,
                 distributorAddress,
                 {
                   from: depositor,
                 },
-              ),
-              'DepositManager: token balance cap exceeded',
-            );
+              );
+            });
+
+            it('emits DepositSucceed event', async () => {
+              expectEvent.inLogs(tx.logs, 'DepositSucceed', {
+                accountAddress: depositor,
+                amount: balanceCap,
+              });
+            });
+          });
+
+          context('when deposit ETH', () => {
+            beforeEach(async () => {
+              tx = await depositManager.deposit(
+                ETHIdentificationAddress,
+                balanceCap,
+                depositTerm,
+                distributorAddress,
+                {
+                  from: depositor,
+                  value: balanceCap,
+                },
+              );
+            });
+
+            it('emits DepositSucceed event', async () => {
+              expectEvent.inLogs(tx.logs, 'DepositSucceed', {
+                accountAddress: depositor,
+                amount: balanceCap,
+              });
+            });
           });
         });
 

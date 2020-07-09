@@ -278,11 +278,11 @@ library DepositManager {
         );
 
         uint256 depositAmount;
-        uint256 currTokenBalance;
+        uint256 tokenBalanceAfterTx;
 
         if (depositParameters.tokenAddress == ETH_IDENTIFIER) {
             depositAmount = msg.value;
-            currTokenBalance = address(this).balance;
+            tokenBalanceAfterTx = address(this).balance;
         } else {
             require(
                 msg.value == 0,
@@ -291,15 +291,15 @@ library DepositManager {
 
             depositAmount = depositParameters.depositAmount;
 
-            currTokenBalance = ERC20(depositParameters.tokenAddress).balanceOf(
-                address(this)
-            );
+            tokenBalanceAfterTx = ERC20(depositParameters.tokenAddress)
+                .balanceOf(address(this))
+                .add(depositParameters.depositAmount);
         }
 
         require(depositAmount > 0, 'DepositManager: invalid deposit amount');
 
         require(
-            currTokenBalance.add(depositParameters.depositAmount) <=
+            tokenBalanceAfterTx <=
                 configuration.balanceCapByToken[depositParameters.tokenAddress],
             'DepositManager: token balance cap exceeded'
         );

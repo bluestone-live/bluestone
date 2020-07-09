@@ -60,12 +60,6 @@ contract DepositManagerMock {
             distributorAddress: distributorAddress
         });
 
-        if (tokenAddress == address(1)) {
-            depositParameters.depositAmount = msg.value;
-        } else {
-            depositParameters.depositAmount = depositAmount;
-        }
-
         return
             _depositManager.deposit(
                 _liquidityPools,
@@ -222,11 +216,6 @@ contract DepositManagerMock {
             loanTerm: loanTerm,
             distributorAddress: distributorAddress
         });
-        if (collateralTokenAddress == address(1)) {
-            loanParameters.collateralAmount = msg.value;
-        } else {
-            loanParameters.collateralAmount = collateralAmount;
-        }
 
         return
             _loanManager.loan(_configuration, _liquidityPools, loanParameters);
