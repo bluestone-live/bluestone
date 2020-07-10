@@ -51,7 +51,7 @@ const BorrowOverview = (props: IProps) => {
         token => token.tokenAddress === queryParams.tokenAddress,
       ) || depositTokens[0],
   );
-  const [selectedTerm, setSelectedTerm] = useState<number>(7);
+  const [selectedTerm, setSelectedTerm] = useState(7);
   const [borrowAmount, setBorrowAmount] = useState(0);
 
   // Init
@@ -90,13 +90,18 @@ const BorrowOverview = (props: IProps) => {
   ]);
 
   const onInputTermChange = useCallback(
-    (term: any) => () => {
-      let value = Number.parseInt(term, 10) || 1;
-      value = Math.min(90, Math.max(1, value));
-
+    (term: string) => {
+      const value = Number.parseInt(term, 10) || 0;
       setSelectedTerm(value);
     },
-    [],
+    [setSelectedTerm, selectedTerm],
+  );
+
+  const modifyTermChange = useCallback(
+    (num: number) => () => {
+      setSelectedTerm(selectedTerm + num);
+    },
+    [selectedTerm],
   );
 
   // Computed
@@ -118,7 +123,7 @@ const BorrowOverview = (props: IProps) => {
   );
 
   const onBorrowAmountChange = useCallback((text: string) => {
-    setBorrowAmount(Number.parseFloat(text));
+    setBorrowAmount(Number.parseFloat(text) || 0);
   }, []);
 
   const onBorrowAmountMaxButtonClick = useCallback(() => {
@@ -192,7 +197,7 @@ const BorrowOverview = (props: IProps) => {
               <Button
                 className="collateral_ratio_minus"
                 key="collateral_ratio_minus"
-                onClick={onInputTermChange(selectedTerm - 1)}
+                onClick={modifyTermChange(-1)}
                 disabled={selectedTerm === 1}
               >
                 -1 {t('common_day')}
@@ -200,7 +205,7 @@ const BorrowOverview = (props: IProps) => {
               <Button
                 key="collateral_ratio_plus"
                 className="collateral_ratio_plus"
-                onClick={onInputTermChange(selectedTerm + 1)}
+                onClick={modifyTermChange(1)}
                 disabled={selectedTerm === 90}
               >
                 +1 {t('common_day')}
