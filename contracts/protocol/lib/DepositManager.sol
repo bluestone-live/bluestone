@@ -277,11 +277,18 @@ library DepositManager {
             'DepositManager: invalid distributor address'
         );
 
-        uint256 depositAmount;
+        require(
+            depositParameters.depositAmount > 0,
+            'DepositManager: invalid deposit amount'
+        );
+
         uint256 tokenBalanceAfterTx;
 
         if (depositParameters.tokenAddress == ETH_IDENTIFIER) {
-            depositAmount = msg.value;
+            require(
+                msg.value == depositParameters.depositAmount,
+                'DepositManager: depositAmount must be equal to msg.value'
+            );
             tokenBalanceAfterTx = address(this).balance;
         } else {
             require(
@@ -289,14 +296,10 @@ library DepositManager {
                 'DepositManager: msg.value is not accepted'
             );
 
-            depositAmount = depositParameters.depositAmount;
-
             tokenBalanceAfterTx = ERC20(depositParameters.tokenAddress)
                 .balanceOf(address(this))
                 .add(depositParameters.depositAmount);
         }
-
-        require(depositAmount > 0, 'DepositManager: invalid deposit amount');
 
         require(
             tokenBalanceAfterTx <=
@@ -305,13 +308,13 @@ library DepositManager {
         );
 
         uint256 depositWeight = configuration.interestModel.getDepositWeight(
-            depositAmount,
+            depositParameters.depositAmount,
             depositParameters.depositTerm
         );
 
         uint256 poolId = liquidityPools.addDepositToPool(
             depositParameters.tokenAddress,
-            depositAmount,
+            depositParameters.depositAmount,
             depositParameters.depositTerm,
             depositWeight,
             configuration.depositDistributorFeeRatio,
@@ -331,7 +334,7 @@ library DepositManager {
             ownerAddress: msg.sender,
             tokenAddress: depositParameters.tokenAddress,
             depositTerm: depositParameters.depositTerm,
-            depositAmount: depositAmount,
+            depositAmount: depositParameters.depositAmount,
             poolId: poolId,
             createdAt: now,
             withdrewAt: 0,
@@ -344,7 +347,7 @@ library DepositManager {
             ERC20(address(depositParameters.tokenAddress)).safeTransferFrom(
                 msg.sender,
                 address(this),
-                depositAmount
+                depositParameters.depositAmount
             );
         }
 
@@ -354,7 +357,7 @@ library DepositManager {
             msg.sender,
             currDepositId,
             depositParameters.tokenAddress,
-            depositAmount
+            depositParameters.depositAmount
         );
 
         return currDepositId;

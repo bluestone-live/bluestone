@@ -180,12 +180,6 @@ contract LoanManagerMock {
             distributorAddress: distributorAddress
         });
 
-        if (tokenAddress == address(1)) {
-            depositParameters.depositAmount = msg.value;
-        } else {
-            depositParameters.depositAmount = depositAmount;
-        }
-
         return
             _depositManager.deposit(
                 _liquidityPools,

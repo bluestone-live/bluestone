@@ -416,7 +416,7 @@ contract(
       it('succeed', async () => {
         const { logs: depositLogs } = await protocol.deposit(
           ETHIdentificationAddress,
-          toFixedBN(0),
+          toFixedBN(depositAmount),
           depositTerm,
           depositDistributor,
           {

@@ -281,6 +281,27 @@ contract('DepositManager', function([
           });
         });
 
+        context(
+          'when deposit ETH with different depositAmount than msg.value',
+          () => {
+            it('reverts', async () => {
+              await expectRevert(
+                depositManager.deposit(
+                  ETHIdentificationAddress,
+                  depositAmount.add(new BN(1)),
+                  depositTerm,
+                  distributorAddress,
+                  {
+                    from: depositor,
+                    value: depositAmount,
+                  },
+                ),
+                'DepositManager: depositAmount must be equal to msg.value',
+              );
+            });
+          },
+        );
+
         context('when distributor address is invalid', () => {
           it('reverts', async () => {
             const tokenAddress = '0x0000000000000000000000000000000000000000';
@@ -341,7 +362,7 @@ contract('DepositManager', function([
               ethBalanceBefore = new BN(await web3.eth.getBalance(depositor));
               tx = await depositManager.deposit(
                 ETHIdentificationAddress,
-                toFixedBN(0),
+                depositAmount,
                 depositTerm,
                 distributorAddress,
                 {
@@ -567,7 +588,7 @@ contract('DepositManager', function([
       beforeEach(async () => {
         tx = await depositManager.deposit(
           ETHIdentificationAddress,
-          toFixedBN(0),
+          depositAmount,
           depositTerm,
           distributorAddress,
           {
@@ -881,7 +902,7 @@ contract('DepositManager', function([
       beforeEach(async () => {
         tx = await depositManager.deposit(
           ETHIdentificationAddress,
-          toFixedBN(0),
+          depositAmount,
           depositTerm,
           distributorAddress,
           {
