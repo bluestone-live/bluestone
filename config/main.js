@@ -7,22 +7,10 @@ module.exports = {
         loanInterestRateUpperBound: 0.04,
         balanceCap: 1000,
       },
-      USDT: {
-        name: 'Tether',
-        loanInterestRateLowerBound: 0.03,
-        loanInterestRateUpperBound: 0.04,
-        balanceCap: 1000,
-      },
       ETH: {
         name: 'Native Ether',
         loanInterestRateLowerBound: 0.03,
         loanInterestRateUpperBound: 0.04,
-        balanceCap: 1000,
-      },
-      USDC: {
-        name: 'USDC',
-        loanInterestRateLowerBound: 0.04,
-        loanInterestRateUpperBound: 0.03,
         balanceCap: 1000,
       },
     },
@@ -30,24 +18,6 @@ module.exports = {
     loanAndCollateralTokenPairs: [
       {
         loanTokenSymbol: 'DAI',
-        collateralTokenSymbol: 'ETH',
-        minCollateralCoverageRatio: 1.5,
-        liquidationDiscount: 0.03,
-      },
-      {
-        loanTokenSymbol: 'USDT',
-        collateralTokenSymbol: 'ETH',
-        minCollateralCoverageRatio: 1.5,
-        liquidationDiscount: 0.03,
-      },
-      {
-        loanTokenSymbol: 'USDC',
-        collateralTokenSymbol: 'DAI',
-        minCollateralCoverageRatio: 1.2,
-        liquidationDiscount: 0.03,
-      },
-      {
-        loanTokenSymbol: 'USDC',
         collateralTokenSymbol: 'ETH',
         minCollateralCoverageRatio: 1.5,
         liquidationDiscount: 0.03,
