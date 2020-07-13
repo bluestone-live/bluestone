@@ -44,6 +44,7 @@
     "borrow_overview_button_next": "下一步",
     "borrow_overview_drag_bar": "请拖动滑块选择借款周期",
     "borrow_overview_input_term": "输入贷款周期",
+    "borrow_overview_loan_apr": "借款利率",
     "borrow_overview_title_select_term": "选择贷款周期",
     "borrow_pool_card_term": "{{term}}天",
     "borrow_pool_card_text_apr": "年化利率",
@@ -92,6 +93,7 @@
     "deposit_detail_modal_content": "您能在监控页面看到这个 Pool 的详细信息",
     "deposit_detail_modal_early_withdraw": "提前取款",
     "deposit_detail_modal_early_withdraw_confirm_content": "确认放弃利息提前取款吗？",
+    "deposit_detail_modal_early_withdraw_done": "已经成功取款",
     "deposit_detail_modal_early_withdraw_reject_content": "现在无法提前取款",
     "deposit_detail_modal_pool_id": "Pool ID",
     "deposit_detail_text_pool": "存款池: {{poolId}}",
@@ -175,7 +177,6 @@
     "transaction_list_event_RepayLoanSucceed": "还款 {{amount}} {{unit}}",
     "transaction_list_event_SubtractCollateralSucceed": "减少 {{amount}} {{unit}} 抵押",
     "transaction_list_event_WithdrawSucceed": "取款 {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "事务({{count}})",
-    "borrow_overview_loan_apr": "借款利率"
+    "transaction_list_title_transactions": "事务({{count}})"
   }
 }

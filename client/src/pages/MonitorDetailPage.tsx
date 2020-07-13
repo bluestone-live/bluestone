@@ -102,8 +102,8 @@ const MonitorDetailPage = (props: IProps) => {
                 2,
                 selectedToken.decimals,
               ),
-            )}
-            {'%'}
+            )}{' '}
+            {selectedToken.tokenSymbol}
           </TextBox>
         </Col>
         <Col span={12}>

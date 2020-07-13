@@ -127,7 +127,13 @@ const DepositDetail = (props: IProps) => {
   }, [record, accountAddress]);
 
   const APR =
-    (Number.parseFloat(convertWeiToDecimal(record.interest)) /
+    (Number.parseFloat(
+      convertWeiToDecimal(
+        record.interest,
+        4,
+        depositToken && depositToken.decimals,
+      ),
+    ) /
       Number.parseFloat(
         convertWeiToDecimal(
           record.depositAmount,
@@ -310,6 +316,8 @@ const DepositDetail = (props: IProps) => {
                 amount: convertWeiToDecimal(record.depositAmount),
                 unit: depositToken && depositToken.tokenSymbol,
               })
+            : record.isWithdrawn
+            ? t('deposit_detail_modal_early_withdraw_done')
             : t('deposit_detail_modal_early_withdraw_reject_content')}
         </p>
       </Modal>

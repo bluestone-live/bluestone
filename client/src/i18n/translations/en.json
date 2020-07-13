@@ -44,6 +44,7 @@
     "borrow_overview_button_next": "Next",
     "borrow_overview_drag_bar": "Drag the bar to select term and APR",
     "borrow_overview_input_term": "Input Loan Term",
+    "borrow_overview_loan_apr": "Loan APR",
     "borrow_overview_title_select_term": "Select Loan Term",
     "borrow_pool_card_term": "{{term}}-day",
     "borrow_pool_card_text_apr": "APR",
@@ -92,6 +93,7 @@
     "deposit_detail_modal_content": "You can see the details of this pool at our monitor page.",
     "deposit_detail_modal_early_withdraw": "Continue",
     "deposit_detail_modal_early_withdraw_confirm_content": "Proceed to early withdraw without interest? ",
+    "deposit_detail_modal_early_withdraw_done": "Withdrawing succeed",
     "deposit_detail_modal_early_withdraw_reject_content": "Early withdrawal is currently not available",
     "deposit_detail_modal_pool_id": "Pool ID",
     "deposit_detail_text_pool": "Pool: {{poolId}}",
@@ -142,7 +144,7 @@
     "record_card_label_collateral_ratio": "Collateral Coverage Ratio",
     "record_card_label_current_apr": "Current APR",
     "record_card_label_deposit_amount": "Amount",
-    "record_card_label_estimated_earned": "Estimated Earned",
+    "record_card_label_estimated_earned": "Estimated Interest",
     "record_card_label_remaining_debt": "Remaining Debt",
     "record_card_title_borrow": "Borrow",
     "record_card_title_deposit": "Deposit",
@@ -175,7 +177,6 @@
     "transaction_list_event_RepayLoanSucceed": "Repaid {{amount}} {{unit}}",
     "transaction_list_event_SubtractCollateralSucceed": "Withdrew Collateral {{amount}} {{unit}}",
     "transaction_list_event_WithdrawSucceed": "Withdrew {{amount}} {{unit}}",
-    "transaction_list_title_transactions": "Transactions({{count}})",
-    "borrow_overview_loan_apr": "Loan APR"
+    "transaction_list_title_transactions": "Transactions({{count}})"
   }
 }
