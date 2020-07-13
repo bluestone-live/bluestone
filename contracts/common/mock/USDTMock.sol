@@ -25,7 +25,7 @@ contract USDTMock {
     constructor(string memory tokenName, string memory tokenSymbol) public {
         name = tokenName;
         symbol = tokenSymbol;
-        decimals = 18;
+        decimals = 6;
     }
 
     /**
