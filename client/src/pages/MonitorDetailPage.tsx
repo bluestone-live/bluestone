@@ -96,12 +96,10 @@ const MonitorDetailPage = (props: IProps) => {
       <Row>
         <Col span={12}>
           <TextBox label={t('monitor_detail_page_label_loan_interest')}>
-            {Number.parseFloat(
-              convertWeiToDecimal(
-                selectedPool.loanInterest,
-                2,
-                selectedToken.decimals,
-              ),
+            {convertWeiToDecimal(
+              selectedPool.loanInterest,
+              4,
+              selectedToken.decimals,
             )}{' '}
             {selectedToken.tokenSymbol}
           </TextBox>

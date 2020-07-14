@@ -37,7 +37,9 @@ const BorrowDetailPage = (props: RouteComponentProps<{ recordId: string }>) => {
   const selectedLoanPair = useMemo(() => {
     if (record) {
       return loanPairs.find(
-        pair => pair.loanToken.tokenAddress === record.loanTokenAddress,
+        pair =>
+          pair.collateralToken.tokenAddress === record.collateralTokenAddress &&
+          pair.loanToken.tokenAddress === record.loanTokenAddress,
       );
     }
   }, [loanPairs, record]);

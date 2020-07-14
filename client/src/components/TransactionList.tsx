@@ -151,13 +151,14 @@ const TransactionList = (props: IProps) => {
               className="transaction-item"
               onClick={openNewTab(tx)}
             >
-              <Col span={12}>
+              <Col span={8}>
                 {dayjs
                   .utc(Number.parseInt(tx.time.toString(), 10) * 1000)
                   .local()
                   .format('YYYY-MM-DD HH:mm')}
               </Col>
-              <Col span={12}>{txDescription(tx)}</Col>
+              <Col span={1} />
+              <Col span={15}>{txDescription(tx)}</Col>
             </Row>
           ))}
     </div>
