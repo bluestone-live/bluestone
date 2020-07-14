@@ -141,7 +141,9 @@ const BorrowForm = (props: IProps) => {
         selectedPool.loanInterestRate || 0,
       );
 
-      return Number.isNaN(remainingDebt) ? '0.0000' : remainingDebt.toFixed(4);
+      return Number.isNaN(remainingDebt)
+        ? '0.0000'
+        : convertWeiToDecimal(convertDecimalToWei(remainingDebt));
     }
   }, [selectedLoanPair, borrowAmount, selectedPool]);
 

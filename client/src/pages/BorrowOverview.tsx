@@ -51,8 +51,8 @@ const BorrowOverview = (props: IProps) => {
         token => token.tokenAddress === queryParams.tokenAddress,
       ) || depositTokens[0],
   );
-  const [selectedTerm, setSelectedTerm] = useState(7);
-  const [borrowAmount, setBorrowAmount] = useState(0);
+  const [selectedTerm, setSelectedTerm] = useState('7');
+  const [borrowAmount, setBorrowAmount] = useState('');
 
   // Init
   useDepsUpdated(async () => {
@@ -85,21 +85,22 @@ const BorrowOverview = (props: IProps) => {
     },
     [tokens],
   );
-  const onTermChange = useCallback((term: number) => setSelectedTerm(term), [
-    setSelectedTerm,
-  ]);
+
+  const onTermChange = useCallback(
+    (term: number) => setSelectedTerm(`${term}`),
+    [setSelectedTerm],
+  );
 
   const onInputTermChange = useCallback(
     (term: string) => {
-      const value = Number.parseInt(term, 10) || 0;
-      setSelectedTerm(value);
+      setSelectedTerm(term);
     },
     [setSelectedTerm, selectedTerm],
   );
 
   const modifyTermChange = useCallback(
     (num: number) => () => {
-      setSelectedTerm(selectedTerm + num);
+      setSelectedTerm(`${Number.parseInt(selectedTerm, 10) + num}`);
     },
     [selectedTerm],
   );
@@ -118,19 +119,22 @@ const BorrowOverview = (props: IProps) => {
   );
 
   const selectedPool = useMemo(
-    () => computedPools.find(pool => pool.term === selectedTerm),
+    () =>
+      computedPools.find(
+        pool => pool.term === Number.parseInt(selectedTerm, 10),
+      ),
     [selectedTerm, computedPools],
   );
 
   const onBorrowAmountChange = useCallback((text: string) => {
-    setBorrowAmount(Number.parseFloat(text) || 0);
+    setBorrowAmount(text);
   }, []);
 
   const onBorrowAmountMaxButtonClick = useCallback(() => {
     if (!selectedPool) {
       return;
     }
-    setBorrowAmount(selectedPool.availableAmount);
+    setBorrowAmount(`${selectedPool.availableAmount}`);
   }, [selectedPool, selectedTerm]);
 
   useDepsUpdated(async () => {
@@ -169,6 +173,8 @@ const BorrowOverview = (props: IProps) => {
     }
   }, [selectedToken, selectedPool, selectedTerm, borrowAmount]);
 
+  const selectedTermValue = Number.parseInt(selectedTerm, 10) || 1;
+
   return (
     <div className="borrow-overview">
       <TokenTab
@@ -181,7 +187,7 @@ const BorrowOverview = (props: IProps) => {
         <BorrowPoolChart
           pools={computedPools}
           maxBorrowTerm={90}
-          selectedTerm={selectedTerm}
+          selectedTerm={selectedTermValue}
           onTermChange={onTermChange}
           symbol={selectedToken && selectedToken.tokenSymbol}
           t={t}
@@ -198,7 +204,7 @@ const BorrowOverview = (props: IProps) => {
                 className="collateral_ratio_minus"
                 key="collateral_ratio_minus"
                 onClick={modifyTermChange(-1)}
-                disabled={selectedTerm === 1}
+                disabled={selectedTermValue <= 1}
               >
                 -1 {t('common_day')}
               </Button>,
@@ -206,19 +212,19 @@ const BorrowOverview = (props: IProps) => {
                 key="collateral_ratio_plus"
                 className="collateral_ratio_plus"
                 onClick={modifyTermChange(1)}
-                disabled={selectedTerm === 90}
+                disabled={selectedTermValue >= 90}
               >
                 +1 {t('common_day')}
               </Button>,
             ]}
           />
 
-          {selectedToken && selectedPool && (
+          {selectedToken && (
             <FormInput
               label={t('borrow_form_input_label_borrow_amount')}
               type="text"
               suffix={selectedToken.tokenSymbol}
-              value={Math.min(selectedPool.availableAmount, borrowAmount)}
+              value={borrowAmount}
               onChange={onBorrowAmountChange}
               placeholder="0.00"
               actionButtons={[
