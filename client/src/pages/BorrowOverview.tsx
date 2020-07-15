@@ -87,7 +87,9 @@ const BorrowOverview = (props: IProps) => {
   );
 
   const onTermChange = useCallback(
-    (term: number) => setSelectedTerm(`${term}`),
+    (term: number) => {
+      setSelectedTerm(`${term}`);
+    },
     [setSelectedTerm],
   );
 
@@ -173,7 +175,10 @@ const BorrowOverview = (props: IProps) => {
     }
   }, [selectedToken, selectedPool, selectedTerm, borrowAmount]);
 
-  const selectedTermValue = Number.parseInt(selectedTerm, 10) || 1;
+  const selectedTermValue = Math.min(
+    90,
+    Math.max(1, Number.parseInt(selectedTerm, 10) || 1),
+  );
 
   return (
     <div className="borrow-overview">

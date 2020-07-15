@@ -14,7 +14,7 @@ interface IProps {
   symbol?: string;
   maxBorrowTerm: number;
   selectedTerm: number;
-  onTermChange: (term: number) => void;
+  onTermChange?: (term: number) => void;
   t: i18n.TFunction;
 }
 
@@ -62,7 +62,7 @@ const BorrowPoolChart = (props: IProps) => {
   ];
 
   const onSliderChange = useCallback(
-    (v: SliderValue) => onTermChange(v as number),
+    (v: SliderValue) => onTermChange && onTermChange(v as number),
     [],
   );
 
