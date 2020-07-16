@@ -72,6 +72,14 @@ const BorrowForm = (props: IProps) => {
     )[0].collateralToken,
   );
 
+  const selectedBalance = useMemo(() => {
+    if (collateralToken) {
+      return tokenBalance.find(
+        b => b.tokenAddress === collateralToken.tokenAddress,
+      );
+    }
+  }, [tokenBalance, collateralToken]);
+
   // Computed
   const selectedLoanPair = useMemo(() => {
     if (loanPairs.length > 0 && loanToken && collateralToken) {
@@ -90,7 +98,22 @@ const BorrowForm = (props: IProps) => {
       ),
     ) * 150,
   );
-  const [collateralAmount, setCollateralAmount] = useState<string | number>();
+
+  const [illegalCollateralAmount, setIllegalCollateralAmount] = useState(false);
+  const [collateralAmount, setCollateralAmountValue] = useState<
+    string | number
+  >();
+
+  const setCollateralAmount = (value: string | number) => {
+    if (selectedBalance) {
+      setIllegalCollateralAmount(
+        Number.parseFloat(`${value}`) >
+          Number.parseFloat(convertWeiToDecimal(selectedBalance.balance)),
+      );
+    }
+
+    setCollateralAmountValue(value);
+  };
 
   const loadingType = useLoadingType();
 
@@ -107,14 +130,6 @@ const BorrowForm = (props: IProps) => {
       );
     }
   }, [loanToken]);
-
-  const selectedBalance = useMemo(() => {
-    if (collateralToken) {
-      return tokenBalance.find(
-        b => b.tokenAddress === collateralToken.tokenAddress,
-      );
-    }
-  }, [tokenBalance, collateralToken]);
 
   useDepsUpdated(async () => {
     const { accountService } = await getService();
@@ -503,6 +518,13 @@ const BorrowForm = (props: IProps) => {
           }
         />
       )}
+
+      {illegalCollateralAmount ? (
+        <div className="notice">{t('common_insufficient_balance')}</div>
+      ) : (
+        undefined
+      )}
+
       {loanToken && (
         <TextBox label={t('borrow_form_text_label_total_debt')}>
           <span
@@ -532,7 +554,12 @@ const BorrowForm = (props: IProps) => {
         block
         onClick={submit}
         loading={loadingType === LoadingType.Borrow}
-        disabled={loading || illegalRatio || illegalBorrowAmount}
+        disabled={
+          loading ||
+          illegalRatio ||
+          illegalBorrowAmount ||
+          illegalCollateralAmount
+        }
       >
         {buttonText}
       </Button>

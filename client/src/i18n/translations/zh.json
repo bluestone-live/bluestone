@@ -65,6 +65,7 @@
     "common_early_withdraw_deposit_fail_title": "提前取款失败",
     "common_early_withdraw_deposit_succeed": "提前取款成功",
     "common_illegal_collateral_ratio": "抵押率应在 150% 以上",
+    "common_insufficient_balance": "余额不足",
     "common_loading": "执行中",
     "common_loading_add_collateral": "追加中……",
     "common_loading_approve": "授权中……",
