@@ -87,6 +87,8 @@ module.exports = {
           config.get('accountIndex'),
         ),
       network_id: 42,
+      websockets: true,
+      confirmations: 2,
     },
 
     main: {
@@ -97,6 +99,8 @@ module.exports = {
           config.get('accountIndex'),
         ),
       network_id: 1,
+      websockets: true,
+      confirmations: 5,
     },
 
     // Useful for private networks
