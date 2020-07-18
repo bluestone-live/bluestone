@@ -11,6 +11,7 @@ import {
   useInterestModelParameters,
   useLoanPairs,
   useDepositTokens,
+  useDepositTerms,
 } from '../stores';
 import { useDepsUpdated } from '../utils/useEffectAsync';
 import { getService } from '../services';
@@ -32,6 +33,8 @@ const BorrowOverview = (props: IProps) => {
   const queryParams = parseQuery(location.search);
 
   const dispatch = useDispatch();
+
+  const depositTerms = useDepositTerms();
 
   // Selectors
   const loanPairs = useLoanPairs();
@@ -191,7 +194,7 @@ const BorrowOverview = (props: IProps) => {
         <div>{t('borrow_overview_title_select_term')}</div>
         <BorrowPoolChart
           pools={computedPools}
-          maxBorrowTerm={90}
+          maxBorrowTerm={depositTerms.length || 90}
           selectedTerm={selectedTermValue}
           onTermChange={onTermChange}
           symbol={selectedToken && selectedToken.tokenSymbol}

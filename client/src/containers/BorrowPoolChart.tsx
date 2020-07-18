@@ -55,8 +55,8 @@ const BorrowPoolChart = (props: IProps) => {
     {
       dataKey: 'term',
       min: 1,
-      max: 90,
-      ticks: [1, 90],
+      max: maxBorrowTerm,
+      ticks: [1, maxBorrowTerm],
       nice: false,
     },
   ];
@@ -93,6 +93,7 @@ const BorrowPoolChart = (props: IProps) => {
             html={APRCrossPoint}
             offsetX={2}
           />
+          {/* APR line */}
           <SmoothLine position="term*loanInterestRate" color="#52cc6580" />
         </View>
         <View
