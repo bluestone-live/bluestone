@@ -35,6 +35,7 @@ const BorrowOverview = (props: IProps) => {
   const dispatch = useDispatch();
 
   const depositTerms = useDepositTerms();
+  const maxTerm = depositTerms.sort((a, b) => b.value - a.value)[0];
 
   // Selectors
   const loanPairs = useLoanPairs();
@@ -194,7 +195,7 @@ const BorrowOverview = (props: IProps) => {
         <div>{t('borrow_overview_title_select_term')}</div>
         <BorrowPoolChart
           pools={computedPools}
-          maxBorrowTerm={depositTerms.length || 90}
+          maxBorrowTerm={maxTerm.value}
           selectedTerm={selectedTermValue}
           onTermChange={onTermChange}
           symbol={selectedToken && selectedToken.tokenSymbol}

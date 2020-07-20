@@ -51,6 +51,7 @@ const BorrowPoolChart = (props: IProps) => {
     {
       dataKey: 'availableAmount',
       tickCount: 2,
+      nice: false,
     },
     {
       dataKey: 'term',
@@ -99,6 +100,7 @@ const BorrowPoolChart = (props: IProps) => {
         <View
           data={dataSet}
           scale={availableAmountChartScale}
+          coord={{ radius: 0, startAngle: 0, endAngle: 0 }}
           start={{ x: 0, y: 0.3 }}
         >
           <Axis dataKey="availableAmount" show={false} />
