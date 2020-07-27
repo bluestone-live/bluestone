@@ -19,8 +19,8 @@ import dayjs from 'dayjs';
 
 dayjs.extend(utc);
 
-if ((global as any).ethereum) {
-  (global as any).ethereum.on('networkChanged', () => {
+if ((window as any).ethereum) {
+  (window as any).ethereum.on('networkChanged', () => {
     window.location.reload();
   });
 }

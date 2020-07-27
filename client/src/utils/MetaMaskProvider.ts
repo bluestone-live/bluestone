@@ -53,8 +53,8 @@ export class MetaMaskProvider {
    * Init protocolInstance by global Web3 provider and network configs
    */
   async init() {
-    if ((global as any).ethereum) {
-      const ethereum = (global as any).ethereum;
+    if ((window as any).ethereum) {
+      const ethereum = (window as any).ethereum;
       // This property to be removed in the future
       if (ethereum.autoRefreshOnNetworkChange) {
         /*
@@ -64,8 +64,8 @@ export class MetaMaskProvider {
         ethereum.autoRefreshOnNetworkChange = false;
       }
       this.web3Instance = new Web3(ethereum);
-    } else if ((global as any).web3) {
-      this.web3Instance = new Web3((global as any).web3.currentProvider);
+    } else if ((window as any).web3) {
+      this.web3Instance = new Web3((window as any).web3.currentProvider);
     } else {
       throw new Error(
         'MetaMaskProvider init error: Require global web3 provider.',
@@ -111,14 +111,14 @@ export class MetaMaskProvider {
   }
 
   async enableEthereumNetwork() {
-    return (global as any).ethereum.enable();
+    return (window as any).ethereum.enable();
   }
 
   async bindEthereumStateChangeEvent(
     onAccountChanged: (...args: any[]) => any,
   ) {
-    if ((global as any).ethereum && !this.eventBound) {
-      (global as any).ethereum.on('accountsChanged', onAccountChanged);
+    if ((window as any).ethereum && !this.eventBound) {
+      (window as any).ethereum.on('accountsChanged', onAccountChanged);
       this.eventBound = true;
     }
   }
