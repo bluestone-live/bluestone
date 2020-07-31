@@ -47,11 +47,6 @@ contract LoanManagerMock {
             loanTerm: loanTerm,
             distributorAddress: distributorAddress
         });
-        if (collateralTokenAddress == address(1)) {
-            loanParameters.collateralAmount = msg.value;
-        } else {
-            loanParameters.collateralAmount = collateralAmount;
-        }
 
         return
             _loanManager.loan(_configuration, _liquidityPools, loanParameters);
@@ -59,6 +54,7 @@ contract LoanManagerMock {
 
     function repayLoan(bytes32 loanId, uint256 repayAmount)
         external
+        payable
         returns (uint256 remainingDebt)
     {
         return _loanManager.repayLoan(_liquidityPools, loanId, repayAmount);
@@ -66,6 +62,7 @@ contract LoanManagerMock {
 
     function liquidateLoan(bytes32 loanId, uint256 liquidateAmount)
         external
+        payable
         returns (uint256 remainingCollateral, uint256 liquidatedAmount)
     {
         return
@@ -102,16 +99,11 @@ contract LoanManagerMock {
         payable
         returns (uint256 totalCollateralAmount)
     {
-        if (msg.value > 0) {
-            return _loanManager.addCollateral(loanId, msg.value);
-        } else {
-            return _loanManager.addCollateral(loanId, collateralAmount);
-        }
+        return _loanManager.addCollateral(loanId, collateralAmount);
     }
 
     function subtractCollateral(bytes32 loanId, uint256 collateralAmount)
         external
-        payable
         returns (uint256 totalCollateralAmount)
     {
         return

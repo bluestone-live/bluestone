@@ -274,15 +274,16 @@ library LoanManager {
             'LoanManager: loan already closed'
         );
 
-        if (record.collateralTokenAddress == ETH_IDENTIFIER) {
-            collateralAmount = msg.value;
-        } else {
-            require(msg.value == 0, 'LoanManager: msg.value is not accepted');
-        }
-
         require(collateralAmount > 0, 'LoanManager: invalid collateralAmount');
 
-        if (record.collateralTokenAddress != ETH_IDENTIFIER) {
+        if (record.collateralTokenAddress == ETH_IDENTIFIER) {
+            require(
+                msg.value == collateralAmount,
+                'LoanManager: collateralAmount must be equal to msg.value'
+            );
+        } else {
+            require(msg.value == 0, 'LoanManager: msg.value is not accepted');
+
             // Transfer collateral from user account to protocol
             ERC20(record.collateralTokenAddress).safeTransferFrom(
                 msg.sender,
@@ -400,20 +401,21 @@ library LoanManager {
             'LoanManager: invalid loan amount'
         );
 
-        LoanLocalVars memory local;
-
-        if (loanParameters.collateralTokenAddress == ETH_IDENTIFIER) {
-            local.collateralAmount = msg.value;
-        } else {
-            require(msg.value == 0, 'LoanManager: msg.value is not accepted');
-
-            local.collateralAmount = loanParameters.collateralAmount;
-        }
-
         require(
-            local.collateralAmount > 0,
+            loanParameters.collateralAmount > 0,
             'LoanManager: invalid collateral amount'
         );
+
+        if (loanParameters.collateralTokenAddress == ETH_IDENTIFIER) {
+            require(
+                msg.value == loanParameters.collateralAmount,
+                'LoanManager: collateralAmount must be equal to msg.value'
+            );
+        } else {
+            require(msg.value == 0, 'LoanManager: msg.value is not accepted');
+        }
+
+        LoanLocalVars memory local;
 
         local.maxLoanTerm = liquidityPools.poolGroupSize;
 
@@ -452,7 +454,7 @@ library LoanManager {
 
         local.collateralCoverageRatio = _calculateCollateralCoverageRatio(
             CollateralCoverageRatioParams({
-                collateralAmount: local.collateralAmount,
+                collateralAmount: loanParameters.collateralAmount,
                 collateralTokenDecimals: _getTokenDecimals(
                     loanParameters.collateralTokenAddress
                 ),
@@ -483,7 +485,7 @@ library LoanManager {
             loanTokenAddress: loanParameters.loanTokenAddress,
             collateralTokenAddress: loanParameters.collateralTokenAddress,
             loanAmount: loanParameters.loanAmount,
-            collateralAmount: local.collateralAmount,
+            collateralAmount: loanParameters.collateralAmount,
             loanTerm: loanParameters.loanTerm,
             annualInterestRate: local.loanInterestRate,
             interest: local.loanInterest,
@@ -519,7 +521,7 @@ library LoanManager {
             ERC20(loanParameters.collateralTokenAddress).safeTransferFrom(
                 msg.sender,
                 address(this),
-                local.collateralAmount
+                loanParameters.collateralAmount
             );
         }
 
@@ -531,7 +533,7 @@ library LoanManager {
             loanParameters.loanTokenAddress,
             loanParameters.loanAmount,
             loanParameters.collateralTokenAddress,
-            local.collateralAmount
+            loanParameters.collateralAmount
         );
 
         return local.loanId;
@@ -644,12 +646,6 @@ library LoanManager {
 
         require(!loanRecord.isClosed, 'LoanManager: loan already closed');
 
-        if (loanRecord.loanTokenAddress == ETH_IDENTIFIER) {
-            repayAmount = msg.value;
-        } else {
-            require(msg.value == 0, 'LoanManager: msg.value is not accepted');
-        }
-
         RepayLoanLocalVars memory local;
         local.remainingDebt = _calculateRemainingDebt(loanRecord);
 
@@ -658,7 +654,14 @@ library LoanManager {
             'LoanManager: invalid repay amount'
         );
 
-        if (loanRecord.loanTokenAddress != ETH_IDENTIFIER) {
+        if (loanRecord.loanTokenAddress == ETH_IDENTIFIER) {
+            require(
+                msg.value == repayAmount,
+                'LoanManager: repayAmount must be equal to msg.value'
+            );
+        } else {
+            require(msg.value == 0, 'LoanManager: msg.value is not accepted');
+
             ERC20(loanRecord.loanTokenAddress).safeTransferFrom(
                 msg.sender,
                 address(this),
@@ -760,13 +763,16 @@ library LoanManager {
 
         require(!loanRecord.isClosed, 'LoanManager: loan already closed');
 
+        require(liquidateAmount > 0, 'LoanManager: invalid liquidate amount');
+
         if (loanRecord.loanTokenAddress == ETH_IDENTIFIER) {
-            liquidateAmount = msg.value;
+            require(
+                msg.value == liquidateAmount,
+                'LoanManager: liquidateAmount must be equal to msg.value'
+            );
         } else {
             require(msg.value == 0, 'LoanManager: msg.value is not accepted');
         }
-
-        require(liquidateAmount > 0, 'LoanManager: invalid liquidate amount');
 
         LiquidateLoanLocalVars memory local;
         local.loanTokenPriceOracle = configuration.priceOracleByToken[loanRecord

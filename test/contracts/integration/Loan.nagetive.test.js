@@ -282,7 +282,7 @@ contract(
             loanToken.address,
             ETHIdentificationAddress,
             toFixedBN(loanAmount),
-            '0',
+            toFixedBN(collateralAmount),
             loanTerm,
             loanDistributor,
             {

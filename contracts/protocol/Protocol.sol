@@ -398,11 +398,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         override
         returns (uint256 totalCollateralAmount)
     {
-        if (msg.value > 0) {
-            return _loanManager.addCollateral(loanId, msg.value);
-        } else {
-            return _loanManager.addCollateral(loanId, collateralAmount);
-        }
+        return _loanManager.addCollateral(loanId, collateralAmount);
     }
 
     function subtractCollateral(
