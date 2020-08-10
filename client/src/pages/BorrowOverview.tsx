@@ -35,12 +35,16 @@ const BorrowOverview = (props: IProps) => {
   const dispatch = useDispatch();
 
   const depositTerms = useDepositTerms();
-  const maxTerm = depositTerms.sort((a, b) => b.value - a.value)[0];
+  const maxTerm = depositTerms.sort((a, b) => b?.value - a?.value)[0];
 
   // Selectors
   const loanPairs = useLoanPairs();
   const tokens = useMemo(
-    () => uniqueBy(loanPairs.map(pair => pair.loanToken), 'tokenAddress'),
+    () =>
+      uniqueBy(
+        loanPairs.map((pair) => pair.loanToken),
+        'tokenAddress',
+      ),
     [loanPairs],
   );
   const allPools = usePools();
@@ -52,7 +56,7 @@ const BorrowOverview = (props: IProps) => {
   const [selectedToken, setSelectedToken] = useState<IToken | undefined>(
     () =>
       depositTokens.find(
-        token => token.tokenAddress === queryParams.tokenAddress,
+        (token) => token.tokenAddress === queryParams.tokenAddress,
       ) || depositTokens[0],
   );
   const [selectedTerm, setSelectedTerm] = useState('7');
@@ -127,7 +131,7 @@ const BorrowOverview = (props: IProps) => {
   const selectedPool = useMemo(
     () =>
       computedPools.find(
-        pool => pool.term === Number.parseInt(selectedTerm, 10),
+        (pool) => pool.term === Number.parseInt(selectedTerm, 10),
       ),
     [selectedTerm, computedPools],
   );
@@ -147,7 +151,7 @@ const BorrowOverview = (props: IProps) => {
     if (tokens.length > 0) {
       setSelectedToken(
         depositTokens.find(
-          token => token.tokenAddress === queryParams.tokenAddress,
+          (token) => token.tokenAddress === queryParams.tokenAddress,
         ) || depositTokens[0],
       );
     }
@@ -195,7 +199,7 @@ const BorrowOverview = (props: IProps) => {
         <div>{t('borrow_overview_title_select_term')}</div>
         <BorrowPoolChart
           pools={computedPools}
-          maxBorrowTerm={maxTerm.value}
+          maxBorrowTerm={maxTerm?.value}
           selectedTerm={selectedTermValue}
           onTermChange={onTermChange}
           symbol={selectedToken && selectedToken.tokenSymbol}

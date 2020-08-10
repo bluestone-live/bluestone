@@ -81,7 +81,7 @@
     "style-loader": "^1.0.2",
     "ts-import-plugin": "^1.6.2",
     "ts-loader": "^6.2.1",
-    "typescript": "^3.7.3",
+    "typescript": "^3.9.7",
     "url-loader": "^3.0.0",
     "webpack": "^4.41.3",
     "webpack-bundle-analyzer": "^3.6.0",
