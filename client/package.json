@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "NODE_ENV=dev webpack-dev-server --progress --hot --env=development -d",
     "build": "NODE_ENV=production webpack --progress --env=production -p",
+    "silent-build": "NODE_ENV=production webpack --env=production -p",
     "icon": "node ./scripts/get-icon-fonts",
     "deploy:dev": "rsync -av dist/ root@bluestone.live:/var/www/alpha.bluestone.live/html",
     "translations": "node ./scripts/make-translations.js",
