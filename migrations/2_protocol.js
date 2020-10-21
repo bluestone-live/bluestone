@@ -7,6 +7,7 @@ const DateTime = artifacts.require('DateTime');
 const DaiPriceOracle = artifacts.require('DaiPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
 const { deploy, toFixedBN } = require('../scripts/utils');
+const OwnedUpgradeabilityProxy = artifacts.require('OwnedUpgradeabilityProxy');
 
 const MedianizerMock = artifacts.require('MedianizerMock');
 const OasisDexMock = artifacts.require('OasisDexMock');
@@ -37,6 +38,7 @@ module.exports = async function(deployer, network) {
 
   await deploy(deployer, network, Protocol);
   await deploy(deployer, network, InterestModel);
+  await deploy(deployer, network, OwnedUpgradeabilityProxy);
 
   if (network !== 'main') {
     const ethPrice = toFixedBN(200);

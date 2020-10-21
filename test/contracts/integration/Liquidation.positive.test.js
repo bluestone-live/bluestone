@@ -54,6 +54,7 @@ contract(
     before(async () => {
       // Get protocol instance
       protocol = await Protocol.new();
+      await protocol.initialize();
       interestModel = await InterestModel.new();
       loanTokenPriceOracle = await SingleFeedPriceOracle.new();
       collateralTokenPriceOracle = await SingleFeedPriceOracle.new();

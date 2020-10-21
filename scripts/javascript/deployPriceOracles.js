@@ -15,7 +15,10 @@ const ERC20Mock = artifacts.require('ERC20Mock');
 const Protocol = artifacts.require('Protocol');
 
 module.exports = makeTruffleScript(async network => {
-  const { tokens } = loadNetwork(network);
+  const {
+    tokens,
+    contracts: { OwnedUpgradeabilityProxy: proxyAddress },
+  } = loadNetwork(network);
 
   const { ETH, DAI, USDT, USDC } = tokens;
 
@@ -78,8 +81,9 @@ module.exports = makeTruffleScript(async network => {
     priceUpperBound,
     priceLowerBound,
   );
+
   const fixedPriceOracle = await FixedPriceOracle.new(toFixedBN(1));
-  const protocol = await Protocol.deployed();
+  const protocol = await Protocol.at(proxyAddress);
 
   const setPriceOracle = async (
     tokenSymbol,

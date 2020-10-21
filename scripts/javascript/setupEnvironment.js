@@ -12,6 +12,9 @@ const exec = (scriptName, network) =>
   );
 
 module.exports = makeTruffleScript(async network => {
+  debug('Setup Proxy');
+  exec('setupProxy', network);
+
   debug('Deploy Tokens');
   exec('deployTokens', network);
 

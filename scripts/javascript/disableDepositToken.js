@@ -3,11 +3,16 @@ const Protocol = artifacts.require('./Protocol.sol');
 const { loadNetwork, makeTruffleScript } = require('../utils.js');
 
 module.exports = makeTruffleScript(async (network, tokenSymbol) => {
-  const { tokens } = loadNetwork(network);
+  const {
+    tokens,
+    contracts: { OwnedUpgradeabilityProxy: proxyAddress },
+  } = loadNetwork(network);
+
+  const protocol = await Protocol.at(proxyAddress);
+
   if (!tokens[tokenSymbol].tokenAddress) {
     debug('Invalid token symbol: ', tokenSymbol);
   } else {
-    const protocol = await Protocol.deployed();
     await protocol.disableDepositToken(tokens[tokenSymbol].address);
     debug(`${tokenSymbol} is disabled.`);
   }

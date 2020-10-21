@@ -1,4 +1,6 @@
 module.exports = {
+  mnemonic:
+    'episode puzzle trial grit boat gas firm upon meadow street olympic orchard',
   contract: {
     tokens: {
       DAI: {

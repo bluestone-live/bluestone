@@ -5,10 +5,11 @@ import '../../oracle/interface/IPriceOracle.sol';
 import './IInterestModel.sol';
 import './IStruct.sol';
 
-
 /// @title Interface for the main contract
 interface IProtocol {
     /// Admin functions
+
+    function initialize() external;
 
     /// @notice Pause the contract
     function pause() external;
@@ -221,7 +222,8 @@ interface IProtocol {
         external
         view
         returns (
-            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
+            IStruct.LoanAndCollateralTokenPair[]
+                memory loanAndCollateralTokenPairList
         );
 
     /// @dev Remove documentation of return parameters in order to compile
