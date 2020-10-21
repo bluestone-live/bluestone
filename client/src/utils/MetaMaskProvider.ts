@@ -96,8 +96,7 @@ export class MetaMaskProvider {
 
     const networkFile = await this.getNetworkFile(this.networkType);
 
-    this.protocolAddress =
-      networkFile.contracts[protocolDeclareFile.contractName];
+    this.protocolAddress = networkFile.contracts.OwnedUpgradeabilityProxy;
 
     this.protocolInstance = new this.web3Instance.eth.Contract(
       protocolDeclareFile.abi as AbiItem[],

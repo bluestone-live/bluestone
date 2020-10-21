@@ -3,7 +3,7 @@
   "license": "UNLICENSED",
   "private": true,
   "scripts": {
-    "start:ganache": "npx ganache-cli -p 7545 -i 5777 -e 1000",
+    "start:ganache": "npx ganache-cli -p 7545 -i 5777 -e 1000 -m 'episode puzzle trial grit boat gas firm upon meadow street olympic orchard'",
     "test:contract": "npx truffle test",
     "test:client": "jest client/"
   },
@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^3.0.1",
+    "@openzeppelin/upgrades": "^2.8.0",
     "config": "^3.2.4",
     "debug": "^4.1.1",
     "shelljs": "^0.8.3",

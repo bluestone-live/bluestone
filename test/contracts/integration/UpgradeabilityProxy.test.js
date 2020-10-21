@@ -1,8 +1,13 @@
 const Protocol = artifacts.require('Protocol');
+const OwnedUpgradeabilityProxy = artifacts.require('OwnedUpgradeabilityProxy');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
-const { expectRevert, BN } = require('@openzeppelin/test-helpers');
+const {
+  expectRevert,
+  expectEvent,
+  time,
+} = require('@openzeppelin/test-helpers');
 const {
   toFixedBN,
   createERC20Token,
@@ -12,7 +17,7 @@ const { setupTestEnv } = require('../../utils/setupTestEnv');
 const { expect } = require('chai');
 
 contract(
-  'Protocol',
+  'OwnedUpgradeabilityProxy',
   ([
     owner,
     depositor,
@@ -20,9 +25,9 @@ contract(
     depositDistributor,
     loanDistributor,
     protocolReserveAddress,
-    liquidator,
   ]) => {
-    let protocol, interestModel, loanToken, collateralToken;
+    let impl, interestModel, loanToken, collateralToken, datetime;
+    let proxy, protocol;
 
     const initialSupply = toFixedBN(10000);
 
@@ -32,7 +37,7 @@ contract(
     const liquidationDiscount = 0.05;
     const protocolReserveRatio = 0.07;
     const maxDepositDistributorFeeRatio = 0.01;
-    const maxLoanDistributorFeeRatio = 0.02;
+    const loanDistributorFeeRatio = 0.02;
 
     const loanInterestRateLowerBound = 0.1;
     const loanInterestRateUpperBound = 0.15;
@@ -40,34 +45,33 @@ contract(
     // Token prices
     const loanTokenPrice = 1;
     const collateralTokenPrice = 100;
-    const ETHPrice = 2000;
 
     // deposit parameters
     const depositAmount = 100;
     const depositTerm = 7;
 
-    // loan parameters
-    const loanAmount = 100;
-    const collateralAmount = 20;
-    const loanTerm = 1;
-
     before(async () => {
       // Get protocol instance
-      protocol = await Protocol.new();
-      await protocol.initialize();
+      impl = await Protocol.new();
+      await impl.initialize();
       interestModel = await InterestModel.new();
       loanTokenPriceOracle = await SingleFeedPriceOracle.new();
       collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
-      ETHPriceOracle = await SingleFeedPriceOracle.new();
       datetime = await DateTime.new();
 
       // Create token
       loanToken = await createERC20Token(depositor, initialSupply);
       collateralToken = await createERC20Token(loaner, initialSupply);
 
+      // Setup Upgradability Proxy
+      proxy = await OwnedUpgradeabilityProxy.new();
+      await proxy.upgradeTo(impl.address);
+
+      protocol = await Protocol.at(proxy.address);
+      await protocol.initialize();
+
       // Mint some token to loaner
       await loanToken.mint(loaner, initialSupply);
-      await loanToken.mint(liquidator, initialSupply);
 
       // Approve
       await loanToken.approve(protocol.address, initialSupply, {
@@ -79,9 +83,6 @@ contract(
       await loanToken.approve(protocol.address, initialSupply, {
         from: loaner,
       });
-      await loanToken.approve(protocol.address, initialSupply, {
-        from: liquidator,
-      });
 
       // Setup price oracles
       await protocol.setPriceOracle(
@@ -91,10 +92,6 @@ contract(
       await protocol.setPriceOracle(
         collateralToken.address,
         collateralTokenPriceOracle.address,
-      );
-      await protocol.setPriceOracle(
-        ETHIdentificationAddress,
-        ETHPriceOracle.address,
       );
 
       await setupTestEnv(
@@ -129,7 +126,7 @@ contract(
         [loanInterestRateUpperBound, loanInterestRateUpperBound],
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
-        maxLoanDistributorFeeRatio,
+        loanDistributorFeeRatio,
       );
 
       // Post prices
@@ -137,13 +134,30 @@ contract(
       await collateralTokenPriceOracle.setPrice(
         toFixedBN(collateralTokenPrice),
       );
-      await ETHPriceOracle.setPrice(toFixedBN(ETHPrice));
     });
 
-    describe('Liquidate a safety record', () => {
-      let loanId;
-      before(async () => {
-        await protocol.deposit(
+    describe('owner', function() {
+      it('has an owner', async function() {
+        const proxyOwner = await proxy.proxyOwner();
+        const protocolOwner = await impl.owner();
+
+        expect(proxyOwner).equal(owner);
+        expect(proxyOwner).equal(protocolOwner);
+      });
+    });
+
+    describe('implementation', function() {
+      it('equals origin protocol address', async () => {
+        const v0 = await proxy.implementation();
+        expect(v0).equal(impl.address);
+      });
+    });
+
+    describe('calling', () => {
+      let depositId;
+
+      it('calls deposit', async () => {
+        const { logs: depositLogs } = await protocol.deposit(
           loanToken.address,
           toFixedBN(depositAmount),
           depositTerm,
@@ -152,80 +166,48 @@ contract(
             from: depositor,
           },
         );
-        const { logs: loanLogs } = await protocol.loan(
-          loanToken.address,
-          collateralToken.address,
-          toFixedBN(loanAmount),
-          toFixedBN(collateralAmount),
-          loanTerm,
-          loanDistributor,
-          {
-            from: loaner,
-          },
-        );
-        loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
-          .recordId;
-      });
-
-      it('revert', async () => {
-        const record = await protocol.getLoanRecordById(loanId);
-
-        expect(new BN(record.collateralCoverageRatio)).to.bignumber.gt(
-          new BN(record.minCollateralCoverageRatio),
-        );
-
-        await expectRevert(
-          protocol.liquidateLoan(loanId, record.remainingDebt, {
-            from: liquidator,
-          }),
-          'LoanManager: not liquidatable',
-        );
-      });
-    });
-    describe('Liquidate a closed record', () => {
-      let loanId;
-      before(async () => {
-        await protocol.deposit(
-          loanToken.address,
-          toFixedBN(depositAmount),
-          depositTerm,
-          depositDistributor,
-          {
-            from: depositor,
-          },
-        );
-        const { logs: loanLogs } = await protocol.loan(
-          loanToken.address,
-          collateralToken.address,
-          toFixedBN(loanAmount),
-          toFixedBN(collateralAmount),
-          loanTerm,
-          loanDistributor,
-          {
-            from: loaner,
-          },
-        );
-        loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
-          .recordId;
-
-        const record = await protocol.getLoanRecordById(loanId);
-
-        await protocol.repayLoan(loanId, record.remainingDebt, {
-          from: loaner,
+        depositId = depositLogs.filter(log => log.event === 'DepositSucceed')[0]
+          .args.recordId;
+        expectEvent.inLogs(depositLogs, 'DepositSucceed', {
+          accountAddress: depositor,
+          recordId: depositId,
+          amount: toFixedBN(depositAmount),
         });
+
+        const newBalance = await loanToken.balanceOf(protocol.address);
+
+        expect(toFixedBN(depositAmount).toString()).equal(
+          newBalance.toString(),
+        );
+      });
+    });
+
+    describe('upgrade', () => {
+      let newImpl;
+
+      before(async () => {
+        newImpl = await Protocol.new();
       });
 
-      it('revert', async () => {
-        const record = await protocol.getLoanRecordById(loanId);
+      it('exec upgrading', async () => {
+        await proxy.upgradeTo(newImpl.address);
 
-        expect(record.isClosed).to.be.true;
-
-        await expectRevert(
-          protocol.liquidateLoan(loanId, record.remainingDebt, {
-            from: liquidator,
-          }),
-          'LoanManager: loan already closed',
+        const { logs: depositLogs } = await protocol.deposit(
+          loanToken.address,
+          toFixedBN(depositAmount),
+          depositTerm,
+          depositDistributor,
+          {
+            from: depositor,
+          },
         );
+        depositId = depositLogs.filter(log => log.event === 'DepositSucceed')[0]
+          .args.recordId;
+        expectEvent.inLogs(depositLogs, 'DepositSucceed', {
+          accountAddress: depositor,
+          recordId: depositId,
+          amount: toFixedBN(depositAmount),
+        });
       });
     });
   },

@@ -1,9 +1,7 @@
 pragma solidity ^0.6.7;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/Pausable.sol';
-import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+import '@openzeppelin/upgrades/contracts/Initializable.sol';
 import '../oracle/interface/IPriceOracle.sol';
 import './interface/IProtocol.sol';
 import './interface/IInterestModel.sol';
@@ -11,13 +9,16 @@ import './lib/Configuration.sol';
 import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';
 import './lib/LoanManager.sol';
+import './Ownable.sol';
+import './ReentrancyGuard.sol';
+import './Pausable.sol';
 
 /// @title The main contract that exposes all external functions
 /// @dev We can consider this contract as a master contract that contains no actual
 /// business logic but enforces permission checks and delegates function calls to
 /// corresponding libraries. Although contract states are defined in libraries,
 /// they are initialized and stored in this contract.
-contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
+contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Initializable {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
     using DepositManager for DepositManager.State;
@@ -179,6 +180,12 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         uint256 maxDepositDistributorFeeRatio,
         uint256 maxLoanDistributorFeeRatio
     );
+
+    function initialize() external initializer override {
+        Ownable.initOwner();
+        ReentrancyGuard.initGuard();
+        Pausable.initPause();
+    }
 
     /// Prevent direct transfer to the contract.
     receive() external payable {

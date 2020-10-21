@@ -5,7 +5,10 @@ const config = require('config');
 
 module.exports = makeTruffleScript(
   async (network, loanTokenSymbol, collateralTokenSymbol) => {
-    const { tokens } = loadNetwork(network);
+    const {
+      tokens,
+      contracts: { OwnedUpgradeabilityProxy: proxyAddress },
+    } = loadNetwork(network);
     const { loanAndCollateralTokenPairs } = config.get('contract');
 
     if (!loanTokenSymbol || !collateralTokenSymbol) {
@@ -32,7 +35,7 @@ module.exports = makeTruffleScript(
       return debug(`${pair.collateralTokenSymbol} is not deployed yet.`);
     }
 
-    const protocol = await Protocol.deployed();
+    const protocol = await Protocol.at(proxyAddress);
     await protocol.removeLoanAndCollateralTokenPair(
       loanToken.address,
       collateralToken.address,

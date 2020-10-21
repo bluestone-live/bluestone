@@ -4,7 +4,11 @@ const { loadNetwork, makeTruffleScript, toFixedBN } = require('../utils.js');
 const config = require('config');
 
 module.exports = makeTruffleScript(async network => {
-  const { tokens } = loadNetwork(network);
+  const {
+    tokens,
+    contracts: { OwnedUpgradeabilityProxy: proxyAddress },
+  } = loadNetwork(network);
+
   const { loanAndCollateralTokenPairs } = config.get('contract');
 
   for (pair of loanAndCollateralTokenPairs) {
@@ -25,7 +29,7 @@ module.exports = makeTruffleScript(async network => {
     }
     const loanToken = tokens[pair.loanTokenSymbol];
     const collateralToken = tokens[pair.collateralTokenSymbol];
-    const protocol = await Protocol.deployed();
+    const protocol = await Protocol.at(proxyAddress);
     await protocol.setLoanAndCollateralTokenPair(
       loanToken.address,
       collateralToken.address,

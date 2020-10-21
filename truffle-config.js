@@ -99,8 +99,7 @@ module.exports = {
           config.get('accountIndex'),
         ),
       network_id: 1,
-      websockets: true,
-      confirmations: 5,
+      timeoutBlocks: 12000,
     },
 
     // Useful for private networks

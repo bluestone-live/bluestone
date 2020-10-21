@@ -4,9 +4,12 @@ const { makeTruffleScript, loadNetwork, toFixedBN } = require('../utils.js');
 const config = require('config');
 
 module.exports = makeTruffleScript(async network => {
-  const protocol = await Protocol.deployed();
+  const {
+    tokens,
+    contracts: { OwnedUpgradeabilityProxy: proxyAddress },
+  } = loadNetwork(network);
 
-  const { tokens } = loadNetwork(network);
+  const protocol = await Protocol.at(proxyAddress);
   const tokenSymbols = Object.keys(tokens);
 
   for (let symbol of tokenSymbols) {
