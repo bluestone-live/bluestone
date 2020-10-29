@@ -4,6 +4,7 @@ const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
 const InterestModel = artifacts.require('InterestModel');
 const DateTime = artifacts.require('DateTime');
 const {
+  BN,
   expectRevert,
   expectEvent,
   time,
@@ -183,15 +184,9 @@ contract(
     });
 
     describe('upgrade', () => {
-      let newImpl;
+      let depositIdBeforeUpgrade;
 
       before(async () => {
-        newImpl = await Protocol.new();
-      });
-
-      it('exec upgrading', async () => {
-        await proxy.upgradeTo(newImpl.address);
-
         const { logs: depositLogs } = await protocol.deposit(
           loanToken.address,
           toFixedBN(depositAmount),
@@ -201,12 +196,48 @@ contract(
             from: depositor,
           },
         );
-        depositId = depositLogs.filter(log => log.event === 'DepositSucceed')[0]
-          .args.recordId;
-        expectEvent.inLogs(depositLogs, 'DepositSucceed', {
-          accountAddress: depositor,
-          recordId: depositId,
-          amount: toFixedBN(depositAmount),
+
+        depositIdBeforeUpgrade = depositLogs.filter(
+          log => log.event === 'DepositSucceed',
+        )[0].args.recordId;
+      });
+
+      context('after upgrading the implementation', () => {
+        before(async () => {
+          const newImpl = await Protocol.new();
+          await proxy.upgradeTo(newImpl.address);
+        });
+
+        it('can retrieve an existing deposit record', async () => {
+          const record = await protocol.getDepositRecordById(
+            depositIdBeforeUpgrade,
+          );
+          expect(new BN(record.depositTerm)).to.bignumber.equal(
+            new BN(depositTerm),
+          );
+          expect(new BN(record.depositAmount)).to.bignumber.equal(
+            toFixedBN(depositAmount),
+          );
+        });
+
+        it('deposits successfully', async () => {
+          const { logs: depositLogs } = await protocol.deposit(
+            loanToken.address,
+            toFixedBN(depositAmount),
+            depositTerm,
+            depositDistributor,
+            {
+              from: depositor,
+            },
+          );
+          depositId = depositLogs.filter(
+            log => log.event === 'DepositSucceed',
+          )[0].args.recordId;
+          expectEvent.inLogs(depositLogs, 'DepositSucceed', {
+            accountAddress: depositor,
+            recordId: depositId,
+            amount: toFixedBN(depositAmount),
+          });
         });
       });
     });
