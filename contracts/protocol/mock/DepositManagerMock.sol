@@ -8,7 +8,6 @@ import '../lib/LiquidityPools.sol';
 import '../lib/DepositManager.sol';
 import '../lib/LoanManager.sol';
 
-
 contract DepositManagerMock {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
@@ -24,8 +23,16 @@ contract DepositManagerMock {
         _depositManager.enableDepositTerm(_liquidityPools, term);
     }
 
+    function enableDepositTerms(uint256[] memory terms) public {
+        _depositManager.enableDepositTerms(_liquidityPools, terms);
+    }
+
     function disableDepositTerm(uint256 term) external {
         _depositManager.disableDepositTerm(term);
+    }
+
+    function disableDepositTerms(uint256[] memory terms) public {
+        _depositManager.disableDepositTerms(terms);
     }
 
     function enableDepositToken(address tokenAddress) external {
