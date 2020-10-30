@@ -10,7 +10,6 @@ import './LoanManager.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
 
-
 /// @title Implement deposit-related operations
 library DepositManager {
     using Configuration for Configuration.State;
@@ -39,9 +38,15 @@ library DepositManager {
     uint256 private constant ONE = 10**18;
     address private constant ETH_IDENTIFIER = address(1);
 
-    event EnableDepositTermSucceed(address indexed adminAddress, uint256 term);
+    event EnableDepositTermsSucceed(
+        address indexed adminAddress,
+        uint256[] terms
+    );
 
-    event DisableDepositTermSucceed(address indexed adminAddress, uint256 term);
+    event DisableDepositTermsSucceed(
+        address indexed adminAddress,
+        uint256[] terms
+    );
 
     event EnableDepositTokenSucceed(
         address indexed adminAddress,
@@ -166,47 +171,83 @@ library DepositManager {
         LiquidityPools.State storage liquidityPools,
         uint256 term
     ) external {
-        require(
-            !self.isDepositTermEnabled[term],
-            'DepositManager: term already enabled'
-        );
-
-        self.isDepositTermEnabled[term] = true;
-        self.depositTermList.push(term);
-
-        /// Update pool group size only if the deposit term is greater than
-        /// the current pool group size
-        if (term > liquidityPools.poolGroupSize) {
-            liquidityPools.setPoolGroupSize(term);
-        }
-
-        emit EnableDepositTermSucceed(msg.sender, term);
+        uint256[] memory terms = new uint256[](1);
+        terms[0] = term;
+        enableDepositTerms(self, liquidityPools, terms);
     }
 
-    function disableDepositTerm(State storage self, uint256 term) external {
-        require(
-            self.isDepositTermEnabled[term],
-            'DepositManager: term already disabled'
-        );
+    function enableDepositTerms(
+        State storage self,
+        LiquidityPools.State storage liquidityPools,
+        uint256[] memory terms
+    ) public {
+        require(terms.length > 0, 'DepositManager: empty terms');
 
-        self.isDepositTermEnabled[term] = false;
+        uint256 maxTerm = 0;
+        uint256 term;
+        for (uint256 i = 0; i < terms.length; i++) {
+            term = terms[i];
+            require(
+                !self.isDepositTermEnabled[term],
+                'DepositManager: term already enabled'
+            );
 
-        // Remove term from depositTermList
-        for (uint256 i = 0; i < self.depositTermList.length; i++) {
-            if (self.depositTermList[i] == term) {
-                uint256 numDepositTerms = self.depositTermList.length;
-                uint256 lastDepositTerm = self.depositTermList[numDepositTerms -
-                    1];
+            self.isDepositTermEnabled[term] = true;
+            self.depositTermList.push(term);
 
-                // Overwrite current term with the last term
-                self.depositTermList[i] = lastDepositTerm;
-
-                // Shrink array size
-                self.depositTermList.pop();
+            if (term > maxTerm) {
+                maxTerm = term;
             }
         }
 
-        emit DisableDepositTermSucceed(msg.sender, term);
+        /// Update pool group size only if the max term is greater than
+        /// the current pool group size
+        if (maxTerm > liquidityPools.poolGroupSize) {
+            liquidityPools.setPoolGroupSize(maxTerm);
+        }
+
+        emit EnableDepositTermsSucceed(msg.sender, terms);
+    }
+
+    function disableDepositTerm(State storage self, uint256 term) external {
+        uint256[] memory terms = new uint256[](1);
+        terms[0] = term;
+        disableDepositTerms(self, terms);
+    }
+
+    function disableDepositTerms(State storage self, uint256[] memory terms)
+        public
+    {
+        require(terms.length > 0, 'DepositManager: empty terms');
+
+        uint256 term;
+        for (uint256 i = 0; i < terms.length; i++) {
+            term = terms[i];
+            require(
+                self.isDepositTermEnabled[term],
+                'DepositManager: term already disabled'
+            );
+
+            self.isDepositTermEnabled[term] = false;
+
+            // Remove term from depositTermList
+            uint256 numDepositTerms = self.depositTermList.length;
+            uint256 lastDepositTerm = self.depositTermList[numDepositTerms - 1];
+            for (uint256 j = 0; j < self.depositTermList.length; j++) {
+                if (self.depositTermList[j] == term) {
+                    // Overwrite current term with the last term
+                    self.depositTermList[j] = lastDepositTerm;
+
+                    // Shrink array size
+                    self.depositTermList.pop();
+
+                    // Stop the loop once the term is found
+                    break;
+                }
+            }
+        }
+
+        emit DisableDepositTermsSucceed(msg.sender, terms);
     }
 
     function enableDepositToken(State storage self, address tokenAddress)
