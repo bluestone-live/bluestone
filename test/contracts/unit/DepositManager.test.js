@@ -68,6 +68,45 @@ contract('DepositManager', function([
     });
   });
 
+  describe('#enableDepositTerms', () => {
+    context('when terms is empty', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          depositManager.enableDepositTerms([]),
+          'DepositManager: empty terms',
+        );
+      });
+    });
+
+    context('when all terms are not enabled', () => {
+      const terms = [10, 20, 30];
+
+      it('succeeds', async () => {
+        await depositManager.enableDepositTerms(terms);
+        const currTerms = await depositManager.getDepositTerms();
+        terms.forEach(term =>
+          expect(currTerms.map(term => term.toNumber())).to.contain(term),
+        );
+      });
+    });
+
+    context('when one or more terms given are enabled', () => {
+      const terms = [10, 20, 30];
+      const enabledTerm = 30;
+
+      beforeEach(async () => {
+        await depositManager.enableDepositTerm(enabledTerm);
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          depositManager.enableDepositTerms(terms),
+          'DepositManager: term already enabled',
+        );
+      });
+    });
+  });
+
   describe('#disableDepositTerm', () => {
     const term = 60;
 
@@ -87,6 +126,50 @@ contract('DepositManager', function([
       it('reverts', async () => {
         await expectRevert(
           depositManager.disableDepositTerm(term),
+          'DepositManager: term already disabled',
+        );
+      });
+    });
+  });
+
+  describe('#disableDepositTerms', () => {
+    context('when terms is empty', () => {
+      it('reverts', async () => {
+        await expectRevert(
+          depositManager.disableDepositTerms([]),
+          'DepositManager: empty terms',
+        );
+      });
+    });
+
+    context('when all terms are enabled', () => {
+      const terms = [10, 20, 30];
+
+      beforeEach(async () => {
+        await depositManager.enableDepositTerms(terms);
+      });
+
+      it('succeeds', async () => {
+        await depositManager.disableDepositTerms(terms);
+        const currTerms = await depositManager.getDepositTerms();
+        terms.forEach(term =>
+          expect(currTerms.map(term => term.toNumber())).to.not.contain(term),
+        );
+      });
+    });
+
+    context('when one or more terms given are disabled', () => {
+      const terms = [10, 20, 30];
+      const disabledTerm = 30;
+
+      beforeEach(async () => {
+        await depositManager.enableDepositTerms(terms);
+        await depositManager.disableDepositTerm(disabledTerm);
+      });
+
+      it('reverts', async () => {
+        await expectRevert(
+          depositManager.disableDepositTerms(terms),
           'DepositManager: term already disabled',
         );
       });
