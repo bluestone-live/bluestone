@@ -51,13 +51,18 @@ contract(
     const depositAmount = 100;
     const depositTerm = 7;
 
+    // loan parameters
+    const loanAmount = 10;
+    const loanTerm = 1;
+    const collateralAmount = 100;
+
     before(async () => {
       // Get protocol instance
       impl = await Protocol.new();
       await impl.initialize();
       interestModel = await InterestModel.new();
-      loanTokenPriceOracle = await SingleFeedPriceOracle.new();
-      collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
+      const loanTokenPriceOracle = await SingleFeedPriceOracle.new();
+      const collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
       datetime = await DateTime.new();
 
       // Create token
@@ -155,10 +160,8 @@ contract(
     });
 
     describe('calling', () => {
-      let depositId;
-
-      it('calls deposit', async () => {
-        const { logs: depositLogs } = await protocol.deposit(
+      it('deposits successfully', async () => {
+        const { logs } = await protocol.deposit(
           loanToken.address,
           toFixedBN(depositAmount),
           depositTerm,
@@ -167,11 +170,11 @@ contract(
             from: depositor,
           },
         );
-        depositId = depositLogs.filter(log => log.event === 'DepositSucceed')[0]
+        const recordId = logs.filter(log => log.event === 'DepositSucceed')[0]
           .args.recordId;
-        expectEvent.inLogs(depositLogs, 'DepositSucceed', {
+        expectEvent.inLogs(logs, 'DepositSucceed', {
           accountAddress: depositor,
-          recordId: depositId,
+          recordId,
           amount: toFixedBN(depositAmount),
         });
 
@@ -181,10 +184,35 @@ contract(
           newBalance.toString(),
         );
       });
+
+      it('borrows successfully', async () => {
+        const { logs } = await protocol.loan(
+          loanToken.address,
+          collateralToken.address,
+          toFixedBN(loanAmount),
+          toFixedBN(collateralAmount),
+          loanTerm,
+          loanDistributor,
+          {
+            from: loaner,
+          },
+        );
+
+        const recordId = logs.filter(log => log.event === 'LoanSucceed')[0].args
+          .recordId;
+        expectEvent.inLogs(logs, 'LoanSucceed', {
+          accountAddress: loaner,
+          recordId,
+          loanTokenAddress: loanToken.address,
+          loanAmount: toFixedBN(loanAmount),
+          collateralTokenAddress: collateralToken.address,
+          collateralAmount: toFixedBN(collateralAmount),
+        });
+      });
     });
 
     describe('upgrade', () => {
-      let depositIdBeforeUpgrade;
+      let depositIdBeforeUpgrade, loanIdBeforeUpgrade;
 
       before(async () => {
         const { logs: depositLogs } = await protocol.deposit(
@@ -199,6 +227,22 @@ contract(
 
         depositIdBeforeUpgrade = depositLogs.filter(
           log => log.event === 'DepositSucceed',
+        )[0].args.recordId;
+
+        const { logs: loanLogs } = await protocol.loan(
+          loanToken.address,
+          collateralToken.address,
+          toFixedBN(loanAmount),
+          toFixedBN(collateralAmount),
+          loanTerm,
+          loanDistributor,
+          {
+            from: loaner,
+          },
+        );
+
+        loanIdBeforeUpgrade = loanLogs.filter(
+          log => log.event === 'LoanSucceed',
         )[0].args.recordId;
       });
 
@@ -220,8 +264,16 @@ contract(
           );
         });
 
+        it('can retrieve an existing loan record', async () => {
+          const record = await protocol.getLoanRecordById(loanIdBeforeUpgrade);
+          expect(new BN(record.loanTerm)).to.bignumber.equal(new BN(loanTerm));
+          expect(new BN(record.loanAmount)).to.bignumber.equal(
+            toFixedBN(loanAmount),
+          );
+        });
+
         it('deposits successfully', async () => {
-          const { logs: depositLogs } = await protocol.deposit(
+          const { logs } = await protocol.deposit(
             loanToken.address,
             toFixedBN(depositAmount),
             depositTerm,
@@ -230,13 +282,38 @@ contract(
               from: depositor,
             },
           );
-          depositId = depositLogs.filter(
+          const depositId = logs.filter(
             log => log.event === 'DepositSucceed',
           )[0].args.recordId;
-          expectEvent.inLogs(depositLogs, 'DepositSucceed', {
+          expectEvent.inLogs(logs, 'DepositSucceed', {
             accountAddress: depositor,
             recordId: depositId,
             amount: toFixedBN(depositAmount),
+          });
+        });
+
+        it('borrows successfully', async () => {
+          const { logs } = await protocol.loan(
+            loanToken.address,
+            collateralToken.address,
+            toFixedBN(loanAmount),
+            toFixedBN(collateralAmount),
+            loanTerm,
+            loanDistributor,
+            {
+              from: loaner,
+            },
+          );
+
+          const recordId = logs.filter(log => log.event === 'LoanSucceed')[0]
+            .args.recordId;
+          expectEvent.inLogs(logs, 'LoanSucceed', {
+            accountAddress: loaner,
+            recordId,
+            loanTokenAddress: loanToken.address,
+            loanAmount: toFixedBN(loanAmount),
+            collateralTokenAddress: collateralToken.address,
+            collateralAmount: toFixedBN(collateralAmount),
           });
         });
       });
