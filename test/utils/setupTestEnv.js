@@ -38,9 +38,7 @@ const setupTestEnv = async (
   balanceCap = toFixedBN(100000),
 ) => {
   // Enable deposit terms
-  for (term of depositTerms) {
-    await protocol.enableDepositTerm(term);
-  }
+  await protocol.enableDepositTerms(depositTerms);
 
   for (depositToken of depositTokens) {
     await protocol.enableDepositToken(depositToken.address);
