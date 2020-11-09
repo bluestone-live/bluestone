@@ -179,7 +179,7 @@ contract(
         expect(pool.totalDepositWeight).to.equal(
           (await interestModel.getDepositWeight(
             toFixedBN(depositAmount),
-            term,
+            depositTerm,
           )).toString(),
         );
       });
@@ -459,7 +459,7 @@ contract(
         expect(pool.totalDepositWeight).to.equal(
           (await interestModel.getDepositWeight(
             toFixedBN(depositAmount),
-            term,
+            depositTerm,
           )).toString(),
         );
       });

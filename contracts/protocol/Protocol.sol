@@ -30,9 +30,9 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     LoanManager.State _loanManager;
 
     /// Events
-    event EnableDepositTermSucceed(address indexed adminAddress, uint256 term);
+    event EnableDepositTermsSucceed(address indexed adminAddress, uint256[] terms);
 
-    event DisableDepositTermSucceed(address indexed adminAddress, uint256 term);
+    event DisableDepositTermsSucceed(address indexed adminAddress, uint256[] terms);
 
     event EnableDepositTokenSucceed(
         address indexed adminAddress,
@@ -198,8 +198,16 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         _depositManager.enableDepositTerm(_liquidityPools, term);
     }
 
+    function enableDepositTerms(uint256[] calldata terms) external onlyOwner override {
+        _depositManager.enableDepositTerms(_liquidityPools, terms);
+    }
+
     function disableDepositTerm(uint256 term) external onlyOwner override {
         _depositManager.disableDepositTerm(term);
+    }
+
+    function disableDepositTerms(uint256[] calldata terms) external onlyOwner override {
+        _depositManager.disableDepositTerms(terms);
     }
 
     function enableDepositToken(address tokenAddress)

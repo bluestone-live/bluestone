@@ -20,9 +20,17 @@ interface IProtocol {
     /// @param depositTerm Deposit term
     function enableDepositTerm(uint256 depositTerm) external;
 
+    /// @notice Enable deposit terms
+    /// @param depositTerms Deposit terms
+    function enableDepositTerms(uint256[] calldata depositTerms) external;
+
     /// @notice Disable a deposit term
     /// @param depositTerm  Deposit term
     function disableDepositTerm(uint256 depositTerm) external;
+
+    /// @notice Disable deposit terms
+    /// @param depositTerms  Deposit terms
+    function disableDepositTerms(uint256[] calldata depositTerms) external;
 
     /// @notice Enable an ERC20 token for deposit
     /// @param tokenAddress Token address
