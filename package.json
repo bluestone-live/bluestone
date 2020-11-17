@@ -5,7 +5,9 @@
   "scripts": {
     "start:ganache": "npx ganache-cli -p 7545 -i 5777 -e 1000",
     "test:contract": "npx truffle test",
-    "test:client": "jest client/"
+    "test:client": "jest client/",
+    "deploy:contract": "sudo yarn && npx truffle migrate",
+    "deploy:setupEnv": "./scripts/bash/setupEnvironment development"
   },
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.5",
@@ -37,8 +39,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn test:contract && yarn test:client"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {

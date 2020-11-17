@@ -11,7 +11,7 @@ const exec = (scriptName, network) =>
     )} --network ${network}`,
   );
 
-module.exports = makeTruffleScript(async network => {
+module.exports = makeTruffleScript(async (network) => {
   debug('Deploy Tokens');
   exec('deployTokens', network);
 
@@ -19,7 +19,7 @@ module.exports = makeTruffleScript(async network => {
   exec('deployPriceOracles', network);
 
   debug('Setup Deposit Environment');
-  exec('enableDepositTerm', network);
+  exec('enableDepositTerms', network);
   exec('enableDepositToken', network);
 
   debug('Setup Loan Environment');
