@@ -6,8 +6,10 @@
     "start:ganache": "npx ganache-cli -p 7545 -i 5777 -e 1000  -m 'episode puzzle trial grit boat gas firm upon meadow street olympic orchard'",
     "test:contract": "npx truffle test",
     "test:client": "jest client/",
-    "deploy:contract": "sudo yarn && npx truffle migrate",
-    "deploy:setupEnv": "./scripts/bash/setupEnvironment development"
+    "deploy:contract:dev": "sudo yarn && npx truffle migrate",
+    "deploy:setupEnv:dev": "./scripts/bash/setupEnvironment development",
+    "deploy:contract:kovan": "sudo yarn && npx truffle migrate --network kovan --reset",
+    "deploy:setupEnv:kovan": "./scripts/bash/setupEnvironment kovan"
   },
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.5",
