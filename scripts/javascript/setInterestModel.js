@@ -1,9 +1,8 @@
 const debug = require('debug')('script:setInterestModel');
-const ERC20Mock = artifacts.require('./ERC20Mock.sol');
 const Protocol = artifacts.require('./Protocol.sol');
 const { loadNetwork, makeTruffleScript } = require('../utils.js');
 
-module.exports = makeTruffleScript(async network => {
+module.exports = makeTruffleScript(async (network) => {
   const { contracts } = loadNetwork(network);
   let interestModelAddress = contracts.InterestModel;
   if (!interestModelAddress) {

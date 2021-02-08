@@ -20,7 +20,7 @@
 
 require('chai/register-should');
 
-const HDWalletProvider = require('truffle-hdwallet-provider');
+const HDWalletProvider = require('@truffle/hdwallet-provider');
 const config = require('config');
 const path = require('path');
 
@@ -46,6 +46,7 @@ module.exports = {
       host: '127.0.0.1', // Localhost (default: none)
       port: 7545, // Standard Ethereum port (default: none)
       network_id: '*', // Any network (default: none)
+      gasPrice: 1000000000,
     },
 
     // Another network with more advanced options...
@@ -101,7 +102,8 @@ module.exports = {
         ),
       network_id: 1,
       websockets: true,
-      confirmations: 5,
+      gasPrice: 120000000000,
+      timeoutBlocks: 1400, // about 30 minutes
     },
 
     // Useful for private networks

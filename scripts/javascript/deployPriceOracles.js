@@ -14,7 +14,7 @@ const DaiPriceOracle = artifacts.require('DaiPriceOracle');
 const ERC20Mock = artifacts.require('ERC20Mock');
 const Protocol = artifacts.require('Protocol');
 
-module.exports = makeTruffleScript(async network => {
+module.exports = makeTruffleScript(async (network) => {
   const { tokens } = loadNetwork(network);
 
   const { ETH, DAI, USDT, USDC } = tokens;
@@ -96,8 +96,10 @@ module.exports = makeTruffleScript(async network => {
     );
   };
 
-  await setPriceOracle('ETH', ETH.address, ethPriceOracle.address);
-  await setPriceOracle('DAI', DAI.address, daiPriceOracle.address);
-  await setPriceOracle('USDT', USDT.address, fixedPriceOracle.address);
-  await setPriceOracle('USDC', USDC.address, fixedPriceOracle.address);
+  await Promise.all([
+    setPriceOracle('ETH', ETH.address, ethPriceOracle.address),
+    setPriceOracle('DAI', DAI.address, daiPriceOracle.address),
+    setPriceOracle('USDT', USDT.address, fixedPriceOracle.address),
+    setPriceOracle('USDC', USDC.address, fixedPriceOracle.address),
+  ]);
 });
