@@ -24,6 +24,10 @@ module.exports = makeTruffleScript(async (network) => {
       deployedToken = await USDTMock.new(token.name, symbol);
     } else if (symbol === 'USDC') {
       deployedToken = await ERC20Mock.new(token.name, symbol, 6);
+    } else if (symbol === 'WETH') {
+      deployedToken = await ERC20Mock.new(token.name, symbol, 18);
+    } else if (symbol === 'DAI') {
+      deployedToken = await ERC20Mock.new(token.name, symbol, 10);
     } else if (symbol === 'ETH') {
       // We use address(1) to identify ETH
       deployedToken = Object.assign(
@@ -33,7 +37,7 @@ module.exports = makeTruffleScript(async (network) => {
         },
       );
     } else {
-      deployedToken = await ERC20Mock.new(token.name, symbol, 18);
+      throw Error('unknown token');
     }
 
     debug(`Deployed ${symbol} at ${deployedToken.address}`);

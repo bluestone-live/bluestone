@@ -12,55 +12,31 @@ module.exports = {
 
   contract: {
     tokens: {
-      DAI: {
-        name: 'Dai',
-        loanInterestRateLowerBound: 0.1,
-        loanInterestRateUpperBound: 0.15,
-        balanceCap: 100000,
-      },
       USDT: {
         name: 'Tether',
-        loanInterestRateLowerBound: 0.07,
-        loanInterestRateUpperBound: 0.09,
-        balanceCap: 100000,
+        loanInterestRateLowerBound: 0.08,
+        loanInterestRateUpperBound: 0.1,
+        balanceCap: 1000000,
       },
-      ETH: {
-        name: 'Native Ether',
+      WETH: {
+        name: 'Wrapped Ether',
         loanInterestRateLowerBound: 0.06,
-        loanInterestRateUpperBound: 0.12,
-        balanceCap: 100000,
+        loanInterestRateUpperBound: 0.08,
+        balanceCap: 10000,
       },
     },
     depositTerms: [30, 60, 90],
     loanAndCollateralTokenPairs: [
       {
-        loanTokenSymbol: 'DAI',
-        collateralTokenSymbol: 'ETH',
-        minCollateralCoverageRatio: 1.55,
-        liquidationDiscount: 0.03,
-      },
-      {
         loanTokenSymbol: 'USDT',
-        collateralTokenSymbol: 'ETH',
-        minCollateralCoverageRatio: 1.55,
-        liquidationDiscount: 0.03,
-      },
-      {
-        loanTokenSymbol: 'USDT',
-        collateralTokenSymbol: 'DAI',
-        minCollateralCoverageRatio: 1.55,
-        liquidationDiscount: 0.03,
-      },
-      {
-        loanTokenSymbol: 'USDC',
-        collateralTokenSymbol: 'ETH',
-        minCollateralCoverageRatio: 1.55,
-        liquidationDiscount: 0.03,
+        collateralTokenSymbol: 'WETH',
+        minCollateralCoverageRatio: 1.3,
+        liquidationDiscount: 0.05,
       },
     ],
-    protocolReserveRatio: 0.1,
-    depositDistributorFeeRatio: 0.01,
-    loanDistributorFeeRatio: 0.02,
+    protocolReserveRatio: 0,
+    depositDistributorFeeRatio: 0.05,
+    loanDistributorFeeRatio: 0.05,
     interestReserveAddress: '<ADD-ADDRESS>',
   },
 };

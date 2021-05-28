@@ -1,28 +1,18 @@
 {
   "contracts": {
-    "Protocol": "0x3F9434BfCf79918E1463F809DEEF85dB7Efb4784",
-    "InterestModel": "0x86DF965c00C28Fd6027842BE3985204695d03C30"
+    "Protocol": "",
+    "InterestModel": ""
   },
   "tokens": {
-    "DAI": {
-      "name": "Dai",
-      "address": "0x6b175474e89094c44da98b954eedeac495271d0f",
-      "priceOracleAddress": "0xcc7Ec0F403Fdce4624c4b9af8FBB08C7A9AA05dE"
-    },
     "USDT": {
       "name": "Tether",
-      "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-      "priceOracleAddress": "0xa5209A9e048c5dc3f0EB0d793B548b1dBCe21307"
+      "address": "0xe30b468bae3d25ca743313c963578c1478b6ec43",
+      "priceOracleAddress": ""
     },
-    "ETH": {
-      "name": "Native Ether",
-      "address": "0x0000000000000000000000000000000000000001",
-      "priceOracleAddress": "0x6d6a46a21A7A97EFA59b2eB1EF2499b5d010da14"
-    },
-    "USDC": {
-      "name": "USDC",
-      "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-      "priceOracleAddress": "0xa5209A9e048c5dc3f0EB0d793B548b1dBCe21307"
+    "WETH": {
+      "name": "Wrapped Ether",
+      "address": "0xb091c53d1537bc169954675bb706def9cdc2faa0",
+      "priceOracleAddress": ""
     }
   }
 }
