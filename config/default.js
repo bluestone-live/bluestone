@@ -4,7 +4,7 @@ module.exports = {
     projectId: '24cc9d4197c643ec81bbe2ecbaa26d31',
   },
   // The twelve word phrase the wallet uses to generate public/private key pairs.
-  // This is needed when we deploy contracts to testnet.
+  // This is needed when we deploy contracts to testnet or mainnet.
   // NOTICE: Please only set in `config/local.js`, don't share your mnemonic to anyone
   mnemonic: '<ADD-YOUR-MNEMONIC>',
   // address index in your account based by zero.

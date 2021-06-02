@@ -30,19 +30,16 @@ Make sure you have read through [Truffle Documentation](https://truffleframework
 
 ## Development
 
-Create a config file for local development:
+Create a local config file:
 
 ```
-cp config/development.js config/local.js
+cp config/example.local.js config/local.js
 ```
 
-Fill in any credentials if needed.
-
-Install dependencies and migrate contracts:
+Install dependencies:
 
 ```
 yarn
-npx truffle migrate
 ```
 
 Start Ethereum RPC client [ganache-cli](https://github.com/trufflesuite/ganache-cli):
@@ -51,10 +48,16 @@ Start Ethereum RPC client [ganache-cli](https://github.com/trufflesuite/ganache-
 yarn run start:ganache
 ```
 
-Prepare test environment for local development:
+Deploy contracts to the local development network:
 
 ```
-./scripts/bash/setupEnvironment
+yarn run deploy:contract:dev
+```
+
+Prepare the testing environment and configure the deployed contracts:
+
+```
+yarn run deploy:setupEnv:dev
 ```
 
 ## Test
@@ -71,26 +74,21 @@ To run some specific tests under `test/` folder:
 npx truffle test <test_file>
 ```
 
-## Deployment
+## Deployment to mainnet/testnet
 
-**WARNING: current deployment strategy is still highly experienmental and immature.**
-
-Because deployed contracts are final, we always deploy fresh new contracts to the testnet and setup test environment from scratch.
-
-### Testnet
+Because deployed contracts are final, we always deploy fresh new contracts to the mainnet/testnet and setup test environment from scratch.
+Current supported networks are "main", "kovan" and "rinkeby".
 
 First, fill in the mnemonic in `config/local.js`.
 
-Deploy new contracts to the target testnet:
+Deploy new contracts to the target network:
 
 ```
-npx truffle migrate --network <testnet> --reset
+npx truffle migrate --network <network_name> --reset
 ```
 
 Setup initial state for the test environment:
 
 ```
-./scripts/bash/setupEnvironment <testnet>
+./scripts/bash/setupEnvironment <network_name>
 ```
-
-Since contract ABIs have been changed, we need to redeploy web app following the same section in client's README.

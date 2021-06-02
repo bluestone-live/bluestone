@@ -1,4 +1,4 @@
-# Client
+# Client (deprecated)
 
 This is the web client for BlueStone built on [React](https://reactjs.org/) and [TypeScript](https://www.typescriptlang.org/).
 
