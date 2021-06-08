@@ -15,8 +15,8 @@ module.exports = makeTruffleScript(async (network) => {
   debug('Deploy Tokens');
   exec('deployTokens', network);
 
-  debug('Deploy price oracles');
-  exec('deployPriceOracles', network);
+  debug('Set price oracles');
+  exec('setPriceOracles', network);
 
   debug('Setup Deposit Environment');
   exec('enableDepositTerms', network);

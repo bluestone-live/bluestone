@@ -6,7 +6,7 @@ source $DIR/utils
 required_args=( network )
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Deploy price oracle for each token to dev and test network."
+  description="Set the price oracle for each token."
   show_help_message "$description" $required_args
   exit 1
 fi

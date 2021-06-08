@@ -8,10 +8,10 @@ const constants = {
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
 };
 
-const getNetworkFile = network =>
+const getNetworkFile = (network) =>
   path.join(__dirname, '..', 'networks', `${network}.json`);
 
-const loadNetwork = network => {
+const loadNetwork = (network) => {
   const debug = _debug.extend('loadNetwork');
   const filePath = getNetworkFile(network);
 
@@ -42,7 +42,7 @@ const saveNetwork = (network, path, value) => {
 };
 
 // Deploy a contract and save contract address
-const deploy = async (deployer, network, contract, ...args) => {
+const deploy = async (deployer, network, contract, saveToPath, ...args) => {
   const debug = _debug.extend('deploy');
   const contractName = contract._json.contractName;
 
@@ -50,14 +50,15 @@ const deploy = async (deployer, network, contract, ...args) => {
   await deployer.deploy(contract, ...args);
 
   const deployedContract = await contract.deployed();
-  saveNetwork(network, ['contracts', contractName], deployedContract.address);
+  const path = saveToPath || ['contracts', contractName];
+  saveNetwork(network, path, deployedContract.address);
 
   debug(`Deployed ${contractName} at ${deployedContract.address}.`);
 
   return deployedContract.address;
 };
 
-const getTokenAddress = async tokenSymbol => {
+const getTokenAddress = async (tokenSymbol) => {
   const debug = _debug.extend('getTokenAddress');
   const network = loadNetwork('development');
   const tokenAddress = network['tokens'][tokenSymbol].address;
@@ -75,7 +76,7 @@ const getTokenAddress = async tokenSymbol => {
 // for truffle and outputs useful debugging info. It accepts a function that
 // contains main scripting logic and returns another function to be
 // executed by truffle.
-const makeTruffleScript = fn => {
+const makeTruffleScript = (fn) => {
   const debug = _debug.extend('makeTruffleScript');
 
   // The following function will be executed by truffle, the first argument
