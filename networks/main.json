@@ -1,18 +1,26 @@
 {
   "contracts": {
-    "Protocol": "",
-    "InterestModel": ""
+    "Migrations": "0xb4107f772357047aff4064f5c5b61260fb6db6f6",
+    "DateTime": "0x7534a4f852856872e6bd6fd6798c1c85618be0df",
+    "Configuration": "0x1edc771b01a52d6e672d6ce1eb2265cad3645c17",
+    "LiquidityPools": "0x53f53074ede07458d58d86c7510ab2aff65f0acf",
+    "DepositManager": "0x343d534431adf97c574fda3a0203909e00f512c4",
+    "LoanManager": "0x4ed69605dfa441914c51009c19c8343d180ca490",
+    "UsdtPriceOracle": "0xe90fe6efa55f88987dcc170928e2be398e5b2eb7",
+    "WethPriceOracle": "0x67afb5e7368b60b2dcaad816c66f1fc7d2a3e830",
+    "InterestModel": "0x894684045379a17545a7e3198fb3765be881aa70",
+    "Protocol": "0x82cd519ee33da2cea53c1f4d361a00021f56b169"
   },
   "tokens": {
     "USDT": {
       "name": "Tether",
       "address": "0xe30b468bae3d25ca743313c963578c1478b6ec43",
-      "priceOracleAddress": ""
+      "priceOracleAddress": "0xe90fe6efa55f88987dcc170928e2be398e5b2eb7"
     },
     "WETH": {
       "name": "Wrapped Ether",
       "address": "0xb091c53d1537bc169954675bb706def9cdc2faa0",
-      "priceOracleAddress": ""
+      "priceOracleAddress": "0x67afb5e7368b60b2dcaad816c66f1fc7d2a3e830"
     }
   }
 }

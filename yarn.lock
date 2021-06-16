@@ -553,6 +553,394 @@
     web3 "^1.2.1"
     web3-utils "^1.2.1"
 
+"@rocketprotocolproject/abi@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/abi/-/abi-0.0.7.tgz#afabff7fad904407c0b76a1c7dd7e19954e46793"
+  integrity sha512-UtwveY+RsieHiz10jbD7ShQVuAHz0/UIPB8fStehLO/sjNULgDzkp+LOTjHFFxcdfxOVergSxSwfhZuGDaDi8w==
+  dependencies:
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/constants" "^0.0.9"
+    "@rocketprotocolproject/hash" "^0.0.13"
+    "@rocketprotocolproject/keccak256" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/strings" "^0.0.11"
+
+"@rocketprotocolproject/abstract-provider@^0.0.18":
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/abstract-provider/-/abstract-provider-0.0.18.tgz#ae991f0cc1b1755dce52047ed421fe3f33c852bf"
+  integrity sha512-RuWaQzfDQJ2aX19RLRsPhwBGyUqJ64g3AgUiWXxsf4yZVFBLUDirdRN9uecaweK+BkkOQFNYJ80dxa4XVacrhw==
+  dependencies:
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/networks" "^0.0.5"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/transactions" "^0.0.14"
+    "@rocketprotocolproject/web" "^0.0.15"
+
+"@rocketprotocolproject/abstract-provider@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/abstract-provider/-/abstract-provider-0.0.19.tgz#480c27eb3ba45b5e083b15bb58015883430ef3b4"
+  integrity sha512-vRJMov5+K0K8J8tSIqyl1xjEIjZRhsfBsebltmhQzuaBrSxd8DjTIgF+gPxL0llCuxYfHuzq0fvVlmHeVkHsBQ==
+  dependencies:
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/networks" "^0.0.5"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/transactions" "^0.0.15"
+    "@rocketprotocolproject/web" "^0.0.16"
+
+"@rocketprotocolproject/abstract-signer@^0.0.18":
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/abstract-signer/-/abstract-signer-0.0.18.tgz#357d35462added1132a632a470a41827f923b98c"
+  integrity sha512-sBvGotjF62VY4XyD8m05iJcEj3Ek/eGZT1bsCqLiLiaWIiSKrsULRTuNz4vDqtqA7MxnDBcgUPUflVDa9uZ5lg==
+  dependencies:
+    "@rocketprotocolproject/abstract-provider" "^0.0.18"
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/base64" "^0.0.7"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/transactions" "^0.0.14"
+
+"@rocketprotocolproject/abstract-signer@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/abstract-signer/-/abstract-signer-0.0.19.tgz#957d192ad5926478595c987ce9925267d07d9bd7"
+  integrity sha512-AnIH504tA7zpuMuUCiSYPjohK7pLxwKcXoPpyqt6wgUjOBVFkUPpjPx95lf9pHFmm/RDkqEJK+bu9G9TGVYU+A==
+  dependencies:
+    "@rocketprotocolproject/abstract-provider" "^0.0.19"
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/base64" "^0.0.7"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/transactions" "^0.0.15"
+
+"@rocketprotocolproject/address@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/address/-/address-0.0.9.tgz#9410fed8d54efac254644816354445cb08d4bbaa"
+  integrity sha512-qv59gnNAWF6Kh35lMtV49LYYE7gnh55O1LA2Fd991lGmj5HHhpuj5MFj60B9nDYNvNKvOtX61MUsUYiqTNuD8w==
+  dependencies:
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/keccak256" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    bn.js "^4.4.0"
+
+"@rocketprotocolproject/base64@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/base64/-/base64-0.0.7.tgz#010a0934af26c39c1efc5429e444d4fc02fdcb83"
+  integrity sha512-yX4stcLJ5fXER6DruJB38qk8psakwcGY2PxFjTldZ31UBgb0TK+SEZUljj6OuqLafywSfzlFNNIWYoLOxcRUXA==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+
+"@rocketprotocolproject/basex@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/basex/-/basex-0.0.8.tgz#49c3c169c98efbecd804258fdc2fd51061c9d50d"
+  integrity sha512-SRNdRm3cPXcpoYfhS+wZSfVdJGEa7eOeRBAAlPrQqarY/pZ7akc/yIN4niXFyBdMuScKKkdk2AgUAoejCicayg==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/properties" "^0.0.6"
+
+"@rocketprotocolproject/bignumber@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/bignumber/-/bignumber-0.0.7.tgz#3e4d17caf3c8c14dc9b7d29b2e332445dd9a3c0a"
+  integrity sha512-kmf3wnN5TgrVUkb/BzPUIhyezCLBBDxAsfh1t+EbXoJcsdVV4WOQWGCsex7wSL8WlKlHE4dh29SdHd4zWBF4Zw==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    bn.js "^4.4.0"
+
+"@rocketprotocolproject/bytes@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/bytes/-/bytes-0.0.6.tgz#160d2f6d63a5b6f580e3f88c766d0691ff3499b5"
+  integrity sha512-6Jn4EpZtBJY+7j1/7T2pu2Z30P1ennZsfaXpLuq+RvM6Gt7xr9BXp/hmUYstVD+wrZenkSCw/1x36EUAYjZ4sw==
+  dependencies:
+    "@rocketprotocolproject/logger" "^0.0.4"
+
+"@rocketprotocolproject/bytes@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/bytes/-/bytes-0.0.7.tgz#195237f6daefabc3f5dffc1351a9bd75106a082a"
+  integrity sha512-8VOloJLug6dX8QRBYmAwV90E7b/Uu4ogS3InbxRWmwWb6mw8/1hD5Zu4MwBu9qaHg1CpYGVBZcDxpKyEFZwSAw==
+  dependencies:
+    "@rocketprotocolproject/logger" "^0.0.4"
+
+"@rocketprotocolproject/constants@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/constants/-/constants-0.0.9.tgz#1713606d24b3ae2871ea66129d6603a208c11a17"
+  integrity sha512-MD0hQfm69CkUCJrcp7r/FmvJxsg91PZWU5dkDH2pAjvMpT0X12TwE8A/oMZvdoKqrsklwrvcb6gu65Gdib5V9A==
+  dependencies:
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+
+"@rocketprotocolproject/contracts@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/contracts/-/contracts-0.0.9.tgz#42f7e6faeac0322889961825ae16c7b5c38b1558"
+  integrity sha512-w5owA22cM16r+VJ47wKH70M3sTDplnbGrBDCOSEjF8Ik8VHusLlta5lOofD0QGq+57oPLFilhPp8jz5Um86Bhw==
+  dependencies:
+    "@rocketprotocolproject/abi" "^0.0.7"
+    "@rocketprotocolproject/abstract-provider" "^0.0.19"
+    "@rocketprotocolproject/abstract-signer" "^0.0.19"
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/base64" "^0.0.7"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.7"
+    "@rocketprotocolproject/constants" "^0.0.9"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/transactions" "^0.0.15"
+
+"@rocketprotocolproject/hash@^0.0.13":
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/hash/-/hash-0.0.13.tgz#d5da2e47dd16f03471bd4197201ad51afd51c916"
+  integrity sha512-vlL7mR2D5YYQSIKtF/TZDU45HwOlIizDM6/YUtwPhYek5EmL5Vo6xGiREFIDHNcH4jpx57puVfpCnZh5gM12mw==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/keccak256" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/sha3256" "^0.0.7"
+    "@rocketprotocolproject/strings" "^0.0.11"
+
+"@rocketprotocolproject/hash@^0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/hash/-/hash-0.0.14.tgz#931aad8ed43d82c84c6393c748e4dbf232c0b819"
+  integrity sha512-LUir0B5dPcLoy5X7t+coploTGUKJlK1FeO9WuSOjBN0aMyQa6+qzhjjHeyoCqc0k7ZsZ66ztroVAxOCeac5BdQ==
+  dependencies:
+    "@rocketprotocolproject/abstract-signer" "^0.0.19"
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.7"
+    "@rocketprotocolproject/keccak256" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/sha3256" "^0.0.7"
+    "@rocketprotocolproject/strings" "^0.0.11"
+
+"@rocketprotocolproject/hdnode@^0.0.18":
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/hdnode/-/hdnode-0.0.18.tgz#c47303e4c596d582ab6a39b410d453630f3739c5"
+  integrity sha512-oPN+Td2qymfmnJMwZDnq3d6xrfb3P8+35/SQrq3re1yxCcSCoEBrgV/5iAMmUa07safy4EQYFoxh4LEI2YVj7g==
+  dependencies:
+    "@rocketprotocolproject/abstract-signer" "^0.0.18"
+    "@rocketprotocolproject/basex" "^0.0.8"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/pbkdf2" "^0.0.9"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/sha2" "^0.0.7"
+    "@rocketprotocolproject/signing-key" "^0.0.8"
+    "@rocketprotocolproject/strings" "^0.0.11"
+    "@rocketprotocolproject/transactions" "^0.0.14"
+    "@rocketprotocolproject/wordlists" "^0.0.15"
+
+"@rocketprotocolproject/json-wallets@^0.0.18":
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/json-wallets/-/json-wallets-0.0.18.tgz#9a090bc87320708b417fa36f36ff1cc8ed27ee25"
+  integrity sha512-hVmyRZlrgiSPXIaklVbGFIlDnIzivMvpeOWnBhNznHHzyO89U7mH6+4ce5o6nk+wvK5dt5AkviB64sx+W31+wA==
+  dependencies:
+    "@rocketprotocolproject/abstract-signer" "^0.0.18"
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/hdnode" "^0.0.18"
+    "@rocketprotocolproject/keccak256" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/pbkdf2" "^0.0.9"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/random" "^0.0.7"
+    "@rocketprotocolproject/strings" "^0.0.11"
+    "@rocketprotocolproject/transactions" "^0.0.14"
+    aes-js "3.0.0"
+    scrypt-js "3.0.1"
+
+"@rocketprotocolproject/keccak256@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/keccak256/-/keccak256-0.0.7.tgz#c2cf713d50c1f8852f37b893a13e5dd3f63c7e70"
+  integrity sha512-u7xcjADmurqvB75NvsyUy7WdYZutK+ujYrAPZdN+BTRx0HLCT8yqh9z7XPf0N0iT8sDDyr2iFy0cHIgjbeW5Ug==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    js-sha3 "0.5.7"
+
+"@rocketprotocolproject/logger@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/logger/-/logger-0.0.4.tgz#e4273d0dcdfe940c754dade9d1112ccbb7ec4d3d"
+  integrity sha512-QdVliyJWo/gtUCtvs9hnrJucxt/yPBtxQLz9H6umhBoVyLZ9QzqTbRuavZgbQV7/Qg5VF3ETavyy89KwZL1G2w==
+
+"@rocketprotocolproject/networks@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/networks/-/networks-0.0.5.tgz#4642f6afe571ec320ca956be4daa3dccf0a6d9b1"
+  integrity sha512-FXaskK94Eov+Q90JU7eX8ZMlcH1pIdOfYqWyQrKXuTdqqAlts3BEyFTK5D6SSEv8aAhNNj3horEna6iW3M0Qhg==
+  dependencies:
+    "@rocketprotocolproject/logger" "^0.0.4"
+
+"@rocketprotocolproject/pbkdf2@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/pbkdf2/-/pbkdf2-0.0.9.tgz#d17f3ca3577a9297c17e1a5cc4db88b62ef6ddc1"
+  integrity sha512-ZiN40WhflBXl3nA4cDYSpkpqoDJRnFvOz8KTc5cFd0xrMiN31IjkjT15H1Ub86EfLsAV+aYGazyMh8z1tbCLpQ==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/sha2" "^0.0.7"
+
+"@rocketprotocolproject/properties@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/properties/-/properties-0.0.6.tgz#ccd5b6933d0c49829207612b7f17c560c0936f1c"
+  integrity sha512-isQpWqJ5SBhAAdwHX/0x9JJtiku5LrN/FU2dWWQ9tb7Y/5d23/HLwYy3qV9nULngQho5xBeEffVGGqu3Ca96Eg==
+  dependencies:
+    "@rocketprotocolproject/logger" "^0.0.4"
+
+"@rocketprotocolproject/providers@^0.0.18":
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/providers/-/providers-0.0.18.tgz#a297e2f473fe94276a257b64dd4e11ff5c0778d5"
+  integrity sha512-HIRHRBXTjaR4M4GzYIuR1XRi3ZbHsE+mPKIU9bE/Z5XqRSl+Uyllq/Xum86584Y6Z6oXdJMyloYLmJ6nSljAgg==
+  dependencies:
+    "@rocketprotocolproject/abstract-provider" "^0.0.19"
+    "@rocketprotocolproject/abstract-signer" "^0.0.19"
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.7"
+    "@rocketprotocolproject/constants" "^0.0.9"
+    "@rocketprotocolproject/hash" "^0.0.14"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/networks" "^0.0.5"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/random" "^0.0.7"
+    "@rocketprotocolproject/strings" "^0.0.11"
+    "@rocketprotocolproject/transactions" "^0.0.15"
+    "@rocketprotocolproject/web" "^0.0.16"
+    ws "7.2.3"
+
+"@rocketprotocolproject/random@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/random/-/random-0.0.7.tgz#dd4c040c8f2404695643ee8e20b5bdb052d4555b"
+  integrity sha512-P1atTa/oaE2+ooFjHtiZ56ioeWBwmeBDaaMTeyXexnfkroAFXpc7msJkJoiY64h1Il/ObaeATX9EIMVxiWov3Q==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/logger" "^0.0.4"
+
+"@rocketprotocolproject/sha2@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/sha2/-/sha2-0.0.7.tgz#9f68541bd3440ee0fa403dc9a5eb1458bdd5e99f"
+  integrity sha512-cb1e9jDUcd2yMDcd2DpgufAWugtMmTVB+7XBSetyK9H/HEdC6RsWiKBXsBpSRQ8Jioc8dqpF8jM8JnvCjIytkg==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    hash.js "1.1.3"
+
+"@rocketprotocolproject/sha3256@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/sha3256/-/sha3256-0.0.7.tgz#6d1b8c7091b3f21bf8050547116d057342c26d43"
+  integrity sha512-2EAJISE8R8oTb2+LnZu7vMDpHixHg0pkxYiIX+G0cx4MTwVYMNtnRgn+pVFbGs99yG4FNw2opXrVOPZe0KgIjA==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    js-sha3 "0.5.7"
+
+"@rocketprotocolproject/signing-key@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/signing-key/-/signing-key-0.0.8.tgz#34f7d8455fe994e2442c11a17ee087e5c5481439"
+  integrity sha512-QbecoQrFbOzr8THX/n9dFngO282XyHg69P9LX8f403nbgo9DILj7YPi1XLknpEwlJZTW80Qen2umdMKK9rCtmA==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    elliptic "6.5.3"
+
+"@rocketprotocolproject/strings@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/strings/-/strings-0.0.11.tgz#6365c3269f164fbeccb30ed2895deb9cb045ae67"
+  integrity sha512-a/JajnPgeegiUwIc77ADSHkxYcjTnHo2rHxXR4lcnNNfBuA2LP5qInGfRM3E7qSt50PtcoHtc7KY7X9hV+PQ2g==
+  dependencies:
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/constants" "^0.0.9"
+    "@rocketprotocolproject/logger" "^0.0.4"
+
+"@rocketprotocolproject/transactions@^0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/transactions/-/transactions-0.0.14.tgz#f42e7a291267379bffb5820a8e20598d57786c00"
+  integrity sha512-WnTNDtij9BCtQt+vuJA8m4+D1QdScTxo0cDmhZ/lAr/HXI0kWrbmrZt1vJHsISlhdFQhjYQBHmc2v/xoUpT4jQ==
+  dependencies:
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/constants" "^0.0.9"
+    "@rocketprotocolproject/keccak256" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/signing-key" "^0.0.8"
+
+"@rocketprotocolproject/transactions@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/transactions/-/transactions-0.0.15.tgz#c2f2226075c3a485af3ced1644f0d47349397fac"
+  integrity sha512-COGX/v7E3WZEziqrP03MlUww3/EF2vj5wvrR8XKGkhpOXvhpgoPKp/6fWOrm69DrrwB8H3yVlMRetAimBvBCag==
+  dependencies:
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.7"
+    "@rocketprotocolproject/constants" "^0.0.9"
+    "@rocketprotocolproject/keccak256" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/signing-key" "^0.0.8"
+
+"@rocketprotocolproject/wallet@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/wallet/-/wallet-0.0.19.tgz#62bc0d8ed01edb454322e5a029b9af975b965808"
+  integrity sha512-XPlzbFYQBQMBQuaE6qGaLPrfA0cPOejpHh135Xv5266IsgRnm6Uvq4qzSpssWmRkoiZ0jj+S/GmU7pxqqWwBcw==
+  dependencies:
+    "@rocketprotocolproject/abstract-provider" "^0.0.19"
+    "@rocketprotocolproject/abstract-signer" "^0.0.19"
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.7"
+    "@rocketprotocolproject/hash" "^0.0.14"
+    "@rocketprotocolproject/hdnode" "^0.0.18"
+    "@rocketprotocolproject/json-wallets" "^0.0.18"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/random" "^0.0.7"
+    "@rocketprotocolproject/sha2" "^0.0.7"
+    "@rocketprotocolproject/sha3256" "^0.0.7"
+    "@rocketprotocolproject/signing-key" "^0.0.8"
+    "@rocketprotocolproject/strings" "^0.0.11"
+    "@rocketprotocolproject/transactions" "^0.0.15"
+    "@rocketprotocolproject/wordlists" "^0.0.15"
+
+"@rocketprotocolproject/web@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/web/-/web-0.0.15.tgz#bd0425d90ae3c9802796c3aee2c2ff5c7804b894"
+  integrity sha512-PzyfOsEHKCP8FoCbYCFJjvIOYGGVkEGVCRPCdVVbv5xYHm3g1Lpso3dr97wHhxl3Fy/N38NHytKEsydpsWDelQ==
+  dependencies:
+    "@rocketprotocolproject/base64" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/strings" "^0.0.11"
+
+"@rocketprotocolproject/web@^0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/web/-/web-0.0.16.tgz#e1d18a792443d7a7a7e7407b16c944d769891311"
+  integrity sha512-jW0YIuAIBmFVjMhwlQ9eGz0yZ1mIATYiU6r+SE4BNId+NFkotj5NC84a5ck6AUDroZYNSGavKmiap2Hijl4LyA==
+  dependencies:
+    "@rocketprotocolproject/base64" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/strings" "^0.0.11"
+
+"@rocketprotocolproject/wordlists@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@rocketprotocolproject/wordlists/-/wordlists-0.0.15.tgz#6b246abb5a355dd5b7b3e25883ee2d3b0521ab92"
+  integrity sha512-vQSvm3aA1HDIiINxR6/OngAqYWFk/C0QbXz4E5SUVOdgrIMVYMxo1CShSkcHrA0qZMtqHt3xYrSOEtwAB+gfxw==
+  dependencies:
+    "@rocketprotocolproject/bytes" "^0.0.6"
+    "@rocketprotocolproject/hash" "^0.0.13"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/strings" "^0.0.11"
+
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@samverschueren/stream-to-observable/-/stream-to-observable-0.3.0.tgz#ecdf48d532c58ea477acfcab80348424f8d0662f"
@@ -6927,6 +7315,38 @@ rlp@^2.2.3:
   dependencies:
     bn.js "^4.11.1"
 
+rocketprotocol@^0.0.20:
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/rocketprotocol/-/rocketprotocol-0.0.20.tgz#9e41e64702f76c9f1b0f96d8c586717e950ace87"
+  integrity sha512-2CC0xyXvKGOeMo7Tf/2y0yj5YfiSyqAykJWpFvSoWqBr4JJagcMytlLPJFP25KdoTEjer1qy4RfAzusxUhMM8Q==
+  dependencies:
+    "@rocketprotocolproject/abstract-provider" "^0.0.19"
+    "@rocketprotocolproject/abstract-signer" "^0.0.19"
+    "@rocketprotocolproject/address" "^0.0.9"
+    "@rocketprotocolproject/base64" "^0.0.7"
+    "@rocketprotocolproject/bignumber" "^0.0.7"
+    "@rocketprotocolproject/bytes" "^0.0.7"
+    "@rocketprotocolproject/constants" "^0.0.9"
+    "@rocketprotocolproject/contracts" "^0.0.9"
+    "@rocketprotocolproject/hash" "^0.0.14"
+    "@rocketprotocolproject/hdnode" "^0.0.18"
+    "@rocketprotocolproject/json-wallets" "^0.0.18"
+    "@rocketprotocolproject/keccak256" "^0.0.7"
+    "@rocketprotocolproject/logger" "^0.0.4"
+    "@rocketprotocolproject/networks" "^0.0.5"
+    "@rocketprotocolproject/pbkdf2" "^0.0.9"
+    "@rocketprotocolproject/properties" "^0.0.6"
+    "@rocketprotocolproject/providers" "^0.0.18"
+    "@rocketprotocolproject/random" "^0.0.7"
+    "@rocketprotocolproject/sha2" "^0.0.7"
+    "@rocketprotocolproject/sha3256" "^0.0.7"
+    "@rocketprotocolproject/signing-key" "^0.0.8"
+    "@rocketprotocolproject/strings" "^0.0.11"
+    "@rocketprotocolproject/transactions" "^0.0.15"
+    "@rocketprotocolproject/wallet" "^0.0.19"
+    "@rocketprotocolproject/web" "^0.0.16"
+    "@rocketprotocolproject/wordlists" "^0.0.15"
+
 rsvp@^4.8.4:
   version "4.8.5"
   resolved "https://registry.yarnpkg.com/rsvp/-/rsvp-4.8.5.tgz#c8f155311d167f68f21e168df71ec5b083113734"
@@ -7013,7 +7433,7 @@ scrypt-js@2.0.4:
   resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-2.0.4.tgz#32f8c5149f0797672e551c07e230f834b6af5f16"
   integrity sha512-4KsaGcPnuhtCZQCxFxN3GVYIhKFPTdLd8PLC552XwbMndtD0cjRFAhDuuydXQ0h08ZfPgzqe6EKHozpuH74iDw==
 
-scrypt-js@^3.0.0, scrypt-js@^3.0.1:
+scrypt-js@3.0.1, scrypt-js@^3.0.0, scrypt-js@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-3.0.1.tgz#d314a57c2aef69d1ad98a138a21fe9eafa9ee312"
   integrity sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==
@@ -9030,6 +9450,11 @@ write-file-atomic@2.4.1:
     graceful-fs "^4.1.11"
     imurmurhash "^0.1.4"
     signal-exit "^3.0.2"
+
+ws@7.2.3:
+  version "7.2.3"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-7.2.3.tgz#a5411e1fb04d5ed0efee76d26d5c46d830c39b46"
+  integrity sha512-HTDl9G9hbkNDk98naoR/cHDws7+EyYMOdL1BmjsZXRUjf7d+MficC4B7HLUPlSiho0vg+CWKrGIt/VJBd1xunQ==
 
 ws@^3.0.0:
   version "3.3.3"

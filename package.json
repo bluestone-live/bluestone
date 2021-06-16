@@ -9,7 +9,8 @@
     "deploy:contract:dev": "sudo yarn && npx truffle migrate --reset",
     "deploy:setupEnv:dev": "./scripts/bash/setupEnvironment development",
     "deploy:contract:kovan": "sudo yarn && npx truffle migrate --network kovan --reset",
-    "deploy:setupEnv:kovan": "./scripts/bash/setupEnvironment kovan"
+    "deploy:setupEnv:kovan": "./scripts/bash/setupEnvironment kovan",
+    "deploy:setupEnv:rangers": "node scripts/javascript/setupEnvRocket.js"
   },
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.5",
@@ -34,9 +35,11 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^3.0.1",
+    "@rocketprotocolproject/contracts": "^0.0.9",
     "@truffle/hdwallet-provider": "^1.2.1",
     "config": "^3.2.4",
     "debug": "^4.1.1",
+    "rocketprotocol": "^0.0.20",
     "shelljs": "^0.8.3",
     "truffle-hdwallet-provider": "^1.0.13"
   },
