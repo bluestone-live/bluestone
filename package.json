@@ -36,6 +36,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^3.0.1",
     "@rocketprotocolproject/contracts": "^0.0.9",
+    "@rocketprotocolproject/wallet": "^0.0.19",
     "@truffle/hdwallet-provider": "^1.2.1",
     "config": "^3.2.4",
     "debug": "^4.1.1",

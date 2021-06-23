@@ -1,7 +1,6 @@
 const config = require('config');
 const { Wallet } = require('@rocketprotocolproject/wallet');
 const { Contract } = require('@rocketprotocolproject/contracts');
-const { BigNumber } = require('@rocketprotocolproject/bignumber');
 const { rocketprotocol } = require('rocketprotocol');
 const { loadNetwork, toFixedBN } = require('../utils');
 
