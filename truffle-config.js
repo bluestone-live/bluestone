@@ -106,6 +106,28 @@ module.exports = {
       timeoutBlocks: 1400, // about 30 minutes
     },
 
+    rangers: {
+      provider: () =>
+        new HDWalletProvider(
+          config.get('mnemonic'),
+          `http://47.110.130.97:8888/api/jsonrpc`,
+        ),
+      network_id: '*', // Any network (default: none)
+      gasPrice: 1000000000,
+      timeoutBlocks: 10,
+    },
+
+    rangersdev: {
+      provider: () =>
+        new HDWalletProvider(
+          config.get('mnemonic'),
+          `http://47.110.130.97:8888/api/jsonrpc`,
+        ),
+      network_id: '*', // Any network (default: none)
+      gasPrice: 1000000000,
+      timeoutBlocks: 10,
+    },
+
     // Useful for private networks
     // private: {
     // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),

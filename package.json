@@ -10,7 +10,10 @@
     "deploy:setupEnv:dev": "./scripts/bash/setupEnvironment development",
     "deploy:contract:kovan": "sudo yarn && npx truffle migrate --network kovan --reset",
     "deploy:setupEnv:kovan": "./scripts/bash/setupEnvironment kovan",
-    "deploy:setupEnv:rangers": "node scripts/javascript/setupEnvRocket.js"
+    "deploy:contract:rangers": "sudo yarn && npx truffle migrate --network rangers --reset",
+    "deploy:setupEnv:rangers": "./scripts/bash/setupEnvironment rangers",
+    "deploy:contract:rangersdev": "sudo yarn && npx truffle migrate --network rangersdev --reset",
+    "deploy:setupEnv:rangersdev": "./scripts/bash/setupEnvironment rangersdev"
   },
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.5",
