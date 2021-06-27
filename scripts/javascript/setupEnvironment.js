@@ -20,7 +20,7 @@ module.exports = makeTruffleScript(async (network) => {
 
   debug('Setup Deposit Environment');
   exec('enableDepositTerms', network);
-  exec('enableDepositToken', network);
+  exec('enableDepositTokens', network);
 
   debug('Setup Loan Environment');
   exec('setLoanAndCollateralTokenPairs', network);

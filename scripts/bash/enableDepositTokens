@@ -3,11 +3,11 @@
 DIR=`dirname $0`
 source $DIR/utils
 
-required_args=( network token_symbol )
+required_args=( network )
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Enable an asset for deposit. The target asset must not be already enabled."
-  example_args="development DAI"
+  description="Enables assets that declared in config file for deposit."
+  example_args="development"
   show_help_message "$description" $required_args "$example_args"
   exit 1
 fi
