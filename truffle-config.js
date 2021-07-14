@@ -128,6 +128,17 @@ module.exports = {
       timeoutBlocks: 10,
     },
 
+    rangerstest: {
+      provider: () =>
+        new HDWalletProvider(
+          config.get('mnemonic'),
+          'https://testnet.rangersprotocol.com/api/jsonrpc',
+        ),
+      network_id: '*', // Any network (default: none)
+      gasPrice: 1000000000,
+      timeoutBlocks: 10,
+    },
+
     // Useful for private networks
     // private: {
     // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),

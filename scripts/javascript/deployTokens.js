@@ -2,7 +2,11 @@ const config = require('config');
 const { makeTruffleScript, saveNetwork } = require('../utils.js');
 
 module.exports = makeTruffleScript(async (network) => {
-  if (network === 'main' || network === 'rangers') {
+  if (
+    network === 'main' ||
+    network === 'rangers' ||
+    network === 'rangerstest'
+  ) {
     return;
   }
 

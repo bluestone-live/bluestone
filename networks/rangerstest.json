@@ -1,0 +1,18 @@
+{
+  "tokens": {
+    "USDT": {
+      "priceOracleAddress": "0x39eBfe2Be590e451Ee1eb524Dad85889B16dc5ad",
+      "name": "Tether",
+      "address": "0xe30b468bae3d25ca743313c963578c1478b6ec43"
+    },
+    "WETH": {
+      "priceOracleAddress": "0x07d291E5171dF88Bd38f24a2d5168B8A75c67c97",
+      "name": "Wrapped Ether",
+      "address": "0xb091c53d1537bc169954675bb706def9cdc2faa0"
+    }
+  },
+  "contracts": {
+    "InterestModel": "0x59A6fe4c10Eb6A1EfC4FF2e35321B9892B6982fF",
+    "Protocol": "0xa5416993b60972dC0422234161C00B1F5f841c12"
+  }
+}

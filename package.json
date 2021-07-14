@@ -13,7 +13,9 @@
     "deploy:contract:rangers": "sudo yarn && npx truffle migrate --network rangers --reset",
     "deploy:setupEnv:rangers": "./scripts/bash/setupEnvironment rangers",
     "deploy:contract:rangersdev": "sudo yarn && npx truffle migrate --network rangersdev --reset",
-    "deploy:setupEnv:rangersdev": "./scripts/bash/setupEnvironment rangersdev"
+    "deploy:setupEnv:rangersdev": "./scripts/bash/setupEnvironment rangersdev",
+    "deploy:contract:rangerstest": "sudo yarn && npx truffle migrate --network rangerstest --reset",
+    "deploy:setupEnv:rangerstest": "./scripts/bash/setupEnvironment rangerstest"
   },
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.5",
