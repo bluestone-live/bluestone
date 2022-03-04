@@ -4,10 +4,10 @@ const { loadNetwork, makeTruffleScript, toFixedBN } = require('../utils.js');
 const config = require('config');
 
 module.exports = makeTruffleScript(async (network) => {
-  const { tokens } = loadNetwork(network);
+  const { contracts, tokens } = loadNetwork(network);
   const tokenSymbolList = Object.keys(tokens);
 
-  const interestModel = await InterestModel.deployed();
+  const interestModel = await InterestModel.at(contracts.InterestModel);
 
   debug('Set loan interest rates');
   await Promise.all(

@@ -3,30 +3,30 @@ module.exports = {
     tokens: {
       DAI: {
         name: 'Dai',
-        loanInterestRateLowerBound: 0.06,
-        loanInterestRateUpperBound: 0.08,
+        loanInterestRateLowerBound: 0.12,
+        loanInterestRateUpperBound: 0.12,
         balanceCap: 1000000,
       },
       USDT: {
         name: 'Tether',
-        loanInterestRateLowerBound: 0.08,
-        loanInterestRateUpperBound: 0.1,
+        loanInterestRateLowerBound: 0.12,
+        loanInterestRateUpperBound: 0.12,
         balanceCap: 1000000,
       },
       ETH: {
         name: 'Native Ether',
-        loanInterestRateLowerBound: 0.06,
-        loanInterestRateUpperBound: 0.08,
+        loanInterestRateLowerBound: 0.12,
+        loanInterestRateUpperBound: 0.12,
         balanceCap: 10000,
       },
       USDC: {
         name: 'USDC',
-        loanInterestRateLowerBound: 0.06,
-        loanInterestRateUpperBound: 0.08,
+        loanInterestRateLowerBound: 0.12,
+        loanInterestRateUpperBound: 0.12,
         balanceCap: 1000000,
       },
     },
-    depositTerms: [1, 180, 360],
+    depositTerms: [1, 180, 365],
     loanAndCollateralTokenPairs: [
       {
         loanTokenSymbol: 'DAI',
@@ -48,8 +48,8 @@ module.exports = {
       },
     ],
     protocolReserveRatio: 0,
-    depositDistributorFeeRatio: 0.05,
-    loanDistributorFeeRatio: 0.05,
+    depositDistributorFeeRatio: 0,
+    loanDistributorFeeRatio: 0,
     interestReserveAddress: '0xf4Cb4Decc09CAdA4e4DCd510d915A5d9E5C8DE71',
   },
 };
