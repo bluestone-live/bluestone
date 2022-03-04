@@ -1,7 +1,9 @@
 {
   "contracts": {
     "Protocol": "0x32CF98c11D2e4BdE14BbC38A26ec150255A29802",
-    "InterestModel": "0x783D756EDe77F5165E6A9a58f680d48f5a50c04B"
+    "InterestModel": "0x783D756EDe77F5165E6A9a58f680d48f5a50c04B",
+    "OasisDexMock": "0x5866358756Cc879E04ffD5E3d6233768e40cb928",
+    "MedianizerMock": "0x3425D6b13b66F4E2F7EC06886426d4E496aC2fDe"
   },
   "tokens": {
     "DAI": {
