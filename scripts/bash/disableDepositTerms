@@ -3,9 +3,9 @@
 DIR=`dirname $0`
 source $DIR/utils
 
-required_args=( network terms... )
+required_args=( network )
 
-if [ $# -le ${#required_args[@]} ]; then
+if [ $# -ne ${#required_args[@]} ]; then
   description="Disable deposit terms."
   show_help_message "$description" $required_args
   exit 1

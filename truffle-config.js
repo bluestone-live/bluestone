@@ -90,7 +90,7 @@ module.exports = {
       network_id: 42,
       websockets: true,
       confirmations: 2,
-      gasPrice: 1000000000,
+      gasPrice: 2600000000,
     },
 
     main: {
