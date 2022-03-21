@@ -11,13 +11,14 @@ import './lib/Configuration.sol';
 import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';
 import './lib/LoanManager.sol';
+import './Whitelist.sol';
 
 /// @title The main contract that exposes all external functions
 /// @dev We can consider this contract as a master contract that contains no actual
 /// business logic but enforces permission checks and delegates function calls to
 /// corresponding libraries. Although contract states are defined in libraries,
 /// they are initialized and stored in this contract.
-contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
+contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
     using Configuration for Configuration.State;
     using LiquidityPools for LiquidityPools.State;
     using DepositManager for DepositManager.State;
@@ -308,7 +309,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         uint256 depositAmount,
         uint256 depositTerm,
         address payable distributorAddress
-    ) external payable whenNotPaused nonReentrant override returns (bytes32 depositId) {
+    ) external payable whenNotPaused nonReentrant onlyWhitelisted override returns (bytes32 depositId) {
         IStruct.DepositParameters memory depositParameters = IStruct.DepositParameters({
             tokenAddress: tokenAddress,
             depositAmount: depositAmount,
@@ -328,6 +329,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         external
         whenNotPaused
         nonReentrant
+        onlyWhitelisted
         override
         returns (uint256 withdrewAmount)
     {
@@ -343,6 +345,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         external
         whenNotPaused
         nonReentrant
+        onlyWhitelisted
         override
         returns (uint256 withdrewAmount)
     {
@@ -361,7 +364,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         uint256 collateralAmount,
         uint256 loanTerm,
         address payable distributorAddress
-    ) external payable whenNotPaused nonReentrant override returns (bytes32 loanId) {
+    ) external payable whenNotPaused nonReentrant onlyWhitelisted override returns (bytes32 loanId) {
         IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
             loanTokenAddress: loanTokenAddress,
             collateralTokenAddress: collateralTokenAddress,
@@ -385,6 +388,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         payable
         whenNotPaused
         nonReentrant
+        onlyWhitelisted
         override
         returns (uint256 remainingDebt)
     {
@@ -403,6 +407,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
         external
         payable
         whenNotPaused
+        onlyWhitelisted
         override
         returns (uint256 totalCollateralAmount)
     {
@@ -415,6 +420,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard {
     )
         external
         whenNotPaused
+        onlyWhitelisted
         override
         returns (uint256 totalCollateralAmount)
     {

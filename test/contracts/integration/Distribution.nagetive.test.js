@@ -143,6 +143,7 @@ contract(
             // ignore distributor fee ratios setting
             null,
             null,
+            [depositor, loaner],
           );
         });
 
@@ -157,7 +158,7 @@ contract(
             },
           );
           depositId = depositLogs.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
           expectEvent.inLogs(depositLogs, 'DepositSucceed', {
             accountAddress: depositor,
@@ -179,7 +180,7 @@ contract(
               from: loaner,
             },
           );
-          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+          loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
             .recordId;
 
           const loanRecord = await protocol.getLoanRecordById(loanId);
@@ -252,7 +253,7 @@ contract(
             },
           );
           earlyWithdrawDepositId = depositLogs1.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
 
           const { logs: depositLogs2 } = await protocol.deposit(
@@ -265,7 +266,7 @@ contract(
             },
           );
           maturedDepositId = depositLogs2.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
 
           await protocol.setMaxDistributorFeeRatios(
@@ -290,7 +291,7 @@ contract(
               from: loaner,
             },
           );
-          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+          loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
             .recordId;
 
           const loanRecord = await protocol.getLoanRecordById(loanId);
@@ -339,7 +340,7 @@ contract(
               from: loaner,
             },
           );
-          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+          loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
             .recordId;
 
           const loanRecord = await protocol.getLoanRecordById(loanId);

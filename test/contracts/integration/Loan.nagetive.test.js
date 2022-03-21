@@ -124,6 +124,7 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
+        [depositor, loaner],
       );
 
       // Post prices
@@ -135,8 +136,32 @@ contract(
     });
 
     describe('Loan token by collateral token flow', () => {
+      context('When loaner is not whitelisted', () => {
+        before(async () => {
+          await protocol.removeWhitelisted(loaner);
+        });
+        it('revert', async () => {
+          await expectRevert(
+            protocol.loan(
+              loanToken.address,
+              collateralToken.address,
+              toFixedBN(loanAmount),
+              toFixedBN(collateralAmount),
+              loanTerm,
+              loanDistributor,
+              {
+                from: loaner,
+              },
+            ),
+            'Whitelist: caller is not whitelisted',
+          );
+        });
+      });
       context("When loan pair didn't enabled", () => {
         before(async () => {
+          // reset
+          await protocol.addWhitelisted(loaner);
+
           await protocol.removeLoanAndCollateralTokenPair(
             loanToken.address,
             collateralToken.address,
@@ -191,7 +216,7 @@ contract(
               from: loaner,
             },
           );
-          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+          loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
             .recordId;
 
           await protocol.removeLoanAndCollateralTokenPair(
@@ -291,7 +316,7 @@ contract(
             },
           );
 
-          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+          loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
             .recordId;
 
           await protocol.removeLoanAndCollateralTokenPair(

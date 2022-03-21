@@ -117,6 +117,7 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
+        [depositor, loaner],
       );
 
       // Post prices
@@ -127,8 +128,30 @@ contract(
     });
 
     describe('Deposit token flow', () => {
+      context('When depositor is not whitelisted', () => {
+        before(async () => {
+          await protocol.removeWhitelisted(depositor);
+        });
+        it('revert', async () => {
+          await expectRevert(
+            protocol.deposit(
+              loanToken.address,
+              toFixedBN(depositAmount),
+              depositTerm,
+              depositDistributor,
+              {
+                from: depositor,
+              },
+            ),
+            'Whitelist: caller is not whitelisted',
+          );
+        });
+      });
       context("When deposit token didn't enabled", () => {
         before(async () => {
+          // reset
+          await protocol.addWhitelisted(depositor);
+
           await protocol.disableDepositToken(loanToken.address);
         });
         it('revert', async () => {
@@ -164,7 +187,7 @@ contract(
             },
           );
           earlyWithdrawDepositId = depositLogs1.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
 
           const { logs: depositLogs2 } = await protocol.deposit(
@@ -177,7 +200,7 @@ contract(
             },
           );
           maturedDepositId = depositLogs2.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
 
           await protocol.disableDepositToken(loanToken.address);
@@ -283,7 +306,7 @@ contract(
             },
           );
           depositId = depositLogs.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
 
           const { logs: depositLogs2 } = await protocol.deposit(
@@ -296,7 +319,7 @@ contract(
             },
           );
           depositId2 = depositLogs2.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
 
           await protocol.disableDepositTerm(depositTerm);
@@ -372,7 +395,7 @@ contract(
             },
           );
           depositId = depositLogs.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
 
           await protocol.pause();

@@ -118,6 +118,7 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
+        [depositor, loaner],
       );
 
       // Post prices
@@ -145,8 +146,9 @@ contract(
             from: depositor,
           },
         );
-        depositId = depositLogs.filter(log => log.event === 'DepositSucceed')[0]
-          .args.recordId;
+        depositId = depositLogs.filter(
+          (log) => log.event === 'DepositSucceed',
+        )[0].args.recordId;
         expectEvent.inLogs(depositLogs, 'DepositSucceed', {
           accountAddress: depositor,
           recordId: depositId,
@@ -165,7 +167,7 @@ contract(
         const pools = await protocol.getPoolsByToken(loanToken.address);
 
         const pool = pools.find(
-          p =>
+          (p) =>
             p.poolId ===
             (Number.parseInt(currentPoolId, 10) + depositTerm).toString(),
         );
@@ -177,10 +179,12 @@ contract(
           toFixedBN(depositAmount).toString(),
         );
         expect(pool.totalDepositWeight).to.equal(
-          (await interestModel.getDepositWeight(
-            toFixedBN(depositAmount),
-            depositTerm,
-          )).toString(),
+          (
+            await interestModel.getDepositWeight(
+              toFixedBN(depositAmount),
+              depositTerm,
+            )
+          ).toString(),
         );
       });
       it('create a new record for user account', async () => {
@@ -246,7 +250,7 @@ contract(
             },
           );
           depositId = depositLogs.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
 
           const { logs: loanLogs } = await protocol.loan(
@@ -260,7 +264,7 @@ contract(
               from: loaner,
             },
           );
-          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+          loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
             .recordId;
         });
 
@@ -276,7 +280,7 @@ contract(
           const pools = await protocol.getPoolsByToken(loanToken.address);
 
           const pool = pools.find(
-            p =>
+            (p) =>
               p.poolId ===
               (Number.parseInt(currentPoolId, 10) + depositTerm).toString(),
           );
@@ -349,7 +353,7 @@ contract(
           );
 
           maturedDepositId = depositLogs.filter(
-            log => log.event === 'DepositSucceed',
+            (log) => log.event === 'DepositSucceed',
           )[0].args.recordId;
 
           const { logs: loanLogs } = await protocol.loan(
@@ -364,7 +368,7 @@ contract(
             },
           );
 
-          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+          loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
             .recordId;
 
           const { remainingDebt } = await protocol.getLoanRecordById(loanId);
@@ -425,8 +429,9 @@ contract(
           },
         );
 
-        depositId = depositLogs.filter(log => log.event === 'DepositSucceed')[0]
-          .args.recordId;
+        depositId = depositLogs.filter(
+          (log) => log.event === 'DepositSucceed',
+        )[0].args.recordId;
         expectEvent.inLogs(depositLogs, 'DepositSucceed', {
           accountAddress: depositor,
           recordId: depositId,
@@ -445,7 +450,7 @@ contract(
         const pools = await protocol.getPoolsByToken(ETHIdentificationAddress);
 
         const pool = pools.find(
-          p =>
+          (p) =>
             p.poolId ===
             (Number.parseInt(currentPoolId, 10) + depositTerm).toString(),
         );
@@ -457,10 +462,12 @@ contract(
           toFixedBN(depositAmount).toString(),
         );
         expect(pool.totalDepositWeight).to.equal(
-          (await interestModel.getDepositWeight(
-            toFixedBN(depositAmount),
-            depositTerm,
-          )).toString(),
+          (
+            await interestModel.getDepositWeight(
+              toFixedBN(depositAmount),
+              depositTerm,
+            )
+          ).toString(),
         );
       });
       it('create a new record for user account', async () => {

@@ -129,6 +129,7 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         maxLoanDistributorFeeRatio,
+        [depositor, loaner],
       );
 
       // Post prices
@@ -162,7 +163,7 @@ contract(
             from: loaner,
           },
         );
-        loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+        loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
           .recordId;
       });
 
@@ -204,7 +205,7 @@ contract(
             from: loaner,
           },
         );
-        loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+        loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
           .recordId;
 
         const record = await protocol.getLoanRecordById(loanId);

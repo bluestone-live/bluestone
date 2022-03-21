@@ -112,6 +112,7 @@ contract(
         protocolReserveRatio,
         depositDistributorFeeRatio,
         loanDistributorFeeRatio,
+        [depositor, loaner],
       );
 
       // Post prices
@@ -144,8 +145,9 @@ contract(
             from: depositor,
           },
         );
-        depositId = depositLogs.filter(log => log.event === 'DepositSucceed')[0]
-          .args.recordId;
+        depositId = depositLogs.filter(
+          (log) => log.event === 'DepositSucceed',
+        )[0].args.recordId;
 
         // Create loan record
         const { logs: loanLogs } = await protocol.loan(
@@ -159,7 +161,7 @@ contract(
             from: loaner,
           },
         );
-        loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+        loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
           .recordId;
       });
 
@@ -352,7 +354,7 @@ contract(
           },
         );
         otherDeposits = otherDepositsLogs.filter(
-          log => log.event === 'DepositSucceed',
+          (log) => log.event === 'DepositSucceed',
         )[0].args.recordId;
 
         const { logs: depositLogs } = await protocol.deposit(
@@ -364,8 +366,9 @@ contract(
             from: depositor,
           },
         );
-        depositId = depositLogs.filter(log => log.event === 'DepositSucceed')[0]
-          .args.recordId;
+        depositId = depositLogs.filter(
+          (log) => log.event === 'DepositSucceed',
+        )[0].args.recordId;
 
         // Create loan record
         const { logs: loanLogs } = await protocol.loan(
@@ -379,7 +382,7 @@ contract(
             from: loaner,
           },
         );
-        loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+        loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
           .recordId;
       });
 

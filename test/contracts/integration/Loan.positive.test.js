@@ -128,6 +128,7 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
+        [depositor, loaner],
       );
 
       // Post prices
@@ -191,7 +192,7 @@ contract(
               from: loaner,
             },
           );
-          loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+          loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
             .recordId;
 
           prevLoanTokenBalanceOfLoaner = await loanToken.balanceOf(loaner);
@@ -232,13 +233,13 @@ contract(
             .div(new BN(365));
 
           const firstPool = pools.find(
-            pool =>
+            (pool) =>
               pool.poolId ===
               (Number.parseInt(currentPoolId, 10) + depositTerms[1]).toString(),
           );
 
           const secondPool = pools.find(
-            pool =>
+            (pool) =>
               pool.poolId ===
               (Number.parseInt(currentPoolId, 10) + depositTerms[2]).toString(),
           );
@@ -328,7 +329,9 @@ contract(
           );
         });
         it('add collateral succeed', async () => {
-          const { logs: addCollateralLogs } = await protocol.addCollateral(
+          const {
+            logs: addCollateralLogs,
+          } = await protocol.addCollateral(
             loanId,
             toFixedBN(collateralAmount),
             { from: loaner },

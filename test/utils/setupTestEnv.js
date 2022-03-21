@@ -35,6 +35,7 @@ const setupTestEnv = async (
   protocolReserveRatio,
   depositDistributorFeeRatio,
   loanDistributorFeeRatio,
+  whitelist = [],
   balanceCap = toFixedBN(100000),
 ) => {
   // Enable deposit terms
@@ -81,6 +82,13 @@ const setupTestEnv = async (
       toFixedBN(depositDistributorFeeRatio),
       toFixedBN(loanDistributorFeeRatio),
     );
+  }
+
+  // Add whitelist accounts
+  if (whitelist && whitelist.length > 0) {
+    for (const account of whitelist) {
+      await protocol.addWhitelisted(account);
+    }
   }
 };
 
