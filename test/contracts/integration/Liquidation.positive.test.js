@@ -129,6 +129,7 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         maxLoanDistributorFeeRatio,
+        [depositor, loaner],
       );
 
       // Post prices
@@ -167,7 +168,7 @@ contract(
             from: loaner,
           },
         );
-        loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+        loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
           .recordId;
 
         await collateralTokenPriceOracle.setPrice(
@@ -329,7 +330,7 @@ contract(
           loanDistributor,
           { from: loaner },
         );
-        loanId = loanLogs.filter(log => log.event === 'LoanSucceed')[0].args
+        loanId = loanLogs.filter((log) => log.event === 'LoanSucceed')[0].args
           .recordId;
 
         await time.increase(time.duration.days(loanTerm + 1));
