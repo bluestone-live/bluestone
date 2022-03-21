@@ -1,0 +1,15 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+source $DIR/utils
+
+required_args=( network, loanId, liquidateLoanAmount )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Liquidate loan by loanId."
+  example_args="kovan 0x638c3b3659c5134877a9100888e8760094177bd5c69dc2d0befc199dcd593297 50"
+  show_help_message "$description" $required_args "$example_args"
+  exit 1
+fi
+
+run_truffle_script "$@"
