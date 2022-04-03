@@ -1,30 +1,25 @@
 {
   "contracts": {
-    "Protocol": "0x32CF98c11D2e4BdE14BbC38A26ec150255A29802",
-    "InterestModel": "0x783D756EDe77F5165E6A9a58f680d48f5a50c04B",
-    "OasisDexMock": "0x5866358756Cc879E04ffD5E3d6233768e40cb928",
-    "MedianizerMock": "0x3425D6b13b66F4E2F7EC06886426d4E496aC2fDe"
+    "Protocol": "0xCaaC68fD786b0d7065097347DEf87B27220A5B25",
+    "InterestModel": "0xCe77240b0BC6D18Eee4BC514C85f2F86Bf4d6e45",
+    "OasisDexMock": "0x7323F490e12e3E072ed028B2Ea331F3187885117",
+    "MedianizerMock": "0xA8577F14e171ef78C66427104ea8944489b7432B"
   },
   "tokens": {
-    "DAI": {
-      "name": "Dai",
-      "address": "0xF961228CfeBf318264922A64afeBE05E7196898C",
-      "priceOracleAddress": "0x4C43CC07B3c052c9fbF0C240A8138F0C8f218ae2"
-    },
-    "USDT": {
-      "name": "Tether",
-      "address": "0x42886047bffcc8207688D7f480A569F24779f406",
-      "priceOracleAddress": "0x2bf7197177C97c5F5008bD087B6C6CcAB71af7ED"
-    },
     "ETH": {
       "name": "Native Ether",
       "address": "0x0000000000000000000000000000000000000001",
-      "priceOracleAddress": "0xf0D75D4DE6E1278CA302b44326fe243364D1eae3"
+      "priceOracleAddress": "0x7b45288551116ea7DaDA3e110B49a10971a36B0E"
     },
-    "USDC": {
-      "name": "USDC",
-      "address": "0x03a7fed25aAcb251A039EbDECC3BdA12ba8eC203",
-      "priceOracleAddress": "0x2bf7197177C97c5F5008bD087B6C6CcAB71af7ED"
+    "SGC": {
+      "name": "SGC",
+      "address": "0xBe438E3f906B8747D705c4f2A6B81784b89D5169",
+      "priceOracleAddress": "0x68CCBb3656685Ab6f9DB1426438Ffa3b7CF756Fb"
+    },
+    "xBTC": {
+      "name": "xBTC",
+      "address": "0x0750B269861e45505b7659D22a488835a05431Bd",
+      "priceOracleAddress": "0xA6ba86F8f4283CBDAA1335a04cb593939c7d67b5"
     }
   }
 }
