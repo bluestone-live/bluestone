@@ -16,7 +16,7 @@ module.exports = makeTruffleScript(async (network) => {
 
   let savedTokens = {};
 
-  for (symbol of tokenSymbolList) {
+  for (const symbol of tokenSymbolList) {
     const token = tokens[symbol];
     let deployedToken;
 
