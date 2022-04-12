@@ -1,0 +1,15 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+source $DIR/utils
+
+required_args=( network, token, price )
+
+if [ $# -ne ${#required_args[@]} ]; then
+  description="Set token price in dollars. Token can be one of ETH, SGC, xBTC."
+  example_args="development ETH 2345.67"
+  show_help_message "$description" $required_args "$example_args"
+  exit 1
+fi
+
+run_truffle_script "$@"
