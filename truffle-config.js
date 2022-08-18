@@ -18,8 +18,6 @@
  *
  */
 
-require('chai/register-should');
-
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 const config = require('config');
 const path = require('path');
