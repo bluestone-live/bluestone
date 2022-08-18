@@ -309,7 +309,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         uint256 depositAmount,
         uint256 depositTerm,
         address payable distributorAddress
-    ) external payable whenNotPaused nonReentrant onlyWhitelisted override returns (bytes32 depositId) {
+    ) external payable whenNotPaused nonReentrant onlyWhitelistedLender override returns (bytes32 depositId) {
         IStruct.DepositParameters memory depositParameters = IStruct.DepositParameters({
             tokenAddress: tokenAddress,
             depositAmount: depositAmount,
@@ -329,7 +329,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         external
         whenNotPaused
         nonReentrant
-        onlyWhitelisted
+        onlyWhitelistedLender
         override
         returns (uint256 withdrewAmount)
     {
@@ -345,7 +345,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         external
         whenNotPaused
         nonReentrant
-        onlyWhitelisted
+        onlyWhitelistedLender
         override
         returns (uint256 withdrewAmount)
     {
@@ -364,7 +364,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         uint256 collateralAmount,
         uint256 loanTerm,
         address payable distributorAddress
-    ) external payable whenNotPaused nonReentrant onlyWhitelisted override returns (bytes32 loanId) {
+    ) external payable whenNotPaused nonReentrant onlyWhitelistedBorrower override returns (bytes32 loanId) {
         IStruct.LoanParameters memory loanParameters = IStruct.LoanParameters({
             loanTokenAddress: loanTokenAddress,
             collateralTokenAddress: collateralTokenAddress,
@@ -388,7 +388,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         payable
         whenNotPaused
         nonReentrant
-        onlyWhitelisted
+        onlyWhitelistedBorrower
         override
         returns (uint256 remainingDebt)
     {
@@ -407,7 +407,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         external
         payable
         whenNotPaused
-        onlyWhitelisted
+        onlyWhitelistedBorrower
         override
         returns (uint256 totalCollateralAmount)
     {
@@ -420,7 +420,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
     )
         external
         whenNotPaused
-        onlyWhitelisted
+        onlyWhitelistedBorrower
         override
         returns (uint256 totalCollateralAmount)
     {
