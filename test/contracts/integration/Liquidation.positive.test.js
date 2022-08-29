@@ -15,6 +15,7 @@ contract(
   'Protocol',
   ([
     owner,
+    administrator,
     depositor,
     loaner,
     depositDistributor,
@@ -99,6 +100,7 @@ contract(
       await setupTestEnv(
         [
           owner,
+          administrator,
           depositor,
           loaner,
           depositDistributor,
@@ -129,7 +131,8 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         maxLoanDistributorFeeRatio,
-        [depositor, loaner],
+        [depositor],
+        [loaner],
       );
 
       // Post prices
@@ -178,9 +181,8 @@ contract(
 
       it('partially liquidated succeed', async () => {
         const liquidateAmount = toFixedBN(1);
-        prevCollateralTokenBalanceOfLiquidator = await collateralToken.balanceOf(
-          liquidator,
-        );
+        prevCollateralTokenBalanceOfLiquidator =
+          await collateralToken.balanceOf(liquidator);
         prevLoanTokenBalanceOfLiquidator = await loanToken.balanceOf(
           liquidator,
         );
@@ -196,9 +198,8 @@ contract(
           },
         );
 
-        const collateralTokenBalanceOfLiquidator = await collateralToken.balanceOf(
-          liquidator,
-        );
+        const collateralTokenBalanceOfLiquidator =
+          await collateralToken.balanceOf(liquidator);
 
         expectEvent.inLogs(liquidationLogs, 'LiquidateLoanSucceed', {
           accountAddress: liquidator,
@@ -236,9 +237,8 @@ contract(
       });
       it('fully liquidated succeed', async () => {
         const record = await protocol.getLoanRecordById(loanId);
-        prevCollateralTokenBalanceOfLiquidator = await collateralToken.balanceOf(
-          liquidator,
-        );
+        prevCollateralTokenBalanceOfLiquidator =
+          await collateralToken.balanceOf(liquidator);
         prevLoanTokenBalanceOfLiquidator = await loanToken.balanceOf(
           liquidator,
         );
@@ -254,9 +254,8 @@ contract(
           },
         );
 
-        const collateralTokenBalanceOfLiquidator = await collateralToken.balanceOf(
-          liquidator,
-        );
+        const collateralTokenBalanceOfLiquidator =
+          await collateralToken.balanceOf(liquidator);
 
         expectEvent.inLogs(liquidationLogs, 'LiquidateLoanSucceed', {
           accountAddress: liquidator,
@@ -338,9 +337,8 @@ contract(
 
       it('partially liquidated succeed', async () => {
         const liquidateAmount = toFixedBN(1);
-        prevCollateralTokenBalanceOfLiquidator = await collateralToken.balanceOf(
-          liquidator,
-        );
+        prevCollateralTokenBalanceOfLiquidator =
+          await collateralToken.balanceOf(liquidator);
         prevLoanTokenBalanceOfLiquidator = await loanToken.balanceOf(
           liquidator,
         );
@@ -356,9 +354,8 @@ contract(
           },
         );
 
-        const collateralTokenBalanceOfLiquidator = await collateralToken.balanceOf(
-          liquidator,
-        );
+        const collateralTokenBalanceOfLiquidator =
+          await collateralToken.balanceOf(liquidator);
 
         expectEvent.inLogs(liquidationLogs, 'LiquidateLoanSucceed', {
           accountAddress: liquidator,
@@ -396,9 +393,8 @@ contract(
       });
       it('fully liquidated succeed', async () => {
         const record = await protocol.getLoanRecordById(loanId);
-        prevCollateralTokenBalanceOfLiquidator = await collateralToken.balanceOf(
-          liquidator,
-        );
+        prevCollateralTokenBalanceOfLiquidator =
+          await collateralToken.balanceOf(liquidator);
         prevLoanTokenBalanceOfLiquidator = await loanToken.balanceOf(
           liquidator,
         );
@@ -414,9 +410,8 @@ contract(
           },
         );
 
-        const collateralTokenBalanceOfLiquidator = await collateralToken.balanceOf(
-          liquidator,
-        );
+        const collateralTokenBalanceOfLiquidator =
+          await collateralToken.balanceOf(liquidator);
 
         expectEvent.inLogs(liquidationLogs, 'LiquidateLoanSucceed', {
           accountAddress: liquidator,

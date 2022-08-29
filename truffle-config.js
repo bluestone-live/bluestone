@@ -89,6 +89,10 @@ module.exports = {
       websockets: true,
       confirmations: 2,
       gasPrice: 2600000000,
+      networkCheckTimeout: 10000000,
+      pollingInterval: 30000,
+      timeoutBlocks: 2000,
+      skipDryRun: true,
     },
 
     main: {

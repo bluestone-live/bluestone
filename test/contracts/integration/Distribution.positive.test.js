@@ -11,6 +11,7 @@ contract(
   'Protocol',
   ([
     owner,
+    administrator,
     depositor,
     loaner,
     depositDistributor,
@@ -88,6 +89,7 @@ contract(
       await setupTestEnv(
         [
           owner,
+          administrator,
           depositor,
           loaner,
           depositDistributor,
@@ -112,7 +114,8 @@ contract(
         protocolReserveRatio,
         depositDistributorFeeRatio,
         loanDistributorFeeRatio,
-        [depositor, loaner],
+        [depositor],
+        [loaner],
       );
 
       // Post prices
@@ -389,9 +392,8 @@ contract(
       it('only transfer principal to depositor after early withdraw', async () => {
         await time.increase(time.duration.days(1));
 
-        const {
-          depositAmount: depositAmountForRecord,
-        } = await protocol.getDepositRecordById(depositId);
+        const { depositAmount: depositAmountForRecord } =
+          await protocol.getDepositRecordById(depositId);
 
         // TODO(desmond): check maturedAt >= now
 

@@ -15,6 +15,7 @@ contract(
   'Protocol',
   ([
     owner,
+    administrator,
     depositor,
     loaner,
     depositDistributor,
@@ -99,6 +100,7 @@ contract(
       await setupTestEnv(
         [
           owner,
+          administrator,
           depositor,
           loaner,
           depositDistributor,
@@ -129,7 +131,8 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         maxLoanDistributorFeeRatio,
-        [depositor, loaner],
+        [depositor],
+        [loaner],
       );
 
       // Post prices

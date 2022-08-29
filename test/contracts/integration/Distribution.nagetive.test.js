@@ -15,6 +15,7 @@ contract(
   'Protocol',
   ([
     owner,
+    administrator,
     depositor,
     loaner,
     depositDistributor,
@@ -112,6 +113,7 @@ contract(
           await setupTestEnv(
             [
               owner,
+              administrator,
               depositor,
               loaner,
               depositDistributor,
@@ -143,7 +145,8 @@ contract(
             // ignore distributor fee ratios setting
             null,
             null,
-            [depositor, loaner],
+            [depositor],
+            [loaner],
           );
         });
 
@@ -276,9 +279,8 @@ contract(
         });
 
         it('early withdraw succeed', async () => {
-          depositDistributorBalanceBeforeEarlyWithdraw = await loanToken.balanceOf(
-            depositDistributor,
-          );
+          depositDistributorBalanceBeforeEarlyWithdraw =
+            await loanToken.balanceOf(depositDistributor);
 
           const { logs: loanLogs } = await protocol.loan(
             loanToken.address,

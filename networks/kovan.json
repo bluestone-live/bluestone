@@ -1,25 +1,25 @@
 {
   "contracts": {
-    "Protocol": "0xCaaC68fD786b0d7065097347DEf87B27220A5B25",
-    "InterestModel": "0xCe77240b0BC6D18Eee4BC514C85f2F86Bf4d6e45",
-    "OasisDexMock": "0x7323F490e12e3E072ed028B2Ea331F3187885117",
-    "MedianizerMock": "0xA8577F14e171ef78C66427104ea8944489b7432B"
+    "Protocol": "0x3232DbdbF053835F12dd2012519d60Fe73cB7DF8",
+    "InterestModel": "0xEa980739A3719B334064a2F861e09798cD194C4B",
+    "OasisDexMock": "0xeaF8f06Bc00eFf8E6Fb1eF79eDfec3Cb1113e164",
+    "MedianizerMock": "0xEC1B1Da4637817895bd6e592c0BD5f8Acc2C08fA"
   },
   "tokens": {
     "ETH": {
       "name": "Native Ether",
       "address": "0x0000000000000000000000000000000000000001",
-      "priceOracleAddress": "0x7b45288551116ea7DaDA3e110B49a10971a36B0E"
+      "priceOracleAddress": "0x402349cBa193Cbbd9309E7BE713B9524e85c2084"
     },
     "SGC": {
       "name": "SGC",
-      "address": "0xBe438E3f906B8747D705c4f2A6B81784b89D5169",
-      "priceOracleAddress": "0x68CCBb3656685Ab6f9DB1426438Ffa3b7CF756Fb"
+      "address": "0x3c432c6169df59BA09442bcF12D752710A8EEF9B",
+      "priceOracleAddress": "0xf42910847Bd38e4A39edAC566DeD4F7fFC0a6a63"
     },
     "xBTC": {
       "name": "xBTC",
-      "address": "0x0750B269861e45505b7659D22a488835a05431Bd",
-      "priceOracleAddress": "0xA6ba86F8f4283CBDAA1335a04cb593939c7d67b5"
+      "address": "0x81F9fA3c2F2989f5a76B6Ad8790CE8D66aF27f64",
+      "priceOracleAddress": "0xa121F79132AEB5Bd2AD32b9d496aF3752Bc3e651"
     }
   }
 }

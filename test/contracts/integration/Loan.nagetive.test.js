@@ -15,6 +15,7 @@ contract(
   'Protocol',
   ([
     owner,
+    administrator,
     depositor,
     loaner,
     depositDistributor,
@@ -94,6 +95,7 @@ contract(
       await setupTestEnv(
         [
           owner,
+          administrator,
           depositor,
           loaner,
           depositDistributor,
@@ -124,7 +126,8 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
-        [depositor, loaner],
+        [depositor],
+        [loaner],
       );
 
       // Post prices
@@ -138,7 +141,7 @@ contract(
     describe('Loan token by collateral token flow', () => {
       context('When loaner is not whitelisted', () => {
         before(async () => {
-          await protocol.removeWhitelisted(loaner);
+          await protocol.removeBorrowerWhitelisted(loaner);
         });
         it('revert', async () => {
           await expectRevert(
@@ -153,14 +156,14 @@ contract(
                 from: loaner,
               },
             ),
-            'Whitelist: caller is not whitelisted',
+            'Whitelist: caller is not whitelisted borrower',
           );
         });
       });
       context("When loan pair didn't enabled", () => {
         before(async () => {
           // reset
-          await protocol.addWhitelisted(loaner);
+          await protocol.addBorrowerWhitelisted(loaner);
 
           await protocol.removeLoanAndCollateralTokenPair(
             loanToken.address,
@@ -230,9 +233,8 @@ contract(
 
           await protocol.repayLoan(loanId, remainingDebt, { from: loaner });
 
-          const {
-            remainingDebt: remainingDebtAfterRepaid,
-          } = await protocol.getLoanRecordById(loanId);
+          const { remainingDebt: remainingDebtAfterRepaid } =
+            await protocol.getLoanRecordById(loanId);
 
           expect(remainingDebtAfterRepaid).to.equal('0');
         });
@@ -330,9 +332,8 @@ contract(
 
           await protocol.repayLoan(loanId, remainingDebt, { from: loaner });
 
-          const {
-            remainingDebt: remainingDebtAfterRepaid,
-          } = await protocol.getLoanRecordById(loanId);
+          const { remainingDebt: remainingDebtAfterRepaid } =
+            await protocol.getLoanRecordById(loanId);
 
           expect(remainingDebtAfterRepaid).to.equal('0');
         });

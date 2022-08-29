@@ -15,6 +15,7 @@ contract(
   'Protocol',
   ([
     owner,
+    administrator,
     depositor,
     loaner,
     depositDistributor,
@@ -41,12 +42,12 @@ contract(
     const collateralTokenPrice = 100;
 
     // deposit parameters
-    const depositAmount = 100;
+    const depositAmount = 20;
     const depositTerm = 7;
 
     // loan parameters
-    const loanAmount = 100;
-    const collateralAmount = 20;
+    const loanAmount = 20;
+    const collateralAmount = 4;
     const loanTerm = 7;
 
     before(async () => {
@@ -88,6 +89,7 @@ contract(
       await setupTestEnv(
         [
           owner,
+          administrator,
           depositor,
           loaner,
           depositDistributor,
@@ -118,7 +120,8 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
-        [depositor, loaner],
+        [depositor],
+        [loaner],
       );
 
       // Post prices
