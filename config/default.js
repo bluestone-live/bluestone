@@ -1,7 +1,8 @@
 module.exports = {
   infura: {
     // https://infura.io/dashboard
-    projectId: '24cc9d4197c643ec81bbe2ecbaa26d31',
+    // projectId: '24cc9d4197c643ec81bbe2ecbaa26d31',
+    projectId: '76eca7933f9a4b73a2438632bfd0180b',
   },
   // The twelve word phrase the wallet uses to generate public/private key pairs.
   // This is needed when we deploy contracts to testnet or mainnet.

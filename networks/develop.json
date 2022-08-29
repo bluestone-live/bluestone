@@ -1,0 +1,8 @@
+{
+  "contracts": {
+    "MedianizerMock": "0xa846E4B82D09062F00aF9A75c33030c753F91524",
+    "OasisDexMock": "0xBA54c4053989699246da26d67780B94d78DEB354",
+    "InterestModel": "0xcC671F2172Ff784bA62355795c1030ac23c5C1A7",
+    "Protocol": "0x72dE6E2406Dab453c26e8F6D2F82e2C72998b455"
+  }
+}

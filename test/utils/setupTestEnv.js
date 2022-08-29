@@ -18,6 +18,7 @@ const { toFixedBN } = require('../utils/index');
 const setupTestEnv = async (
   [
     owner,
+    administrator,
     depositor,
     loaner,
     depositDistributor,
@@ -35,7 +36,8 @@ const setupTestEnv = async (
   protocolReserveRatio,
   depositDistributorFeeRatio,
   loanDistributorFeeRatio,
-  whitelist = [],
+  whitelistedDepositors = [],
+  whitelistedLoaners = [],
   balanceCap = toFixedBN(100000),
 ) => {
   // Enable deposit terms
@@ -84,10 +86,15 @@ const setupTestEnv = async (
     );
   }
 
-  // Add whitelist accounts
-  if (whitelist && whitelist.length > 0) {
-    for (const account of whitelist) {
-      await protocol.addWhitelisted(account);
+  // Add whitelisted accounts
+  if (whitelistedDepositors && whitelistedDepositors.length > 0) {
+    for (const account of whitelistedDepositors) {
+      await protocol.addLenderWhitelisted(account);
+    }
+  }
+  if (whitelistedLoaners && whitelistedLoaners.length > 0) {
+    for (const account of whitelistedLoaners) {
+      await protocol.addBorrowerWhitelisted(account);
     }
   }
 };

@@ -15,6 +15,7 @@ contract(
   'Protocol',
   ([
     owner,
+    administrator,
     depositor,
     loaner,
     depositDistributor,
@@ -98,6 +99,7 @@ contract(
       await setupTestEnv(
         [
           owner,
+          administrator,
           depositor,
           loaner,
           depositDistributor,
@@ -128,7 +130,8 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
-        [depositor, loaner],
+        [depositor],
+        [loaner],
       );
 
       // Post prices
@@ -207,9 +210,8 @@ contract(
           });
         });
         it('increase the collateral token amount of protocol contract', async () => {
-          const collateralTokenBalanceOfProtocol = await collateralToken.balanceOf(
-            protocol.address,
-          );
+          const collateralTokenBalanceOfProtocol =
+            await collateralToken.balanceOf(protocol.address);
 
           expect(
             new BN(collateralTokenBalanceOfProtocol).sub(
@@ -329,9 +331,7 @@ contract(
           );
         });
         it('add collateral succeed', async () => {
-          const {
-            logs: addCollateralLogs,
-          } = await protocol.addCollateral(
+          const { logs: addCollateralLogs } = await protocol.addCollateral(
             loanId,
             toFixedBN(collateralAmount),
             { from: loaner },
@@ -466,9 +466,8 @@ contract(
           });
         });
         it('subtract correct balance from user account', async () => {
-          const collateralTokenBalanceOfLoaner = await collateralToken.balanceOf(
-            loaner,
-          );
+          const collateralTokenBalanceOfLoaner =
+            await collateralToken.balanceOf(loaner);
 
           expect(
             collateralTokenBalanceOfLoaner.sub(

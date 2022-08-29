@@ -19,6 +19,7 @@ contract(
   'Protocol',
   ([
     owner,
+    administrator,
     depositor,
     loaner,
     depositDistributor,
@@ -87,6 +88,7 @@ contract(
       await setupTestEnv(
         [
           owner,
+          administrator,
           depositor,
           loaner,
           depositDistributor,
@@ -117,7 +119,8 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
-        [depositor, loaner],
+        [depositor],
+        [loaner],
       );
 
       // Post prices
@@ -130,7 +133,10 @@ contract(
     describe('Deposit token flow', () => {
       context('When depositor is not whitelisted', () => {
         before(async () => {
-          await protocol.removeWhitelisted(depositor);
+          // remove
+          await protocol.removeLenderWhitelisted(depositor);
+
+          await protocol.isLenderWhitelisted(depositor);
         });
         it('revert', async () => {
           await expectRevert(
@@ -143,14 +149,14 @@ contract(
                 from: depositor,
               },
             ),
-            'Whitelist: caller is not whitelisted',
+            'Whitelist: caller is not whitelisted lender',
           );
         });
       });
       context("When deposit token didn't enabled", () => {
         before(async () => {
           // reset
-          await protocol.addWhitelisted(depositor);
+          await protocol.addLenderWhitelisted(depositor);
 
           await protocol.disableDepositToken(loanToken.address);
         });
