@@ -1,4 +1,5 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '../../oracle/interface/IPriceOracle.sol';
@@ -8,7 +9,6 @@ import '../lib/Configuration.sol';
 import '../lib/LiquidityPools.sol';
 import '../lib/DepositManager.sol';
 import '../lib/LoanManager.sol';
-
 
 contract LoanManagerMock {
     using Configuration for Configuration.State;
@@ -142,7 +142,8 @@ contract LoanManagerMock {
         external
         view
         returns (
-            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
+            IStruct.LoanAndCollateralTokenPair[]
+                memory loanAndCollateralTokenPairList
         )
     {
         return _loanManager.getLoanAndCollateralTokenPairs();
@@ -166,11 +167,11 @@ contract LoanManagerMock {
     ) external payable returns (bytes32 depositId) {
         IStruct.DepositParameters memory depositParameters = IStruct
             .DepositParameters({
-            tokenAddress: tokenAddress,
-            depositAmount: depositAmount,
-            depositTerm: depositTerm,
-            distributorAddress: distributorAddress
-        });
+                tokenAddress: tokenAddress,
+                depositAmount: depositAmount,
+                depositTerm: depositTerm,
+                distributorAddress: distributorAddress
+            });
 
         return
             _depositManager.deposit(

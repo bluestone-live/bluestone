@@ -11,6 +11,7 @@ module.exports = makeTruffleScript(async (network) => {
   const USDTMock = artifacts.require('./USDTMock.sol');
 
   const tokens = config.get('contract.tokens');
+  console.log('[deployTokens]: ', tokens);
 
   const tokenSymbolList = Object.keys(tokens);
 

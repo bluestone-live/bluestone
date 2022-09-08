@@ -1,7 +1,7 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 import '../interface/IOasisDex.sol';
-
 
 contract OasisDexMock is IOasisDex {
     bool public stopped;
@@ -9,15 +9,15 @@ contract OasisDexMock is IOasisDex {
     uint256 private _buyAmount;
     uint256 private _payAmount;
 
-    function buyEnabled() external override view returns (bool) {
+    function buyEnabled() external pure override returns (bool) {
         return true;
     }
 
-    function matchingEnabled() external override view returns (bool) {
+    function matchingEnabled() external pure override returns (bool) {
         return true;
     }
 
-    function isClosed() external override view returns (bool) {
+    function isClosed() external view override returns (bool) {
         return stopped;
     }
 
@@ -37,7 +37,7 @@ contract OasisDexMock is IOasisDex {
         address, /* buy_gem */
         address, /* pay_gem */
         uint256 /* pay_amt */
-    ) external override view returns (uint256) {
+    ) external view override returns (uint256) {
         return _buyAmount;
     }
 
@@ -45,7 +45,7 @@ contract OasisDexMock is IOasisDex {
         address, /* pay_gem */
         address, /* buy_gem */
         uint256 /* buy_amt */
-    ) external override view returns (uint256) {
+    ) external view override returns (uint256) {
         return _payAmount;
     }
 }

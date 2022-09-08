@@ -1,4 +1,5 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '../interface/IStruct.sol';
@@ -61,11 +62,11 @@ contract DepositManagerMock {
     ) external payable returns (bytes32 depositId) {
         IStruct.DepositParameters memory depositParameters = IStruct
             .DepositParameters({
-            tokenAddress: tokenAddress,
-            depositAmount: depositAmount,
-            depositTerm: depositTerm,
-            distributorAddress: distributorAddress
-        });
+                tokenAddress: tokenAddress,
+                depositAmount: depositAmount,
+                depositTerm: depositTerm,
+                distributorAddress: distributorAddress
+            });
 
         return
             _depositManager.deposit(

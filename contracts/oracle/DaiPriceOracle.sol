@@ -1,15 +1,15 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts/math/Math.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
+import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../common/interface/IMedianizer.sol';
 import '../common/interface/IOasisDex.sol';
 import '../common/lib/DateTime.sol';
 import './interface/IPriceOracle.sol';
-
 
 contract DaiPriceOracle is IPriceOracle, Ownable {
     using SafeMath for uint256;
@@ -56,7 +56,7 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         uint256 _oasisEthAmount,
         uint256 _priceUpperBound,
         uint256 _priceLowerBound
-    ) public {
+    ) {
         weth = _weth;
         dai = _dai;
         medianizer = _medianizer;
@@ -66,8 +66,8 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         priceUpperBound = _priceUpperBound;
         priceLowerBound = _priceLowerBound;
         price = EXPECTED_PRICE;
-        lastFetchedAt = now;
-        lastUpdatedAt = now;
+        lastFetchedAt = block.timestamp;
+        lastUpdatedAt = block.timestamp;
     }
 
     function setOasisEthAmount(uint256 _oasisEthAmount) external onlyOwner {
@@ -103,12 +103,12 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
 
     // prettier-ignore
     function updatePriceIfNeeded() external override {
-        if (DateTime.getHour(now - lastFetchedAt) < MIN_HOURS_DIFF) {
+        if (DateTime.getHour(block.timestamp - lastFetchedAt) < MIN_HOURS_DIFF) {
             return;
         }
 
         uint256 newPrice = fetchPrice();
-        lastFetchedAt = now;
+        lastFetchedAt = block.timestamp;
 
         /// Do not update price if:
         /// 1. Price diff is too small, or
@@ -122,7 +122,7 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         }
 
         price = newPrice;
-        lastUpdatedAt = now;
+        lastUpdatedAt = block.timestamp;
 
         emit PriceUpdated(price);
     }

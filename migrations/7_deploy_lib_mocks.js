@@ -5,7 +5,7 @@ const LoanManager = artifacts.require('LoanManager');
 const DateTime = artifacts.require('DateTime');
 
 module.exports = async function (deployer, network) {
-  if (network === 'development') {
+  if (network === 'development' || network === 'develop') {
     await deployLibMocks(deployer);
   }
 };

@@ -1,7 +1,7 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 import '../interface/IMedianizer.sol';
-
 
 contract MedianizerMock is IMedianizer {
     uint256 val;
@@ -12,11 +12,11 @@ contract MedianizerMock is IMedianizer {
         has = true;
     }
 
-    function peek() external override view returns (bytes32, bool) {
+    function peek() external view override returns (bytes32, bool) {
         return (bytes32(val), has);
     }
 
-    function read() external override view returns (bytes32) {
+    function read() external view override returns (bytes32) {
         require(has);
 
         return bytes32(val);

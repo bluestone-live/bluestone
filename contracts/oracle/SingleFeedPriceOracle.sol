@@ -1,19 +1,19 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './interface/IPriceOracle.sol';
-
 
 /// A simple price oracle that receives price update from owner only.
 contract SingleFeedPriceOracle is IPriceOracle, Ownable {
     uint256 private _price;
     uint256 public lastUpdatedAt;
 
-    function updatePriceIfNeeded() external override {
+    function updatePriceIfNeeded() external pure override {
         return;
     }
 
-    function getPrice() external override view returns (uint256) {
+    function getPrice() external view override returns (uint256) {
         return _price;
     }
 
@@ -21,6 +21,6 @@ contract SingleFeedPriceOracle is IPriceOracle, Ownable {
         require(requestedPrice > 0, 'PriceOracle: invalid price');
 
         _price = requestedPrice;
-        lastUpdatedAt = now;
+        lastUpdatedAt = block.timestamp;
     }
 }

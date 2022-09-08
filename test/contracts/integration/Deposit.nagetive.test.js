@@ -16,7 +16,7 @@ const { setupTestEnv } = require('../../utils/setupTestEnv');
 const { expect } = require('chai');
 
 contract(
-  'Protocol',
+  'Protocol: Deposit(nagetive)',
   ([
     owner,
     administrator,

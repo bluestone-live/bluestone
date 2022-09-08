@@ -4,7 +4,7 @@ const { BN, expectRevert, time } = require('@openzeppelin/test-helpers');
 const { createERC20Token, toFixedBN } = require('../../utils/index');
 const { expect } = require('chai');
 
-contract('LiquidityPools', function([owner]) {
+contract('LiquidityPools', function ([owner]) {
   let liquidityPools, datetime, token;
   const depositTerm = 30;
   const depositDistributorFeeRatio = toFixedBN(0.02);
@@ -163,7 +163,7 @@ contract('LiquidityPools', function([owner]) {
             withdrawAmount,
             depositPoolId,
           ),
-          'SafeMath: subtraction overflow',
+          'revert',
         );
       });
     });
@@ -175,8 +175,8 @@ contract('LiquidityPools', function([owner]) {
     });
 
     it('succeeds', async () => {
-      const depositAmountArray = [0, 1, 2, 3, 4, 5].map(n => toFixedBN(n));
-      const availableAmountArray = [0, 1, 1, 1, 1, 1].map(n => toFixedBN(n));
+      const depositAmountArray = [0, 1, 2, 3, 4, 5].map((n) => toFixedBN(n));
+      const availableAmountArray = [0, 1, 1, 1, 1, 1].map((n) => toFixedBN(n));
       const depositDistributorFeeRatioList = Array(6).fill(
         depositDistributorFeeRatio,
       );
@@ -216,8 +216,8 @@ contract('LiquidityPools', function([owner]) {
     });
 
     it('succeeds', async () => {
-      const depositAmountArray = [0, 1, 2, 3, 4, 5].map(n => toFixedBN(n));
-      const availableAmountArray = [0, 1, 1, 1, 1, 1].map(n => toFixedBN(n));
+      const depositAmountArray = [0, 1, 2, 3, 4, 5].map((n) => toFixedBN(n));
+      const availableAmountArray = [0, 1, 1, 1, 1, 1].map((n) => toFixedBN(n));
       const depositDistributorFeeRatioList = Array(6).fill(
         depositDistributorFeeRatio,
       );
@@ -236,13 +236,11 @@ contract('LiquidityPools', function([owner]) {
       );
 
       for (let i = 0; i < depositAmountArray.length; i++) {
-        const {
-          depositAmount,
-          availableAmount,
-        } = await liquidityPools.getPoolById(
-          token.address,
-          Number.parseInt(currentPoolId, 10) + i,
-        );
+        const { depositAmount, availableAmount } =
+          await liquidityPools.getPoolById(
+            token.address,
+            Number.parseInt(currentPoolId, 10) + i,
+          );
         expect(new BN(depositAmount)).to.be.bignumber.equal(
           depositAmountArray[i],
         );
@@ -257,8 +255,8 @@ contract('LiquidityPools', function([owner]) {
     let loanId;
 
     beforeEach(async () => {
-      const depositAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
-      const availableAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
+      const depositAmountList = [10, 10, 10, 10].map((n) => toFixedBN(n));
+      const availableAmountList = [10, 10, 10, 10].map((n) => toFixedBN(n));
       const depositDistributorFeeRatioList = Array(4).fill(
         depositDistributorFeeRatio,
       );
@@ -303,20 +301,16 @@ contract('LiquidityPools', function([owner]) {
       it('borrows 10 from pool[1]', async () => {
         const pool1 = await liquidityPools.getPoolByIndex(token.address, 1);
         expect(new BN(pool1.availableAmount)).to.bignumber.equal(new BN(0));
-        const pool1LoanAmount = await liquidityPools.getLoanRecordLoanAmountByPool(
-          loanId,
-          1,
-        );
+        const pool1LoanAmount =
+          await liquidityPools.getLoanRecordLoanAmountByPool(loanId, 1);
         expect(pool1LoanAmount).to.bignumber.equal(toFixedBN(10));
       });
 
       it('borrows 5 from pool[2]', async () => {
         const pool2 = await liquidityPools.getPoolByIndex(token.address, 2);
         expect(new BN(pool2.availableAmount)).to.bignumber.equal(toFixedBN(5));
-        const pool2LoanAmount = await liquidityPools.getLoanRecordLoanAmountByPool(
-          loanId,
-          2,
-        );
+        const pool2LoanAmount =
+          await liquidityPools.getLoanRecordLoanAmountByPool(loanId, 2);
         expect(pool2LoanAmount).to.bignumber.equal(toFixedBN(5));
       });
 
@@ -377,8 +371,8 @@ contract('LiquidityPools', function([owner]) {
     let loanId, loanTerm;
 
     beforeEach(async () => {
-      const depositAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
-      const availableAmountList = [10, 10, 10, 10].map(n => toFixedBN(n));
+      const depositAmountList = [10, 10, 10, 10].map((n) => toFixedBN(n));
+      const availableAmountList = [10, 10, 10, 10].map((n) => toFixedBN(n));
       const depositDistributorFeeRatioList = Array(4).fill(
         depositDistributorFeeRatio,
       );
@@ -476,8 +470,8 @@ contract('LiquidityPools', function([owner]) {
   });
 
   describe('#getPoolsByToken', () => {
-    const depositAmountArray = [0, 1, 2, 3, 4, 5].map(n => toFixedBN(n));
-    const availableAmountArray = [0, 1, 1, 1, 1, 1].map(n => toFixedBN(n));
+    const depositAmountArray = [0, 1, 2, 3, 4, 5].map((n) => toFixedBN(n));
+    const availableAmountArray = [0, 1, 1, 1, 1, 1].map((n) => toFixedBN(n));
     const depositDistributorFeeRatioList = Array(6).fill(
       depositDistributorFeeRatio,
     );

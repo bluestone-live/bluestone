@@ -5,5 +5,5 @@ const { loadNetwork, makeTruffleScript } = require('../utils.js');
 module.exports = makeTruffleScript(async (network, account) => {
   const { contracts } = loadNetwork(network);
   const protocol = await Protocol.at(contracts.Protocol);
-  await protocol.addWhitelisted(account);
+  await protocol.addLenderWhitelisted(account);
 });

@@ -12,7 +12,7 @@ const { setupTestEnv } = require('../../utils/setupTestEnv');
 const { expect } = require('chai');
 
 contract(
-  'Protocol',
+  'Protocol: Deposit(positive)',
   ([
     owner,
     administrator,
@@ -42,11 +42,11 @@ contract(
     const collateralTokenPrice = 100;
 
     // deposit parameters
-    const depositAmount = 20;
+    const depositAmount = 0.01;
     const depositTerm = 7;
 
     // loan parameters
-    const loanAmount = 20;
+    const loanAmount = 0.01;
     const collateralAmount = 4;
     const loanTerm = 7;
 

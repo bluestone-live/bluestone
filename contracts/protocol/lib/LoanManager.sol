@@ -1,16 +1,16 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
-import '@openzeppelin/contracts/math/Math.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
+import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
 import '../interface/IStruct.sol';
 import './Configuration.sol';
 import './LiquidityPools.sol';
 import './DepositManager.sol';
-
 
 /// @title Implement loan-related operations
 library LoanManager {
@@ -186,10 +186,12 @@ library LoanManager {
             // If loan is closed, collateral coverage ratio becomes meaningless
             local.collateralCoverageRatio = 0;
         } else {
-            local.loanTokenPriceOracle = configuration
-                .priceOracleByToken[loanRecord.loanTokenAddress];
-            local.collateralTokenPriceOracle = configuration
-                .priceOracleByToken[loanRecord.collateralTokenAddress];
+            local.loanTokenPriceOracle = configuration.priceOracleByToken[
+                loanRecord.loanTokenAddress
+            ];
+            local.collateralTokenPriceOracle = configuration.priceOracleByToken[
+                loanRecord.collateralTokenAddress
+            ];
 
             local.collateralCoverageRatio = _calculateCollateralCoverageRatio(
                 CollateralCoverageRatioParams({
@@ -322,15 +324,18 @@ library LoanManager {
         require(collateralAmount > 0, 'LoanManager: invalid collateralAmount');
 
         IStruct.LoanAndCollateralTokenPair storage tokenPair = self
-            .loanAndCollateralTokenPairs[record.loanTokenAddress][record
-            .collateralTokenAddress];
+            .loanAndCollateralTokenPairs[record.loanTokenAddress][
+                record.collateralTokenAddress
+            ];
 
         SubtractCollateralLocalVars memory local;
 
-        local.loanTokenPriceOracle = configuration.priceOracleByToken[record
-            .loanTokenAddress];
-        local.collateralTokenPriceOracle = configuration
-            .priceOracleByToken[record.collateralTokenAddress];
+        local.loanTokenPriceOracle = configuration.priceOracleByToken[
+            record.loanTokenAddress
+        ];
+        local.collateralTokenPriceOracle = configuration.priceOracleByToken[
+            record.collateralTokenAddress
+        ];
 
         local.loanTokenPriceOracle.updatePriceIfNeeded();
         local.collateralTokenPriceOracle.updatePriceIfNeeded();
@@ -361,7 +366,7 @@ library LoanManager {
 
         // Transfer collateral from protocol to user
         if (record.collateralTokenAddress == ETH_IDENTIFIER) {
-            msg.sender.transfer(collateralAmount);
+            payable(msg.sender).transfer(collateralAmount);
         } else {
             ERC20(record.collateralTokenAddress).safeTransfer(
                 msg.sender,
@@ -388,8 +393,9 @@ library LoanManager {
         IStruct.LoanParameters calldata loanParameters
     ) external returns (bytes32 loanId) {
         IStruct.LoanAndCollateralTokenPair storage tokenPair = self
-            .loanAndCollateralTokenPairs[loanParameters
-            .loanTokenAddress][loanParameters.collateralTokenAddress];
+            .loanAndCollateralTokenPairs[loanParameters.loanTokenAddress][
+                loanParameters.collateralTokenAddress
+            ];
 
         require(
             tokenPair.minCollateralCoverageRatio != 0,
@@ -432,10 +438,10 @@ library LoanManager {
         local.loanInterestRate = configuration
             .interestModel
             .getLoanInterestRate(
-            loanParameters.loanTokenAddress,
-            loanParameters.loanTerm,
-            local.maxLoanTerm
-        );
+                loanParameters.loanTokenAddress,
+                loanParameters.loanTerm,
+                local.maxLoanTerm
+            );
 
         local.loanInterest = loanParameters
             .loanAmount
@@ -444,10 +450,12 @@ library LoanManager {
             .mul(loanParameters.loanTerm)
             .div(365);
 
-        local.loanTokenPriceOracle = configuration
-            .priceOracleByToken[loanParameters.loanTokenAddress];
-        local.collateralTokenPriceOracle = configuration
-            .priceOracleByToken[loanParameters.collateralTokenAddress];
+        local.loanTokenPriceOracle = configuration.priceOracleByToken[
+            loanParameters.loanTokenAddress
+        ];
+        local.collateralTokenPriceOracle = configuration.priceOracleByToken[
+            loanParameters.collateralTokenAddress
+        ];
 
         local.loanTokenPriceOracle.updatePriceIfNeeded();
         local.collateralTokenPriceOracle.updatePriceIfNeeded();
@@ -481,7 +489,7 @@ library LoanManager {
 
         self.loanRecordById[local.loanId] = IStruct.LoanRecord({
             loanId: local.loanId,
-            ownerAddress: msg.sender,
+            ownerAddress: payable(msg.sender),
             loanTokenAddress: loanParameters.loanTokenAddress,
             collateralTokenAddress: loanParameters.collateralTokenAddress,
             loanAmount: loanParameters.loanAmount,
@@ -494,9 +502,10 @@ library LoanManager {
             alreadyPaidAmount: 0,
             liquidatedAmount: 0,
             soldCollateralAmount: 0,
-            createdAt: now,
-            dueAt: loanParameters.loanTerm.mul(DateTime.dayInSeconds()) + now,
-            lastInterestUpdatedAt: now,
+            createdAt: block.timestamp,
+            dueAt: loanParameters.loanTerm.mul(DateTime.dayInSeconds()) +
+                block.timestamp,
+            lastInterestUpdatedAt: block.timestamp,
             lastRepaidAt: 0,
             lastLiquidatedAt: 0,
             isClosed: false,
@@ -507,7 +516,7 @@ library LoanManager {
         liquidityPools.loanFromPools(self.loanRecordById[local.loanId]);
 
         if (loanParameters.loanTokenAddress == ETH_IDENTIFIER) {
-            msg.sender.transfer(loanParameters.loanAmount);
+            payable(msg.sender).transfer(loanParameters.loanAmount);
         } else {
             // Transfer loan tokens from protocol to loaner
             ERC20(loanParameters.loanTokenAddress).safeTransfer(
@@ -562,23 +571,25 @@ library LoanManager {
 
         IStruct.LoanAndCollateralTokenPair memory tokenPair = IStruct
             .LoanAndCollateralTokenPair({
-            loanTokenAddress: loanTokenAddress,
-            collateralTokenAddress: collateralTokenAddress,
-            minCollateralCoverageRatio: minCollateralCoverageRatio,
-            liquidationDiscount: liquidationDiscount
-        });
+                loanTokenAddress: loanTokenAddress,
+                collateralTokenAddress: collateralTokenAddress,
+                minCollateralCoverageRatio: minCollateralCoverageRatio,
+                liquidationDiscount: liquidationDiscount
+            });
 
         // Add this token pair only if it hasn't been added yet
         if (
             self
-                .loanAndCollateralTokenPairs[loanTokenAddress][collateralTokenAddress]
-                .minCollateralCoverageRatio == 0
+            .loanAndCollateralTokenPairs[loanTokenAddress][
+                collateralTokenAddress
+            ].minCollateralCoverageRatio == 0
         ) {
             self.loanAndCollateralTokenPairList.push(tokenPair);
         }
 
-        self
-            .loanAndCollateralTokenPairs[loanTokenAddress][collateralTokenAddress] = tokenPair;
+        self.loanAndCollateralTokenPairs[loanTokenAddress][
+            collateralTokenAddress
+        ] = tokenPair;
 
         emit SetLoanAndCollateralTokenPairSucceed(
             msg.sender,
@@ -595,7 +606,9 @@ library LoanManager {
         address collateralTokenAddress
     ) external {
         IStruct.LoanAndCollateralTokenPair storage targetTokenPair = self
-            .loanAndCollateralTokenPairs[loanTokenAddress][collateralTokenAddress];
+            .loanAndCollateralTokenPairs[loanTokenAddress][
+                collateralTokenAddress
+            ];
 
         require(
             targetTokenPair.minCollateralCoverageRatio != 0,
@@ -617,8 +630,9 @@ library LoanManager {
 
                 self.loanAndCollateralTokenPairList.pop();
 
-                delete self
-                    .loanAndCollateralTokenPairs[loanTokenAddress][collateralTokenAddress];
+                delete self.loanAndCollateralTokenPairs[loanTokenAddress][
+                    collateralTokenAddress
+                ];
 
                 break;
             }
@@ -708,7 +722,7 @@ library LoanManager {
         loanRecord.alreadyPaidAmount = loanRecord.alreadyPaidAmount.add(
             repayAmount
         );
-        loanRecord.lastRepaidAt = now;
+        loanRecord.lastRepaidAt = block.timestamp;
 
         if (_calculateRemainingDebt(loanRecord) == 0) {
             loanRecord.isClosed = true;
@@ -720,7 +734,9 @@ library LoanManager {
             if (local.remainingCollateralAmount > 0) {
                 // Transfer remaining collateral from protocol to loaner
                 if (loanRecord.collateralTokenAddress == ETH_IDENTIFIER) {
-                    msg.sender.transfer(local.remainingCollateralAmount);
+                    payable(msg.sender).transfer(
+                        local.remainingCollateralAmount
+                    );
                 } else {
                     ERC20(loanRecord.collateralTokenAddress).safeTransfer(
                         msg.sender,
@@ -775,10 +791,12 @@ library LoanManager {
         }
 
         LiquidateLoanLocalVars memory local;
-        local.loanTokenPriceOracle = configuration.priceOracleByToken[loanRecord
-            .loanTokenAddress];
-        local.collateralTokenPriceOracle = configuration
-            .priceOracleByToken[loanRecord.collateralTokenAddress];
+        local.loanTokenPriceOracle = configuration.priceOracleByToken[
+            loanRecord.loanTokenAddress
+        ];
+        local.collateralTokenPriceOracle = configuration.priceOracleByToken[
+            loanRecord.collateralTokenAddress
+        ];
 
         local.loanTokenPriceOracle.updatePriceIfNeeded();
         local.collateralTokenPriceOracle.updatePriceIfNeeded();
@@ -813,7 +831,7 @@ library LoanManager {
             loanRecord.minCollateralCoverageRatio;
 
         local.isOverDue =
-            now >
+            block.timestamp >
             loanRecord.createdAt.add(
                 loanRecord.loanTerm.mul(DateTime.dayInSeconds())
             );
@@ -831,8 +849,8 @@ library LoanManager {
 
         local.soldCollateralAmount = Math.min(
             local
-                .liquidatedAmount
-                .mul(local.loanTokenPrice)
+            .liquidatedAmount
+            .mul(local.loanTokenPrice)
             /// Scale up loan tokens value if loan token is less than 18 decimals
             /// since token prices are represented in 10**18 scale
                 .mul(ONE.div(10**local.loanTokenDecimals))
@@ -857,7 +875,7 @@ library LoanManager {
         loanRecord.liquidatedAmount = loanRecord.liquidatedAmount.add(
             local.liquidatedAmount
         );
-        loanRecord.lastLiquidatedAt = now;
+        loanRecord.lastLiquidatedAt = block.timestamp;
 
         local.remainingCollateralAmount = loanRecord.collateralAmount.sub(
             loanRecord.soldCollateralAmount
@@ -893,7 +911,7 @@ library LoanManager {
 
         // Transfer collateral amount to liquidator
         if (loanRecord.collateralTokenAddress == ETH_IDENTIFIER) {
-            msg.sender.transfer(local.soldCollateralAmount);
+            payable(msg.sender).transfer(local.soldCollateralAmount);
         } else {
             ERC20(loanRecord.collateralTokenAddress).safeTransfer(
                 msg.sender,
@@ -920,7 +938,8 @@ library LoanManager {
         external
         view
         returns (
-            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
+            IStruct.LoanAndCollateralTokenPair[]
+                memory loanAndCollateralTokenPairList
         )
     {
         return self.loanAndCollateralTokenPairList;

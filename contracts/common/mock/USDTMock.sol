@@ -1,7 +1,7 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
-import '@openzeppelin/contracts/math/SafeMath.sol';
-
+import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 
 contract USDTMock {
     using SafeMath for uint256;
@@ -22,7 +22,7 @@ contract USDTMock {
     );
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    constructor(string memory tokenName, string memory tokenSymbol) public {
+    constructor(string memory tokenName, string memory tokenSymbol) {
         name = tokenName;
         symbol = tokenSymbol;
         decimals = 6;

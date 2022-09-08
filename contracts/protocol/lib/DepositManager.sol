@@ -1,9 +1,10 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
 import '../interface/IStruct.sol';
 import './LoanManager.sol';
@@ -109,8 +110,9 @@ library DepositManager {
         view
         returns (IStruct.GetDepositRecordResponse memory depositRecordResponse)
     {
-        IStruct.DepositRecord memory depositRecord = self
-            .depositRecordById[depositId];
+        IStruct.DepositRecord memory depositRecord = self.depositRecordById[
+            depositId
+        ];
 
         require(
             depositRecord.tokenAddress != address(0),
@@ -123,10 +125,10 @@ library DepositManager {
             ,
 
         ) = _getInterestDistributionByDepositId(
-            self,
-            liquidityPools,
-            depositId
-        );
+                self,
+                liquidityPools,
+                depositId
+            );
 
         return
             IStruct.GetDepositRecordResponse({
@@ -147,8 +149,9 @@ library DepositManager {
         LiquidityPools.State storage liquidityPools,
         bytes32 depositId
     ) public view returns (bool isEarlyWithdrawable) {
-        IStruct.DepositRecord memory depositRecord = self
-            .depositRecordById[depositId];
+        IStruct.DepositRecord memory depositRecord = self.depositRecordById[
+            depositId
+        ];
 
         if (
             depositRecord.tokenAddress == address(0) ||
@@ -281,8 +284,9 @@ library DepositManager {
                 // then decrease the array size by one to effectively remove
                 // the disabled token address.
                 uint256 numDepositTokens = self.depositTokenAddressList.length;
-                address lastDepositTokenAddress = self
-                    .depositTokenAddressList[numDepositTokens - 1];
+                address lastDepositTokenAddress = self.depositTokenAddressList[
+                    numDepositTokens - 1
+                ];
 
                 // Overwrite current tokenAddress with the last tokenAddress
                 self.depositTokenAddressList[i] = lastDepositTokenAddress;
@@ -372,12 +376,12 @@ library DepositManager {
 
         self.depositRecordById[currDepositId] = IStruct.DepositRecord({
             depositId: currDepositId,
-            ownerAddress: msg.sender,
+            ownerAddress: payable(msg.sender),
             tokenAddress: depositParameters.tokenAddress,
             depositTerm: depositParameters.depositTerm,
             depositAmount: depositParameters.depositAmount,
             poolId: poolId,
-            createdAt: now,
+            createdAt: block.timestamp,
             withdrewAt: 0,
             weight: depositWeight,
             distributorAddress: depositParameters.distributorAddress
@@ -410,8 +414,9 @@ library DepositManager {
         LiquidityPools.State storage liquidityPools,
         bytes32 depositId
     ) external returns (uint256 withdrewAmount) {
-        IStruct.DepositRecord storage depositRecord = self
-            .depositRecordById[depositId];
+        IStruct.DepositRecord storage depositRecord = self.depositRecordById[
+            depositId
+        ];
 
         require(
             depositRecord.tokenAddress != address(0),
@@ -446,10 +451,10 @@ library DepositManager {
             ,
             uint256 interestForProtocolReserve
         ) = _getInterestDistributionByDepositId(
-            self,
-            liquidityPools,
-            depositId
-        );
+                self,
+                liquidityPools,
+                depositId
+            );
 
         uint256 availableAmountToBeWithdrawn = depositRecord
             .depositAmount
@@ -478,7 +483,7 @@ library DepositManager {
             interestForDepositor
         );
 
-        depositRecord.withdrewAt = now;
+        depositRecord.withdrewAt = block.timestamp;
 
         if (tokenAddress == ETH_IDENTIFIER) {
             // Transfer deposit distributor fee to distributor if distributor set
@@ -512,7 +517,7 @@ library DepositManager {
             );
 
             // Transfer deposit plus interest to depositor
-            msg.sender.transfer(depositPlusInterestAmount);
+            payable(msg.sender).transfer(depositPlusInterestAmount);
         } else {
             // Transfer deposit distributor fee to distributor if distributor set
             if (depositRecord.distributorAddress != address(this)) {
@@ -564,8 +569,9 @@ library DepositManager {
         LiquidityPools.State storage liquidityPools,
         bytes32 depositId
     ) external returns (uint256 withdrewAmount) {
-        IStruct.DepositRecord storage depositRecord = self
-            .depositRecordById[depositId];
+        IStruct.DepositRecord storage depositRecord = self.depositRecordById[
+            depositId
+        ];
 
         address tokenAddress = depositRecord.tokenAddress;
 
@@ -587,10 +593,10 @@ library DepositManager {
             depositRecord.poolId
         );
 
-        depositRecord.withdrewAt = now;
+        depositRecord.withdrewAt = block.timestamp;
 
         if (tokenAddress == ETH_IDENTIFIER) {
-            msg.sender.transfer(depositRecord.depositAmount);
+            payable(msg.sender).transfer(depositRecord.depositAmount);
         } else {
             ERC20(tokenAddress).safeTransfer(
                 msg.sender,
@@ -617,8 +623,9 @@ library DepositManager {
         view
         returns (IStruct.GetDepositRecordResponse[] memory depositRecordList)
     {
-        bytes32[] memory depositIdList = self
-            .depositIdsByAccountAddress[accountAddress];
+        bytes32[] memory depositIdList = self.depositIdsByAccountAddress[
+            accountAddress
+        ];
 
         depositRecordList = new IStruct.GetDepositRecordResponse[](
             depositIdList.length
@@ -649,8 +656,9 @@ library DepositManager {
             uint256 interestForProtocolReserve
         )
     {
-        IStruct.DepositRecord memory depositRecord = self
-            .depositRecordById[depositId];
+        IStruct.DepositRecord memory depositRecord = self.depositRecordById[
+            depositId
+        ];
 
         require(
             depositRecord.tokenAddress != address(0),

@@ -1,5 +1,5 @@
-pragma solidity ^0.6.7;
-
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 /// Unix timestamp conversion utilities
 /// To learn more, try this online converter: https://www.epochconverter.com/
@@ -43,7 +43,7 @@ library DateTime {
     }
 
     function toDays() external view returns (uint256) {
-        return toDays(now);
+        return toDays(block.timestamp);
     }
 
     function toDays(uint256 timestamp) public pure returns (uint256) {

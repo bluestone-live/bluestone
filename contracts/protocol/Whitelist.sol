@@ -1,4 +1,5 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './interface/IWhitelist.sol';
@@ -18,7 +19,7 @@ contract Whitelist is Ownable, IWhitelist {
     event AddBorrowerWhitelisted(address indexed account);
     event RemoveBorrowerWhitelisted(address indexed account);
 
-    constructor() public {
+    constructor() {
         administrators.push(msg.sender);
         isAdministrator[msg.sender] = true;
     }
@@ -51,7 +52,6 @@ contract Whitelist is Ownable, IWhitelist {
         external
         view
         override
-        onlyAdministrator
         returns (address[] memory)
     {
         return administrators;
@@ -61,7 +61,6 @@ contract Whitelist is Ownable, IWhitelist {
         external
         view
         override
-        onlyAdministrator
         returns (address[] memory)
     {
         return whitelistedLenders;
@@ -71,7 +70,6 @@ contract Whitelist is Ownable, IWhitelist {
         external
         view
         override
-        onlyAdministrator
         returns (address[] memory)
     {
         return whitelistedBorrowers;

@@ -1,9 +1,9 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import './interface/IInterestModel.sol';
-
 
 contract InterestModel is IInterestModel, Ownable {
     using SafeMath for uint256;
@@ -18,8 +18,8 @@ contract InterestModel is IInterestModel, Ownable {
 
     function getDepositWeight(uint256 amount, uint256 term)
         external
-        override
         pure
+        override
         returns (uint256)
     {
         return amount.mul(term);
@@ -29,10 +29,10 @@ contract InterestModel is IInterestModel, Ownable {
         address tokenAddress,
         uint256 loanTerm,
         uint256 maxLoanTerm
-    ) external override view returns (uint256 loanInterestRate) {
-
-            LoanParameters memory params
-         = _loanParametersByTokenAddress[tokenAddress];
+    ) external view override returns (uint256 loanInterestRate) {
+        LoanParameters memory params = _loanParametersByTokenAddress[
+            tokenAddress
+        ];
         uint256 H = params.loanInterestRateUpperBound;
         uint256 L = params.loanInterestRateLowerBound;
 

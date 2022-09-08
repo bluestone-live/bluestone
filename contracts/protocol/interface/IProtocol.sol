@@ -1,10 +1,10 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '../../oracle/interface/IPriceOracle.sol';
 import './IInterestModel.sol';
 import './IStruct.sol';
-
 
 /// @title Interface for the main contract
 interface IProtocol {
@@ -229,7 +229,8 @@ interface IProtocol {
         external
         view
         returns (
-            IStruct.LoanAndCollateralTokenPair[] memory loanAndCollateralTokenPairList
+            IStruct.LoanAndCollateralTokenPair[]
+                memory loanAndCollateralTokenPairList
         );
 
     /// @dev Remove documentation of return parameters in order to compile

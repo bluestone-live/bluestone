@@ -1,5 +1,5 @@
-pragma solidity ^0.6.7;
-
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 /// The medianizer is the smart contract which provides Makers trusted reference price.
 ///
