@@ -1,11 +1,11 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 import '../../oracle/interface/IPriceOracle.sol';
 import '../lib/Configuration.sol';
 import '../lib/LiquidityPools.sol';
 import '../lib/DepositManager.sol';
 import '../lib/LoanManager.sol';
-
 
 contract ConfigurationMock {
     using Configuration for Configuration.State;

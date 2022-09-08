@@ -1,8 +1,8 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 import '../../oracle/interface/IPriceOracle.sol';
 import '../interface/IInterestModel.sol';
-
 
 /// @title Protocol configurations
 library Configuration {

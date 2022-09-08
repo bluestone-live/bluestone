@@ -4,8 +4,8 @@ pragma solidity ^0.8.7;
 import '../common/interface/IChainlink.sol';
 import './interface/IPriceOracle.sol';
 
-/// @title Price oracle that fetches ETH price in USD.
-contract EthPriceOracle is IPriceOracle {
+/// @title Price oracle that fetches BTC price in USD.
+contract BtcPriceOracle is IPriceOracle {
     IChainlink public aggregator;
     uint8 public tokenDecimals = 18;
 
@@ -32,6 +32,5 @@ contract EthPriceOracle is IPriceOracle {
         uint8 decimals = aggregator.decimals();
 
         tokenPrice = uint256(rawPrice) * (10**(tokenDecimals - decimals));
-        // return uint256(rawPrice);
     }
 }

@@ -1,12 +1,12 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
 import '../lib/LiquidityPools.sol';
 import '../lib/LoanManager.sol';
 import '../interface/IStruct.sol';
-
 
 contract LiquidityPoolsMock {
     using LiquidityPools for LiquidityPools.State;
@@ -60,15 +60,17 @@ contract LiquidityPoolsMock {
     }
 
     function loanFromPools(bytes32 loanId) external {
-        IStruct.LoanRecord storage loanRecord = _loanManager
-            .loanRecordById[loanId];
+        IStruct.LoanRecord storage loanRecord = _loanManager.loanRecordById[
+            loanId
+        ];
 
         _liquidityPools.loanFromPools(loanRecord);
     }
 
     function repayLoanToPools(bytes32 loanId, uint256 repayAmount) external {
-        IStruct.LoanRecord storage loanRecord = _loanManager
-            .loanRecordById[loanId];
+        IStruct.LoanRecord storage loanRecord = _loanManager.loanRecordById[
+            loanId
+        ];
 
         _liquidityPools.repayLoanToPools(loanRecord, repayAmount);
     }
@@ -124,8 +126,9 @@ contract LiquidityPoolsMock {
             'LiquidityPoolsMock: depositAmountList and availableAmountList must have the same length'
         );
 
-        LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
-            .poolGroups[tokenAddress];
+        LiquidityPools.PoolGroup storage poolGroup = _liquidityPools.poolGroups[
+            tokenAddress
+        ];
 
         uint256 poolId = DateTime.toDays();
 
@@ -150,8 +153,9 @@ contract LiquidityPoolsMock {
             abi.encode(msg.sender, _loanManager.numLoans)
         );
 
-        IStruct.LoanRecord storage loanRecord = _loanManager
-            .loanRecordById[loanId];
+        IStruct.LoanRecord storage loanRecord = _loanManager.loanRecordById[
+            loanId
+        ];
 
         loanRecord.loanId = loanId;
         loanRecord.loanTokenAddress = loanTokenAddress;
@@ -167,16 +171,18 @@ contract LiquidityPoolsMock {
         view
         returns (uint256 loanAmountByPool)
     {
-        IStruct.LoanRecord storage loanRecord = _loanManager
-            .loanRecordById[loanId];
+        IStruct.LoanRecord storage loanRecord = _loanManager.loanRecordById[
+            loanId
+        ];
 
-        LiquidityPools.PoolGroup storage poolGroup = _liquidityPools
-            .poolGroups[loanRecord.loanTokenAddress];
+        LiquidityPools.PoolGroup storage poolGroup = _liquidityPools.poolGroups[
+            loanRecord.loanTokenAddress
+        ];
 
         return
-            poolGroup.loanAmountByLoanIdAndPoolId[loanId][DateTime.toDays().add(
-                poolIndex
-            )];
+            poolGroup.loanAmountByLoanIdAndPoolId[loanId][
+                DateTime.toDays().add(poolIndex)
+            ];
     }
 
     function getLoanRecordById(bytes32 loanId)

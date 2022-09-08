@@ -1,12 +1,12 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts/math/Math.sol';
-import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
+import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
 import '../interface/IStruct.sol';
 import './LoanManager.sol';
-
 
 /// @title Stores pool instances and contains fund-matching logic.
 library LiquidityPools {
@@ -90,8 +90,9 @@ library LiquidityPools {
         State storage self,
         IStruct.LoanRecord storage loanRecord
     ) external {
-        PoolGroup storage poolGroup = self.poolGroups[loanRecord
-            .loanTokenAddress];
+        PoolGroup storage poolGroup = self.poolGroups[
+            loanRecord.loanTokenAddress
+        ];
         uint256 firstPoolId = DateTime.toDays();
         uint256 availableAmount;
 
@@ -158,8 +159,9 @@ library LiquidityPools {
             // Record the actual pool we loan from and amount from the pool,
             // so we know which pool to repay back later
             poolGroup.matchedPoolIdsByLoanId[loanRecord.loanId].push(poolId);
-            poolGroup.loanAmountByLoanIdAndPoolId[loanRecord
-                .loanId][poolId] = loanAmountFromPool;
+            poolGroup.loanAmountByLoanIdAndPoolId[loanRecord.loanId][
+                    poolId
+                ] = loanAmountFromPool;
 
             remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
         }
@@ -173,14 +175,16 @@ library LiquidityPools {
         IStruct.LoanRecord storage loanRecord,
         uint256 repayAmount
     ) external {
-        PoolGroup storage poolGroup = self.poolGroups[loanRecord
-            .loanTokenAddress];
+        PoolGroup storage poolGroup = self.poolGroups[
+            loanRecord.loanTokenAddress
+        ];
 
         // Repay loan back to each pool, proportional to the total loan from all pools
         uint256 repayAmountToThisPool;
 
-        uint256[] storage matchedPoolIds = poolGroup
-            .matchedPoolIdsByLoanId[loanRecord.loanId];
+        uint256[] storage matchedPoolIds = poolGroup.matchedPoolIdsByLoanId[
+            loanRecord.loanId
+        ];
         for (uint256 i = 0; i < matchedPoolIds.length; i++) {
             uint256 poolId = matchedPoolIds[i];
             uint256 loanAmountFromThisPool = poolGroup
@@ -190,8 +194,8 @@ library LiquidityPools {
             /// from all pools, where 10 is from this pool, and we want to repay 50 now.
             /// Then the amount pay back to this pool will be: 50 * 10 / 100 = 5
             repayAmountToThisPool = repayAmount.mul(loanAmountFromThisPool).div(
-                loanRecord.loanAmount
-            );
+                    loanRecord.loanAmount
+                );
 
             IStruct.Pool storage pool = poolGroup.poolsById[poolId];
             pool.availableAmount = pool.availableAmount.add(

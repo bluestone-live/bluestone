@@ -1,9 +1,10 @@
-pragma solidity ^0.6.7;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/Pausable.sol';
-import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/security/Pausable.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '../oracle/interface/IPriceOracle.sol';
 import './interface/IProtocol.sol';
 import './interface/IInterestModel.sol';

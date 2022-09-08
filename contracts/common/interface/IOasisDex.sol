@@ -1,5 +1,5 @@
-pragma solidity ^0.6.7;
-
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.7;
 
 /// Oasis is a decentralized application that runs on the Ethereum blockchain. Anyone can use Oasis to trade tokens, borrow against them, and earn savings using Dai.
 ///

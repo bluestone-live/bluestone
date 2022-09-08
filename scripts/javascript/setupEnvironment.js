@@ -12,20 +12,22 @@ const exec = (scriptName, network) =>
   );
 
 module.exports = makeTruffleScript(async (network) => {
-  debug('Deploy Tokens');
+  debug('1.[Deploy Tokens]');
   exec('deployTokens', network);
 
-  debug('Deploy price oracles');
+  debug('2.[Deploy price oracles]');
   exec('deployPriceOracles', network);
 
-  debug('Setup Deposit Environment');
+  debug('3.[Setup Deposit Environment]');
   exec('enableDepositTerms', network);
   exec('enableDepositToken', network);
+  exec('disableDepositToken', network, 'xBTC');
+  exec('disableDepositToken', network, 'ETH');
 
-  debug('Setup Loan Environment');
+  debug('4.[Setup Loan Environment]');
   exec('setLoanAndCollateralTokenPairs', network);
 
-  debug('Set Miscellaneous');
+  debug('5.[Set Miscellaneous]');
   exec('setInterestModel', network);
   exec('setInterestReserveAddress', network);
   exec('setProtocolReserveRatio', network);

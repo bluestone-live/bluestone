@@ -12,7 +12,7 @@ const { setupTestEnv } = require('../../utils/setupTestEnv');
 const { expect } = require('chai');
 
 contract(
-  'Protocol',
+  'Protocol: Liquidation(positive)',
   ([
     owner,
     administrator,

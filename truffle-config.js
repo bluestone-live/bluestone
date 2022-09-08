@@ -68,6 +68,23 @@ module.exports = {
     // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     // },
 
+    goerli: {
+      provider: () =>
+        new HDWalletProvider(
+          config.get('mnemonic'),
+          `https://goerli.infura.io/v3/${config.get('infura.projectId')}`,
+          config.get('accountIndex'),
+        ),
+      network_id: 5,
+      websockets: true,
+      confirmations: 2,
+      gasPrice: 2600000000,
+      networkCheckTimeout: 10000000,
+      pollingInterval: 30000,
+      timeoutBlocks: 2000,
+      skipDryRun: true,
+    },
+
     rinkeby: {
       provider: () =>
         new HDWalletProvider(
@@ -124,7 +141,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: '0.6.7', // Fetch exact version from solc-bin (default: truffle's version)
+      version: '0.8.7', // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       settings: {
         // See the solidity docs for advice about optimization and evmVersion
