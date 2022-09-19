@@ -1462,11 +1462,11 @@ contract(
     });
 
     describe('#liquidateLoan', () => {
-      const depositAmount = toFixedBN(10);
+      const depositAmount = toFixedBN(1);
       const depositTerm = 30;
-      const loanAmount = toFixedBN(10);
-      const loanUSDCAmount = toFixedBN(10, 6);
-      const collateralAmount = toFixedBN(20);
+      const loanAmount = toFixedBN(1);
+      const loanUSDCAmount = toFixedBN(10, 5);
+      const collateralAmount = toFixedBN(2);
       const loanTerm = 30;
       const liquidationDiscount = toFixedBN(0.05);
       const prevLoanTokenPrice = toFixedBN(10);
@@ -1651,7 +1651,7 @@ contract(
             });
 
             context('when liquidates partially', () => {
-              const liquidateAmount = loanAmount.sub(toFixedBN(2));
+              const liquidateAmount = loanAmount.sub(toFixedBN(0.2));
               let tx, soldCollateralAmount;
 
               beforeEach(async () => {
@@ -1996,7 +1996,7 @@ contract(
           });
 
           context('when liquidates partially', () => {
-            const liquidateAmount = loanAmount.sub(toFixedBN(2));
+            const liquidateAmount = loanAmount.sub(toFixedBN(0.2));
             let tx, soldCollateralAmount;
 
             beforeEach(async () => {

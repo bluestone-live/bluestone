@@ -5,15 +5,12 @@ pragma experimental ABIEncoderV2;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
-import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../common/interface/IMedianizer.sol';
 import '../common/interface/IOasisDex.sol';
 import '../common/lib/DateTime.sol';
 import './interface/IPriceOracle.sol';
 
 contract DaiPriceOracle is IPriceOracle, Ownable {
-    using SafeMath for uint256;
-
     uint256 constant EXPECTED_PRICE = 10**18; // 1.0
 
     // Minimum time difference in hours to trigger price fetch
@@ -114,8 +111,8 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         /// 1. Price diff is too small, or
         /// 2. New price is smaller than lower bound or larger than upper bound
         if (
-            (newPrice >= price && newPrice.sub(price) < MIN_PRICE_DIFF) ||
-            (newPrice < price && price.sub(newPrice) < MIN_PRICE_DIFF) ||
+            (newPrice >= price && (newPrice - price) < MIN_PRICE_DIFF) ||
+            (newPrice < price && (price - newPrice) < MIN_PRICE_DIFF) ||
             (newPrice < priceLowerBound || newPrice > priceUpperBound)
         ) {
             return;
@@ -168,11 +165,12 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
                     return price;
                 }
 
-                uint256 num = oasisEthAmount.mul(payAmount).add(
-                    oasisEthAmount.mul(buyAmount)
-                );
-                uint256 den = buyAmount.mul(payAmount).mul(2);
-                uint256 oasisPrice = ethUsd.mul(num).div(den);
+                uint256 num = oasisEthAmount *
+                    payAmount +
+                    oasisEthAmount *
+                    buyAmount;
+                uint256 den = buyAmount * payAmount * 2;
+                uint256 oasisPrice = (ethUsd * num) / den;
 
                 emit GetOasisPriceSucceed(oasisEthAmount, oasisPrice);
                 return oasisPrice;
@@ -197,7 +195,7 @@ contract DaiPriceOracle is IPriceOracle, Ownable {
         if (daiAmt == 0) {
             return price;
         } else {
-            return ethUsd.mul(ethAmt).div(daiAmt);
+            return (ethUsd * ethAmt) / daiAmt;
         }
     }
 

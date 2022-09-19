@@ -3,15 +3,12 @@ pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '@openzeppelin/contracts/utils/math/Math.sol';
-import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
 import '../interface/IStruct.sol';
 import './LoanManager.sol';
 
 /// @title Stores pool instances and contains fund-matching logic.
 library LiquidityPools {
-    using SafeMath for uint256;
-
     struct State {
         // Token -> PoolGroup
         mapping(address => PoolGroup) poolGroups;
@@ -51,11 +48,11 @@ library LiquidityPools {
         uint256 protocolReserveRatio
     ) external returns (uint256 poolId) {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
-        poolId = DateTime.toDays().add(depositTerm);
+        poolId = DateTime.toDays() + depositTerm;
         IStruct.Pool storage pool = poolGroup.poolsById[poolId];
-        pool.depositAmount = pool.depositAmount.add(depositAmount);
-        pool.availableAmount = pool.availableAmount.add(depositAmount);
-        pool.totalDepositWeight = pool.totalDepositWeight.add(depositWeight);
+        pool.depositAmount = pool.depositAmount + depositAmount;
+        pool.availableAmount = pool.availableAmount + depositAmount;
+        pool.totalDepositWeight = pool.totalDepositWeight + depositWeight;
 
         // Record ratios for interest disribution if they have not been set
         if (
@@ -81,9 +78,9 @@ library LiquidityPools {
     ) external {
         PoolGroup storage poolGroup = self.poolGroups[tokenAddress];
         IStruct.Pool storage pool = poolGroup.poolsById[poolId];
-        pool.depositAmount = pool.depositAmount.sub(depositAmount);
-        pool.availableAmount = pool.availableAmount.sub(availableAmount);
-        pool.totalDepositWeight = pool.totalDepositWeight.sub(depositWeight);
+        pool.depositAmount = pool.depositAmount - depositAmount;
+        pool.availableAmount = pool.availableAmount - availableAmount;
+        pool.totalDepositWeight = pool.totalDepositWeight - depositWeight;
     }
 
     function loanFromPools(
@@ -98,13 +95,13 @@ library LiquidityPools {
 
         // Calculate available amount to borrow for the loan term
         for (
-            uint256 poolId = firstPoolId.add(loanRecord.loanTerm);
-            poolId <= firstPoolId.add(self.poolGroupSize);
-            poolId = poolId.add(1)
+            uint256 poolId = firstPoolId + loanRecord.loanTerm;
+            poolId <= firstPoolId + self.poolGroupSize;
+            poolId = poolId + 1
         ) {
-            availableAmount = availableAmount.add(
-                poolGroup.poolsById[poolId].availableAmount
-            );
+            availableAmount =
+                availableAmount +
+                poolGroup.poolsById[poolId].availableAmount;
         }
 
         uint256 remainingLoanAmount = loanRecord.loanAmount;
@@ -119,9 +116,9 @@ library LiquidityPools {
         /// Borrow from the first pool available, go to the next pool in PoolGroup
         /// and repeat until the total loan amount is fulfilled
         for (
-            uint256 poolId = firstPoolId.add(loanRecord.loanTerm);
-            poolId <= firstPoolId.add(self.poolGroupSize);
-            poolId = poolId.add(1)
+            uint256 poolId = firstPoolId + loanRecord.loanTerm;
+            poolId <= firstPoolId + self.poolGroupSize;
+            poolId = poolId + 1
         ) {
             if (remainingLoanAmount == 0) {
                 break;
@@ -138,23 +135,19 @@ library LiquidityPools {
                 pool.availableAmount
             );
 
-            uint256 loanInterestToPool = loanRecord
-                .interest
-                .mul(loanAmountFromPool)
-                .div(loanRecord.loanAmount);
+            uint256 loanInterestToPool = (loanRecord.interest *
+                loanAmountFromPool) / loanRecord.loanAmount;
 
-            uint256 distributorInterestFromPool = pool
-                .loanDistributorFeeRatio
-                .mul(loanInterestToPool)
-                .div(ONE);
+            uint256 distributorInterestFromPool = (pool
+                .loanDistributorFeeRatio * loanInterestToPool) / ONE;
 
-            pool.availableAmount = pool.availableAmount.sub(loanAmountFromPool);
-            pool.loanInterest = pool.loanInterest.add(loanInterestToPool);
+            pool.availableAmount = pool.availableAmount - loanAmountFromPool;
+            pool.loanInterest = pool.loanInterest + loanInterestToPool;
 
             // Add up interest for loan distributor
-            distributorInterest = distributorInterest.add(
-                distributorInterestFromPool
-            );
+            distributorInterest =
+                distributorInterest +
+                distributorInterestFromPool;
 
             // Record the actual pool we loan from and amount from the pool,
             // so we know which pool to repay back later
@@ -163,7 +156,7 @@ library LiquidityPools {
                     poolId
                 ] = loanAmountFromPool;
 
-            remainingLoanAmount = remainingLoanAmount.sub(loanAmountFromPool);
+            remainingLoanAmount = remainingLoanAmount - loanAmountFromPool;
         }
 
         // Save total loan distributor interest into loan record
@@ -193,14 +186,12 @@ library LiquidityPools {
             /// Calculate the amount to repay to this pool, e.g., if we loaned total of 100
             /// from all pools, where 10 is from this pool, and we want to repay 50 now.
             /// Then the amount pay back to this pool will be: 50 * 10 / 100 = 5
-            repayAmountToThisPool = repayAmount.mul(loanAmountFromThisPool).div(
-                    loanRecord.loanAmount
-                );
+            repayAmountToThisPool =
+                (repayAmount * loanAmountFromThisPool) /
+                loanRecord.loanAmount;
 
             IStruct.Pool storage pool = poolGroup.poolsById[poolId];
-            pool.availableAmount = pool.availableAmount.add(
-                repayAmountToThisPool
-            );
+            pool.availableAmount = pool.availableAmount + repayAmountToThisPool;
         }
     }
 
@@ -217,9 +208,9 @@ library LiquidityPools {
         IStruct.Pool memory pool;
 
         for (uint256 i = 0; i <= self.poolGroupSize; i++) {
-            pool = poolGroup.poolsById[firstPoolId.add(i)];
+            pool = poolGroup.poolsById[firstPoolId + i];
             poolList[i] = IStruct.GetPoolsByTokenResponse({
-                poolId: firstPoolId.add(i),
+                poolId: firstPoolId + i,
                 depositAmount: pool.depositAmount,
                 availableAmount: pool.availableAmount,
                 loanInterest: pool.loanInterest,

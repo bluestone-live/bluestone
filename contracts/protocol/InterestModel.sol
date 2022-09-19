@@ -2,12 +2,9 @@
 pragma solidity ^0.8.7;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import './interface/IInterestModel.sol';
 
 contract InterestModel is IInterestModel, Ownable {
-    using SafeMath for uint256;
-
     mapping(address => LoanParameters) _loanParametersByTokenAddress;
 
     // Parameters to help calculate loan interest rate
@@ -22,7 +19,7 @@ contract InterestModel is IInterestModel, Ownable {
         override
         returns (uint256)
     {
-        return amount.mul(term);
+        return amount * term;
     }
 
     function getLoanInterestRate(
@@ -36,7 +33,7 @@ contract InterestModel is IInterestModel, Ownable {
         uint256 H = params.loanInterestRateUpperBound;
         uint256 L = params.loanInterestRateLowerBound;
 
-        return H.sub(H.sub(L).mul(loanTerm).div(maxLoanTerm));
+        return H - (((H - L) * loanTerm) / maxLoanTerm);
     }
 
     function getLoanParameters(address tokenAddress)
