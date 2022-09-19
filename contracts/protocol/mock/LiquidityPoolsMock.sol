@@ -2,7 +2,6 @@
 pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
 import '../lib/LiquidityPools.sol';
 import '../lib/LoanManager.sol';
@@ -11,7 +10,6 @@ import '../interface/IStruct.sol';
 contract LiquidityPoolsMock {
     using LiquidityPools for LiquidityPools.State;
     using LoanManager for LoanManager.State;
-    using SafeMath for uint256;
 
     LiquidityPools.State _liquidityPools;
     LoanManager.State _loanManager;
@@ -99,7 +97,7 @@ contract LiquidityPoolsMock {
         return
             _liquidityPools.getPoolById(
                 tokenAddress,
-                DateTime.toDays().add(poolIndex)
+                DateTime.toDays() + poolIndex
             );
     }
 
@@ -139,7 +137,7 @@ contract LiquidityPoolsMock {
             pool.depositDistributorFeeRatio = depositDistributorFeeRatioList[i];
             pool.loanDistributorFeeRatio = loanDistributorFeeRatioList[i];
             pool.protocolReserveRatio = protocolReserveRatioList[i];
-            poolId = poolId.add(1);
+            poolId = poolId + 1;
         }
     }
 
@@ -181,7 +179,7 @@ contract LiquidityPoolsMock {
 
         return
             poolGroup.loanAmountByLoanIdAndPoolId[loanId][
-                DateTime.toDays().add(poolIndex)
+                DateTime.toDays() + poolIndex
             ];
     }
 

@@ -5,7 +5,6 @@ pragma experimental ABIEncoderV2;
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
-import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
 import '../interface/IStruct.sol';
 import './Configuration.sol';
@@ -18,7 +17,6 @@ library LoanManager {
     using LiquidityPools for LiquidityPools.State;
     using DepositManager for DepositManager.State;
     using SafeERC20 for ERC20;
-    using SafeMath for uint256;
 
     struct State {
         // Total number of loans
@@ -195,9 +193,8 @@ library LoanManager {
 
             local.collateralCoverageRatio = _calculateCollateralCoverageRatio(
                 CollateralCoverageRatioParams({
-                    collateralAmount: loanRecord.collateralAmount.sub(
-                        loanRecord.soldCollateralAmount
-                    ),
+                    collateralAmount: loanRecord.collateralAmount -
+                        loanRecord.soldCollateralAmount,
                     collateralTokenDecimals: _getTokenDecimals(
                         loanRecord.collateralTokenAddress
                     ),
@@ -294,7 +291,7 @@ library LoanManager {
             );
         }
 
-        record.collateralAmount = record.collateralAmount.add(collateralAmount);
+        record.collateralAmount = record.collateralAmount + collateralAmount;
 
         emit AddCollateralSucceed(
             msg.sender,
@@ -342,10 +339,9 @@ library LoanManager {
 
         local.collateralCoverageRatio = _calculateCollateralCoverageRatio(
             CollateralCoverageRatioParams({
-                collateralAmount: record
-                    .collateralAmount
-                    .sub(record.soldCollateralAmount)
-                    .sub(collateralAmount),
+                collateralAmount: record.collateralAmount -
+                    record.soldCollateralAmount -
+                    collateralAmount,
                 collateralTokenDecimals: _getTokenDecimals(
                     record.collateralTokenAddress
                 ),
@@ -374,7 +370,7 @@ library LoanManager {
             );
         }
 
-        record.collateralAmount = record.collateralAmount.sub(collateralAmount);
+        record.collateralAmount = record.collateralAmount - collateralAmount;
 
         emit SubtractCollateralSucceed(
             msg.sender,
@@ -443,12 +439,10 @@ library LoanManager {
                 local.maxLoanTerm
             );
 
-        local.loanInterest = loanParameters
-            .loanAmount
-            .mul(local.loanInterestRate)
-            .div(ONE)
-            .mul(loanParameters.loanTerm)
-            .div(365);
+        local.loanInterest =
+            (((loanParameters.loanAmount * local.loanInterestRate) / ONE) *
+                loanParameters.loanTerm) /
+            365;
 
         local.loanTokenPriceOracle = configuration.priceOracleByToken[
             loanParameters.loanTokenAddress
@@ -469,7 +463,7 @@ library LoanManager {
                 collateralTokenPrice: local
                     .collateralTokenPriceOracle
                     .getPrice(),
-                loanAmount: loanParameters.loanAmount.add(local.loanInterest),
+                loanAmount: loanParameters.loanAmount + local.loanInterest,
                 loanTokenDecimals: _getTokenDecimals(
                     loanParameters.loanTokenAddress
                 ),
@@ -503,7 +497,8 @@ library LoanManager {
             liquidatedAmount: 0,
             soldCollateralAmount: 0,
             createdAt: block.timestamp,
-            dueAt: loanParameters.loanTerm.mul(DateTime.dayInSeconds()) +
+            dueAt: loanParameters.loanTerm *
+                DateTime.dayInSeconds() +
                 block.timestamp,
             lastInterestUpdatedAt: block.timestamp,
             lastRepaidAt: 0,
@@ -684,34 +679,30 @@ library LoanManager {
         }
 
         if (loanRecord.interest > 0) {
-            local.loanDistributorFeeRatio = loanRecord
-                .distributorInterest
-                .mul(ONE)
-                .div(loanRecord.interest);
+            local.loanDistributorFeeRatio =
+                (loanRecord.distributorInterest * ONE) /
+                loanRecord.interest;
         }
 
         /// In repay process. we need to ensure that the loan distribution fee can't be lent
         /// So we should determine if user repays interest each time
         if (loanRecord.alreadyPaidAmount >= loanRecord.loanAmount) {
             // Only repays interest
-            local.repayAmountToPools = repayAmount
-                .mul(ONE.sub(local.loanDistributorFeeRatio))
-                .div(ONE);
+            local.repayAmountToPools =
+                (repayAmount * (ONE - local.loanDistributorFeeRatio)) /
+                ONE;
         } else if (
-            loanRecord.alreadyPaidAmount.add(repayAmount) >
-            loanRecord.loanAmount
+            loanRecord.alreadyPaidAmount + repayAmount > loanRecord.loanAmount
         ) {
             // Repays interest and principal
-            local.remainingPrincipal = loanRecord.loanAmount.sub(
-                loanRecord.alreadyPaidAmount
-            );
+            local.remainingPrincipal =
+                loanRecord.loanAmount -
+                loanRecord.alreadyPaidAmount;
 
-            local.repayAmountToPools = local.remainingPrincipal.add(
-                repayAmount
-                    .sub(local.remainingPrincipal)
-                    .mul(ONE.sub(local.loanDistributorFeeRatio))
-                    .div(ONE)
-            );
+            local.repayAmountToPools =
+                local.remainingPrincipal +
+                (((repayAmount - (local.remainingPrincipal)) *
+                    (ONE - (local.loanDistributorFeeRatio))) / (ONE));
         } else {
             // Only repays principal
             local.repayAmountToPools = repayAmount;
@@ -719,17 +710,17 @@ library LoanManager {
 
         liquidityPools.repayLoanToPools(loanRecord, local.repayAmountToPools);
 
-        loanRecord.alreadyPaidAmount = loanRecord.alreadyPaidAmount.add(
-            repayAmount
-        );
+        loanRecord.alreadyPaidAmount =
+            loanRecord.alreadyPaidAmount +
+            repayAmount;
         loanRecord.lastRepaidAt = block.timestamp;
 
         if (_calculateRemainingDebt(loanRecord) == 0) {
             loanRecord.isClosed = true;
 
-            local.remainingCollateralAmount = loanRecord.collateralAmount.sub(
-                loanRecord.soldCollateralAmount
-            );
+            local.remainingCollateralAmount =
+                loanRecord.collateralAmount -
+                loanRecord.soldCollateralAmount;
 
             if (local.remainingCollateralAmount > 0) {
                 // Transfer remaining collateral from protocol to loaner
@@ -815,9 +806,8 @@ library LoanManager {
 
         local.collateralCoverageRatio = _calculateCollateralCoverageRatio(
             CollateralCoverageRatioParams({
-                collateralAmount: loanRecord.collateralAmount.sub(
-                    loanRecord.soldCollateralAmount
-                ),
+                collateralAmount: loanRecord.collateralAmount -
+                    loanRecord.soldCollateralAmount,
                 collateralTokenDecimals: local.collateralTokenDecimals,
                 collateralTokenPrice: local.collateralTokenPrice,
                 loanAmount: local.remainingDebt,
@@ -832,9 +822,9 @@ library LoanManager {
 
         local.isOverDue =
             block.timestamp >
-            loanRecord.createdAt.add(
-                loanRecord.loanTerm.mul(DateTime.dayInSeconds())
-            );
+            loanRecord.createdAt +
+                loanRecord.loanTerm *
+                DateTime.dayInSeconds();
 
         require(
             local.isUnderCollateralCoverageRatio || local.isOverDue,
@@ -843,20 +833,18 @@ library LoanManager {
 
         local.liquidatedAmount = Math.min(liquidateAmount, local.remainingDebt);
 
-        local.remainingCollateralAmount = loanRecord.collateralAmount.sub(
-            loanRecord.soldCollateralAmount
-        );
+        local.remainingCollateralAmount =
+            loanRecord.collateralAmount -
+            loanRecord.soldCollateralAmount;
 
         local.soldCollateralAmount = Math.min(
-            local
-            .liquidatedAmount
-            .mul(local.loanTokenPrice)
-            /// Scale up loan tokens value if loan token is less than 18 decimals
-            /// since token prices are represented in 10**18 scale
-                .mul(ONE.div(10**local.loanTokenDecimals))
-                .div(local.collateralTokenPrice)
-                .mul(ONE)
-                .div(ONE.sub(loanRecord.liquidationDiscount)),
+            (((local.liquidatedAmount *
+                local.loanTokenPrice *
+                (ONE / (10**local.loanTokenDecimals))) /
+                local.collateralTokenPrice) * ONE) /
+                /// Scale up loan tokens value if loan token is less than 18 decimals
+                /// since token prices are represented in 10**18 scale
+                (ONE - loanRecord.liquidationDiscount),
             local.remainingCollateralAmount
         );
 
@@ -869,17 +857,17 @@ library LoanManager {
             );
         }
 
-        loanRecord.soldCollateralAmount = loanRecord.soldCollateralAmount.add(
-            local.soldCollateralAmount
-        );
-        loanRecord.liquidatedAmount = loanRecord.liquidatedAmount.add(
-            local.liquidatedAmount
-        );
+        loanRecord.soldCollateralAmount =
+            loanRecord.soldCollateralAmount +
+            local.soldCollateralAmount;
+        loanRecord.liquidatedAmount =
+            loanRecord.liquidatedAmount +
+            local.liquidatedAmount;
         loanRecord.lastLiquidatedAt = block.timestamp;
 
-        local.remainingCollateralAmount = loanRecord.collateralAmount.sub(
-            loanRecord.soldCollateralAmount
-        );
+        local.remainingCollateralAmount =
+            loanRecord.collateralAmount -
+            loanRecord.soldCollateralAmount;
 
         if (
             local.remainingCollateralAmount == 0 ||
@@ -929,7 +917,7 @@ library LoanManager {
         );
 
         return (
-            loanRecord.collateralAmount.sub(loanRecord.soldCollateralAmount),
+            loanRecord.collateralAmount - loanRecord.soldCollateralAmount,
             local.liquidatedAmount
         );
     }
@@ -1005,11 +993,10 @@ library LoanManager {
         returns (uint256 remainingDebt)
     {
         return
-            loanRecord
-                .loanAmount
-                .add(loanRecord.interest)
-                .sub(loanRecord.alreadyPaidAmount)
-                .sub(loanRecord.liquidatedAmount);
+            loanRecord.loanAmount +
+            loanRecord.interest -
+            loanRecord.alreadyPaidAmount -
+            loanRecord.liquidatedAmount;
     }
 
     function _getTokenDecimals(address tokenAddress)
@@ -1046,13 +1033,12 @@ library LoanManager {
         CollateralCoverageRatioParams memory params
     ) private pure returns (uint256 collateralCoverageRatio) {
         return
-            params
-                .collateralAmount
-                .mul(params.collateralTokenPrice)
-                .mul(ONE.div(10**params.collateralTokenDecimals))
-                .mul(ONE)
-                .div(params.loanAmount)
-                .div(params.loanTokenPrice)
-                .div(ONE.div(10**params.loanTokenDecimals));
+            (params.collateralAmount *
+                params.collateralTokenPrice *
+                (ONE / (10**params.collateralTokenDecimals)) *
+                ONE) /
+            params.loanAmount /
+            params.loanTokenPrice /
+            (ONE / (10**params.loanTokenDecimals));
     }
 }

@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '../../common/lib/DateTime.sol';
 import '../interface/IStruct.sol';
 import './LoanManager.sol';
@@ -17,7 +16,6 @@ library DepositManager {
     using LiquidityPools for LiquidityPools.State;
     using LoanManager for LoanManager.State;
     using SafeERC20 for ERC20;
-    using SafeMath for uint256;
 
     struct State {
         // Total number of deposits
@@ -341,9 +339,9 @@ library DepositManager {
                 'DepositManager: msg.value is not accepted'
             );
 
-            tokenBalanceAfterTx = ERC20(depositParameters.tokenAddress)
-                .balanceOf(address(this))
-                .add(depositParameters.depositAmount);
+            tokenBalanceAfterTx =
+                ERC20(depositParameters.tokenAddress).balanceOf(address(this)) +
+                depositParameters.depositAmount;
         }
 
         require(
@@ -456,11 +454,10 @@ library DepositManager {
                 depositId
             );
 
-        uint256 availableAmountToBeWithdrawn = depositRecord
-            .depositAmount
-            .add(interestForDepositor)
-            .add(interestForDepositDistributor)
-            .add(interestForProtocolReserve);
+        uint256 availableAmountToBeWithdrawn = depositRecord.depositAmount +
+            interestForDepositor +
+            interestForDepositDistributor +
+            interestForProtocolReserve;
 
         IStruct.Pool memory pool = liquidityPools.getPoolById(
             tokenAddress,
@@ -479,9 +476,8 @@ library DepositManager {
             depositRecord.poolId
         );
 
-        uint256 depositPlusInterestAmount = depositRecord.depositAmount.add(
-            interestForDepositor
-        );
+        uint256 depositPlusInterestAmount = depositRecord.depositAmount +
+            interestForDepositor;
 
         depositRecord.withdrewAt = block.timestamp;
 
@@ -674,27 +670,29 @@ library DepositManager {
             return (0, 0, 0, 0);
         }
 
-        uint256 totalInterest = pool
-            .loanInterest
-            .mul(depositRecord.weight.mul(ONE).div(pool.totalDepositWeight))
-            .div(ONE);
+        uint256 totalInterest = (pool.loanInterest *
+            depositRecord.weight *
+            ONE) /
+            pool.totalDepositWeight /
+            ONE;
 
-        interestForDepositDistributor = totalInterest
-            .mul(pool.depositDistributorFeeRatio)
-            .div(ONE);
+        interestForDepositDistributor =
+            (totalInterest * pool.depositDistributorFeeRatio) /
+            ONE;
 
-        interestForLoanDistributor = totalInterest
-            .mul(pool.loanDistributorFeeRatio)
-            .div(ONE);
+        interestForLoanDistributor =
+            (totalInterest * pool.loanDistributorFeeRatio) /
+            ONE;
 
-        interestForProtocolReserve = totalInterest
-            .mul(pool.protocolReserveRatio)
-            .div(ONE);
+        interestForProtocolReserve =
+            (totalInterest * pool.protocolReserveRatio) /
+            ONE;
 
-        interestForDepositor = totalInterest
-            .sub(interestForDepositDistributor)
-            .sub(interestForLoanDistributor)
-            .sub(interestForProtocolReserve);
+        interestForDepositor =
+            totalInterest -
+            interestForDepositDistributor -
+            interestForLoanDistributor -
+            interestForProtocolReserve;
 
         return (
             interestForDepositor,
