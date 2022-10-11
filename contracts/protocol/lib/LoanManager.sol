@@ -171,6 +171,7 @@ library LoanManager {
         returns (IStruct.GetLoanRecordResponse memory loanRecordResponse)
     {
         IStruct.LoanRecord memory loanRecord = self.loanRecordById[loanId];
+        IStruct.LoanAndCollateralTokenPair storage tokenPair = self.loanAndCollateralTokenPairs[loanRecord.loanTokenAddress][loanRecord.collateralTokenAddress];
 
         require(
             loanRecord.loanTokenAddress != address(0),
@@ -221,7 +222,7 @@ library LoanManager {
             annualInterestRate: loanRecord.annualInterestRate,
             interest: loanRecord.interest,
             collateralCoverageRatio: local.collateralCoverageRatio,
-            minCollateralCoverageRatio: loanRecord.minCollateralCoverageRatio,
+            minCollateralCoverageRatio: tokenPair.minCollateralCoverageRatio,
             alreadyPaidAmount: loanRecord.alreadyPaidAmount,
             liquidatedAmount: loanRecord.liquidatedAmount,
             soldCollateralAmount: loanRecord.soldCollateralAmount,
@@ -491,7 +492,7 @@ library LoanManager {
             loanTerm: loanParameters.loanTerm,
             annualInterestRate: local.loanInterestRate,
             interest: local.loanInterest,
-            minCollateralCoverageRatio: tokenPair.minCollateralCoverageRatio,
+            // minCollateralCoverageRatio: tokenPair.minCollateralCoverageRatio,
             liquidationDiscount: tokenPair.liquidationDiscount,
             alreadyPaidAmount: 0,
             liquidatedAmount: 0,
@@ -762,6 +763,7 @@ library LoanManager {
         uint256 liquidateAmount
     ) external returns (uint256 remainingCollateral, uint256 liquidatedAmount) {
         IStruct.LoanRecord storage loanRecord = self.loanRecordById[loanId];
+        IStruct.LoanAndCollateralTokenPair storage targetTokenPair = self.loanAndCollateralTokenPairs[loanRecord.loanTokenAddress][loanRecord.collateralTokenAddress];
 
         require(
             msg.sender != loanRecord.ownerAddress,
@@ -818,7 +820,7 @@ library LoanManager {
 
         local.isUnderCollateralCoverageRatio =
             local.collateralCoverageRatio <
-            loanRecord.minCollateralCoverageRatio;
+            targetTokenPair.minCollateralCoverageRatio;
 
         local.isOverDue =
             block.timestamp >
