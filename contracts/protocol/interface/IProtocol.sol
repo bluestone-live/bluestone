@@ -3,7 +3,7 @@ pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '../../oracle/interface/IPriceOracle.sol';
-import './IInterestModel.sol';
+import './IInterestRateModel.sol';
 import './IStruct.sol';
 
 /// @title Interface for the main contract
@@ -67,8 +67,9 @@ interface IProtocol {
         external;
 
     /// @notice Set interest model
-    /// @param interestModel Interest model
-    function setInterestModel(IInterestModel interestModel) external;
+    /// @param interestRateModel Interest model
+    function setInterestRateModel(IInterestRateModel interestRateModel)
+        external;
 
     /// @notice Set interest reserve address, which receives protocol reserve.
     /// @param interestReserveAddress Protocol address
@@ -285,11 +286,11 @@ interface IProtocol {
         returns (uint256 balanceCap);
 
     /// @notice Return interest model address
-    /// @return interestModelAddress Interest model address
-    function getInterestModelAddress()
+    /// @return interestRateModelAddress Interest model address
+    function getInterestRateModelAddress()
         external
         view
-        returns (address interestModelAddress);
+        returns (address interestRateModelAddress);
 
     /// @notice Return USD price of a token
     /// @param tokenAddress Token address

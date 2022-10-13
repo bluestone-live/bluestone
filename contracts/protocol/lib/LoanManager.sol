@@ -432,7 +432,7 @@ library LoanManager {
         );
 
         local.loanInterestRate = configuration
-            .interestModel
+            .interestRateModel
             .getLoanInterestRate(
                 loanParameters.loanTokenAddress,
                 loanParameters.loanTerm,
@@ -945,7 +945,7 @@ library LoanManager {
             'LoanManager: invalid loan term'
         );
         return
-            configuration.interestModel.getLoanInterestRate(
+            configuration.interestRateModel.getLoanInterestRate(
                 tokenAddress,
                 loanTerm,
                 liquidityPools.poolGroupSize

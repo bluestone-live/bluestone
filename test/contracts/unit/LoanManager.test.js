@@ -1,6 +1,6 @@
 const LoanManager = artifacts.require('LoanManagerMock');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const InterestModel = artifacts.require('InterestModel');
+const InterestRateModel = artifacts.require('LinearInterestRateModel');
 const DateTime = artifacts.require('DateTime');
 const {
   toFixedBN,
@@ -21,7 +21,7 @@ contract(
     let loanManager,
       priceOracle,
       collateralPriceOracle,
-      interestModel,
+      interestRateModel,
       datetime;
     const depositDistributorFeeRatio = toFixedBN(0.01);
     const loanDistributorFeeRatio = toFixedBN(0.02);
@@ -57,10 +57,10 @@ contract(
       loanManager = await LoanManager.new();
       priceOracle = await SingleFeedPriceOracle.new();
       collateralPriceOracle = await SingleFeedPriceOracle.new();
-      interestModel = await InterestModel.new();
+      interestRateModel = await InterestRateModel.new();
       datetime = await DateTime.new();
 
-      await loanManager.setInterestModel(interestModel.address);
+      await loanManager.setInterestRateModel(interestRateModel.address);
       await loanManager.setMaxDistributorFeeRatios(
         depositDistributorFeeRatio,
         loanDistributorFeeRatio,
@@ -1035,12 +1035,12 @@ contract(
         await loanManager.enableDepositToken(loanToken.address);
         await loanManager.enableDepositToken(ETHIdentificationAddress);
         await setLoanAndCollateralTokenPair();
-        await interestModel.setLoanParameters(
+        await interestRateModel.setLoanParameters(
           loanToken.address,
           toFixedBN(0.1),
           toFixedBN(0.15),
         );
-        await interestModel.setLoanParameters(
+        await interestRateModel.setLoanParameters(
           ETHIdentificationAddress,
           toFixedBN(0.1),
           toFixedBN(0.15),

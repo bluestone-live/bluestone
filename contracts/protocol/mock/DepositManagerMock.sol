@@ -3,7 +3,7 @@ pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '../interface/IStruct.sol';
-import '../interface/IInterestModel.sol';
+import '../interface/IInterestRateModel.sol';
 import '../lib/Configuration.sol';
 import '../lib/LiquidityPools.sol';
 import '../lib/DepositManager.sol';
@@ -174,8 +174,10 @@ contract DepositManagerMock {
         return _liquidityPools.poolGroupSize;
     }
 
-    function setInterestModel(IInterestModel interestModel) external {
-        _configuration.setInterestModel(interestModel);
+    function setInterestRateModel(IInterestRateModel interestRateModel)
+        external
+    {
+        _configuration.setInterestRateModel(interestRateModel);
     }
 
     function setInterestReserveAddress(address payable interestReserveAddress)

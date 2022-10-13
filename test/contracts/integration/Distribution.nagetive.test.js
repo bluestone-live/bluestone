@@ -1,6 +1,6 @@
 const Protocol = artifacts.require('Protocol');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const InterestModel = artifacts.require('InterestModel');
+const InterestRateModel = artifacts.require('LinearInterestRateModel');
 const DateTime = artifacts.require('DateTime');
 const { expectEvent, BN, time } = require('@openzeppelin/test-helpers');
 const {
@@ -23,7 +23,7 @@ contract(
     protocolReserveAddress,
     liquidator,
   ]) => {
-    let protocol, interestModel, loanToken, collateralToken;
+    let protocol, interestRateModel, loanToken, collateralToken;
 
     const initialSupply = toFixedBN(10000);
 
@@ -56,7 +56,7 @@ contract(
     before(async () => {
       // Get protocol instance
       protocol = await Protocol.new();
-      interestModel = await InterestModel.new();
+      interestRateModel = await InterestRateModel.new();
       loanTokenPriceOracle = await SingleFeedPriceOracle.new();
       collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
       ETHPriceOracle = await SingleFeedPriceOracle.new();
@@ -121,7 +121,7 @@ contract(
               protocolReserveAddress,
             ],
             protocol,
-            interestModel,
+            interestRateModel,
             depositTerms,
             [loanToken, { address: ETHIdentificationAddress }],
             [loanToken],
@@ -192,7 +192,7 @@ contract(
             from: loaner,
           });
 
-          const interestRate = await interestModel.getLoanInterestRate(
+          const interestRate = await interestRateModel.getLoanInterestRate(
             loanToken.address,
             loanTerm,
             depositTerms[depositTerms.length - 1],
@@ -377,7 +377,7 @@ contract(
           });
         });
         it('transfer correct token to distributors', async () => {
-          const interestRate = await interestModel.getLoanInterestRate(
+          const interestRate = await interestRateModel.getLoanInterestRate(
             loanToken.address,
             depositTerms[1],
             maxLoanTerm,

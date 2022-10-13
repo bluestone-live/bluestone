@@ -2,7 +2,7 @@
 pragma solidity ^0.8.7;
 
 import '../../oracle/interface/IPriceOracle.sol';
-import '../interface/IInterestModel.sol';
+import '../interface/IInterestRateModel.sol';
 
 /// @title Protocol configurations
 library Configuration {
@@ -19,7 +19,7 @@ library Configuration {
         mapping(address => IPriceOracle) priceOracleByToken;
         // Token address -> maximum token balance allowed
         mapping(address => uint256) balanceCapByToken;
-        IInterestModel interestModel;
+        IInterestRateModel interestRateModel;
     }
 
     event SetPriceOracleSucceed(
@@ -33,9 +33,9 @@ library Configuration {
         address interestReserveAddress
     );
 
-    event SetInterestModelSucceed(
+    event SetInterestRateModelSucceed(
         address indexed adminAddress,
-        address interestModelAddress
+        address interestRateModelAddress
     );
 
     event SetProtocolReserveRatioSucceed(
@@ -83,12 +83,16 @@ library Configuration {
         emit SetProtocolAddressSucceed(msg.sender, interestReserveAddress);
     }
 
-    function setInterestModel(State storage self, IInterestModel interestModel)
-        external
-    {
-        self.interestModel = interestModel;
+    function setInterestRateModel(
+        State storage self,
+        IInterestRateModel interestRateModel
+    ) external {
+        self.interestRateModel = interestRateModel;
 
-        emit SetInterestModelSucceed(msg.sender, address(interestModel));
+        emit SetInterestRateModelSucceed(
+            msg.sender,
+            address(interestRateModel)
+        );
     }
 
     function setProtocolReserveRatio(

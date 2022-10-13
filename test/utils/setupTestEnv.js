@@ -4,7 +4,7 @@ const { toFixedBN } = require('../utils/index');
  *
  * @param {string[]} accounts Accounts
  * @param {Contract} protocol Protocol instance
- * @param {Contract} interestModel InterestModel instance
+ * @param {Contract} interestRateModel InterestRateModel instance
  * @param {number[]} depositTerms deposit terms
  * @param {string[]} depositTokens deposit token addresses
  * @param {string[]} loanTokens loan token address
@@ -26,7 +26,7 @@ const setupTestEnv = async (
     interestReserveAddress,
   ],
   protocol,
-  interestModel,
+  interestRateModel,
   depositTerms,
   depositTokens,
   loanTokens,
@@ -63,14 +63,14 @@ const setupTestEnv = async (
     const loanToken = loanTokens[i];
 
     // Set loan interest rate
-    await interestModel.setLoanParameters(
+    await interestRateModel.setLoanParameters(
       loanToken.address,
       toFixedBN(loanInterestRateLowerBounds[i]),
       toFixedBN(loanInterestRateUpperBounds[i]),
     );
   }
-  // Set InterestModel address
-  await protocol.setInterestModel(interestModel.address);
+  // Set InterestRateModel address
+  await protocol.setInterestRateModel(interestRateModel.address);
 
   // Set interest reserve address
   await protocol.setInterestReserveAddress(interestReserveAddress);

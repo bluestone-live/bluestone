@@ -350,10 +350,12 @@ library DepositManager {
             'DepositManager: token balance cap exceeded'
         );
 
-        uint256 depositWeight = configuration.interestModel.getDepositWeight(
-            depositParameters.depositAmount,
-            depositParameters.depositTerm
-        );
+        uint256 depositWeight = configuration
+            .interestRateModel
+            .getDepositWeight(
+                depositParameters.depositAmount,
+                depositParameters.depositTerm
+            );
 
         uint256 poolId = liquidityPools.addDepositToPool(
             depositParameters.tokenAddress,

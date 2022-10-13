@@ -26,15 +26,15 @@ const composeLoanAndCollateralPairs = ({
       i++;
     }
   }
-  return result.filter(el => el.isEnabled);
+  return result.filter((el) => el.isEnabled);
 };
 
-module.exports = makeTruffleScript(async network => {
+module.exports = makeTruffleScript(async (network) => {
   const networkConfig = loadNetwork(network);
   const configs = config.get('contract');
   const protocol = await Protocol.deployed();
 
-  const tokens = Object.keys(configs.tokens).map(symbol => ({
+  const tokens = Object.keys(configs.tokens).map((symbol) => ({
     symbol,
     ...configs.tokens[symbol],
   }));
@@ -47,13 +47,14 @@ module.exports = makeTruffleScript(async network => {
   if (depositTokenAddressList.length !== tokens.length) {
     return debug(
       `depositTokens expect ${tokens.map(
-        token => token.address,
+        (token) => token.address,
       )}, got ${depositTokenAddressList}`,
     );
   }
 
   const wrongAddresses = depositTokenAddressList.some(
-    address => tokens.filter(token => token.address === address).length !== 1,
+    (address) =>
+      tokens.filter((token) => token.address === address).length !== 1,
   );
   if (wrongAddresses.length > 0) {
     return debug(`Wrong deposit token ${wrongAddresses}`);
@@ -76,7 +77,7 @@ module.exports = makeTruffleScript(async network => {
 
   debug('Validate deposit term');
 
-  const depositTerms = (await protocol.getDepositTerms()).map(term =>
+  const depositTerms = (await protocol.getDepositTerms()).map((term) =>
     Number.parseInt(term.toString()),
   );
 
@@ -92,7 +93,7 @@ module.exports = makeTruffleScript(async network => {
     await protocol.getLoanAndCollateralTokenPairs(),
   );
 
-  const configPairs = configs.loanAndCollateralTokenPairs.map(pair => ({
+  const configPairs = configs.loanAndCollateralTokenPairs.map((pair) => ({
     ...pair,
     loanTokenAddress: networkConfig.tokens[pair.loanTokenSymbol].address,
     collateralTokenAddress:
@@ -103,9 +104,9 @@ module.exports = makeTruffleScript(async network => {
     debug(`LoanAndCollateralPairs expect ${configPairs}, got ${protocolPairs}`);
   }
 
-  const wrongPairs = configPairs.some(configPair =>
+  const wrongPairs = configPairs.some((configPair) =>
     protocolPairs.filter(
-      protocolPair =>
+      (protocolPair) =>
         protocolPair.loanTokenAddress === configPair.loanTokenAddress &&
         protocolPair.collateralTokenAddress ===
           configPair.collateralTokenAddress,
@@ -118,7 +119,7 @@ module.exports = makeTruffleScript(async network => {
 
   for (configPair of configPairs) {
     const currentPair = protocolPairs.find(
-      pair =>
+      (pair) =>
         pair.loanTokenAddress === configPair.loanTokenAddress &&
         pair.collateralTokenAddress === configPair.collateralTokenAddress,
     );
@@ -150,11 +151,11 @@ module.exports = makeTruffleScript(async network => {
 
   const { contracts } = loadNetwork(network);
 
-  const interestModelAddress = await protocol.getInterestModelAddress();
+  const interestRateModelAddress = await protocol.getInterestRateModelAddress();
 
-  if (contracts.InterestModel !== interestModelAddress) {
+  if (contracts.InterestRateModel !== RateAddress) {
     return debug(
-      `Wrong InterestModelAddress: expect ${contracts.InterestModel}, got ${interestModelAddress}`,
+      `Wrong InterestRateModelAddress: expect ${contracts.InterestRateModel}, got ${interestRateModelAddress}`,
     );
   }
 
@@ -181,10 +182,8 @@ module.exports = makeTruffleScript(async network => {
     );
   }
 
-  const {
-    depositDistributorFeeRatio,
-    loanDistributorFeeRatio,
-  } = await protocol.getMaxDistributorFeeRatios();
+  const { depositDistributorFeeRatio, loanDistributorFeeRatio } =
+    await protocol.getMaxDistributorFeeRatios();
 
   if (configs.depositDistributorFeeRatio !== depositDistributorFeeRatio) {
     return debug(
