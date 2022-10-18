@@ -1,5 +1,4 @@
-const debug = require('debug')('script:setLoanInterestRate');
-// const InterestRateModel = artifacts.require('./InterestRateModel.sol');
+const debug = require('debug')('script:setLoanInterestRates');
 const { loadNetwork, makeTruffleScript, toFixedBN } = require('../utils.js');
 const config = require('config');
 const { BN } = require('@openzeppelin/test-helpers');
@@ -8,7 +7,6 @@ module.exports = makeTruffleScript(async (network) => {
   const { contracts, tokens } = loadNetwork(network);
   const tokenSymbolList = Object.keys(tokens);
 
-  // const interestRateModel = await InterestRateModel.at(contracts.InterestRateModel);
   debug('Set loan interest rates');
   if (contracts.InterestRateModel === contracts.LinearInterestRateModel) {
     debug('Set Linear Interest Rate Model');
@@ -48,13 +46,15 @@ module.exports = makeTruffleScript(async (network) => {
       const { termList, interestRateList } = config.get(
         `contract.tokens.${tokenSymbol}`,
       );
-      termList.map((term) => new BN(term));
-      interestRateList.map((interestRate) => toFixedBN(interestRate));
+      const termBigNumberList = termList.map((term) => new BN(term));
+      const interestRateBigNumberList = interestRateList.map((interestRate) =>
+        toFixedBN(interestRate),
+      );
 
       await interestRateModel.setLoanParameters(
         address,
-        termList,
-        interestRateList,
+        termBigNumberList,
+        interestRateBigNumberList,
       );
       debug(`set LoanParameters: ${termList} => ${interestRateList}`);
     });
