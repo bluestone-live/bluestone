@@ -492,7 +492,6 @@ library LoanManager {
             loanTerm: loanParameters.loanTerm,
             annualInterestRate: local.loanInterestRate,
             interest: local.loanInterest,
-            // minCollateralCoverageRatio: tokenPair.minCollateralCoverageRatio,
             liquidationDiscount: tokenPair.liquidationDiscount,
             alreadyPaidAmount: 0,
             liquidatedAmount: 0,
