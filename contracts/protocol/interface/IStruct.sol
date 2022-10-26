@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.7;
 
+
 interface IStruct {
     struct DepositRecord {
         bytes32 depositId;
@@ -38,7 +39,6 @@ interface IStruct {
         uint256 loanTerm;
         uint256 annualInterestRate;
         uint256 interest;
-        uint256 minCollateralCoverageRatio;
         uint256 liquidationDiscount;
         uint256 alreadyPaidAmount;
         uint256 liquidatedAmount;
