@@ -34,4 +34,7 @@ module.exports = makeTruffleScript(async (network) => {
   exec('setMaxDistributorFeeRatios', network);
   exec('setLoanInterestRates', network);
   exec('setBalanceCaps', network);
+
+  debug('6.[Transfer Ownership]');
+  exec('transferOwnershipToGnosis', network);
 });

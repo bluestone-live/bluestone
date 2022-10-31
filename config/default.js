@@ -13,6 +13,7 @@ module.exports = {
   accountIndex: 0,
 
   contract: {
+    gnosis: '0x12242c83E6086Ae5C3960A9D7ec80Dfd133AaDE4',
     tokens: {
       ETH: {
         name: 'Native Ether',

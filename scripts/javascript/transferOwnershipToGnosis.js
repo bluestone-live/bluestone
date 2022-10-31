@@ -1,0 +1,34 @@
+const debug = require('debug')('script:setLoanInterestRates');
+const { loadNetwork, makeTruffleScript, toFixedBN } = require('../utils.js');
+const config = require('config');
+const { BN } = require('@openzeppelin/test-helpers');
+const Protocol = artifacts.require('Protocol');
+const LinearInterestRateModel = artifacts.require('LinearInterestRateModel');
+const MappingInterestRateModel = artifacts.require('MappingInterestRateModel');
+
+module.exports = makeTruffleScript(async (network) => {
+  const { contracts } = loadNetwork(network);
+
+  const protocol = await Protocol.at(contracts.Protocol);
+  let interestRateModel;
+  if (
+    contracts.LinearInterestRateModel &&
+    contracts.InterestRateModel === contracts.LinearInterestRateModel
+  ) {
+    interestRateModel = await LinearInterestRateModel.at(
+      contracts.LinearInterestRateModel,
+    );
+  } else if (
+    contracts.MappingInterestRateModel &&
+    contracts.InterestRateModel === contracts.MappingInterestRateModel
+  ) {
+    interestRateModel = await MappingInterestRateModel.at(
+      contracts.MappingInterestRateModel,
+    );
+  }
+
+  await Promise.all(
+    protocol.transferOwnership(config.get('contract.gnosis')),
+    interestRateModel.transferOwnership(config.get('contract.gnosis')),
+  );
+});
