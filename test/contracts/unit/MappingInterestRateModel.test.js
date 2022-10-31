@@ -4,7 +4,6 @@ const { BN, expectRevert } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
 contract('MappingInterestRateModel', function ([owner]) {
-  let interestRateModel, token;
   const maxLoanTerm = new BN(90);
   const loanTerms = [new BN(1), new BN(7), new BN(30), new BN(60), new BN(90)];
   const loanInterestRates = [
@@ -15,10 +14,42 @@ contract('MappingInterestRateModel', function ([owner]) {
     toFixedBN(0.15),
   ];
 
+  describe('#setRates', () => {
+    let interestRateModel, token;
+    beforeEach(async () => {
+      interestRateModel = await InterestRateModel.new();
+      token = await createERC20Token(owner);
+    });
+
+    it('get revert of array length inequality', async () => {
+      await expectRevert(
+        interestRateModel.setRates(
+          token.address,
+          loanTerms,
+          [toFixedBN(0.01)].concat(loanInterestRates),
+        ),
+        'InterestRateModel: The length of Terms array must equal to InterestRates array',
+      );
+    });
+
+    it('get revert of interestRate zero', async () => {
+      await expectRevert(
+        interestRateModel.setRates(
+          token.address,
+          [new BN(6)].concat(loanTerms),
+          [toFixedBN(0)].concat(loanInterestRates),
+        ),
+        'InterestRateModel: Loan Interest Rate can not be zero',
+      );
+    });
+  });
+
+  let interestRateModel, token;
+
   beforeEach(async () => {
     interestRateModel = await InterestRateModel.new();
     token = await createERC20Token(owner);
-    await interestRateModel.setLoanParameters(
+    await interestRateModel.setRates(
       token.address,
       loanTerms,
       loanInterestRates,
@@ -26,26 +57,30 @@ contract('MappingInterestRateModel', function ([owner]) {
   });
 
   describe('#getLoanInterestRate', () => {
-    it('get revert succeed', async () => {
+    it('get revert of disabled token', async () => {
+      const newToken = await createERC20Token(owner);
       await expectRevert(
         interestRateModel.getLoanInterestRate(
-          token.address,
-          new BN(91),
+          newToken.address,
+          loanTerms[0],
           maxLoanTerm,
         ),
-        'InterestRateModel: Loan term exceeds max value',
+        'InterestRateModel: token is not enabled',
       );
+    });
+
+    it('get revert of disabled term', async () => {
       await expectRevert(
         interestRateModel.getLoanInterestRate(
           token.address,
           new BN(2),
           maxLoanTerm,
         ),
-        "InterestRateModel: Loan interest rate haven't setted",
+        'InterestRateModel: term is not enabled',
       );
     });
 
-    it('succeeds', async () => {
+    it('succeed', async () => {
       for (index in loanTerms) {
         const actualLoanInterestRate =
           await interestRateModel.getLoanInterestRate(
@@ -61,10 +96,10 @@ contract('MappingInterestRateModel', function ([owner]) {
     });
   });
 
-  describe('#getLoanParameters', () => {
+  describe('#getAllRates', () => {
     it('succeed', async () => {
       const { targetLoanTerms, targetLoanInterestRates } =
-        await interestRateModel.getLoanParameters(token.address);
+        await interestRateModel.getAllRates(token.address);
 
       for (let i in targetLoanTerms) {
         expect(targetLoanTerms[i]).to.bignumber.equal(loanTerms[i]);

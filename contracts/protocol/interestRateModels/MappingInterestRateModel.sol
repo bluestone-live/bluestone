@@ -5,11 +5,12 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '../interface/IInterestRateModel.sol';
 
 contract MappingInterestRateModel is IInterestRateModel, Ownable {
-    mapping(address => LoanParameters) _loanParametersByTokenAddress;
+    mapping(address => InterestRateDetail) _interestRateDetailByTokenAddress;
+    mapping(address => bool) private _isTokenAvailable;
 
-    struct LoanParameters {
+    struct InterestRateDetail {
         uint256[] termList;
-        uint256[] interestRateList;
+        mapping(uint256 => uint256) interestRateByTerm;
     }
 
     function getDepositWeight(uint256 amount, uint256 term)
@@ -27,41 +28,62 @@ contract MappingInterestRateModel is IInterestRateModel, Ownable {
         uint256 maxLoanTerm
     ) external view override returns (uint256 loanInterestRate) {
         require(
-            loanTerm <= maxLoanTerm,
-            'InterestRateModel: Loan term exceeds max value'
+            _isTokenAvailable[tokenAddress],
+            'InterestRateModel: token is not enabled'
         );
-        LoanParameters storage loanParameters = _loanParametersByTokenAddress[
-            tokenAddress
-        ];
-        for (uint256 i = 0; i < loanParameters.termList.length; i++) {
-            if (loanParameters.termList[i] == loanTerm) {
-                return loanParameters.interestRateList[i];
-            }
-        }
-        revert("InterestRateModel: Loan interest rate haven't setted");
+        InterestRateDetail
+            storage interestRateDetail = _interestRateDetailByTokenAddress[
+                tokenAddress
+            ];
+        uint256 rate = interestRateDetail.interestRateByTerm[loanTerm];
+        require(rate != 0, 'InterestRateModel: term is not enabled');
+        return rate;
     }
 
-    function getLoanParameters(address tokenAddress)
+    function getAllRates(address tokenAddress)
         external
         view
-        returns (LoanParameters memory)
+        returns (uint256[] memory, uint256[] memory)
     {
-        return _loanParametersByTokenAddress[tokenAddress];
+        InterestRateDetail
+            storage interestRateDetail = _interestRateDetailByTokenAddress[
+                tokenAddress
+            ];
+
+        uint256[] memory interestRateList = new uint256[](
+            interestRateDetail.termList.length
+        );
+        for (uint256 i = 0; i < interestRateList.length; i++) {
+            interestRateList[i] = interestRateDetail.interestRateByTerm[
+                interestRateDetail.termList[i]
+            ];
+        }
+
+        return (interestRateDetail.termList, interestRateList);
     }
 
-    function setLoanParameters(
+    function setRates(
         address tokenAddress,
         uint256[] calldata loanTerms,
         uint256[] calldata loanInterestRates
     ) external onlyOwner {
         require(
             loanTerms.length == loanInterestRates.length,
-            'InterestRateModel: The length of Terms array must equal to InterestRate array'
+            'InterestRateModel: The length of Terms array must equal to InterestRates array'
         );
-        LoanParameters storage loanParameters = _loanParametersByTokenAddress[
-            tokenAddress
-        ];
-        loanParameters.termList = loanTerms;
-        loanParameters.interestRateList = loanInterestRates;
+        InterestRateDetail
+            storage interestRateDetail = _interestRateDetailByTokenAddress[
+                tokenAddress
+            ];
+        interestRateDetail.termList = loanTerms;
+        for (uint256 i = 0; i < loanTerms.length; i++) {
+            if (loanInterestRates[i] == 0) {
+                revert('InterestRateModel: Loan Interest Rate can not be zero');
+            }
+            interestRateDetail.interestRateByTerm[
+                loanTerms[i]
+            ] = loanInterestRates[i];
+        }
+        _isTokenAvailable[tokenAddress] = true;
     }
 }
