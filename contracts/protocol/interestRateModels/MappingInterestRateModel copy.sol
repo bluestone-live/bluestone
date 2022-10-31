@@ -34,10 +34,7 @@ contract MappingInterestRateModel is IInterestRateModel, Ownable {
             _isTermExist(interestRateDetail, loanTerm),
             "InterestRateModel: Loan interest rate haven't set"
         );
-        return
-            _interestRateDetailByTokenAddress[tokenAddress].interestRateByTerm[
-                loanTerm
-            ];
+        return interestRateDetail.interestRateByTerm[loanTerm];
     }
 
     function getAllRates(address tokenAddress)
