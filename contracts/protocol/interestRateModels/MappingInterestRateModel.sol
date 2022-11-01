@@ -69,7 +69,7 @@ contract MappingInterestRateModel is IInterestRateModel, Ownable {
     ) external onlyOwner {
         require(
             loanTerms.length == loanInterestRates.length,
-            'InterestRateModel: The length of Terms array must equal to InterestRates array'
+            'InterestRateModel: the length of loanTerms array must equal to loanInterestRates array'
         );
         InterestRateDetail
             storage interestRateDetail = _interestRateDetailByTokenAddress[
@@ -77,12 +77,12 @@ contract MappingInterestRateModel is IInterestRateModel, Ownable {
             ];
         interestRateDetail.termList = loanTerms;
         for (uint256 i = 0; i < loanTerms.length; i++) {
-            if (loanInterestRates[i] == 0) {
-                revert('InterestRateModel: Loan Interest Rate can not be zero');
-            }
-            interestRateDetail.interestRateByTerm[
-                loanTerms[i]
-            ] = loanInterestRates[i];
+            uint256 rate = loanInterestRates[i];
+            require(
+                rate > 0,
+                'InterestRateModel: loan interest rate can not be zero'
+            );
+            interestRateDetail.interestRateByTerm[loanTerms[i]] = rate;
         }
         _isTokenAvailable[tokenAddress] = true;
     }

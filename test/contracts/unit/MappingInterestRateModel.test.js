@@ -28,7 +28,7 @@ contract('MappingInterestRateModel', function ([owner]) {
           loanTerms,
           [toFixedBN(0.01)].concat(loanInterestRates),
         ),
-        'InterestRateModel: The length of Terms array must equal to InterestRates array',
+        'InterestRateModel: the length of loanTerms array must equal to loanInterestRates array',
       );
     });
 
@@ -39,7 +39,7 @@ contract('MappingInterestRateModel', function ([owner]) {
           [new BN(6)].concat(loanTerms),
           [toFixedBN(0)].concat(loanInterestRates),
         ),
-        'InterestRateModel: Loan Interest Rate can not be zero',
+        'InterestRateModel: loan interest rate can not be zero',
       );
     });
   });

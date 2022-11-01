@@ -8,6 +8,7 @@ const MappingInterestRateModel = artifacts.require('MappingInterestRateModel');
 
 module.exports = makeTruffleScript(async (network) => {
   const { contracts } = loadNetwork(network);
+  const gnosisAddress = config.get('contract.gnosis');
 
   const protocol = await Protocol.at(contracts.Protocol);
   let interestRateModel;
@@ -28,7 +29,9 @@ module.exports = makeTruffleScript(async (network) => {
   }
 
   await Promise.all(
-    protocol.transferOwnership(config.get('contract.gnosis')),
-    interestRateModel.transferOwnership(config.get('contract.gnosis')),
+    protocol.transferOwnership(gnosisAddress),
+    interestRateModel.transferOwnership(gnosisAddress),
   );
+
+  debug(`Transfer ownership to ${gnosisAddress} success.`);
 });
