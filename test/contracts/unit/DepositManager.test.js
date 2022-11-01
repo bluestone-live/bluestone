@@ -1,6 +1,6 @@
 const DepositManager = artifacts.require('DepositManagerMock');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const InterestModel = artifacts.require('InterestModel');
+const InterestRateModel = artifacts.require('LinearInterestRateModel');
 const DateTime = artifacts.require('DateTime');
 const {
   expectRevert,
@@ -29,14 +29,14 @@ contract(
     const depositDistributorFeeRatio = toFixedBN(0.01);
     const loanDistributorFeeRatio = toFixedBN(0.02);
     const balanceCap = toFixedBN(150);
-    let token, depositManager, interestModel, datetime;
+    let token, depositManager, interestRateModel, datetime;
 
     beforeEach(async () => {
       depositManager = await DepositManager.new();
-      interestModel = await InterestModel.new();
+      interestRateModel = await InterestRateModel.new();
       datetime = await DateTime.new();
       token = await createERC20Token(depositor);
-      await depositManager.setInterestModel(interestModel.address);
+      await depositManager.setInterestRateModel(interestRateModel.address);
       await depositManager.setMaxDistributorFeeRatios(
         depositDistributorFeeRatio,
         loanDistributorFeeRatio,

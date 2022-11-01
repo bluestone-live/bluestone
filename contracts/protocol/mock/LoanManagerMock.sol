@@ -3,7 +3,7 @@ pragma solidity ^0.8.7;
 pragma experimental ABIEncoderV2;
 
 import '../../oracle/interface/IPriceOracle.sol';
-import '../interface/IInterestModel.sol';
+import '../interface/IInterestRateModel.sol';
 import '../interface/IStruct.sol';
 import '../lib/Configuration.sol';
 import '../lib/LiquidityPools.sol';
@@ -221,8 +221,10 @@ contract LoanManagerMock {
         _liquidityPools.setPoolGroupSize(poolGroupSize);
     }
 
-    function setInterestModel(IInterestModel interestModel) external {
-        _configuration.setInterestModel(interestModel);
+    function setInterestRateModel(IInterestRateModel interestRateModel)
+        external
+    {
+        _configuration.setInterestRateModel(interestRateModel);
     }
 
     function setBalanceCap(address tokenAddress, uint256 balanceCap) external {

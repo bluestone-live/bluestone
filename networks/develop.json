@@ -1,7 +1,8 @@
 {
   "contracts": {
-    "ChainlinkMock": "0xfD1D543AD94d7F936bD9994495127Bf00ba84960",
-    "InterestModel": "0x9Aef504783642A664F051fdBB49D23B2A95524ee",
-    "Protocol": "0x21e88E274a88649C2262c7b594555896746BAa51"
+    "ChainlinkMock": "0x8DCaF7E2dFB277CedfE179bb7241fDF7B6736BD3",
+    "MappingInterestRateModel": "0xAF46e13cfE11b702f387599B6bde8fF81ac6462e",
+    "InterestRateModel": "0x3E998070f31e1169474655d0396277C480b53a79",
+    "Protocol": "0x37264690012417A9bcb0Fc4AB2c8EE0ebD9bB534"
   }
 }

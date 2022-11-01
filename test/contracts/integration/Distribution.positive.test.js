@@ -1,6 +1,6 @@
 const Protocol = artifacts.require('Protocol');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const InterestModel = artifacts.require('InterestModel');
+const InterestRateModel = artifacts.require('LinearInterestRateModel');
 const DateTime = artifacts.require('DateTime');
 const { BN, time } = require('@openzeppelin/test-helpers');
 const { toFixedBN, createERC20Token } = require('../../utils/index');
@@ -18,7 +18,7 @@ contract(
     loanDistributor,
     interestReserveAddress,
   ]) => {
-    let protocol, interestModel, loanToken, collateralToken, datetime;
+    let protocol, interestRateModel, loanToken, collateralToken, datetime;
 
     const initialSupply = toFixedBN(10000);
     const ZERO = toFixedBN(0);
@@ -53,7 +53,7 @@ contract(
     before(async () => {
       // Get protocol instance
       protocol = await Protocol.new();
-      interestModel = await InterestModel.new();
+      interestRateModel = await InterestRateModel.new();
       loanTokenPriceOracle = await SingleFeedPriceOracle.new();
       collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
       datetime = await DateTime.new();
@@ -97,7 +97,7 @@ contract(
           interestReserveAddress,
         ],
         protocol,
-        interestModel,
+        interestRateModel,
         depositTerms,
         [loanToken],
         [loanToken],
@@ -125,7 +125,7 @@ contract(
       );
 
       // Get current loan interest rate
-      currentLoanInterestRate = await interestModel.getLoanInterestRate(
+      currentLoanInterestRate = await interestRateModel.getLoanInterestRate(
         loanToken.address,
         loanTerm,
         maxLoanTerm,

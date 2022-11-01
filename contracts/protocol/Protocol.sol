@@ -7,7 +7,7 @@ import '@openzeppelin/contracts/security/Pausable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '../oracle/interface/IPriceOracle.sol';
 import './interface/IProtocol.sol';
-import './interface/IInterestModel.sol';
+import './interface/IInterestRateModel.sol';
 import './lib/Configuration.sol';
 import './lib/LiquidityPools.sol';
 import './lib/DepositManager.sol';
@@ -166,9 +166,9 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         address protocolAddress
     );
 
-    event SetInterestModelSucceed(
+    event SetInterestRateModelSucceed(
         address indexed adminAddress,
-        address interestModelAddress
+        address interestRateModelAddress
     );
 
     event SetProtocolReserveRatioSucceed(
@@ -260,12 +260,12 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         _configuration.setPriceOracle(tokenAddress, priceOracle);
     }
 
-    function setInterestModel(IInterestModel interestModel)
+    function setInterestRateModel(IInterestRateModel interestRateModel)
         external
         onlyOwner
         override
     {
-        _configuration.setInterestModel(interestModel);
+        _configuration.setInterestRateModel(interestRateModel);
     }
 
     function setInterestReserveAddress(address payable interestReserveAddress)
@@ -579,13 +579,13 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         return _configuration.balanceCapByToken[tokenAddress];
     }
 
-    function getInterestModelAddress()
+    function getInterestRateModelAddress()
         external
         view
         override
-        returns (address interestModelAddress)
+        returns (address interestRateModelAddress)
     {
-        return address(_configuration.interestModel);
+        return address(_configuration.interestRateModel);
     }
 
     function getTokenPrice(address tokenAddress)

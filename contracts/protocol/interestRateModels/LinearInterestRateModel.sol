@@ -2,9 +2,9 @@
 pragma solidity ^0.8.7;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import './interface/IInterestModel.sol';
+import '../interface/IInterestRateModel.sol';
 
-contract InterestModel is IInterestModel, Ownable {
+contract LinearInterestRateModel is IInterestRateModel, Ownable {
     mapping(address => LoanParameters) _loanParametersByTokenAddress;
 
     // Parameters to help calculate loan interest rate

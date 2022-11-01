@@ -1,6 +1,6 @@
 const Protocol = artifacts.require('Protocol');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const InterestModel = artifacts.require('InterestModel');
+const InterestRateModel = artifacts.require('LinearInterestRateModel');
 const DateTime = artifacts.require('DateTime');
 const { expectEvent, BN } = require('@openzeppelin/test-helpers');
 const {
@@ -23,7 +23,7 @@ contract(
     protocolReserveAddress,
     liquidator,
   ]) => {
-    let protocol, interestModel, loanToken, collateralToken, datetime;
+    let protocol, interestRateModel, loanToken, collateralToken, datetime;
 
     const initialSupply = toFixedBN(10000);
 
@@ -54,7 +54,7 @@ contract(
     before(async () => {
       // Get protocol instance
       protocol = await Protocol.new();
-      interestModel = await InterestModel.new();
+      interestRateModel = await InterestRateModel.new();
       loanTokenPriceOracle = await SingleFeedPriceOracle.new();
       collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
       ETHPriceOracle = await SingleFeedPriceOracle.new();
@@ -107,7 +107,7 @@ contract(
           protocolReserveAddress,
         ],
         protocol,
-        interestModel,
+        interestRateModel,
         depositTerms,
         [loanToken, { address: ETHIdentificationAddress }],
         [loanToken],
@@ -222,7 +222,7 @@ contract(
         it('modify amount of specific pools', async () => {
           const currentPoolId = await datetime.toDays();
           const pools = await protocol.getPoolsByToken(loanToken.address);
-          const interestRate = await interestModel.getLoanInterestRate(
+          const interestRate = await interestRateModel.getLoanInterestRate(
             loanToken.address,
             loanTerm,
             depositTerms[depositTerms.length - 1],
@@ -294,7 +294,7 @@ contract(
             .mul(toFixedBN(1))
             .div(toFixedBN(loanTokenPrice));
 
-          const interestRate = await interestModel.getLoanInterestRate(
+          const interestRate = await interestRateModel.getLoanInterestRate(
             loanToken.address,
             loanTerm,
             depositTerms[depositTerms.length - 1],
@@ -354,7 +354,7 @@ contract(
             .mul(toFixedBN(1))
             .div(toFixedBN(loanTokenPrice));
 
-          const interestRate = await interestModel.getLoanInterestRate(
+          const interestRate = await interestRateModel.getLoanInterestRate(
             loanToken.address,
             loanTerm,
             depositTerms[depositTerms.length - 1],
@@ -406,7 +406,7 @@ contract(
         it('get correct data of record', async () => {
           const record = await protocol.getLoanRecordById(loanId);
 
-          const interestRate = await interestModel.getLoanInterestRate(
+          const interestRate = await interestRateModel.getLoanInterestRate(
             loanToken.address,
             loanTerm,
             depositTerms[depositTerms.length - 1],

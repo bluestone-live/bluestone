@@ -1,8 +1,10 @@
 {
   "contracts": {
     "ChainlinkMock": "0xD5a36332382aBEC9515B5695D70092c77b4185AB",
-    "InterestModel": "0x58E1167A89338d7b86E98686802D846CE9333D9D",
-    "Protocol": "0x9489f551e2dd40aA69518D2502Fe394212A0020D"
+    "Protocol": "0x9489f551e2dd40aA69518D2502Fe394212A0020D",
+    "LinearInterestModel": "0x58E1167A89338d7b86E98686802D846CE9333D9D",
+    "MappingInterestRateModel": "0x031CE3ADba4ab7Bbf079c284e367231544D31256",
+    "InterestRateModel": "0x031CE3ADba4ab7Bbf079c284e367231544D31256"
   },
   "tokens": {
     "ETH": {

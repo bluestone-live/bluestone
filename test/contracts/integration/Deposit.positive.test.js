@@ -1,6 +1,6 @@
 const Protocol = artifacts.require('Protocol');
 const SingleFeedPriceOracle = artifacts.require('SingleFeedPriceOracle');
-const InterestModel = artifacts.require('InterestModel');
+const InterestRateModel = artifacts.require('LinearInterestRateModel');
 const DateTime = artifacts.require('DateTime');
 const { expectEvent, BN, time } = require('@openzeppelin/test-helpers');
 const {
@@ -22,7 +22,7 @@ contract(
     loanDistributor,
     protocolReserveAddress,
   ]) => {
-    let protocol, interestModel, loanToken, collateralToken, datetime;
+    let protocol, interestRateModel, loanToken, collateralToken, datetime;
 
     const initialSupply = toFixedBN(10000);
 
@@ -53,7 +53,7 @@ contract(
     before(async () => {
       // Get protocol instance
       protocol = await Protocol.new();
-      interestModel = await InterestModel.new();
+      interestRateModel = await InterestRateModel.new();
       loanTokenPriceOracle = await SingleFeedPriceOracle.new();
       collateralTokenPriceOracle = await SingleFeedPriceOracle.new();
       datetime = await DateTime.new();
@@ -97,7 +97,7 @@ contract(
           protocolReserveAddress,
         ],
         protocol,
-        interestModel,
+        interestRateModel,
         depositTerms,
         [loanToken, { address: ETHIdentificationAddress }],
         [loanToken],
@@ -183,7 +183,7 @@ contract(
         );
         expect(pool.totalDepositWeight).to.equal(
           (
-            await interestModel.getDepositWeight(
+            await interestRateModel.getDepositWeight(
               toFixedBN(depositAmount),
               depositTerm,
             )
@@ -466,7 +466,7 @@ contract(
         );
         expect(pool.totalDepositWeight).to.equal(
           (
-            await interestModel.getDepositWeight(
+            await interestRateModel.getDepositWeight(
               toFixedBN(depositAmount),
               depositTerm,
             )
