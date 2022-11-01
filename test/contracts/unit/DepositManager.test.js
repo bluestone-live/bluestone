@@ -19,7 +19,7 @@ contract(
   'DepositManager',
   function ([
     owner,
-    administrator,
+    keeper,
     depositor,
     loaner,
     distributorAddress,
