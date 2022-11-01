@@ -43,23 +43,21 @@ contract MappingInterestRateModel is IInterestRateModel, Ownable {
     function getAllRates(address tokenAddress)
         external
         view
-        returns (uint256[] memory, uint256[] memory)
+        returns (uint256[] memory termList, uint256[] memory interestRateList)
     {
         InterestRateDetail
             storage interestRateDetail = _interestRateDetailByTokenAddress[
                 tokenAddress
             ];
 
-        uint256[] memory interestRateList = new uint256[](
-            interestRateDetail.termList.length
-        );
+        termList = interestRateDetail.termList;
+
+        interestRateList = new uint256[](interestRateDetail.termList.length);
         for (uint256 i = 0; i < interestRateList.length; i++) {
             interestRateList[i] = interestRateDetail.interestRateByTerm[
                 interestRateDetail.termList[i]
             ];
         }
-
-        return (interestRateDetail.termList, interestRateList);
     }
 
     function setRates(

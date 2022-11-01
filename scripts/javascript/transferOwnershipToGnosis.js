@@ -1,7 +1,6 @@
-const debug = require('debug')('script:setLoanInterestRates');
-const { loadNetwork, makeTruffleScript, toFixedBN } = require('../utils.js');
+const debug = require('debug')('script:transferOwnershipToGnosis');
+const { loadNetwork, makeTruffleScript } = require('../utils.js');
 const config = require('config');
-const { BN } = require('@openzeppelin/test-helpers');
 const Protocol = artifacts.require('Protocol');
 const LinearInterestRateModel = artifacts.require('LinearInterestRateModel');
 const MappingInterestRateModel = artifacts.require('MappingInterestRateModel');
@@ -28,10 +27,10 @@ module.exports = makeTruffleScript(async (network) => {
     );
   }
 
-  await Promise.all(
+  await Promise.all([
     protocol.transferOwnership(gnosisAddress),
     interestRateModel.transferOwnership(gnosisAddress),
-  );
+  ]);
 
   debug(`Transfer ownership to ${gnosisAddress} success.`);
 });

@@ -78,7 +78,7 @@ module.exports = {
       network_id: 5,
       websockets: true,
       confirmations: 2,
-      gasPrice: 2600000000,
+      gasPrice: 26000000000,
       networkCheckTimeout: 10000000,
       pollingInterval: 30000,
       timeoutBlocks: 2000,
