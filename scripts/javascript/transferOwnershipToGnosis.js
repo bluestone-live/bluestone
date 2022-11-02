@@ -8,23 +8,20 @@ const MappingInterestRateModel = artifacts.require('MappingInterestRateModel');
 module.exports = makeTruffleScript(async (network) => {
   const { contracts } = loadNetwork(network);
   const gnosisAddress = config.get('contract.gnosis');
+  const modelSelect = config.get('contract.interestRateModel.select');
 
   const protocol = await Protocol.at(contracts.Protocol);
   let interestRateModel;
-  if (
-    contracts.LinearInterestRateModel &&
-    contracts.InterestRateModel === contracts.LinearInterestRateModel
-  ) {
+  if (modelSelect === 'Linear') {
     interestRateModel = await LinearInterestRateModel.at(
       contracts.LinearInterestRateModel,
     );
-  } else if (
-    contracts.MappingInterestRateModel &&
-    contracts.InterestRateModel === contracts.MappingInterestRateModel
-  ) {
+  } else if (modelSelect === 'Mapping') {
     interestRateModel = await MappingInterestRateModel.at(
       contracts.MappingInterestRateModel,
     );
+  } else {
+    return debug('Selected interestRateModel set error in config file');
   }
 
   await Promise.all([

@@ -67,6 +67,6 @@ module.exports = makeTruffleScript(async (network) => {
       }),
     );
   } else {
-    return debug('InterestRateModel set error in network file');
+    return debug('Selected interestRateModel set error in config file');
   }
 });
