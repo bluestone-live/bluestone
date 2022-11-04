@@ -8,85 +8,71 @@ contract('Whitelist', function ([owner, administrator, depositor, loaner]) {
   beforeEach(async () => {
     whitelist = await Whitelist.new();
   });
-  describe('#constructor', () => {
-    it('when everything is ok', async () => {
-      const admins = await whitelist.getAdministrators();
-      const isAdmin = await whitelist.isAdministrator(owner);
-      expect(admins[0]).to.equal(owner);
-      expect(isAdmin).to.equal(true);
-    });
-  });
 
-  context('Administrators: ', () => {
-    describe('#addAdministrator', () => {
-      context('when signer is already a administrator', () => {
+  context('Keepers: ', () => {
+    describe('#addKeeperWhitelisted', () => {
+      let tx;
+      beforeEach(async () => {
+        tx = await whitelist.addKeeperWhitelisted(depositor);
+      });
+      context('when account is already whitelisted', () => {
         it('revert', async () => {
           await expectRevert(
-            whitelist.addAdministrator(owner),
-            'Whitelist: account is already administrator',
+            whitelist.addKeeperWhitelisted(depositor),
+            'Whitelist: keeper account is already whitelisted',
           );
         });
       });
 
       context('when everything is ok', () => {
         it('succeed', async () => {
-          let tx = await whitelist.addAdministrator(administrator);
-          const administrators = await whitelist.getAdministrators();
+          const whitelistedKeepers = await whitelist.getWhitelistedKeepers();
           let addFlag = false;
-          administrators.forEach((account) => {
-            if (account === administrator) {
+          whitelistedKeepers.forEach((account) => {
+            if (account === depositor) {
               addFlag = true;
             }
           });
           expect(addFlag).to.equal(true);
 
-          const isAdmin = await whitelist.isAdministrator(administrator);
+          const isAdmin = await whitelist.isKeeperWhitelisted(depositor);
           expect(isAdmin).to.equal(true);
 
-          expectEvent.inLogs(tx.logs, 'AddAdministrator', {
-            account: administrator,
+          expectEvent.inLogs(tx.logs, 'AddKeeperWhitelisted', {
+            account: depositor,
           });
         });
       });
     });
 
-    describe('#removeAdministrator', () => {
-      context('when account is not administrator', () => {
+    describe('#removeKeeperWhitelisted', () => {
+      context('when account is not whitelisted', () => {
         it('revert', async () => {
           await expectRevert(
-            whitelist.removeAdministrator(administrator),
-            'Whitelist: account is not administrator',
-          );
-        });
-      });
-
-      context('when account is owner', () => {
-        it('revert', async () => {
-          await expectRevert(
-            whitelist.removeAdministrator(owner),
-            'Whitelist: can not remove owner from administrators',
+            whitelist.removeKeeperWhitelisted(depositor),
+            'Whitelist: keeper account is not whitelisted',
           );
         });
       });
 
       context('when everything is ok', () => {
         it('succeed', async () => {
-          await whitelist.addAdministrator(administrator);
-          let tx = await whitelist.removeAdministrator(administrator);
-          const administrators = await whitelist.getAdministrators();
+          await whitelist.addKeeperWhitelisted(depositor);
+          let tx = await whitelist.removeKeeperWhitelisted(depositor);
+          const whitelistedKeepers = await whitelist.getWhitelistedKeepers();
           let removeFlag = true;
-          administrators.forEach((account) => {
-            if (account === administrator) {
+          whitelistedKeepers.forEach((account) => {
+            if (account === depositor) {
               removeFlag = false;
             }
           });
           expect(removeFlag).to.equal(true);
 
-          const isAdmin = await whitelist.isAdministrator(administrator);
+          const isAdmin = await whitelist.isKeeperWhitelisted(depositor);
           expect(isAdmin).to.equal(false);
 
-          expectEvent.inLogs(tx.logs, 'RemoveAdministrator', {
-            account: administrator,
+          expectEvent.inLogs(tx.logs, 'RemoveKeeperWhitelisted', {
+            account: depositor,
           });
         });
       });

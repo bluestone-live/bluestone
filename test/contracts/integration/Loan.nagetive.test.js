@@ -15,7 +15,7 @@ contract(
   'Protocol: Loan(nagetive)',
   ([
     owner,
-    administrator,
+    keeper,
     depositor,
     loaner,
     depositDistributor,
@@ -95,7 +95,7 @@ contract(
       await setupTestEnv(
         [
           owner,
-          administrator,
+          keeper,
           depositor,
           loaner,
           depositDistributor,
@@ -126,6 +126,7 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
+        [keeper],
         [depositor],
         [loaner],
       );

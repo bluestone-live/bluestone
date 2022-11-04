@@ -2,10 +2,18 @@
 pragma solidity ^0.8.7;
 
 interface IWhitelist {
+    // Whitelist events
+    event AddKeeperWhitelisted(address indexed account);
+    event RemoveKeeperWhitelisted(address indexed account);
+    event AddLenderWhitelisted(address indexed account);
+    event RemoveLenderWhitelisted(address indexed account);
+    event AddBorrowerWhitelisted(address indexed account);
+    event RemoveBorrowerWhitelisted(address indexed account);
+
     /// Whitelist Getter
 
-    /// @notice Whitelisted administrators getter
-    function getAdministrators() external view returns (address[] memory);
+    /// @notice Whitelisted keepers getter
+    function getWhitelistedKeepers() external view returns (address[] memory);
 
     /// @notice Whitelisted lenders getter
     function getWhitelistedLenders() external view returns (address[] memory);
@@ -13,17 +21,13 @@ interface IWhitelist {
     /// @notice Whitelisted borrowers getter
     function getWhitelistedBorrowers() external view returns (address[] memory);
 
-    /// Option for Administrators
-
-    /// @notice Add account to administrators
+    /// @notice Add account to whitelistedKeepers
     /// @param account Account address
-    function addAdministrator(address account) external;
+    function addKeeperWhitelisted(address account) external;
 
-    /// @notice Remove account from administrators
+    /// @notice Remove account from whitelistedKeepers
     /// @param account Account address
-    function removeAdministrator(address account) external;
-
-    /// Option for Lenders
+    function removeKeeperWhitelisted(address account) external;
 
     /// @notice Add account to whitelistedLenders
     /// @param account Account address
@@ -32,8 +36,6 @@ interface IWhitelist {
     /// @notice Remove account from whitelistedLenders
     /// @param account Account address
     function removeLenderWhitelisted(address account) external;
-
-    /// Option for Borrowers
 
     /// @notice Add account to whitelistedBorrowers
     /// @param account Account address

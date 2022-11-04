@@ -15,13 +15,12 @@ contract(
   'Protocol: Loan(positive)',
   ([
     owner,
-    administrator,
+    keeper,
     depositor,
     loaner,
     depositDistributor,
     loanDistributor,
     protocolReserveAddress,
-    liquidator,
   ]) => {
     let protocol, interestRateModel, loanToken, collateralToken, datetime;
 
@@ -66,7 +65,7 @@ contract(
 
       // Mint some token to loaner
       await loanToken.mint(loaner, initialSupply);
-      await loanToken.mint(liquidator, initialSupply);
+      await loanToken.mint(keeper, initialSupply);
 
       // Approve
       await loanToken.approve(protocol.address, initialSupply, {
@@ -79,7 +78,7 @@ contract(
         from: loaner,
       });
       await loanToken.approve(protocol.address, initialSupply, {
-        from: liquidator,
+        from: keeper,
       });
 
       // Setup price oracles
@@ -99,7 +98,7 @@ contract(
       await setupTestEnv(
         [
           owner,
-          administrator,
+          keeper,
           depositor,
           loaner,
           depositDistributor,
@@ -130,6 +129,7 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         loanDistributorFeeRatio,
+        [keeper],
         [depositor],
         [loaner],
       );

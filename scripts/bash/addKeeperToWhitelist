@@ -6,7 +6,7 @@ source $DIR/utils
 required_args=( network, account)
 
 if [ $# -ne ${#required_args[@]} ]; then
-  description="Add a whitelisted administrator."
+  description="Add a whitelisted keeper."
   example_args="kovan 0xf4Cb4Decc09CAdA4e4DCd510d915A5d9E5C8DE71"
   show_help_message "$description" $required_args "$example_args"
   exit 1

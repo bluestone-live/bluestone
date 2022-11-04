@@ -434,6 +434,7 @@ contract Protocol is IProtocol, Ownable, Pausable, ReentrancyGuard, Whitelist {
         payable
         whenNotPaused
         nonReentrant
+        onlyWhitelistedKeeper
         override
         returns (uint256 remainingCollateral, uint256 liquidatedAmount)
     {

@@ -15,13 +15,12 @@ contract(
   'Protocol: Liquidation(nagetive)',
   ([
     owner,
-    administrator,
+    keeper,
     depositor,
     loaner,
     depositDistributor,
     loanDistributor,
     protocolReserveAddress,
-    liquidator,
   ]) => {
     let protocol, interestRateModel, loanToken, collateralToken;
 
@@ -67,7 +66,7 @@ contract(
 
       // Mint some token to loaner
       await loanToken.mint(loaner, initialSupply);
-      await loanToken.mint(liquidator, initialSupply);
+      await loanToken.mint(keeper, initialSupply);
 
       // Approve
       await loanToken.approve(protocol.address, initialSupply, {
@@ -80,7 +79,7 @@ contract(
         from: loaner,
       });
       await loanToken.approve(protocol.address, initialSupply, {
-        from: liquidator,
+        from: keeper,
       });
 
       // Setup price oracles
@@ -100,7 +99,7 @@ contract(
       await setupTestEnv(
         [
           owner,
-          administrator,
+          keeper,
           depositor,
           loaner,
           depositDistributor,
@@ -131,6 +130,7 @@ contract(
         protocolReserveRatio,
         maxDepositDistributorFeeRatio,
         maxLoanDistributorFeeRatio,
+        [keeper],
         [depositor],
         [loaner],
       );
@@ -179,7 +179,7 @@ contract(
 
         await expectRevert(
           protocol.liquidateLoan(loanId, record.remainingDebt, {
-            from: liquidator,
+            from: keeper,
           }),
           'LoanManager: not liquidatable',
         );
@@ -225,7 +225,7 @@ contract(
 
         await expectRevert(
           protocol.liquidateLoan(loanId, record.remainingDebt, {
-            from: liquidator,
+            from: keeper,
           }),
           'LoanManager: loan already closed',
         );

@@ -5,29 +5,17 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import './interface/IWhitelist.sol';
 
 contract Whitelist is Ownable, IWhitelist {
-    address[] private administrators;
+    address[] private whitelistedKeepers;
     address[] private whitelistedLenders;
     address[] private whitelistedBorrowers;
-    mapping(address => bool) public isAdministrator;
+    mapping(address => bool) public isKeeperWhitelisted;
     mapping(address => bool) public isLenderWhitelisted;
     mapping(address => bool) public isBorrowerWhitelisted;
 
-    event AddAdministrator(address indexed account);
-    event RemoveAdministrator(address indexed account);
-    event AddLenderWhitelisted(address indexed account);
-    event RemoveLenderWhitelisted(address indexed account);
-    event AddBorrowerWhitelisted(address indexed account);
-    event RemoveBorrowerWhitelisted(address indexed account);
-
-    constructor() {
-        administrators.push(msg.sender);
-        isAdministrator[msg.sender] = true;
-    }
-
-    modifier onlyAdministrator() {
+    modifier onlyWhitelistedKeeper() {
         require(
-            isAdministrator[msg.sender],
-            'Whitelist: caller is not administrator'
+            isKeeperWhitelisted[msg.sender],
+            'Whitelist: caller is not whitelisted keeper'
         );
         _;
     }
@@ -48,13 +36,13 @@ contract Whitelist is Ownable, IWhitelist {
         _;
     }
 
-    function getAdministrators()
+    function getWhitelistedKeepers()
         external
         view
         override
         returns (address[] memory)
     {
-        return administrators;
+        return whitelistedKeepers;
     }
 
     function getWhitelistedLenders()
@@ -75,42 +63,38 @@ contract Whitelist is Ownable, IWhitelist {
         return whitelistedBorrowers;
     }
 
-    function addAdministrator(address account) external override onlyOwner {
+    function addKeeperWhitelisted(address account) external override onlyOwner {
         require(
-            !isAdministrator[account],
-            'Whitelist: account is already administrator'
+            !isKeeperWhitelisted[account],
+            'Whitelist: keeper account is already whitelisted'
         );
-        administrators.push(account);
-        isAdministrator[account] = true;
-        emit AddAdministrator(account);
+        whitelistedKeepers.push(account);
+        isKeeperWhitelisted[account] = true;
+        emit AddKeeperWhitelisted(account);
     }
 
-    function removeAdministrator(address account) external override onlyOwner {
+    function removeKeeperWhitelisted(address account)
+        external
+        override
+        onlyOwner
+    {
         require(
-            isAdministrator[account],
-            'Whitelist: account is not administrator'
+            isKeeperWhitelisted[account],
+            'Whitelist: keeper account is not whitelisted'
         );
-        require(
-            owner() != account,
-            'Whitelist: can not remove owner from administrators'
-        );
-        address lastAccount = administrators[administrators.length - 1];
-        administrators.pop();
-        for (uint256 i = 0; i < administrators.length; i++) {
-            if (administrators[i] == account) {
-                administrators[i] = lastAccount;
+        address lastAccount = whitelistedKeepers[whitelistedKeepers.length - 1];
+        whitelistedKeepers.pop();
+        for (uint256 i = 0; i < whitelistedKeepers.length; i++) {
+            if (whitelistedKeepers[i] == account) {
+                whitelistedKeepers[i] = lastAccount;
                 break;
             }
         }
-        delete isAdministrator[account];
-        emit RemoveAdministrator(account);
+        delete isKeeperWhitelisted[account];
+        emit RemoveKeeperWhitelisted(account);
     }
 
-    function addLenderWhitelisted(address account)
-        external
-        override
-        onlyAdministrator
-    {
+    function addLenderWhitelisted(address account) external override onlyOwner {
         require(
             !isLenderWhitelisted[account],
             'Whitelist: lender account is already whitelisted'
@@ -123,7 +107,7 @@ contract Whitelist is Ownable, IWhitelist {
     function removeLenderWhitelisted(address account)
         external
         override
-        onlyAdministrator
+        onlyOwner
     {
         require(
             isLenderWhitelisted[account],
@@ -144,7 +128,7 @@ contract Whitelist is Ownable, IWhitelist {
     function addBorrowerWhitelisted(address account)
         external
         override
-        onlyAdministrator
+        onlyOwner
     {
         require(
             !isBorrowerWhitelisted[account],
@@ -158,7 +142,7 @@ contract Whitelist is Ownable, IWhitelist {
     function removeBorrowerWhitelisted(address account)
         external
         override
-        onlyAdministrator
+        onlyOwner
     {
         require(
             isBorrowerWhitelisted[account],

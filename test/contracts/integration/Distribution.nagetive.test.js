@@ -15,7 +15,7 @@ contract(
   'Protocol: Distribution(nagetive)',
   ([
     owner,
-    administrator,
+    keeper,
     depositor,
     loaner,
     depositDistributor,
@@ -113,7 +113,7 @@ contract(
           await setupTestEnv(
             [
               owner,
-              administrator,
+              keeper,
               depositor,
               loaner,
               depositDistributor,
@@ -145,6 +145,7 @@ contract(
             // ignore distributor fee ratios setting
             null,
             null,
+            [keeper],
             [depositor],
             [loaner],
           );

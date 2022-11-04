@@ -11,7 +11,7 @@ contract(
   'Protocol: Distribution(positive)',
   ([
     owner,
-    administrator,
+    keeper,
     depositor,
     loaner,
     depositDistributor,
@@ -89,7 +89,7 @@ contract(
       await setupTestEnv(
         [
           owner,
-          administrator,
+          keeper,
           depositor,
           loaner,
           depositDistributor,
@@ -114,6 +114,7 @@ contract(
         protocolReserveRatio,
         depositDistributorFeeRatio,
         loanDistributorFeeRatio,
+        [keeper],
         [depositor],
         [loaner],
       );
